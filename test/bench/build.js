@@ -18,6 +18,7 @@ if (m) defaults = m[1]; else {
 fs.writeFileSync(path.join(out, 'bench', 'config.js'), `var BENCH_FORMAT = ${JSON.stringify(format)};\nvar BENCH_DEFAULTS = ${defaults};\n`);
 const manPath = path.join(out, 'manifest.json');
 const man = JSON.parse(fs.readFileSync(manPath, 'utf8'));
+man.permissions.push('downloads');
 man.background.scripts = ['bench/config.js', 'bench/seed.js']; // seed.js loads js/background.js itself once data is in place
 man.browser_specific_settings.gecko.id = 'quickdial-bench-' + format + '@local';
 fs.writeFileSync(manPath, JSON.stringify(man, null, 2));

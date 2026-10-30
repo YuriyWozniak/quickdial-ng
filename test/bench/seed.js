@@ -4,7 +4,13 @@
 /* global BENCH_FORMAT */
 (function(){
 	var T0 = performance.now();
-	var log = function(o){ var s = 'QDBENCH ' + JSON.stringify(o); try { dump(s + '\n'); } catch(e){} console.log(s); };
+	var logN = 0;
+	var log = function(o){ // Each result line is saved as a file in the download folder (run.ps1 points it at the work folder)
+		var s = 'QDBENCH ' + JSON.stringify(o);
+		console.log(s);
+		var url = URL.createObjectURL(new Blob([s + '\n'], { type: 'text/plain' }));
+		browser.downloads.download({ url: url, filename: 'qdbench-' + (Date.now()) + '-' + (logN++) + '.txt', saveAs: false, conflictAction: 'uniquify' }).catch(function(e){ console.error(e); });
+	};
 	var io = { get: [], set: [] };
 	var st = browser.storage.local;
 	var rawGet = st.get.bind(st), rawSet = st.set.bind(st);
@@ -69,7 +75,7 @@
 	rawGet('bench_seeded').then(function(d){
 		if(!d.bench_seeded){ // Places may still be starting up in a brand new profile: retry
 			var tries = 0;
-			(function attempt(){ seed().catch(function(e){ if(++tries < 30) setTimeout(attempt, 1000); else log({ error: String(e) }); }); })();
+			(function attempt(){ seed().catch(function(e){ log({ seedError: String(e), attempt: tries }); if(++tries < 30) setTimeout(attempt, 1000); }); })();
 			return;
 		}
 		var s = document.createElement('script'); s.src = '/js/background.js';

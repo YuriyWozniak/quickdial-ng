@@ -19,19 +19,22 @@ if (-not $Src) {
 node "$PSScriptRoot\build.js" $Src "$work\ext" $Format
 if ($LASTEXITCODE -ne 0) { throw "bench build failed" }
 $log = "$work\run.log"
+$out = "$work\out"; Remove-Item $out -Recurse -Force -ErrorAction SilentlyContinue; New-Item -ItemType Directory $out | Out-Null
 $p = Start-Process -FilePath "$Tools\node_modules\.bin\web-ext.cmd" -PassThru -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError "$work\err.log" -ArgumentList @(
   'run', '--source-dir', "`"$work\ext`"", '--firefox', "`"$Firefox`"", '--no-reload', '--no-input', '--verbose', '--arg=-headless',
   '--pref', 'browser.dom.window.dump.enabled=true', '--pref', 'devtools.console.stdout.chrome=true', '--pref', 'devtools.console.stdout.content=true',
+  '--pref', 'browser.download.folderList=2', '--pref', "browser.download.dir=$out", '--pref', 'browser.download.useDownloadDir=true',
+  '--pref', 'browser.download.always_ask_before_handling_new_types=false', '--pref', 'browser.download.alwaysOpenPanel=false',
   '--pref', 'browser.shell.checkDefaultBrowser=false', '--pref', 'browser.startup.homepage_override.mstone=ignore')
 $deadline = (Get-Date).AddSeconds($TimeoutSec)
 while ((Get-Date) -lt $deadline) {
   Start-Sleep -Seconds 2
-  if ((Test-Path $log) -and (Select-String -Path $log -Pattern 'QDBENCH \{"done":true\}' -Quiet)) { break }
+  if (Get-ChildItem $out -Filter 'qdbench-*.txt' | Select-String -Pattern 'QDBENCH \{"done":true\}' -Quiet) { break }
 }
 # Stop only the bench Firefox (temporary profile under %TEMP%) and its web-ext; the everyday Firefox is left alone
 Get-CimInstance Win32_Process -Filter "Name='firefox.exe'" | Where-Object { $_.CommandLine -match '-profile' -and $_.CommandLine -match [regex]::Escape($env:TEMP) } | ForEach-Object { taskkill /T /F /PID $_.ProcessId | Out-Null }
 Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'web-ext' -and $_.CommandLine -match 'qdbench' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue
-$lines = Select-String -Path $log -Pattern 'QDBENCH (\{.*\})' -AllMatches | ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -Unique
+$lines = Get-ChildItem $out -Filter 'qdbench-*.txt' | Sort-Object Name | Select-String -Pattern 'QDBENCH (\{.*\})' -AllMatches | ForEach-Object { $_.Matches[0].Groups[1].Value } | Select-Object -Unique
 if (-not $lines) { Write-Host "No results; see $log"; exit 1 }
 $lines
