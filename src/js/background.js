@@ -1,7 +1,10 @@
 var app = {};  // App object
+app.ready = new Promise(function(resolve){ app._setReady = resolve; }); // Resolves once settings and nodes are loaded; dial pages wait on it
 
 app.init = function(){ // Init module
 	app.Settings.init(function(){
+		app.Settings.rememberBackground();
+		app._setReady();
 		app.Messages.init();
 		app.Messages.broadcast(app.Messages.Commands.settingsChanged);
 		browser.browserAction.onClicked.addListener(function(e){
@@ -291,8 +294,16 @@ app.Settings._serialize = function(){ // Settings and node tree only (no images,
 	});
 };
 app.Settings._saveCallbacks = [];
+app.Settings.rememberBackground = function(){ // Keep the background colour where dial pages can read it before settings load (see dialbg.js)
+	try {
+		var color = app.settings && app.settings.backgroundColor;
+		if(!color) localStorage.removeItem('dialBackgroundColor');
+		else if(localStorage.getItem('dialBackgroundColor') != color) localStorage.setItem('dialBackgroundColor', color);
+	} catch(e){}
+};
 app.Settings.save = function(callback){ // Save settings (batched, and skipped when nothing changed)
 	if(! app.settings) return;
+	app.Settings.rememberBackground(); // Every settings change (settings page, import, migration) passes through here
 	if(callback) app.Settings._saveCallbacks.push(callback);
 	if(app.Settings._saveTimer) return;
 	app.Settings._saveTimer = setTimeout(function(){

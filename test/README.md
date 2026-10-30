@@ -14,7 +14,7 @@ The script prints a `PASS`/`FAIL` line per check. It ends with `ALL PASS` (exit 
 
 | File | Purpose |
 |---|---|
-| `test_storage.py` | The test runner. Copies `src/` to a temporary folder and serves it over a local HTTP server. Loads `bg.html` (the background page) and the dial and settings pages into frames of `index.html`, then works through phases A–M (below). Deletes the temporary folder when done. |
+| `test_storage.py` | The test runner. Copies `src/` to a temporary folder and serves it over a local HTTP server. Loads `bg.html` (the background page) and the dial and settings pages into frames of `index.html`, then works through phases A–N (below). Deletes the temporary folder when done. |
 | `mock.js` | A simulated Firefox WebExtension API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the top window: storage contents, bookmark tree, listeners and a log of storage writes and removals, so the tests can check exactly what was written. It mirrors Firefox's real behaviour where it matters, e.g. `bookmarks.create` returns a new folder without `children`. |
 | `index.html` | The host page. Loads `mock.js` and provides `loadFrame()`, which opens an extension page (background, dial, settings) in an iframe. Reloading a frame removes its old listeners, which simulates a restart. |
 
@@ -35,3 +35,4 @@ The script prints a `PASS`/`FAIL` line per check. It ends with `ALL PASS` (exit 
 | K | The import entry points in the UI exist and work. |
 | L | The dial shows an updated picture after a refresh or capture. |
 | M | A brand-new profile without a Quick Dial folder creates it and keeps syncing. |
+| N | The background colour is remembered for the dial page and updated when settings change. While the background page is still loading, the dial shows that colour and waits; it draws once the background page is ready, with no duplicate retry. |

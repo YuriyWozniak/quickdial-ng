@@ -10,8 +10,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
   document.body.style.backgroundColor = utils.getBackgroundColor();
 	app.init();
 	dial.init();
-  window.setTimeout(function(){
-    if(! app.settings) app.init();
+  window.setTimeout(function(){ // Safety net for when the background page could not be reached and no broadcast arrived
+    if(! app.settings && ! app._waitingForBackground) app.init();
   }, 500);
 });
 
@@ -96,6 +96,8 @@ app.Messages.Commands = {
 	menuImportQuickDial: 208
 };
 app.Messages.init = function(){
+	if(app.Messages._listening) return; // app.init can run more than once; register the listener only once
+	app.Messages._listening = true;
 	browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
 		switch(request.cmd){
 			case app.Messages.Commands.settingsChanged:
@@ -132,19 +134,29 @@ app.Messages.init = function(){
 	});
 };
 app.Messages.getSettings = function(callback){
+	app._waitingForBackground = true;
 	browser.runtime.getBackgroundPage().then(function(page){
 		app.bg = (page && page.app) ? page.app : null; // Same-process background page: read its data directly instead of copying it through messages
-		if(page){
-			if(callback) callback(page.app.settings);
+		if(app.bg){
+			Promise.resolve(app.bg.ready).then(function(){ // At browser start the background page may still be loading its settings
+				app._waitingForBackground = false;
+				if(callback) callback(app.bg.settings);
+			});
 		} else {
+			app._waitingForBackground = false;
 			browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback, callback);
 		}
-	}, callback);
+	}, function(e){
+		app._waitingForBackground = false;
+		if(callback) callback(e);
+	});
 };
 app.Messages.getNode = function(path, callback){
 	browser.runtime.getBackgroundPage().then(function(page){
-		if(page){
-			if(callback) callback(page.app.GridNodes.getNode(page.app.node, dial.path.substr(1)));
+		if(page && page.app){
+			Promise.resolve(page.app.ready).then(function(){
+				if(callback) callback(page.app.GridNodes.getNode(page.app.node, dial.path.substr(1)));
+			});
 		} else {
 			browser.runtime.sendMessage({ cmd: app.Messages.Commands.getNode, path: path }).then(callback);
 		}
@@ -183,6 +195,7 @@ app.Messages.capturePage = function(id, callback){
 app.Settings = {};
 app.Settings._changed = function(settings){
 	app.settings = settings;
+	document.documentElement.style.backgroundColor = ''; // Drop dialbg.js's early colour: the body's background (colour and image) fills the page from now on
 	dial.initStyles();
 	dial.initGrid();
 };

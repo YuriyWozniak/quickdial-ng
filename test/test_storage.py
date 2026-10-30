@@ -128,6 +128,22 @@ async def main():
         await J("document.getElementById('bg').contentWindow.browser.bookmarks.create({ parentId: S.bm.children[0].children.find(c => c.title === 'Quick Dial').id, title: 'Fresh', url: 'https://fresh.example/' })"); await pg.wait_for_timeout(1000)
         st = await J("({ syncing: !!document.getElementById('bg').contentWindow.app.GridNodes._syncing, tiles: (S.storage.node && S.storage.node.children || []).map(c => c.url) })")
         check('M fresh profile creates the folder and keeps syncing', not st['syncing'] and st['tiles'] == ['https://fresh.example/'], st)
+        # Phase N: start page paints the remembered background colour, and waits for the background page instead of a fixed retry
+        BG = "document.getElementById('bg').contentWindow"
+        ls = await J(BG + ".localStorage.getItem('dialBackgroundColor')"); cur = await J(BG + ".app.settings.backgroundColor")
+        check('N background colour remembered on load', ls == cur, (ls, cur))
+        await J("() => { const a = " + BG + ".app; const s = JSON.parse(JSON.stringify(a.settings)); s.backgroundColor = '#123456'; return new Promise(r => a.Settings.update(s, r)); }")
+        ls = await J(BG + ".localStorage.getItem('dialBackgroundColor')")
+        check('N changed colour remembered', ls == '#123456', ls)
+        await J("() => { const w = " + BG + "; w.app.ready = new Promise(r => { window.releaseBg = r; }); }")  # background page still loading
+        await J("loadFrame('dial', 'ext/dialtest.html')"); await pg.wait_for_timeout(1200)
+        st = await J("""() => { const w = document.getElementById('dial').contentWindow; return { html: w.document.documentElement.style.backgroundColor, drawn: !!w.app.settings,
+            listeners: (S.listeners['rt.onMessage.dial'] || []).length }; }""")
+        check('N early colour shown while background loads, nothing drawn, no retry', st['html'] == 'rgb(18, 52, 86)' and not st['drawn'] and st['listeners'] == 0, st)
+        await J("window.releaseBg()"); await pg.wait_for_timeout(500)
+        st = await J("""() => { const w = document.getElementById('dial').contentWindow; return { html: w.document.documentElement.style.backgroundColor, body: w.getComputedStyle(w.document.body).backgroundColor,
+            tiles: w.document.querySelectorAll('table.Grid a').length, listeners: (S.listeners['rt.onMessage.dial'] || []).length }; }""")
+        check('N dial drawn once background is ready', st['html'] == '' and st['body'] == 'rgb(18, 52, 86)' and st['tiles'] > 0 and st['listeners'] == 1, st)
         print('console errors:', [e for e in errs if 'no receiver' not in e][:10])
         await b.close()
 asyncio.run(main()); print('ALL PASS' if ok else 'SOME FAILED'); shutil.rmtree(H, ignore_errors=True); sys.exit(0 if ok else 1)
