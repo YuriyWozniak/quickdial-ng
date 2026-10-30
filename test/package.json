@@ -1,0 +1,12 @@
+{
+  "name": "quickdial-ng-tests",
+  "private": true,
+  "description": "Functional tests and benchmarks for Quick Dial NG. See README.md.",
+  "scripts": {
+    "test": "node test-storage.js",
+    "bench": "node bench/run.js"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  }
+}

@@ -1,11 +1,11 @@
 // Quick Dial NG benchmark: background side. Seeds a realistic profile on first run,
 // then times startup, storage, save, sync and new-tab rendering. Results are logged to the
-// console and saved as files in <Downloads>\qdbench, which run.ps1 reads.
+// console and saved as files in qdbench/ under Firefox's download folder, which run.js reads.
 /* global BENCH_FORMAT */
 (function(){
 	var T0 = performance.now();
 	var logN = 0;
-	var log = function(o){ // Each result line is saved as a file in <Downloads>\qdbench (run.ps1 reads and removes them)
+	var log = function(o){ // Each result line is saved as a file in qdbench/ under the download folder (run.js reads and removes them)
 		var s = 'QDBENCH ' + JSON.stringify(o);
 		console.log(s);
 		var url = URL.createObjectURL(new Blob([s + '\n'], { type: 'text/plain' }));

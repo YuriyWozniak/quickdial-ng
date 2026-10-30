@@ -2,11 +2,24 @@
 
 Functional tests for Quick Dial NG's storage, sync and import logic, plus performance benchmarks in [`bench/`](bench/README.md).
 
-The functional tests don't need Firefox. They load the extension's own pages from `src/` in Chromium (through Playwright) and replace the Firefox WebExtension API with a simulation, so they run anywhere Python and Playwright are installed.
+The functional tests don't need Firefox. They load the extension's own pages from `src/` in Chromium (through Playwright) and replace the Firefox WebExtension API with a simulation, so they run anywhere Node.js runs.
+
+Once, in this folder:
 
 ```
-python3 test/test_storage.py
+npm install
+npx playwright install chromium
 ```
+
+The second command downloads Playwright's own Chromium (about 150 MB, into a per-user cache). It can be skipped where Microsoft Edge or Google Chrome is installed: if Playwright's Chromium is missing, the tests use one of those instead.
+
+Then, from the repository root:
+
+```
+node test/test-storage.js
+```
+
+(or `npm test` in this folder).
 
 The script prints a `PASS`/`FAIL` line per check. It ends with `ALL PASS` (exit code 0) or `SOME FAILED` (exit code 1).
 
@@ -14,11 +27,12 @@ The script prints a `PASS`/`FAIL` line per check. It ends with `ALL PASS` (exit 
 
 | File | Purpose |
 |---|---|
-| `test_storage.py` | The test runner. Copies `src/` to a temporary folder and serves it over a local HTTP server. Loads `bg.html` (the background page) and the dial and settings pages into frames of `index.html`, then works through phases A–N (below). Deletes the temporary folder when done. |
+| `test-storage.js` | The test runner. Copies `src/` to a temporary folder and serves it over a local HTTP server. Loads `bg.html` (the background page) and the dial and settings pages into frames of `index.html`, then works through phases A–N (below). Deletes the temporary folder when done. |
 | `mock.js` | A simulated Firefox WebExtension API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the top window: storage contents, bookmark tree, listeners and a log of storage writes and removals, so the tests can check exactly what was written. It mirrors Firefox's real behaviour where it matters, e.g. `bookmarks.create` returns a new folder without `children`. |
+| `package.json` | The tests' only dependency, Playwright. `npm test` runs the tests and `npm run bench` the [extension benchmark](bench/README.md). |
 | `index.html` | The host page. Loads `mock.js` and provides `loadFrame()`, which opens an extension page (background, dial, settings) in an iframe. Reloading a frame removes its old listeners, which simulates a restart. |
 
-## Test phases in `test_storage.py`
+## Test phases in `test-storage.js`
 
 | Phase | Checks |
 |---|---|

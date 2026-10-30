@@ -57,7 +57,7 @@ How the import links tiles to bookmarks: each tile is matched to a bookmark in t
 
 - Source: `src/` (a Manifest V2 WebExtension).
 - Lint: `npx web-ext lint -s src`
-- Tests: `python3 test/test_storage.py`. This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import, import from the original Quick Dial (bookmark matching/creation, cell positions, settings defaults) and image cleanup.
+- Tests: `node test/test-storage.js` (after `npm install` in `test/`; see [test/README.md](test/README.md)). This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import, import from the original Quick Dial (bookmark matching/creation, cell positions, settings defaults) and image cleanup.
 - Release: `node release/release.js <version> --notes <file>` signs `src/` on addons.mozilla.org (unlisted), publishes a GitHub release with the signed `.xpi` and adds it to `updates.json`, so installed copies update themselves. See [release/README.md](release/README.md) for setup and options.
 
 ## License

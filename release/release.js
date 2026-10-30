@@ -131,9 +131,13 @@ function readKeys(file) {
 }
 
 function webExtBin(dir) {
-	let pkgJson;
-	try { pkgJson = require.resolve('web-ext/package.json', { paths: [dir] }); }
-	catch { fail(`web-ext not found from ${dir}. Run "npm install" in the release folder or set webExtDir.`); }
+	// Look for node_modules/web-ext the way Node does (require.resolve can't: web-ext doesn't export package.json)
+	let pkgJson = null;
+	for (let d = path.resolve(dir); !pkgJson; d = path.dirname(d)) {
+		const p = path.join(d, 'node_modules', 'web-ext', 'package.json');
+		if (fs.existsSync(p)) pkgJson = p;
+		else if (path.dirname(d) === d) fail(`web-ext not found from ${dir}. Run "npm install" in the release folder or set webExtDir.`);
+	}
 	const pkg = JSON.parse(fs.readFileSync(pkgJson, 'utf8'));
 	const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin['web-ext'];
 	return path.join(path.dirname(pkgJson), bin);
