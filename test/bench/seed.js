@@ -23,7 +23,9 @@
 	}
 	async function seed(){
 		var menu = (await browser.bookmarks.getSubTree('menu________'))[0];
-		var folder = menu.children.find(function(c){ return c.title == 'Quick Dial' && !c.url; }) || await browser.bookmarks.create({ parentId: 'menu________', title: 'Quick Dial' });
+		var old = (menu.children || []).find(function(c){ return c.title == 'Quick Dial' && !c.url; });
+		if(old) await browser.bookmarks.removeTree(old.id); // Leftover of a failed attempt
+		var folder = await browser.bookmarks.create({ parentId: 'menu________', title: 'Quick Dial' });
 		var children = [];
 		var images = {};
 		var imageChars = 0;
@@ -65,7 +67,11 @@
 		await new Promise(function(r){ setTimeout(r, 300); });
 	}
 	rawGet('bench_seeded').then(function(d){
-		if(!d.bench_seeded) return seed();
+		if(!d.bench_seeded){ // Places may still be starting up in a brand new profile: retry
+			var tries = 0;
+			(function attempt(){ seed().catch(function(e){ if(++tries < 30) setTimeout(attempt, 1000); else log({ error: String(e) }); }); })();
+			return;
+		}
 		var s = document.createElement('script'); s.src = '/js/background.js';
 		document.head.appendChild(s);
 		waitFor(function(){ return window.app && app.settings && app.node; }, function(){
