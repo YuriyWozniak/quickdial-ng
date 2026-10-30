@@ -78,6 +78,8 @@
 			(function attempt(){ seed().catch(function(e){ log({ seedError: String(e), attempt: tries }); if(++tries < 30) setTimeout(attempt, 1000); }); })();
 			return;
 		}
+		console.log('QDBENCH-progress loading background.js at ' + performance.now().toFixed(0));
+		setInterval(function(){ console.log('QDBENCH-progress ' + performance.now().toFixed(0) + ' stage=' + (results.stage || 'startup') + ' settings=' + !!(window.app && app.settings) + ' node=' + !!(window.app && app.node) + ' syncing=' + !!(window.app && app.GridNodes && app.GridNodes._syncing) + ' dialRuns=' + dialRuns.length); }, 5000);
 		var s = document.createElement('script'); s.src = '/js/background.js';
 		document.head.appendChild(s);
 		var watchdog = setTimeout(function(){ results.timedOutAt = results.stage || 'startup'; results.partialDial = dialRuns.length; log(results); log({ done: true }); }, 90000);
