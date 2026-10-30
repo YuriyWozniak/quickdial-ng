@@ -1,2 +1,3 @@
-**/src.zip
-/*.zip
+web-ext-artifacts/
+.web-ext-secrets*
+__pycache__/

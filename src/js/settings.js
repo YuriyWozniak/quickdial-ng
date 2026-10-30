@@ -154,6 +154,39 @@ app.init = function(){
 		}
 	}
 
+	BtnExport.onclick = function(){
+		browser.runtime.sendMessage({ cmd: app.Messages.Commands.exportData }).then(function(data){
+			var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+			var link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = 'quickdial-ng-backup-' + new Date().toISOString().substr(0, 10) + '.json';
+			document.body.appendChild(link);
+			link.click();
+			setTimeout(function(){ URL.revokeObjectURL(link.href); link.remove(); }, 1000);
+		});
+	}
+	BtnImport.onclick = function(){
+		ImportFile.value = null;
+		ImportFile.click();
+	}
+	ImportFile.onchange = function(){
+		if(!ImportFile.files[0]) return;
+		var fileReader = new FileReader();
+		fileReader.onload = function(e){
+			var data = null;
+			try { data = JSON.parse(e.target.result); } catch(err) {}
+			if(!data || !data.settings || !data.node){
+				alert('This file is not a Quick Dial backup.');
+				return;
+			}
+			if(!confirm('Replace the current settings and tile images with this backup?')) return;
+			browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(function(){
+				window.frameElement.popup.close();
+			}, function(err){ alert('Import failed: ' + err.message); });
+		}
+		fileReader.readAsText(ImportFile.files[0]);
+	}
+
 	BackgroundColor.onchange = function(){
 		BackgroundPreview.style.backgroundColor = BackgroundColor.value;
 	}
@@ -235,6 +268,9 @@ app.Messages.Commands = {
 	deleteNode: 8,
 	refreshNode: 9,
 	capturePage: 10,
+	getImages: 11,
+	exportData: 12,
+	importData: 13,
 	settingsChanged: 100,
 	gridNodesLoaded: 101
 };

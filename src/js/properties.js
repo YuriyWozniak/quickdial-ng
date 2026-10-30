@@ -17,6 +17,16 @@ app.init = function(){
 	app.Messages.getSettings(function(settings){
 		app.settings = settings;
 		app.Messages.getNodeByID(new URL(window.location).searchParams.get('id'), function(node){
+			app.Messages.getImages([node.id], function(images){ // Images are stored separately: get this one
+				if(node.image == '1') node.image = images[node.id] || null;
+				app.initNode(node);
+			});
+		});
+	});
+	app.initButtons();
+};
+
+app.initNode = function(node){
 			app.node = node;
 			Title.value = node.title;
 			if(node.imageMode == 0) ImageMode.value = 0;
@@ -40,7 +50,8 @@ app.init = function(){
 					ImageLocked.checked = (node.imageLocked==true);
 					ImageDefault.style.display = 'none';
 					Url.value = node.url;
-					if(node.image.indexOf('url(')>=0) Image = node.image;
+					if(!node.image || node.image == '0') Image = null;
+					else if(node.image.indexOf('url(')>=0) Image = node.image;
 					else Image = 'url(' + node.image + ')';
 					ImagePreview.style.backgroundImage = Image;
 					break;
@@ -82,18 +93,17 @@ app.init = function(){
 			ImageFile.onchange = function(){
 				var fileReader = new FileReader();
 				fileReader.onload = function(e){
-					Image = e.target.result;
-					ImageFile.value = null;
-					ImagePreview.style.backgroundImage = 'url(' + Image + ')';
+					app.toWebp(e.target.result, function(webp){ // Store uploads as compact WebP
+						Image = webp;
+						ImageFile.value = null;
+						ImagePreview.style.backgroundImage = 'url(' + Image + ')';
+					});
 				}
 				fileReader.readAsDataURL(ImageFile.files[0]);
 			}
-					
+};
 
-		});
-	});
-
-
+app.initButtons = function(){
 	BtnOk.onclick = function(){
 		BtnApply.onclick();
 		window.frameElement.popup.close();
@@ -143,6 +153,7 @@ app.Messages.Commands = {
 	deleteNode: 8,
 	refreshNode: 9,
 	capturePage: 10,
+	getImages: 11,
 	settingsChanged: 100,
 	gridNodesLoaded: 101
 };
@@ -151,6 +162,9 @@ app.Messages.getSettings = function(callback){
 };
 app.Messages.getNodeByID = function(id, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getNodeByID, id: id }).then(callback);
+};
+app.Messages.getImages = function(ids, callback){
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, function(){ callback({}); });
 };
 app.Messages.updateNode = function(id, value, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.updateNode, id: id, value: value }).then(callback);
@@ -163,3 +177,18 @@ app.GridNodes.GridNodeType = { // GridNodeType
 	folder: 1,
 	bookmark: 2
 }
+
+app.toWebp = function(dataUrl, callback){ // Re-encode an image to WebP (longest side max 1200 px)
+	var img = document.createElement('img'); // (the global "Image" is reused by this page)
+	img.onload = function(){
+		var w = img.naturalWidth || 300, h = img.naturalHeight || 150, max = 1200;
+		if(Math.max(w, h) > max){ var r = max / Math.max(w, h); w = Math.round(w * r); h = Math.round(h * r); }
+		var canvas = document.createElement('canvas');
+		canvas.width = w; canvas.height = h;
+		canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+		var webp = canvas.toDataURL('image/webp', 0.85);
+		callback(webp.startsWith('data:image/webp') && webp.length < dataUrl.length ? webp : dataUrl);
+	};
+	img.onerror = function(){ callback(dataUrl); };
+	img.src = dataUrl;
+};

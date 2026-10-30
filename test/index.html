@@ -1,0 +1,5 @@
+<!doctype html><html><head><script src="mock.js"></script></head><body>
+<script>
+function loadFrame(role, src){ return new Promise(res => { const old = document.getElementById(role); if (old) { old.remove(); S.frames = S.frames.filter(f => f.role !== role); for (const k in S.listeners) S.listeners[k] = S.listeners[k].filter(fn => fn.__owner !== role); }
+  const f = document.createElement('iframe'); f.id = role; f.style.width = '1200px'; f.style.height = '700px'; f.onload = () => res(f.contentWindow); f.src = src; document.body.appendChild(f); }); }
+</script></body></html>

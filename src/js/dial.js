@@ -83,6 +83,7 @@ app.Messages.Commands = {
 	deleteNode: 8,
 	refreshNode: 9,
 	capturePage: 10,
+	getImages: 11,
 	settingsChanged: 100,
 	gridNodesLoaded: 101,
 	menuCreateBookmark: 200,
@@ -90,7 +91,6 @@ app.Messages.Commands = {
 	menuEditSettings: 202,
 	menuEditProperties: 203,
 	menuRefreshNode: 204,
-	menuCaptureHere: 205,
 	menuCapturePage: 206,
 	menuDeleteNode: 207
 };
@@ -117,9 +117,6 @@ app.Messages.init = function(){
 				break;
 			case app.Messages.Commands.menuRefreshNode:
 				dial.refreshNode(dial._selectedItem);
-				break;
-			case app.Messages.Commands.menuCaptureHere:
-				dial.captureHere(dial._selectedItem);
 				break;
 			case app.Messages.Commands.menuCapturePage:
 				dial.capturePage(dial._selectedItem);
@@ -165,6 +162,9 @@ app.Messages.deleteNode = function(id, callback){
 };
 app.Messages.refreshNode = function(id, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.refreshNode, path: dial.path, id: id }).then(callback);
+}
+app.Messages.getImages = function(ids, callback){
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, function(){ callback({}); });
 }
 app.Messages.capturePage = function(id, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.capturePage, path: dial.path, id: id }).then(callback);
@@ -513,8 +513,26 @@ dial.populateGrid = function(){
 				break;
 		}
 	}
+	var pendingImages = [];
+	function applyImage(link, node){ // Returns false when the node has no image yet
+		var style = link.childNodes[0].style;
+		if(!node.image || node.image == '0'){
+			style.backgroundImage = '';
+			return node.image == '0';
+		}
+		if(node.image == '1'){ // Stored separately: loaded below for the visible tiles only
+			if(link._imageId != node.id) style.backgroundImage = '';
+			pendingImages.push({ link: link, node: node });
+			return true;
+		}
+		link._imageId = null;
+		if(node.image.indexOf('url(')>=0) style.backgroundImage = node.image;
+		else style.backgroundImage = 'url(' + node.image + ')';
+		return true;
+	}
 	populateEmpty = function(link){
 		link.Node = null;
+		link._imageId = null;
 		link.className = 'Empty';
 		link.childNodes[0].style.backgroundImage = '';
 		if(link.target) delete link.target;
@@ -524,6 +542,7 @@ dial.populateGrid = function(){
 	}
 	populateBack = function(link){
 		link.Node = null;
+		link._imageId = null;
 		link.className = 'Back';
 		link.childNodes[0].style.backgroundImage = '';
 		link.childNodes[1].innerText = 'Back';
@@ -537,10 +556,7 @@ dial.populateGrid = function(){
 		link.className = 'Folder';
 		if(node.imageMode || node.imageMode == 0) applyImageMode(node.imageMode, link.childNodes[0].style);
 		else applyImageMode(-1, link.childNodes[0].style);
-		if(node.image){
-			if(node.image.indexOf('url(')>=0) link.childNodes[0].style.backgroundImage = node.image;
-			else link.childNodes[0].style.backgroundImage = 'url(' + node.image + ')';
-		} else link.childNodes[0].style.backgroundImage = '';
+		applyImage(link, node);
 		link.childNodes[1].innerText = node.title;
 		switch(app.settings.grid.openFolderMethod){
 			case 0:
@@ -559,13 +575,10 @@ dial.populateGrid = function(){
 		link.Node = node;
 		if(node.imageMode || node.imageMode == 0) applyImageMode(node.imageMode, link.childNodes[0].style);
 		else applyImageMode(-1, link.childNodes[0].style);
-		if(node.image){
+		if(applyImage(link, node)){
 			link.className = 'Bookmark';
-			if(node.image.indexOf('url(')>=0) link.childNodes[0].style.backgroundImage = node.image;
-			else link.childNodes[0].style.backgroundImage = 'url(' + node.image + ')';
 		} else {
 			link.className = 'BookmarkLoading';
-			link.childNodes[0].style.backgroundImage = '';
 			dial.refreshNode(link);
 		}
 		link.childNodes[1].innerText = node.title;
@@ -613,6 +626,16 @@ dial.populateGrid = function(){
 		populateEmpty(dial.Grid.getLink(linkItem));
 		linkItem++;
 	}
+	if(pendingImages.length > 0){
+		var requests = pendingImages;
+		app.Messages.getImages(requests.map(function(r){ return r.node.id; }), function(images){
+			for(var r of requests){
+				if(r.link.Node != r.node || !images || !images[r.node.id]) continue;
+				r.link._imageId = r.node.id;
+				r.link.childNodes[0].style.backgroundImage = 'url("' + images[r.node.id] + '")';
+			}
+		});
+	}
 };
 dial.createBookmark = function(){
 	var url = prompt(browser.i18n.getMessage("AddBookmarkPrompt"), 'https://');
@@ -630,88 +653,6 @@ dial.refreshNode = function(selectedItem){
 	selectedItem.className = 'BookmarkLoading';
 	selectedItem.childNodes[0].style.backgroundImage = app.settings.grid.loadingIcon;
 	app.Messages.refreshNode(selectedItem.Node.id);
-}
-dial.captureHere = function(selectedItem){
-	function headersReceived(e){
-		for (let i = e.responseHeaders.length - 1; i >= 0; i--) {
-			switch(e.responseHeaders[i].name.toLowerCase()){
-				case 'x-frame-options':
-				case 'frame-options':
-				case 'content-security-policy':
-					e.responseHeaders.splice(i, 1);
-					break;
-			}
-		}
-		return { responseHeaders: e.responseHeaders };
-	};
-	function pageLoaded(){
-		if(!iframe) return;
-		function clean(){
-			if(!iframe) return;
-			selectedItem.children[0].removeChild(iframe);
-			dial.capture -= 1;
-			if(dial.capture == 0){
-				browser.webRequest.onHeadersReceived.removeListener(headersReceived);
-				browser.tabs.update(tab.id, {muted: false}).then();
-			}
-			iframe = null;
-		}
-		setTimeout(function(){
-			browser.tabs.captureVisibleTab().then(function(img){
-				var imgObj = new Image;
-				imgObj.src = img;
-				var canvas = document.createElement('canvas');
-				canvas.style.width = rect.width.toString() + 'px';
-				canvas.style.height = rect.height.toString() + 'px';
-				canvas.width = rect.width;
-				canvas.height = rect.height;
-				var ctx = canvas.getContext('2d');
-				ctx.clearRect(0, 0, rect.width, rect.height);
-				ctx.save();
-				setTimeout(function(){
-					ctx.drawImage(imgObj, rect.left, rect.top, rect.width, rect.height, 0, 0, rect.width, rect.height);
-					ctx.restore();
-					img = canvas.toDataURL();
-					selectedItem.children[0].style.backgroundImage = 'url(' + img + ')';
-					clean();
-					app.Messages.updateNode(selectedItem.Node.id, { image: img }, function(){
-						setTimeout(function(){
-							if(dial.capture == 0) dial.skipUpdate = false;
-						}, 500);
-					});
-				}, 500);
-			}, clean);
-		}, 3000);
-
-
-	};
-
-	var tab = null;
-	var previewWidth = 1200; // Need to be linked to settings
-	var previewHeight = 710; // Need to be linked to settings
-	var iframe = document.createElement('iframe');
-	var rect = selectedItem.children[0].getBoundingClientRect();
-	browser.tabs.getCurrent().then(function(currentTab){
-		tab = currentTab;
-		var ratioX = previewWidth / selectedItem.children[0].offsetWidth;
-		var ratioY = previewHeight / selectedItem.children[0].offsetHeight;
-		iframe.style.width = ratioX * selectedItem.children[0].offsetWidth + 'px';
-		iframe.style.height = ratioY * selectedItem.children[0].offsetHeight + 'px';
-		iframe.style.position = 'absolute';
-		iframe.style.MozTransform = 'scale(' + (1/ratioX) + ', ' + (1/ratioY) + ')';
-		iframe.style.MozTransformOrigin = 'top left';
-		iframe.sandbox = 'allow-scripts allow-same-origin';
-		iframe.onload = function(){ pageLoaded(); }
-		dial.capture += 1;
-		if(dial.capture == 1){
-			dial.skipUpdate = true;
-			browser.webRequest.onHeadersReceived.addListener(headersReceived, { urls:['*://*/*'], types:['sub_frame'] }, ['blocking', 'responseHeaders']);
-			browser.tabs.update(tab.id, {muted: true}).then();
-		}
-		iframe.src = selectedItem.Node.url;
-		selectedItem.children[0].appendChild(iframe);
-		//setTimeout(function(){ pageLoaded(); }, 6000);
-	});
 }
 dial.capturePage = function(selectedItem){
 	selectedItem.className = 'BookmarkLoading';

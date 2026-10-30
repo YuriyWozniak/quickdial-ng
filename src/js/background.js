@@ -45,6 +45,9 @@ app.Messages.Commands = {
 	deleteNode: 8,
 	refreshNode: 9,
 	capturePage: 10,
+	getImages: 11,
+	exportData: 12,
+	importData: 13,
 	settingsChanged: 100,
 	gridNodesLoaded: 101,
 	menuCreateBookmark: 200,
@@ -52,7 +55,6 @@ app.Messages.Commands = {
 	menuEditSettings: 202,
 	menuEditProperties: 203,
 	menuRefreshNode: 204,
-	menuCaptureHere: 205,
 	menuCapturePage: 206,
 	menuDeleteNode: 207
 };
@@ -69,6 +71,7 @@ app.Messages.init = function(){ // Init Messages Listeners
 				sendResponse(app.settings);
 				browser.runtime.sendMessage( { cmd: app.Messages.Commands.settingsChanged } );
 				if(rootChanged){
+					app.Images.removeTree(app.node);
 					app.node = { children: [] };
 					app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); });
 				} else {
@@ -119,13 +122,19 @@ app.Messages.init = function(){ // Init Messages Listeners
 					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
 				});
 				break;
+			case app.Messages.Commands.getImages:
+				return app.Images.get(request.ids);
+			case app.Messages.Commands.exportData:
+				return app.Backup.export();
+			case app.Messages.Commands.importData:
+				return app.Backup.import(request.data);
 		}
 	});
 };
 
 app.Settings = {}; // Settings helper object
 app.Settings.init = function(callback){ // Load settings and nodes
-	browser.storage.local.get().then(function(data){
+	browser.storage.local.get(['version', 'settings', 'node']).then(function(data){ // Images are stored under their own keys and loaded on demand (see app.Images)
 		if(Object.keys(data).length == 0 || ! data.settings) {
 			data = {
 				version: 3,
@@ -258,6 +267,13 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		}
 		app.settings = data.settings;
 		app.node = data.node;
+		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
+			app.Images.extractFromTree(app.node).then(function(){
+				app.Settings.save(callback);
+			});
+			return;
+		}
+		app.Settings._lastSaved = app.Settings._serialize();
 		if(callback) callback();
 	}, function(){ console.log('Error loading data'); });
 };
@@ -265,14 +281,178 @@ app.Settings.update = function(settings, callback){ // Save new settings
 	app.settings = settings;
 	app.Settings.save(callback);
 };
-app.Settings.save = function(callback){ // Save settings
-  if(! app.settings) return;
-	var data = { version: 4 };
-	data.settings = app.settings;
-	data.node = app.node;
-	browser.storage.local.set(data).then(function(){
-		if(callback) callback();
-	}, function(){ console.log('Error saving settings'); });
+app.Settings._serialize = function(){ // Settings and node tree only (no images, no transient "__" fields)
+	return JSON.stringify({ version: 5, settings: app.settings, node: app.node }, function(key, value){
+		if(key.startsWith('__')) return undefined;
+		return value;
+	});
+};
+app.Settings._saveCallbacks = [];
+app.Settings.save = function(callback){ // Save settings (batched, and skipped when nothing changed)
+	if(! app.settings) return;
+	if(callback) app.Settings._saveCallbacks.push(callback);
+	if(app.Settings._saveTimer) return;
+	app.Settings._saveTimer = setTimeout(function(){
+		delete app.Settings._saveTimer;
+		var callbacks = app.Settings._saveCallbacks;
+		app.Settings._saveCallbacks = [];
+		function done(){ for(var cb of callbacks) cb(); }
+		var json = app.Settings._serialize();
+		if(json == app.Settings._lastSaved){
+			done();
+			return;
+		}
+		browser.storage.local.set(JSON.parse(json)).then(function(){
+			app.Settings._lastSaved = json;
+			done();
+		}, function(){ console.log('Error saving settings'); });
+	}, 100);
+};
+
+app.Images = {}; // Image store: one storage key per node ("img_<bookmarkId>"), WebP encoded, loaded on demand
+app.Images._cache = new Map();
+app.Images.quality = 0.85;
+app.Images.maxSize = 1200; // Longest side in pixels for imported/uploaded images
+app.Images.key = function(id){ return 'img_' + id; };
+app.Images.unwrap = function(image){ // 'url("data:...")' -> 'data:...'
+	if(typeof image != 'string') return image;
+	var m = image.match(/^\s*url\(\s*["']?(.*?)["']?\s*\)\s*$/);
+	return m ? m[1] : image;
+};
+app.Images.get = function(ids){ // Promise<{ id: dataUrl }>
+	var result = {};
+	var missing = [];
+	for(var id of ids || []){
+		if(app.Images._cache.has(id)) result[id] = app.Images._cache.get(id);
+		else missing.push(id);
+	}
+	if(missing.length == 0) return Promise.resolve(result);
+	return browser.storage.local.get(missing.map(app.Images.key)).then(function(data){
+		for(var id of missing){
+			var image = data[app.Images.key(id)];
+			if(image){
+				app.Images._cache.set(id, image);
+				result[id] = image;
+			}
+		}
+		return result;
+	});
+};
+app.Images.set = function(id, image){
+	app.Images._cache.set(id, image);
+	var data = {};
+	data[app.Images.key(id)] = image;
+	return browser.storage.local.set(data);
+};
+app.Images.remove = function(ids){
+	if(ids.length == 0) return Promise.resolve();
+	for(var id of ids) app.Images._cache.delete(id);
+	return browser.storage.local.remove(ids.map(app.Images.key));
+};
+app.Images.removeTree = function(gridNode){ // Remove stored images of a node and all its descendants
+	var ids = [];
+	(function collect(node){
+		if(!node) return;
+		if(node.id && node.image == '1') ids.push(node.id);
+		if(node.children) for(var child of node.children) collect(child);
+	})(gridNode);
+	return app.Images.remove(ids);
+};
+app.Images.setNodeImage = function(gridNode, image){ // Set (or clear) the image of a node. image: data URL, url(...), '0' (failed) or falsy (none)
+	image = app.Images.unwrap(image);
+	if(!image || image == '0' || image == '1'){
+		if(image == '1') return Promise.resolve(); // Unchanged, already stored
+		var hadImage = (gridNode.image == '1');
+		if(image == '0') gridNode.image = '0';
+		else delete gridNode.image;
+		return hadImage ? app.Images.remove([gridNode.id]) : Promise.resolve();
+	}
+	gridNode.image = '1';
+	if(app.Images._cache.get(gridNode.id) == image) return Promise.resolve();
+	return app.Images.set(gridNode.id, image);
+};
+app.Images.toWebp = function(dataUrl, maxSize){ // Re-encode any image to WebP, optionally limiting its longest side
+	return new Promise(function(resolve){
+		if(typeof dataUrl != 'string' || !dataUrl.startsWith('data:image/')){
+			resolve(dataUrl);
+			return;
+		}
+		var img = new Image();
+		img.onload = function(){
+			var w = img.naturalWidth || 300;
+			var h = img.naturalHeight || 150;
+			var tooBig = maxSize && Math.max(w, h) > maxSize;
+			if(dataUrl.startsWith('data:image/webp') && !tooBig){ // Already WebP: don't re-encode
+				resolve(dataUrl);
+				return;
+			}
+			if(tooBig){
+				var ratio = maxSize / Math.max(w, h);
+				w = Math.round(w * ratio);
+				h = Math.round(h * ratio);
+			}
+			var canvas = document.createElement('canvas');
+			canvas.width = w;
+			canvas.height = h;
+			canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+			var webp = canvas.toDataURL('image/webp', app.Images.quality);
+			resolve(webp.startsWith('data:image/webp') && webp.length < dataUrl.length ? webp : dataUrl);
+		};
+		img.onerror = function(){ resolve(dataUrl); };
+		img.src = dataUrl;
+	});
+};
+app.Images.extractFromTree = function(gridNode, images){ // Move inline images (old format) or images from a backup into the store
+	var jobs = [];
+	(function walk(node){
+		if(!node) return;
+		if(node.id){
+			var image = images ? images[node.id] : null;
+			if(!image && node.image && node.image != '0' && node.image != '1') image = node.image;
+			if(image){
+				image = app.Images.unwrap(image);
+				jobs.push(app.Images.toWebp(image, app.Images.maxSize).then(function(webp){
+					return app.Images.setNodeImage(node, webp);
+				}));
+			} else if(node.image == '1'){
+				delete node.image; // Image missing from the backup: will be refreshed
+			}
+		}
+		if(node.children) for(var child of node.children) walk(child);
+	})(gridNode);
+	return Promise.all(jobs);
+};
+
+app.Backup = {}; // Export / import of settings, tiles and images
+app.Backup.export = function(){
+	var ids = [];
+	(function collect(node){
+		if(!node) return;
+		if(node.id && node.image == '1') ids.push(node.id);
+		if(node.children) for(var child of node.children) collect(child);
+	})(app.node);
+	return app.Images.get(ids).then(function(images){
+		return { format: 'quickdial-ng', version: 5, settings: app.settings, node: JSON.parse(app.Settings._serialize()).node, images: images };
+	});
+};
+app.Backup.import = function(data){ // Accepts a quickdial-ng backup or an original Quick Dial data dump ({ version: 4, settings, node })
+	if(!data || !data.settings || !data.node || !data.settings.grid) return Promise.reject(new Error('Not a Quick Dial backup'));
+	return app.Images.removeTree(app.node).then(function(){
+		app.settings = data.settings;
+		app.node = data.node;
+		return app.Images.extractFromTree(app.node, data.images);
+	}).then(function(){
+		return new Promise(function(resolve){
+			app.Settings.save(function(){
+				browser.runtime.sendMessage({ cmd: app.Messages.Commands.settingsChanged }).catch(function(){});
+				app.ContextMenus.updateMenu();
+				app.GridNodes.sync(app.node, app.settings.grid.root, function(){
+					browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }).catch(function(){});
+				});
+				resolve({ ok: true });
+			});
+		});
+	});
 };
 
 app.init();
@@ -371,14 +551,6 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Init context m
 	});
 	browser.contextMenus.create({
 		parentId: "itemmenu",
-		title: browser.i18n.getMessage("menuCaptureHere"),
-		visible: false,
-		onclick(info, tab) {
-			browser.tabs.sendMessage(tab.id, { cmd: app.Messages.Commands.menuCaptureHere });	
-		}
-	});
-	browser.contextMenus.create({
-		parentId: "itemmenu",
 		title: browser.i18n.getMessage("menuCapturePage"),
 		onclick(info, tab) {
 			browser.tabs.sendMessage(tab.id, { cmd: app.Messages.Commands.menuCapturePage });	
@@ -407,10 +579,18 @@ app.ContextMenus.updateMenu = function(){
 };
 
 app.Bookmarks = {} // Bookmarks helper object
-app.Bookmarks._onCreated = function(){ app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); }); }
-app.Bookmarks._onChanged = function(){ app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); }); }
-app.Bookmarks._onMoved = function(){ app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); }); }
-app.Bookmarks._onRemoved = function(){ app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); }); }
+app.Bookmarks._isTracked = function(){ // True if any of the given bookmark ids belongs to the Quick Dial tree (or the tree is not loaded yet)
+	if(!app.node || !app.node.id) return true;
+	for(var i=0; i<arguments.length; i++){
+		if(arguments[i] && app.GridNodes.getNodeById(arguments[i])) return true;
+	}
+	return false;
+}
+app.Bookmarks._resync = function(){ app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }).catch(function(){}); }); }
+app.Bookmarks._onCreated = function(id, bookmark){ if(app.Bookmarks._isTracked(bookmark && bookmark.parentId)) app.Bookmarks._resync(); }
+app.Bookmarks._onChanged = function(id){ if(app.Bookmarks._isTracked(id)) app.Bookmarks._resync(); }
+app.Bookmarks._onMoved = function(id, moveInfo){ if(app.Bookmarks._isTracked(id, moveInfo && moveInfo.parentId, moveInfo && moveInfo.oldParentId)) app.Bookmarks._resync(); }
+app.Bookmarks._onRemoved = function(id, removeInfo){ if(app.Bookmarks._isTracked(id, removeInfo && removeInfo.parentId)) app.Bookmarks._resync(); }
 app.Bookmarks._onImportBegan = function(){
 	browser.bookmarks.onCreated.removeListener(app.Bookmarks._onCreated);
 	browser.bookmarks.onChanged.removeListener(app.Bookmarks._onChanged);
@@ -421,7 +601,7 @@ app.Bookmarks._onImportEnded = function(){
 	app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); });
 	app.Bookmarks.initListener();
 }
-app.Bookmarks.initListener = function(){ // (Called from app.init) (/!\ Need filter to root tree only) Init listener of bookmarks
+app.Bookmarks.initListener = function(){ // (Called from app.init) Init listener of bookmarks (events outside the Quick Dial tree are ignored)
 	browser.bookmarks.onCreated.addListener(app.Bookmarks._onCreated);
 	browser.bookmarks.onChanged.addListener(app.Bookmarks._onChanged);
 	browser.bookmarks.onMoved.addListener(app.Bookmarks._onMoved);
@@ -492,7 +672,7 @@ app.SiteInfos.fromNewTab = function(url, callback){  // Retrieve infos from a ne
 										//ctx.drawImage(imgObj, 0, 0, tab.height / previewHeight * previewWidth, tab.height, 0, 0, previewWidth, previewHeight);
 									}
 									ctx.restore();
-									img = canvas.toDataURL();
+									img = canvas.toDataURL('image/webp', app.Images.quality);
 									if(callback) callback( { url: tab.url, title: tab.title, icon: tab.favIconUrl, screenshot: img } );
 								}, 100);
 							}, function(){
@@ -526,9 +706,16 @@ app.SiteInfos.fromFrame = function(url, callback){ // Retrieve infos from an ifr
 		ctx.clearRect(0, 0, previewWidth, previewHeight);
 		ctx.save();
 		ctx.scale(0.5, 0.5);
-		ctx.drawWindow(iframe.contentWindow, 0, 0, previewWidth, previewHeight, 'rgb(255, 255, 255)');
+		try {
+			ctx.drawWindow(iframe.contentWindow, 0, 0, previewWidth, previewHeight, 'rgb(255, 255, 255)');
+		} catch(e) { // drawWindow is not available to extensions in recent Firefox versions
+			document.body.removeChild(iframe);
+			iframe = null;
+			if(callback) callback();
+			return;
+		}
 		ctx.restore();
-		docScreenshot = canvas.toDataURL();
+		docScreenshot = canvas.toDataURL('image/webp', app.Images.quality);
 
 		document.body.removeChild(iframe);
 		iframe = null;
@@ -586,7 +773,7 @@ app.GridNodes.sync = function(gridNode, rootPath, callback){ // Sync GridNodes w
 					gridNode.type = app.GridNodes.GridNodeType.bookmark;
 					if(gridNode.url != bookmarkItem.url){
 						gridNode.url = bookmarkItem.url;
-						delete gridNode.image;
+						app.Images.setNodeImage(gridNode, null);
 					}
 					break;
 				case 'folder':
@@ -607,6 +794,7 @@ app.GridNodes.sync = function(gridNode, rootPath, callback){ // Sync GridNodes w
 									}
 								}
 								if(! found){
+									app.Images.removeTree(gridNode.children[i]);
 									if(i<gridNode.children.length - 1){
 										gridNode.children[i] = { type: app.GridNodes.GridNodeType.empty };
 										EmptyNodes.unshift(gridNode.children[i]);
@@ -695,11 +883,9 @@ app.GridNodes.updateNode = function(gridNode, value, callback){
 		if(value.titleLocked!=null) gridNode.titleLocked = value.titleLocked;
 		if(value.imageLocked!=null){
 			gridNode.imageLocked = value.imageLocked;
-			if(value.image) gridNode.image = value.image;
-			else delete gridNode.image;
+			app.Images.setNodeImage(gridNode, value.image);
 		} else if(gridNode.imageLocked != true){
-			if(value.image) gridNode.image = value.image;
-			else delete gridNode.image;
+			app.Images.setNodeImage(gridNode, value.image);
 		}
 		if(value.imageMode || value.imageMode == 0) {
 			if(value.imageMode == -1) delete gridNode.imageMode;
@@ -807,6 +993,7 @@ app.GridNodes.createFolder = function(gridNode, name, callback){ // Create a new
 app.GridNodes.deleteNode = function(gridNode, id, callback){ // Delete a GridNode. callback(gridNode, id)
 	for(var i=0; i<gridNode.children.length; i++){
 		if(gridNode.children[i].id == id){
+			app.Images.removeTree(gridNode.children[i]);
 			gridNode.children[i] = { type: app.GridNodes.GridNodeType.empty };
 			app.GridNodes.saveNode(gridNode);
 			break;
@@ -830,10 +1017,10 @@ app.GridNodes.refreshNode = function(gridNode, callback){ // Refresh content of 
 	gridNode.__isLoading = true;
 	switch(gridNode.type){
 		case app.GridNodes.GridNodeType.folder:
-			delete gridNode.image;
+			app.Images.setNodeImage(gridNode, null);
 			delete gridNode.__isLoading;
 			app.GridNodes.saveNode(gridNode);
-			if(callback) callback({ title: gridNode.title, screenshot: gridNode.image });
+			if(callback) callback({ title: gridNode.title });
 			/*
 			browser.bookmarks.onChanged.removeListener(app.Bookmarks._onChanged);
 			browser.bookmarks.update(gridNode.id, { title: gridNode.title }).then(function(){
@@ -846,9 +1033,9 @@ app.GridNodes.refreshNode = function(gridNode, callback){ // Refresh content of 
 				if(gridNode.imageLocked!=true){
 					if(infos){
 						if(gridNode.titleLocked!=true) gridNode.title = infos.title;
-						gridNode.image = infos.screenshot;
+						app.Images.setNodeImage(gridNode, infos.screenshot);
 					} else {
-						gridNode.image = '0';
+						app.Images.setNodeImage(gridNode, '0');
 					}
 				}
 			
@@ -873,14 +1060,10 @@ app.GridNodes.capturePage = function(gridNode, callback){
 				var path = '';
 				for(var i=1; i<nodes.length; i++) path = path + '/' + nodes[i].title;
 				app.SiteInfos.fromNewTab('/dial.html?path=' + path, function(infos){
-					if(infos){
-						gridNode.image = infos.screenshot;
-					} else {
-						delete gridNode.image;
-					}
+					app.Images.setNodeImage(gridNode, infos ? infos.screenshot : null);
 					delete gridNode.__isLoading;
 					app.GridNodes.saveNode(gridNode);
-					if(callback) callback({ title: gridNode.title, screenshot: gridNode.image });
+					if(callback) callback({ title: gridNode.title });
 				});
 			}
 			break;
@@ -889,9 +1072,9 @@ app.GridNodes.capturePage = function(gridNode, callback){
 				if(gridNode.imageLocked!=true){
 					if(infos){
 						if(gridNode.titleLocked!=true) gridNode.title = infos.title;
-						gridNode.image = infos.screenshot;
+						app.Images.setNodeImage(gridNode, infos.screenshot);
 					} else {
-						gridNode.image = '0';
+						app.Images.setNodeImage(gridNode, '0');
 					}
 				}
 				delete gridNode.__isLoading;
