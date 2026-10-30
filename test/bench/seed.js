@@ -80,6 +80,7 @@
 		}
 		var s = document.createElement('script'); s.src = '/js/background.js';
 		document.head.appendChild(s);
+		var watchdog = setTimeout(function(){ results.timedOutAt = results.stage || 'startup'; results.partialDial = dialRuns.length; log(results); log({ done: true }); }, 90000);
 		waitFor(function(){ return window.app && app.settings && app.node; }, function(){
 			results.bgReadyMs = +(performance.now()).toFixed(1); // since background page navigation start
 			results.bgScriptToReadyMs = +(performance.now() - T0).toFixed(1);
@@ -87,10 +88,14 @@
 				results.startupIO = JSON.parse(JSON.stringify(io));
 				// Bookmark sync
 				var t = [];
-				for(var i=0; i<20; i++){ var a = performance.now(); await new Promise(function(r){ app.GridNodes.sync(app.node, app.settings.grid.root, r); }); t.push(performance.now()-a); }
+				results.stage = 'sync';
+				for(var i=0; i<20; i++){
+					await new Promise(function(r){ waitFor(function(){ return !app.GridNodes._syncing; }, r); }); // A sync already running would swallow our callback
+					var a = performance.now(); await new Promise(function(r){ app.GridNodes.sync(app.node, app.settings.grid.root, r); }); t.push(performance.now()-a);
+				}
 				results.syncMs = median(t);
 				// Save after a change (title rename): time to write storage
-				io.set = []; t = [];
+				results.stage = 'save'; io.set = []; t = [];
 				for(var i=0; i<10; i++){
 					var first = app.node.children[0]; first.title = 'Site 0 r' + i;
 					var a = performance.now();
@@ -101,12 +106,14 @@
 				results.saveWrites = io.set.slice(-1)[0];
 				if(app.Settings._serialize){ t = []; for(var i=0; i<50; i++){ var a = performance.now(); app.Settings._serialize(); t.push(performance.now()-a); } results.serializeMs = median(t); }
 				// New tab page
+				results.stage = 'dial';
 				for(var n=1; n<=12; n++) await openDial(n);
 				results.dial = dialRuns;
 				var keys = Object.keys(dialRuns[0]).filter(function(k){ return typeof dialRuns[0][k] == 'number'; });
 				results.dialFirst = dialRuns[0];
 				results.dialMedianWarm = {}; for(var k of keys) results.dialMedianWarm[k] = median(dialRuns.slice(1).map(function(r){ return r[k]; }));
-				delete results.dial;
+				delete results.dial; delete results.stage;
+				clearTimeout(watchdog);
 				log(results);
 				log({ done: true });
 			}, 2000);

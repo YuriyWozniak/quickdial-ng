@@ -4,7 +4,7 @@
 #   orig = the original Quick Dial code (git b1f76da, images inline in one record)
 param([ValidateSet('ng','orig')][string]$Format = 'ng', [string]$Src,
       [string]$Tools = 'C:\Data\PortableUtils\QuickDialNG', [string]$Node = 'C:\Data\PortableUtils\NodeJS',
-      [string]$Firefox = 'C:\Program Files\Mozilla Firefox\firefox.exe', [int]$TimeoutSec = 120)
+      [string]$Firefox = 'C:\Program Files\Mozilla Firefox\firefox.exe', [int]$TimeoutSec = 150)
 $ErrorActionPreference = 'Stop'
 $env:PATH = "$Node;$env:PATH"
 $repo = (Resolve-Path "$PSScriptRoot\..\..").Path
