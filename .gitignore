@@ -1,3 +1,4 @@
 web-ext-artifacts/
 .web-ext-secrets*
 __pycache__/
+.amo-upload-uuid
