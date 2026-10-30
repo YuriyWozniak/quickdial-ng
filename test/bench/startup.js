@@ -95,6 +95,19 @@ const [ngId, idleMs, discover, done] = arguments;
 		const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
 		const a = await AddonManager.getAddonByID(ngId); r.ng = a ? { version: a.version, isActive: a.isActive } : null;
 	} catch (e) { r.ngErr = String(e); }
+	// per-extension timings Firefox keeps (ms)
+	const ext = {}, g = Glean.extensionsTiming;
+	for (const [metric, key] of [['extensionStartupByAddonid', 'startup'], ['backgroundPageLoadByAddonid', 'bgLoad'], ['storageLocalGetIdbByAddonid', 'idbGet']])
+		for (const id of Object.keys(r.extensions)) {
+			try { const v = g[metric][id].testGetValue(); if (v && v.count) (ext[id] = ext[id] || {})[key] = +(v.sum / 1e6 / v.count).toFixed(1) + (v.count > 1 ? 'x' + v.count : ''); } catch (e) {}
+		}
+	r.extTimings = ext;
+	// the start tab: what it loaded before, and when its page painted
+	r.tabs = [...gBrowser.tabs].map(t => {
+		const b = t.linkedBrowser, sh = b.browsingContext && b.browsingContext.sessionHistory, hist = [];
+		if (sh) for (let i = 0; i < sh.count; i++) hist.push(sh.getEntryAtIndex(i).URI.spec);
+		return { url: b.currentURI.spec, history: hist };
+	});
 	if (discover) {
 		const d = r.discover = {};
 		try { const h = Services.telemetry.getSnapshotForHistograms('main', false); for (const proc in h) for (const k in h[proc]) if (/WEBEXT|EXTENSION|STARTUP|STORAGE/.test(k)) (d.hist = d.hist || {})[proc + ':' + k] = h[proc][k].sum + '/' + Object.values(h[proc][k].values || {}).reduce((x, y) => x + y, 0); } catch (e) { d.histErr = String(e); }
@@ -147,6 +160,14 @@ let last = -1, lastChange = performance.now(), tiles = 0;
 })();
 `;
 
+const CONTENT_STARTTAB = `
+const done = arguments[arguments.length - 1];
+const nav = performance.getEntriesByType('navigation')[0] || {};
+let fcp = null; for (const p of performance.getEntriesByType('paint')) if (p.name === 'first-contentful-paint') fcp = +p.startTime.toFixed(1);
+let images = 0; for (const a of document.querySelectorAll('a')) { const c = a.firstElementChild || a; if (((c.style && c.style.backgroundImage) || '').indexOf('data:image') >= 0) images++; }
+done({ url: location.href, timeOrigin: performance.timeOrigin, fcp, domContentLoaded: +(nav.domContentLoadedEventEnd || 0).toFixed(1), images });
+`;
+
 const CHROME_DISABLE_NG = `
 const [ngId, done] = arguments;
 ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs').AddonManager.getAddonByID(ngId)
@@ -173,6 +194,17 @@ async function launch(n, opts) {
 	try {
 		Object.assign(res, await m.exec(CHROME_STARTUP, [NG, IDLE_MS, DISCOVER], true));
 		res.spawnLagMs = res.processStartEpoch - t0;
+		{
+			await m.send('Marionette:SetContext', { value: 'content' });
+			const h = await m.send('WebDriver:GetWindowHandle');
+			await m.send('WebDriver:SwitchToWindow', { handle: h.value || h, focus: true });
+			try {
+				const st = await m.exec(CONTENT_STARTTAB, [], true);
+				st.timeOriginSinceProcess = +(st.timeOrigin - res.processStartEpoch).toFixed(1);
+				if (st.fcp != null) st.paintedSinceProcess = +(st.timeOriginSinceProcess + st.fcp).toFixed(1);
+				res.startTab = st;
+			} catch (e) { res.startTabErr = String(e).slice(0, 300); }
+		}
 		if (opts.newTab) {
 			await m.send('Marionette:SetContext', { value: 'chrome' });
 			const o = await m.exec(CHROME_OPEN_TAB, [], true);
@@ -210,7 +242,7 @@ async function launch(n, opts) {
 		const r = await launch(n, { newTab: true, profileTo: GECKO_PROFILE && n === runs ? GECKO_PROFILE : null });
 		r.warmup = n === 0;
 		out(r);
-		log(`run ${n}${n === 0 ? ' (warm-up)' : ''}: sessionRestored=${r.startup && r.startup.sessionRestored} firstPaint=${r.startup && (r.startup.firstPaint2 || r.startup.firstPaint)} newTab=${r.newTab ? JSON.stringify(r.newTab) : r.newTabErr || r.error}`);
+		log(`run ${n}${n === 0 ? ' (warm-up)' : ''}: sessionRestored=${r.startup && r.startup.sessionRestored} firstPaint=${r.startup && (r.startup.firstPaint2 || r.startup.firstPaint)} startTab=${JSON.stringify(r.startTab || r.startTabErr)} tabs=${JSON.stringify(r.tabs)} ext=${JSON.stringify(r.extTimings)} newTab=${r.newTab ? JSON.stringify(r.newTab) : r.newTabErr || r.error}`);
 	}
 	out({ done: true, label });
 	log('done');
