@@ -31,6 +31,12 @@ Right-click the page → **Import from Quick Dial…** (or Settings → **Backup
 **Refresh no longer hangs.**
 The automatic "Refresh" capture uses `drawWindow`, which recent Firefox no longer allows extensions to call. Instead of leaving a spinner forever, the tile now ends without a picture. Use **Capture in a new tab** to set one.
 
+## Install
+
+Download the latest `.xpi` from [Releases](https://github.com/YuriyWozniak/quickdial-ng/releases/latest). Each one is signed by Mozilla for self-distribution. In Firefox, open `about:addons`, click the gear icon and choose **Install Add-on From File**.
+
+From 0.3.4 on, Firefox updates Quick Dial NG by itself: it checks [`updates.json`](updates.json) in this repository, which lists each release's download link and checksum.
+
 ## Moving from the original Quick Dial
 
 Quick Dial NG has its own add-on ID, so it starts with empty storage. The import brings everything over:
@@ -54,6 +60,7 @@ How the import links tiles to bookmarks: each tile is matched to a bookmark in t
 - Tests: `python3 test/test_storage.py`. This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import, import from the original Quick Dial (bookmark matching/creation, cell positions, settings defaults) and image cleanup.
 - Build and sign (unlisted, for self-distribution):
   `npx web-ext sign -s src --channel unlisted --api-key <JWT issuer> --api-secret <JWT secret>`
+- Release: tag the commit that was signed as `v<version>`, publish a GitHub release with the signed `quickdial-ng-<version>.xpi`, then add the version to `updates.json` with its download link and `sha256:` hash. Installed copies pick it up on Firefox's next update check.
 
 ## License
 

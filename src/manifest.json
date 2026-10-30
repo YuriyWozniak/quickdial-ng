@@ -3,7 +3,7 @@
   "manifest_version": 2,
   "name": "Quick Dial NG",
   "description": "Speed dial new tab page with tiles from a bookmarks folder. Optimized fork of Quick Dial by MatMoul.",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "author": "YuriyWozniak (fork of Quick Dial by MatMoul)",
   "homepage_url": "https://github.com/YuriyWozniak/quickdial-ng",
   "developer": {
@@ -43,6 +43,7 @@
     "gecko": {
       "id": "quickdial-ng@yuriywozniak",
       "strict_min_version": "140.0",
+      "update_url": "https://raw.githubusercontent.com/YuriyWozniak/quickdial-ng/develop/updates.json",
 			"data_collection_permissions": {
 				"required": ["none"]
 			}
