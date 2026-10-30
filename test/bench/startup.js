@@ -155,7 +155,7 @@ async function launch(n, opts) {
 	const args = ['-profile', profile, '-no-remote', '-marionette'];
 	if (!HEADFUL) args.push('-headless');
 	const t0 = Date.now();
-	const ff = spawn(ffPath, args, { stdio: 'ignore', detached: false });
+	const ff = spawn(ffPath, args, { stdio: 'ignore', detached: false, env: Object.assign({}, process.env, { MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1' }) });
 	ff.on('error', e => log('spawn error', e));
 	const m = await connect(90000);
 	const tConnected = Date.now() - t0;
@@ -204,4 +204,9 @@ async function launch(n, opts) {
 	}
 	out({ done: true, label });
 	log('done');
-})().catch(e => { log('FATAL', e.stack); out({ done: true, fatal: String(e) }); process.exit(1); });
+})().catch(e => {
+	log('FATAL', e.stack); out({ done: true, fatal: String(e) });
+	// close the Firefox this harness started (only the one using the profile copy)
+	try { require('child_process').execSync(`powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"name='firefox.exe'\\" | Where-Object { $_.CommandLine -like '*${path.basename(profile)}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"`); } catch (x) {}
+	process.exit(1);
+});
