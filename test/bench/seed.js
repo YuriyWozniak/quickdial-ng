@@ -5,11 +5,11 @@
 (function(){
 	var T0 = performance.now();
 	var logN = 0;
-	var log = function(o){ // Each result line is saved as a file in the download folder (run.ps1 points it at the work folder)
+	var log = function(o){ // Each result line is saved as a file in <Downloads>\qdbench (run.ps1 reads and removes them)
 		var s = 'QDBENCH ' + JSON.stringify(o);
 		console.log(s);
 		var url = URL.createObjectURL(new Blob([s + '\n'], { type: 'text/plain' }));
-		browser.downloads.download({ url: url, filename: 'qdbench-' + (Date.now()) + '-' + (logN++) + '.txt', saveAs: false, conflictAction: 'uniquify' }).catch(function(e){ console.error(e); });
+		browser.downloads.download({ url: url, filename: 'qdbench/qdbench-' + (Date.now()) + '-' + (logN++) + '.txt', saveAs: false, conflictAction: 'uniquify' }).catch(function(e){ console.error(e); });
 	};
 	var io = { get: [], set: [] };
 	var st = browser.storage.local;
