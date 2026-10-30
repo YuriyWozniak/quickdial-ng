@@ -3,12 +3,12 @@ var app = {};  // App object
 app.init = function(){ // Init module
 	app.Settings.init(function(){
 		app.Messages.init();
-		browser.runtime.sendMessage({ cmd: app.Messages.Commands.settingsChanged });
+		app.Messages.broadcast(app.Messages.Commands.settingsChanged);
 		browser.browserAction.onClicked.addListener(function(e){
 			if(app.settings.openQuickDialInNewPage) browser.tabs.create({});
 			else browser.tabs.update(e.id, {url: '/dial.html'}).then();				
 		});
-    browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded });
+    app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
     app.ContextMenus.initMenu();
     window.setTimeout(function(){
       app.GridNodes.sync(app.node, app.settings.grid.root, function(){
@@ -59,6 +59,9 @@ app.Messages.Commands = {
 	menuDeleteNode: 207,
 	menuImportQuickDial: 208
 };
+app.Messages.broadcast = function(cmd){ // Notify open Quick Dial pages; having none open is normal
+	browser.runtime.sendMessage({ cmd: cmd }).catch(function(){});
+};
 app.Messages.init = function(){ // Init Messages Listeners
 	browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
 		switch(request.cmd){
@@ -70,13 +73,13 @@ app.Messages.init = function(){ // Init Messages Listeners
 				app.settings = request.settings;
 				app.Settings.save();
 				sendResponse(app.settings);
-				browser.runtime.sendMessage( { cmd: app.Messages.Commands.settingsChanged } );
+				app.Messages.broadcast(app.Messages.Commands.settingsChanged);
 				if(rootChanged){
 					app.Images.removeTree(app.node);
 					app.node = { children: [] };
-					app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); });
+					app.GridNodes.sync(app.node, app.settings.grid.root, function(){ app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded); });
 				} else {
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				}
 				app.ContextMenus.updateMenu();
 				break;
@@ -87,7 +90,7 @@ app.Messages.init = function(){ // Init Messages Listeners
 				break;
 			case app.Messages.Commands.updateNode:
 				app.GridNodes.updateNode(app.GridNodes.getNodeById(request.id), request.value, function(){
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				});
 				break;
 			case app.Messages.Commands.getNode:
@@ -95,32 +98,32 @@ app.Messages.init = function(){ // Init Messages Listeners
 				break;
 			case app.Messages.Commands.setNodeIndex:
 				app.GridNodes.setNodeIndex(app.GridNodes.getNode(app.node, request.path.substr(1)), request.index, request.newIndex, function(){
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				});
 				break;
 			case app.Messages.Commands.createBookmark:
 				app.GridNodes.createBookmark(app.GridNodes.getNode(app.node, request.path.substr(1)), request.url, request.title, function(){
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				});
 				break;
 			case app.Messages.Commands.createFolder:
 				app.GridNodes.createFolder(app.GridNodes.getNode(app.node, request.path.substr(1)), request.name, function(){
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				});
 				break;
 			case app.Messages.Commands.deleteNode:
 				app.GridNodes.deleteNode(app.GridNodes.getNode(app.node, request.path.substr(1)), request.id, function(){
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				});
 				break;
 			case app.Messages.Commands.refreshNode:
 				app.GridNodes.refreshNode(app.GridNodes.getChildNode(app.GridNodes.getNode(app.node, request.path.substr(1)), request.id), function(){
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				});
 				break;
 			case app.Messages.Commands.capturePage:
 				app.GridNodes.capturePage(app.GridNodes.getChildNode(app.GridNodes.getNode(app.node, request.path.substr(1)), request.id), function(){
-					browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+					app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				});
 				break;
 			case app.Messages.Commands.getImages:
@@ -532,12 +535,12 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 	} finally {
 		app.Bookmarks.initListener();
 	}
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.settingsChanged }).catch(function(){});
+	app.Messages.broadcast(app.Messages.Commands.settingsChanged);
 	app.ContextMenus.updateMenu();
 	await new Promise(function(resolve){
 		app.GridNodes.sync(app.node, app.settings.grid.root, resolve);
 	});
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }).catch(function(){});
+	app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 	return Object.assign({ ok: true }, stats);
 };
 
@@ -546,7 +549,7 @@ app.init();
 app.ContextMenus = {} // ContextMenu helper Object
 app.ContextMenus.menuItemClicked = function(info, tab){
 	if (info.menuItemId == "AddToQuickDial") app.GridNodes.createBookmark(app.node, info.pageUrl, tab.title, function(){
-		browser.runtime.sendMessage( { cmd: app.Messages.Commands.gridNodesLoaded } );
+		app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 	});
 };
 app.ContextMenus.initMenu = function(){ // (Called from app.init) Init context menu in all pages
@@ -679,7 +682,7 @@ app.Bookmarks._isTracked = function(){ // True if any of the given bookmark ids 
 	}
 	return false;
 }
-app.Bookmarks._resync = function(){ app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }).catch(function(){}); }); }
+app.Bookmarks._resync = function(){ app.GridNodes.sync(app.node, app.settings.grid.root, function(){ app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded); }); }
 app.Bookmarks._onCreated = function(id, bookmark){ if(app.Bookmarks._isTracked(bookmark && bookmark.parentId)) app.Bookmarks._resync(); }
 app.Bookmarks._onChanged = function(id){ if(app.Bookmarks._isTracked(id)) app.Bookmarks._resync(); }
 app.Bookmarks._onMoved = function(id, moveInfo){ if(app.Bookmarks._isTracked(id, moveInfo && moveInfo.parentId, moveInfo && moveInfo.oldParentId)) app.Bookmarks._resync(); }
@@ -691,7 +694,7 @@ app.Bookmarks._onImportBegan = function(){
 	browser.bookmarks.onRemoved.removeListener(app.Bookmarks._onRemoved);		
 }
 app.Bookmarks._onImportEnded = function(){
-	app.GridNodes.sync(app.node, app.settings.grid.root, function(){ browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }); });
+	app.GridNodes.sync(app.node, app.settings.grid.root, function(){ app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded); });
 	app.Bookmarks.initListener();
 }
 app.Bookmarks.initListener = function(){ // (Called from app.init) Init listener of bookmarks (events outside the Quick Dial tree are ignored)
@@ -710,7 +713,7 @@ app.Bookmarks.load = function(rootPath, callback){ // Load root bookmark and cre
 				callback(bookmarkItem);
 				return;
 			}
-			for(var child of bookmarkItem.children)
+			for(var child of bookmarkItem.children || []) // A folder just created has no children list
 				if((path + '/').startsWith(child.title + '/'))
 					return getChildItem(child, path.substr(child.title.length + 1), callback);
 			browser.bookmarks.create({
@@ -858,6 +861,12 @@ app.GridNodes.sync = function(gridNode, rootPath, callback){ // Sync GridNodes w
 	}
 	app.GridNodes._syncing = true;
 	app.Bookmarks.load(rootPath, function(bookmarkItem){
+		if(!bookmarkItem){ // Bookmarks unavailable: don't stay locked
+			delete app.GridNodes._syncing;
+			delete app.GridNodes._needSync;
+			if(callback) callback();
+			return;
+		}
 		function syncNode(gridNode, bookmarkItem){
 			gridNode.id = bookmarkItem.id;
 			gridNode.title = bookmarkItem.title;
@@ -871,6 +880,7 @@ app.GridNodes.sync = function(gridNode, rootPath, callback){ // Sync GridNodes w
 					break;
 				case 'folder':
 					gridNode.type = app.GridNodes.GridNodeType.folder;
+					if(!bookmarkItem.children) bookmarkItem.children = []; // A folder just created has no children list
 					var EmptyNodes = [];
 					if(! gridNode.children) gridNode.children = [];
 					else {
@@ -919,7 +929,11 @@ app.GridNodes.sync = function(gridNode, rootPath, callback){ // Sync GridNodes w
 			}
 		}
 		
-		syncNode(gridNode, bookmarkItem);
+		try {
+			syncNode(gridNode, bookmarkItem);
+		} catch(e) {
+			console.error('Quick Dial NG: bookmark sync failed', e);
+		}
 		delete app.GridNodes._syncing;
 		if(app.GridNodes._needSync == true) {
 			delete app.GridNodes._needSync;
@@ -987,7 +1001,7 @@ app.GridNodes.updateNode = function(gridNode, value, callback){
 		if(gridNode.type == app.GridNodes.GridNodeType.bookmark && value.url && gridNode.url != value.url){
 			gridNode.url = value.url;
 			app.GridNodes.refreshNode(gridNode, function(){
-				browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded });
+				app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 				app.GridNodes.saveNode(gridNode);
 				var data = { title: gridNode.title };
 				//if(gridNode.imageMode) data.imageMode = gridNode.imageMode;
@@ -999,7 +1013,7 @@ app.GridNodes.updateNode = function(gridNode, value, callback){
 				});
 			});
 		} else {
-			browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded });
+			app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 			app.GridNodes.saveNode(gridNode);
 			var data = { title: gridNode.title };
 			//if(gridNode.imageMode) data.imageMode = gridNode.imageMode;

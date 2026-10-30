@@ -133,6 +133,7 @@ app.Messages.init = function(){
 };
 app.Messages.getSettings = function(callback){
 	browser.runtime.getBackgroundPage().then(function(page){
+		app.bg = (page && page.app) ? page.app : null; // Same-process background page: read its data directly instead of copying it through messages
 		if(page){
 			if(callback) callback(page.app.settings);
 		} else {
@@ -168,6 +169,10 @@ app.Messages.refreshNode = function(id, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.refreshNode, path: dial.path, id: id }).then(callback);
 }
 app.Messages.getImages = function(ids, callback){
+	if(app.bg && app.bg.Images){
+		app.bg.Images.get(ids).then(callback, function(){ callback({}); });
+		return;
+	}
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, function(){ callback({}); });
 }
 app.Messages.capturePage = function(id, callback){
@@ -521,15 +526,25 @@ dial.populateGrid = function(){
 	function applyImage(link, node){ // Returns false when the node has no image yet
 		var style = link.childNodes[0].style;
 		if(!node.image || node.image == '0'){
+			link._imageId = null;
+			link._imageSrc = null;
 			style.backgroundImage = '';
 			return node.image == '0';
 		}
-		if(node.image == '1'){ // Stored separately: loaded below for the visible tiles only
+		if(node.image == '1'){ // Stored separately, loaded on demand
+			var cached = app.bg && app.bg.Images && app.bg.Images._cache.get(node.id);
+			if(cached){ // Already in memory: show it in this same frame (no message, no copy)
+				if(link._imageSrc != cached) style.backgroundImage = 'url("' + cached + '")';
+				link._imageId = node.id;
+				link._imageSrc = cached;
+				return true;
+			}
 			if(link._imageId != node.id) style.backgroundImage = '';
 			pendingImages.push({ link: link, node: node });
 			return true;
 		}
 		link._imageId = null;
+		link._imageSrc = null;
 		if(node.image.indexOf('url(')>=0) style.backgroundImage = node.image;
 		else style.backgroundImage = 'url(' + node.image + ')';
 		return true;
@@ -537,6 +552,7 @@ dial.populateGrid = function(){
 	populateEmpty = function(link){
 		link.Node = null;
 		link._imageId = null;
+		link._imageSrc = null;
 		link.className = 'Empty';
 		link.childNodes[0].style.backgroundImage = '';
 		if(link.target) delete link.target;
@@ -547,6 +563,7 @@ dial.populateGrid = function(){
 	populateBack = function(link){
 		link.Node = null;
 		link._imageId = null;
+		link._imageSrc = null;
 		link.className = 'Back';
 		link.childNodes[0].style.backgroundImage = '';
 		link.childNodes[1].innerText = 'Back';
@@ -636,6 +653,7 @@ dial.populateGrid = function(){
 			for(var r of requests){
 				if(r.link.Node != r.node || !images || !images[r.node.id]) continue;
 				r.link._imageId = r.node.id;
+				r.link._imageSrc = images[r.node.id];
 				r.link.childNodes[0].style.backgroundImage = 'url("' + images[r.node.id] + '")';
 			}
 		});
@@ -655,11 +673,13 @@ dial.deleteNode = function(){
 }
 dial.refreshNode = function(selectedItem){
 	selectedItem.className = 'BookmarkLoading';
+	selectedItem._imageSrc = null; // Show the result even if the picture comes back unchanged
 	selectedItem.childNodes[0].style.backgroundImage = app.settings.grid.loadingIcon;
 	app.Messages.refreshNode(selectedItem.Node.id);
 }
 dial.capturePage = function(selectedItem){
 	selectedItem.className = 'BookmarkLoading';
+	selectedItem._imageSrc = null; // Show the result even if the picture comes back unchanged
 	selectedItem.childNodes[0].style.backgroundImage = app.settings.grid.loadingIcon;
 	app.Messages.capturePage(selectedItem.Node.id);
 }

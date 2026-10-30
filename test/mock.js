@@ -18,7 +18,7 @@ window.makeBrowser = function (win, role) {
       clear: () => { S.storage = {}; return Promise.resolve(); } } },
     bookmarks: {
       getSubTree: id => Promise.resolve([clone(find(id).node)]),
-      create: ({ parentId, title, url }) => { const p = find(parentId).node; const n = { id: 'n' + (S.nextId++), title, parentId, type: url ? 'bookmark' : 'folder' }; if (url) n.url = url; else n.children = []; p.children.push(n); setTimeout(() => fire('bm.onCreated', n.id, clone(n)), 0); return Promise.resolve(clone(n)); },
+      create: ({ parentId, title, url }) => { const p = find(parentId).node; const n = { id: 'n' + (S.nextId++), title, parentId, type: url ? 'bookmark' : 'folder' }; if (url) n.url = url; else n.children = []; p.children.push(n); setTimeout(() => fire('bm.onCreated', n.id, clone(n)), 0); const r = clone(n); delete r.children; return Promise.resolve(r); }, // Firefox returns new folders without a children list
       update: (id, ch) => { const n = find(id).node; Object.assign(n, ch); setTimeout(() => fire('bm.onChanged', id, ch), 0); return Promise.resolve(clone(n)); },
       removeTree: id => { const f = find(id); f.parent.children = f.parent.children.filter(c => c.id !== id); setTimeout(() => fire('bm.onRemoved', id, { parentId: f.parent.id }), 0); return Promise.resolve(); },
       onCreated: evt('bm.onCreated', role), onChanged: evt('bm.onChanged', role), onMoved: evt('bm.onMoved', role), onRemoved: evt('bm.onRemoved', role), onImportBegan: evt('bm.onImportBegan', role), onImportEnded: evt('bm.onImportEnded', role) },
