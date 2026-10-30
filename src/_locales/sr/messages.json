@@ -1,6 +1,6 @@
 {
   "menuAddToQuickDial": {
-    "message": "Додај у брзо бирање",
+    "message": "Додај у брзо бирање NG",
     "description": "Text of add bookmark menu item."
   },
 
@@ -60,7 +60,7 @@
   },
 
   "menuSettings": {
-    "message": "Подешавање брзог бирања",
+    "message": "Подешавање брзог бирања NG",
     "description": "Text of settings menu item."
   }
 

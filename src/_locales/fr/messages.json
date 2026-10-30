@@ -1,6 +1,6 @@
 {
   "menuAddToQuickDial": {
-    "message": "Ajouter à Quick Dial",
+    "message": "Ajouter à Quick Dial NG",
     "description": "Text of add bookmark menu item."
   },
 
@@ -60,7 +60,7 @@
   },
 
   "menuSettings": {
-    "message": "Paramètres Quick Dial",
+    "message": "Paramètres Quick Dial NG",
     "description": "Text of settings menu item."
   }
 

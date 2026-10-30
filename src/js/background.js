@@ -563,7 +563,7 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Init context m
 	// Create WebExt Page Context menu
 	browser.contextMenus.create({
 		id: "pagemenu",
-		title: "Quick Dial",
+		title: "Quick Dial NG",
 		documentUrlPatterns: [ 'moz-extension://*/dial.html', 'moz-extension://*/dial.html?*' ],
 		contexts: ["page"]
 	});
@@ -604,7 +604,7 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Init context m
 	// Create WebExt Link Context menu
 	browser.contextMenus.create({
 		id: "itemmenu",
-		title: "Quick Dial",
+		title: "Quick Dial NG",
 		documentUrlPatterns: [ 'moz-extension://*/dial.html', 'moz-extension://*/dial.html?*' ],
 		contexts: ["link"]
 	});

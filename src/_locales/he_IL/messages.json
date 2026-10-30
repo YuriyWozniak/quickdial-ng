@@ -1,6 +1,6 @@
 {
   "menuAddToQuickDial": {
-    "message": "הוסף לחיוג מהיר",
+    "message": "הוסף לחיוג מהיר NG",
     "description": "Text of add bookmark menu item."
   },
 
@@ -60,7 +60,7 @@
   },
 
   "menuSettings": {
-    "message": "הגדרות חיוג מהיר",
+    "message": "הגדרות חיוג מהיר NG",
     "description": "Text of settings menu item."
   }
 
