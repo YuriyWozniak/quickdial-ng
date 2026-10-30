@@ -58,6 +58,8 @@
 		else { data.version = 5; data.settings = settings; data.node = node; for(var id in images) data['img_' + id] = images[id]; }
 		await rawSet(data);
 		log({ seeded: BENCH_FORMAT, tiles: TILE_CELLS.length, cells: children.length, imageKB: Math.round(imageChars/1024) });
+		await browser.tabs.create({ url: 'about:blank' }); // Reloading closes our own tabs; without another tab Firefox would quit
+		await new Promise(function(r){ setTimeout(r, 1500); }); // Let the result file be written
 		browser.runtime.reload();
 	}
 	function waitFor(test, cb){ (function poll(){ if(test()) cb(); else setTimeout(poll, 1); })(); }
