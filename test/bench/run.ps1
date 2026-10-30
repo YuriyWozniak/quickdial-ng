@@ -30,7 +30,7 @@ $p = Start-Process -FilePath "$Tools\node_modules\.bin\web-ext.cmd" -PassThru -W
 $deadline = (Get-Date).AddSeconds($TimeoutSec)
 while ((Get-Date) -lt $deadline) {
   Start-Sleep -Seconds 2
-  if (Get-ChildItem $out -Filter 'qdbench-*.txt' | Select-String -Pattern 'QDBENCH \{"done":true\}' -Quiet) { break }
+  if (@(Get-ChildItem $out -Filter 'qdbench-*.txt' | Select-String -Pattern 'QDBENCH \{"done":true\}' -List).Count -gt 0) { break } # -Quiet over several files yields an array, which is always truthy
 }
 # Stop only the bench Firefox (temporary profile under %TEMP%) and its web-ext; the everyday Firefox is left alone
 Get-CimInstance Win32_Process -Filter "Name='firefox.exe'" | Where-Object { $_.CommandLine -match '-profile' -and $_.CommandLine -match [regex]::Escape($env:TEMP) } | ForEach-Object { taskkill /T /F /PID $_.ProcessId | Out-Null }
