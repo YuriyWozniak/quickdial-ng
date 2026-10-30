@@ -110,6 +110,19 @@
 				results.saveMs = median(t);
 				results.saveWrites = io.set.slice(-1)[0];
 				if(app.Settings._serialize){ t = []; for(var i=0; i<50; i++){ var a = performance.now(); app.Settings._serialize(); t.push(performance.now()-a); } results.serializeMs = median(t); }
+				// Same tree with the pictures inline, as the original Quick Dial stores it: cost of its startup read and of every save
+				results.stage = 'inline';
+				var inline = JSON.parse(app.Settings._serialize ? app.Settings._serialize() : JSON.stringify({ node: app.node }));
+				var ids = []; (function walk(n){ if(n.image == '1') ids.push(n.id); (n.children || []).forEach(walk); })(app.node);
+				var pics = app.Images ? await app.Images.get(ids) : {};
+				(function walk(n){ if(n.image == '1' && pics[n.id]) n.image = pics[n.id]; (n.children || []).forEach(walk); })(inline.node);
+				t = []; var tg = [];
+				for(var i=0; i<10; i++){
+					var a = performance.now(); await rawSet({ bench_inline: inline }); t.push(performance.now()-a);
+					a = performance.now(); await rawGet('bench_inline'); tg.push(performance.now()-a);
+				}
+				results.inlineFormat = { chars: JSON.stringify(inline).length, saveMs: median(t), readMs: median(tg) };
+				await st.remove('bench_inline');
 				// New tab page
 				results.stage = 'dial';
 				for(var n=1; n<=12; n++) await openDial(n);
