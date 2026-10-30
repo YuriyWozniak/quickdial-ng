@@ -92,7 +92,8 @@ app.Messages.Commands = {
 	menuEditProperties: 203,
 	menuRefreshNode: 204,
 	menuCapturePage: 206,
-	menuDeleteNode: 207
+	menuDeleteNode: 207,
+	menuImportQuickDial: 208
 };
 app.Messages.init = function(){
 	browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
@@ -111,6 +112,9 @@ app.Messages.init = function(){
 				break;
 			case app.Messages.Commands.menuEditSettings:
 				dial.editSettings();
+				break;
+			case app.Messages.Commands.menuImportQuickDial:
+				dial.editSettings('backup');
 				break;
 			case app.Messages.Commands.menuEditProperties:
 				dial.editProperties(dial._selectedItem);
@@ -709,7 +713,7 @@ dial.PopupPanel = function(width, height, modal){ // PopupPanel Object
 	}
 }
 
-dial.editSettings = function(){
+dial.editSettings = function(tab){ // tab: optional settings tab to open ('backup')
 	var popup = new dial.PopupPanel(500, 440, true);
 	var iframe = document.createElement('iframe');
 	iframe.style.width = '100%';
@@ -719,7 +723,7 @@ dial.editSettings = function(){
 	iframe.style.padding = '0px';
 	iframe.style.overflow = 'hidden';
 	popup.frame.appendChild(iframe);
-	iframe.src = '/html/settings.html';
+	iframe.src = '/html/settings.html' + (tab ? '?tab=' + tab : '');
 	iframe.popup = popup;
 	popup.popup();
 	iframe.focus();

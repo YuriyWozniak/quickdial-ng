@@ -169,23 +169,41 @@ app.init = function(){
 		ImportFile.value = null;
 		ImportFile.click();
 	}
+	BtnCopySnippet.onclick = function(){
+		navigator.clipboard.writeText(app.Backup.exportSnippet).then(function(){
+			BtnCopySnippet.textContent = 'Copied ✓';
+			setTimeout(function(){ BtnCopySnippet.textContent = 'Copy export snippet'; }, 2000);
+		}, function(){ prompt('Copy this snippet:', app.Backup.exportSnippet); });
+	}
 	ImportFile.onchange = function(){
 		if(!ImportFile.files[0]) return;
 		var fileReader = new FileReader();
 		fileReader.onload = function(e){
 			var data = null;
 			try { data = JSON.parse(e.target.result); } catch(err) {}
-			if(!data || !data.settings || !data.node){
-				alert('This file is not a Quick Dial backup.');
+			if(!data || !data.settings || !data.node || !data.settings.grid){
+				app.Backup.showStatus('This file is not a Quick Dial export or Quick Dial NG backup.', true);
 				return;
 			}
-			if(!confirm('Replace the current settings and tile images with this backup?')) return;
-			browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(function(){
-				window.frameElement.popup.close();
-			}, function(err){ alert('Import failed: ' + err.message); });
+			var source = data.format == 'quickdial-ng' ? 'Quick Dial NG backup' : 'Quick Dial export';
+			if(!confirm('Import this ' + source + '?\n\nYour current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.')) return;
+			BtnImport.disabled = true;
+			app.Backup.showStatus('Importing…');
+			browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(function(r){
+				var text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
+					+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
+				location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
+			}, function(err){
+				BtnImport.disabled = false;
+				app.Backup.showStatus('Import failed: ' + err.message, true);
+			});
 		}
 		fileReader.readAsText(ImportFile.files[0]);
 	}
+
+	var params = new URLSearchParams(location.search);
+	if(params.get('tab') == 'backup') TabBackupButton.onclick();
+	if(params.get('result')) app.Backup.showStatus(params.get('result'));
 
 	BackgroundColor.onchange = function(){
 		BackgroundPreview.style.backgroundColor = BackgroundColor.value;
@@ -273,6 +291,12 @@ app.Messages.Commands = {
 	importData: 13,
 	settingsChanged: 100,
 	gridNodesLoaded: 101
+};
+app.Backup = {};
+app.Backup.exportSnippet = "(async()=>{const a=(await browser.runtime.getBackgroundPage()).app;const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:4,settings:a.settings,node:a.node})],{type:'application/json'}));l.download='quickdial-export.json';document.body.appendChild(l);l.click();})()";
+app.Backup.showStatus = function(text, isError){
+	ImportStatus.textContent = text;
+	ImportStatus.className = 'Status' + (isError ? ' Error' : '');
 };
 app.Messages.getSettings = function(callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback);

@@ -17,6 +17,12 @@
 			.Tab .TabButton { border: solid 1px #505050; padding: 2px 6px 2px 6px; cursor: default; }
 			.Tab .TabButtonActive { border: solid 1px #505050; border-bottom: none; padding: 2px 6px 2px 6px; cursor: default; }
 			.Tab>div { padding: 8px; height: 350px; border-left: solid 1px #505050; border-bottom: solid 1px #505050; border-right: solid 1px #505050; }
+			.Note { margin: 4px 0 6px 0; color: #444; }
+			.Steps { margin: 4px 0 8px 0; padding-left: 20px; }
+			.Steps li { margin-bottom: 6px; }
+			.Status { padding: 6px; margin-bottom: 8px; border: solid 1px #6a9955; background: #eef6ea; }
+			.Status.Error { border-color: #b33; background: #fbecec; }
+			code { font-size: 9pt; }
 		</style>
 	</head>
 	<body id="body">
@@ -26,6 +32,7 @@
 					<td class="TabButtonActive">Page</td>
 					<td class="TabButton">Grid</td>
 					<td class="TabButton">Cells</td>
+					<td class="TabButton" id="TabBackupButton">Backup</td>
 					<td class="TabSpace"></td>
 				</tr>
 			</table>
@@ -241,15 +248,26 @@
 						</tr>
 					</table>
 				</div>
+				<div class="hidden" id="TabBackup">
+					<h1>Import from Quick Dial</h1>
+					<p class="Note">Brings over your tiles with their exact grid positions, folders, pictures, grid and style settings.
+					Bookmarks already in your Quick Dial folder are reused; missing ones are created.</p>
+					<ol class="Steps">
+						<li>Open <code>about:debugging#/runtime/this-firefox</code>, find the original <b>Quick Dial</b> and click <b>Inspect</b>.</li>
+						<li><button id="BtnCopySnippet">Copy export snippet</button> and paste it into the <b>Console</b> tab
+						(type <code>allow pasting</code> first if Firefox asks). It saves <code>quickdial-export.json</code> to Downloads.</li>
+						<li><button id="BtnImport" title="Import an original Quick Dial export or a Quick Dial NG backup">Import from file…</button></li>
+					</ol>
+					<div id="ImportStatus" class="Status hidden"></div>
+					<input id="ImportFile" type="file" accept=".json,application/json" class="hidden">
+					<h1>Quick Dial NG backup</h1>
+					<p class="Note">Saves settings, tiles and pictures to one file. Restore it with <b>Import from file…</b> above.</p>
+					<button id="BtnExport" title="Save settings, tiles and images to a file">Export backup</button>
+				</div>
 			</div>
 		</div>
 
 		<div style="text-align: right; margin-top: 14px;">
-			<span style="float: left;">
-				<button id="BtnExport" title="Save settings, tiles and images to a file">Export backup</button>
-				<button id="BtnImport" title="Restore from a Quick Dial NG backup or an original Quick Dial export">Import backup</button>
-				<input id="ImportFile" type="file" accept=".json,application/json" class="hidden">
-			</span>
 			<button id="BtnOk">OK</button>
 			<button id="BtnApply">Apply</button>
 			<button id="BtnCancel">Cancel</button>

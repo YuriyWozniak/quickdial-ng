@@ -56,7 +56,8 @@ app.Messages.Commands = {
 	menuEditProperties: 203,
 	menuRefreshNode: 204,
 	menuCapturePage: 206,
-	menuDeleteNode: 207
+	menuDeleteNode: 207,
+	menuImportQuickDial: 208
 };
 app.Messages.init = function(){ // Init Messages Listeners
 	browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
@@ -133,66 +134,65 @@ app.Messages.init = function(){ // Init Messages Listeners
 };
 
 app.Settings = {}; // Settings helper object
+app.Settings.defaults = function(){ // Default settings of a new install
+	return {
+		backgroundColor: '#3c4048',
+		backgroundImage: null,
+		backgroundMode: 0,
+		menuShowAdd: true,
+		openQuickDialInNewPage: true,
+		grid: {
+			margin: 10,
+			rows: 4,
+			columns: 5,
+			ratioX: 4,
+			ratioY: 3,
+			backNode: true,
+			backIcon: 'url(/img/back.png)',
+			backIconMode: 3,
+			folderIcon: 'url(/img/folder.png)',
+			folderIconMode: 0,
+			loadingIcon: 'url(/img/throbber.gif)',
+			openBookmarkMethod: 0,
+			openFolderMethod: 0,
+			cells: {
+				margin: 4,
+				marginHover: 4,
+				opacity: 1,
+				opacityHover: 1,
+				backgroundColor: null,
+				backgroundColorHover: null,
+				borderColor: '#333333',
+				borderColorHover: '#a9a9a9',
+				borderRadius: 4,
+				borderRadiusHover: 4,
+				borderSize: 1,
+				borderSizeHover: 1,
+				title: true,
+				titleHover: true,
+				titleHeight: 16,
+				titleHeightHover: 16,
+				titleFontSize: 10,
+				titleFontSizeHover: 10,
+				titleFont: 'Arial, Verdana, Sans-serif',
+				titleColor: '#ffffff',
+				titleColorHover: '#33ccff',
+				titleBackgroundColor: null,
+				titleBackgroundColorHover: null,
+				titleBorderSize: 1,
+				titleBorderSizeHover: 1,
+				previewWidth: 1200,
+				previewHeight: 710,
+				snapshotDelay: 2000
+			},
+			root: 'Quick Dial',
+		}
+	};
+};
 app.Settings.init = function(callback){ // Load settings and nodes
 	browser.storage.local.get(['version', 'settings', 'node']).then(function(data){ // Images are stored under their own keys and loaded on demand (see app.Images)
 		if(Object.keys(data).length == 0 || ! data.settings) {
-			data = {
-				version: 3,
-				settings: {
-					backgroundColor: '#3c4048',
-					backgroundImage: null,
-					backgroundMode: 0,
-					menuShowAdd: true,
-					openQuickDialInNewPage: true,
-					grid: {
-						margin: 10,
-						rows: 4,
-						columns: 5,
-						ratioX: 4,
-						ratioY: 3,
-						backNode: true,
-						backIcon: 'url(/img/back.png)',
-						backIconMode: 3,
-						folderIcon: 'url(/img/folder.png)',
-						folderIconMode: 0,
-						loadingIcon: 'url(/img/throbber.gif)',
-						openBookmarkMethod: 0,
-						openFolderMethod: 0,
-						cells: {
-							margin: 4,
-							marginHover: 4,
-							opacity: 1,
-							opacityHover: 1,
-							backgroundColor: null,
-							backgroundColorHover: null,
-							borderColor: '#333333',
-							borderColorHover: '#a9a9a9',
-							borderRadius: 4,
-							borderRadiusHover: 4,
-							borderSize: 1,
-							borderSizeHover: 1,
-							title: true,
-							titleHover: true,
-							titleHeight: 16,
-							titleHeightHover: 16,
-							titleFontSize: 10,
-							titleFontSizeHover: 10,
-							titleFont: 'Arial, Verdana, Sans-serif',
-							titleColor: '#ffffff',
-							titleColorHover: '#33ccff',
-							titleBackgroundColor: null,
-							titleBackgroundColorHover: null,
-							titleBorderSize: 1,
-							titleBorderSizeHover: 1,
-							previewWidth: 1200,
-							previewHeight: 710,
-							snapshotDelay: 2000
-						},
-						root: 'Quick Dial',
-					}
-				},
-				node: { children: [] }
-			}
+			data = { version: 3, settings: app.Settings.defaults(), node: { children: [] } };
 		}
 		if(!data.version){ // Upgrade Data Version
 			data.version = 2;
@@ -435,24 +435,110 @@ app.Backup.export = function(){
 		return { format: 'quickdial-ng', version: 5, settings: app.settings, node: JSON.parse(app.Settings._serialize()).node, images: images };
 	});
 };
-app.Backup.import = function(data){ // Accepts a quickdial-ng backup or an original Quick Dial data dump ({ version: 4, settings, node })
-	if(!data || !data.settings || !data.node || !data.settings.grid) return Promise.reject(new Error('Not a Quick Dial backup'));
-	return app.Images.removeTree(app.node).then(function(){
-		app.settings = data.settings;
-		app.node = data.node;
-		return app.Images.extractFromTree(app.node, data.images);
-	}).then(function(){
-		return new Promise(function(resolve){
-			app.Settings.save(function(){
-				browser.runtime.sendMessage({ cmd: app.Messages.Commands.settingsChanged }).catch(function(){});
-				app.ContextMenus.updateMenu();
-				app.GridNodes.sync(app.node, app.settings.grid.root, function(){
-					browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }).catch(function(){});
-				});
-				resolve({ ok: true });
-			});
+app.Backup._clean = function(value){ // Deep copy without transient "__" fields
+	return JSON.parse(JSON.stringify(value), function(key, v){ return key.startsWith('__') ? undefined : v; });
+};
+app.Backup._mergeDefaults = function(defaults, value){ // Imported values win; anything missing (older backups) falls back to defaults
+	if(value === undefined) return defaults;
+	if(!defaults || typeof defaults != 'object' || Array.isArray(defaults) || !value || typeof value != 'object' || Array.isArray(value)) return value;
+	var result = {};
+	for(var k in defaults) result[k] = app.Backup._mergeDefaults(defaults[k], value[k]);
+	for(var k in value) if(!(k in defaults)) result[k] = value[k];
+	return result;
+};
+app.Backup._loadRoot = function(rootPath){ // Promise<bookmark subtree of the Quick Dial root folder> (created if missing)
+	return new Promise(function(resolve, reject){
+		app.Bookmarks.load(rootPath, function(item){
+			if(!item) return reject(new Error('Cannot open the bookmarks folder "' + rootPath + '"'));
+			browser.bookmarks.getSubTree(item.id).then(function(items){ resolve(items[0]); }, reject);
 		});
 	});
+};
+app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){ // Link each tile to a bookmark (by id, then URL / folder name), creating missing ones; cell positions are kept
+	var T = app.GridNodes.GridNodeType;
+	var claimed = new Set();
+	var bookmarks = (folder.children || []).slice();
+	function pick(test){
+		for(var b of bookmarks) if(!claimed.has(b.id) && test(b)){ claimed.add(b.id); return b; }
+		return null;
+	}
+	var children = gridNode.children || [];
+	for(var i=0; i<children.length; i++){ // Pass 1: tiles whose bookmark still exists with the same id
+		var c = children[i];
+		if(!c || !c.id) continue;
+		var same = pick(function(b){ return b.id == c.id && (c.type == T.folder ? b.type == 'folder' : b.url == c.url); });
+		if(same) c.__match = same;
+	}
+	for(var i=0; i<children.length; i++){
+		var c = children[i];
+		if(!c || (c.type != T.bookmark && c.type != T.folder) || (c.type == T.bookmark && !c.url)){
+			children[i] = { type: T.empty }; // Empty cell (or unusable entry): keeps the gap
+			continue;
+		}
+		var oldId = c.id;
+		var match = c.__match;
+		delete c.__match;
+		if(!match){
+			match = c.type == T.folder
+				? pick(function(b){ return b.type == 'folder' && b.title == c.title; })
+				: pick(function(b){ return b.type == 'bookmark' && b.url == c.url; });
+		}
+		if(match){
+			stats.matched++;
+		} else {
+			var info = { parentId: folder.id, title: c.title || c.url || 'Folder' };
+			if(c.type == T.bookmark) info.url = c.url;
+			match = await browser.bookmarks.create(info);
+			if(c.type == T.folder) match.children = [];
+			stats.created++;
+		}
+		c.id = match.id;
+		if(oldId) idMap[oldId] = match.id;
+		if(c.type == T.folder){
+			stats.folders++;
+			if(!c.children) c.children = [];
+			await app.Backup._attachBookmarks(c, match, idMap, stats);
+		} else {
+			stats.tiles++;
+		}
+	}
+	gridNode.children = children;
+	while(children.length && children[children.length-1].type == T.empty) children.pop();
+};
+app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an original Quick Dial data dump ({ version: 4, settings, node })
+	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error('Not a Quick Dial backup');
+	var settings = app.Backup._mergeDefaults(app.Settings.defaults(), app.Backup._clean(data.settings));
+	if(!settings.startpageTimeout && settings.startpageTimeout !== 0) settings.startpageTimeout = 500;
+	var node = app.Backup._clean(data.node);
+	var stats = { tiles: 0, folders: 0, matched: 0, created: 0, images: 0 };
+	var idMap = {};
+	app.Bookmarks._onImportBegan(); // No bookmark events while the tree is rebuilt
+	try {
+		var folder = await app.Backup._loadRoot(settings.grid.root);
+		await app.Backup._attachBookmarks(node, folder, idMap, stats);
+		node.id = folder.id;
+		var images = null;
+		if(data.images){ // Backup images are keyed by the old bookmark ids
+			images = {};
+			for(var oldId in data.images) if(idMap[oldId]) images[idMap[oldId]] = data.images[oldId];
+		}
+		await app.Images.removeTree(app.node);
+		app.Images._cache.clear();
+		app.settings = settings;
+		app.node = node;
+		await app.Images.extractFromTree(app.node, images);
+		(function count(n){ if(n.image == '1') stats.images++; for(var c of n.children || []) count(c); })(app.node);
+		await new Promise(function(resolve){ app.Settings.save(resolve); });
+	} finally {
+		app.Bookmarks.initListener();
+	}
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.settingsChanged }).catch(function(){});
+	app.ContextMenus.updateMenu();
+	await new Promise(function(resolve){
+		app.GridNodes.sync(app.node, app.settings.grid.root, resolve);
+	});
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.gridNodesLoaded }).catch(function(){});
+	return Object.assign({ ok: true }, stats);
 };
 
 app.init();
@@ -506,6 +592,13 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Init context m
 		title: browser.i18n.getMessage("menuSettings"),
 		onclick(info, tab) {
 			browser.tabs.sendMessage(tab.id, { cmd: app.Messages.Commands.menuEditSettings });	
+		}
+	});
+	browser.contextMenus.create({
+		parentId: "pagemenu",
+		title: browser.i18n.getMessage("menuImportQuickDial"),
+		onclick(info, tab) {
+			browser.tabs.sendMessage(tab.id, { cmd: app.Messages.Commands.menuImportQuickDial });	
 		}
 	});
 	// Create WebExt Link Context menu

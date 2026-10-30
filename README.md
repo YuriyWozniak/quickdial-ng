@@ -25,29 +25,33 @@ When a tile is deleted, its folder is removed, its URL changes, or the root fold
 **Fewer permissions.**
 The hidden "Capture here" feature and the `webRequest`/`webRequestBlocking` permissions it needed are gone.
 
-**Backup and restore.**
-Settings → **Export backup** / **Import backup** saves and restores settings, tiles and pictures as one JSON file. Import also accepts data from the original Quick Dial (see below).
+**Import from Quick Dial, backup and restore.**
+Right-click the page → **Import from Quick Dial…** (or Settings → **Backup**) imports an original Quick Dial export or a Quick Dial NG backup: tiles keep their exact grid cells (gaps included), folders, pictures, per-tile options, grid and style settings. **Export backup** saves all of that to one JSON file.
 
 **Refresh no longer hangs.**
 The automatic "Refresh" capture uses `drawWindow`, which recent Firefox no longer allows extensions to call. Instead of leaving a spinner forever, the tile now ends without a picture. Use **Capture in a new tab** to set one.
 
 ## Moving from the original Quick Dial
 
-Quick Dial NG has its own add-on ID, so it starts with empty storage. Your tiles come back automatically because they are the same bookmarks. To bring over the pictures and settings:
+Quick Dial NG has its own add-on ID, so it starts with empty storage. The import brings everything over:
 
-1. In the original Quick Dial, open a new tab, press `Ctrl+Shift+K` and run:
-   ```js
-   (async()=>{const a=(await browser.runtime.getBackgroundPage()).app;const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:4,settings:a.settings,node:a.node})],{type:'application/json'}));l.download='quickdial-export.json';document.body.appendChild(l);l.click();})()
-   ```
-   (Firefox may ask you to type `allow pasting` first.)
-2. Install Quick Dial NG and disable the original.
-3. In Quick Dial NG: right-click the page → Quick Dial Settings → **Import backup** → choose `quickdial-export.json`.
+1. Install Quick Dial NG (keep the original enabled for now).
+2. Right-click the Quick Dial NG page → **Import from Quick Dial…**. The Backup tab opens with the steps:
+   - Open `about:debugging#/runtime/this-firefox`, find the original **Quick Dial** and click **Inspect**.
+   - Click **Copy export snippet** and paste it into the **Console** tab (Firefox may ask you to type `allow pasting` first). It saves `quickdial-export.json` to Downloads. The snippet is:
+     ```js
+     (async()=>{const a=(await browser.runtime.getBackgroundPage()).app;const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:4,settings:a.settings,node:a.node})],{type:'application/json'}));l.download='quickdial-export.json';document.body.appendChild(l);l.click();})()
+     ```
+   - Click **Import from file…** and choose `quickdial-export.json`.
+3. Check your tiles, then disable the original Quick Dial.
+
+How the import links tiles to bookmarks: each tile is matched to a bookmark in the Quick Dial folder by its bookmark ID, then by URL (folders by name). Tiles without a match get a new bookmark, so an export also works in another Firefox profile or on another PC. Bookmarks already in the folder that the export doesn't mention stay and fill empty cells, as usual. Importing the same file twice creates nothing new.
 
 ## Development
 
 - Source: `src/` (a Manifest V2 WebExtension).
 - Lint: `npx web-ext lint -s src`
-- Tests: `python3 test/test_storage.py`. This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import and image cleanup.
+- Tests: `python3 test/test_storage.py`. This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import, import from the original Quick Dial (bookmark matching/creation, cell positions, settings defaults) and image cleanup.
 - Build and sign (unlisted, for self-distribution):
   `npx web-ext sign -s src --channel unlisted --api-key <JWT issuer> --api-secret <JWT secret>`
 

@@ -32,7 +32,7 @@ window.makeBrowser = function (win, role) {
       getBackgroundPage: () => Promise.resolve((S.frames.filter(f => f.role === 'bg').pop() || {}).win),
       getURL: p => p },
     tabs: { query: () => Promise.resolve([]), update: () => Promise.resolve({}), create: () => Promise.resolve({ id: 1 }), remove: () => Promise.resolve(), getCurrent: () => Promise.resolve({ id: 1 }), sendMessage: () => Promise.resolve(), captureVisibleTab: () => Promise.reject(new Error('n/a')), get: () => Promise.resolve({ status: 'complete' }) },
-    contextMenus: { create: () => 1, removeAll: () => Promise.resolve(), onClicked: evt('cm.onClicked', role) },
+    contextMenus: { create: o => { (S.menus = S.menus || []).push(o.title); return 1; }, removeAll: () => Promise.resolve(), onClicked: evt('cm.onClicked', role) },
     browserAction: { onClicked: evt('ba.onClicked', role) },
     i18n: { getMessage: k => k } };
 };

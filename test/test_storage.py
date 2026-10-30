@@ -11,6 +11,9 @@ shutil.copytree(os.path.join(HERE, '..', 'src'), os.path.join(H, 'ext'))
 for f in ('mock.js', 'index.html'): shutil.copy(os.path.join(HERE, f), H)
 with open(os.path.join(H, 'ext', 'bg.html'), 'w') as f:
     f.write('<!doctype html><html><head><script>window.browser = parent.makeBrowser(window, "bg");</script><script src="js/background.js"></script></head><body></body></html>')
+with open(os.path.join(H, 'ext', 'html', 'settings.html')) as f: sett = f.read()
+with open(os.path.join(H, 'ext', 'html', 'settingstest.html'), 'w') as f:
+    f.write(sett.replace('<script type="text/javascript" src="/js/settings.js">', '<script>window.browser = parent.makeBrowser(window, "dial");</script><script type="text/javascript" src="/ext/js/settings.js">'))
 with open(os.path.join(H, 'ext', 'dial.html')) as f: dial = f.read()
 with open(os.path.join(H, 'ext', 'dialtest.html'), 'w') as f:
     f.write(dial.replace('<script type="text/javascript" src="js/dial.js">', '<script>window.browser = parent.makeBrowser(window, "dial");</script><script type="text/javascript" src="js/dial.js">'))
@@ -81,6 +84,38 @@ async def main():
         # Phase H: removing a whole folder removes nested images
         await J("document.getElementById('bg').contentWindow.browser.bookmarks.removeTree('f1')"); await pg.wait_for_timeout(800)
         check('H folder removal drops nested img_b7', 'img_b7' not in await J("Object.keys(S.storage)"))
+        # Phase I: import an original Quick Dial export whose bookmark ids don't exist here (other profile / deleted bookmarks)
+        orig = {'version': 4, 'settings': {**(await J("S.storage.settings")), 'startpageTimeout': None}, 'node': {'id': 'oldroot', 'type': 1, 'title': 'Quick Dial', 'children': [
+            {'id': 'x1', 'type': 2, 'title': 'Site 1', 'url': 'https://site1.example/', 'image': 'IMG1', 'imageLocked': True, 'imageMode': 2},
+            {'type': 0}, None,
+            {'id': 'x9', 'type': 2, 'title': 'New 9', 'url': 'https://new9.example/', 'image': 'url(IMG2)', '__isLoading': True},
+            {'id': 'xf', 'type': 1, 'title': 'Folder', 'children': [{'type': 0}, {'id': 'x7', 'type': 2, 'title': 'Site 7', 'url': 'https://site7.example/', 'image': 'IMG3'}, {'id': 'x10', 'type': 2, 'title': 'New 10', 'url': 'https://new10.example/'}]},
+            {'id': 'xg', 'type': 1, 'title': 'Brand new', 'children': [{'id': 'x11', 'type': 2, 'title': 'New 11', 'url': 'https://new11.example/'}]}]}}
+        orig['settings']['grid'] = {**orig['settings']['grid'], 'columns': 7, 'cells': {**orig['settings']['grid']['cells'], 'titleColor': '#ff0000'}}
+        del orig['settings']['grid']['cells']['snapshotDelay']; del orig['settings']['startpageTimeout']
+        imgs = await J("""() => [1,2,3].map(i => { const c = document.createElement('canvas'); c.width = 320; c.height = 240; const x = c.getContext('2d'); x.fillStyle = `hsl(${i*100},60%,50%)`; x.fillRect(0,0,320,240); x.fillStyle = '#fff'; x.fillText('tile ' + i, 20, 40); return c.toDataURL('image/png'); })""")
+        js = json.dumps(orig).replace('"IMG1"', json.dumps(imgs[0])).replace('IMG2', imgs[1]).replace('"IMG3"', json.dumps(imgs[2]))
+        r = await J(f"document.getElementById('bg').contentWindow.app.Backup.import({js})"); await pg.wait_for_timeout(1500)
+        check('I import reports stats', r and r['ok'] and r['tiles'] == 5 and r['folders'] == 2 and r['matched'] == 1 and r['created'] == 6 and r['images'] == 3, r)
+        st = await J("""() => { const qd = S.bm.children[0].children.find(c => c.id === 'qd'); const n = S.storage.node; const urls = f => (f.children||[]).map(c => c.url || ('[' + c.title + ']'));
+          return { rootId: n.id, c0: n.children[0], c3: n.children[3], c4: n.children[4], c5: n.children[5], len: n.children.length,
+            qd: urls(qd), f: urls(qd.children.find(c => c.title === 'Folder') || {}), g: urls(qd.children.find(c => c.title === 'Brand new') || {}),
+            imgs: Object.keys(S.storage).filter(k => k.startsWith('img_')).sort(), s: S.storage.settings }; }""")
+        check('I matched tile reuses existing bookmark b1 at cell 0 with its options', st['c0']['id'] == 'b1' and st['c0']['imageLocked'] and st['c0']['imageMode'] == 2 and st['c0']['image'] == '1', st['c0'])
+        check('I missing bookmark created at cell 3', st['c3']['url'] == 'https://new9.example/' and 'https://new9.example/' in st['qd'] and st['c3']['image'] == '1' and '__isLoading' not in st['c3'], st['c3'])
+        check('I folder recreated at cell 4 keeping inner gap', st['c4']['type'] == 1 and st['c4']['children'][0]['type'] == 0 and st['c4']['children'][1]['url'] == 'https://site7.example/' and st['f'] == ['https://site7.example/', 'https://new10.example/'], (st['c4'], st['f']))
+        check('I new folder at cell 5 with its bookmark', st['c5']['title'] == 'Brand new' and st['g'] == ['https://new11.example/'], st['g'])
+        check('I root linked to the Quick Dial folder', st['rootId'] == 'qd', st['rootId'])
+        check('I pictures follow their tiles (3, under new ids)', len(st['imgs']) == 3 and 'img_b1' in st['imgs'] and 'img_' + st['c3']['id'] in st['imgs'] and 'img_' + st['c4']['children'][1]['id'] in st['imgs'], st['imgs'])
+        check('I style/grid imported, missing fields defaulted', st['s']['grid']['columns'] == 7 and st['s']['grid']['cells']['titleColor'] == '#ff0000' and st['s']['grid']['cells']['snapshotDelay'] == 2000 and st['s']['startpageTimeout'] == 500, st['s']['grid']['columns'])
+        # Phase J: importing the same export again creates nothing (idempotent)
+        r = await J(f"document.getElementById('bg').contentWindow.app.Backup.import({js})"); await pg.wait_for_timeout(1000)
+        check('J re-import matches everything, creates nothing', r['created'] == 0 and r['matched'] == 7, r)
+        # Phase K: UI entry points
+        m = await J("S.menus"); check('K page menu has Import from Quick Dial', 'menuImportQuickDial' in m)
+        await J("loadFrame('dial', 'ext/html/settingstest.html?tab=backup')"); await pg.wait_for_timeout(800)
+        ui = await pg.frame_locator('#dial').locator('body').evaluate("b => ({ tab: document.getElementById('TabBackup').className, btn: document.getElementById('TabBackupButton').className, imp: !!document.getElementById('BtnImport'), copy: !!document.getElementById('BtnCopySnippet') })")
+        check('K settings ?tab=backup opens the Backup tab', ui['tab'] == '' and ui['btn'] == 'TabButtonActive' and ui['imp'] and ui['copy'], ui)
         print('console errors:', [e for e in errs if 'no receiver' not in e][:10])
         await b.close()
 asyncio.run(main()); print('ALL PASS' if ok else 'SOME FAILED'); shutil.rmtree(H, ignore_errors=True); sys.exit(0 if ok else 1)

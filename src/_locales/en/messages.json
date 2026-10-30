@@ -62,6 +62,11 @@
   "menuSettings": {
     "message": "Quick Dial Settings",
     "description": "Text of settings menu item."
+  },
+
+  "menuImportQuickDial": {
+    "message": "Import from Quick Dial…",
+    "description": "Text of the menu item that opens the import from the original Quick Dial."
   }
 
 }
