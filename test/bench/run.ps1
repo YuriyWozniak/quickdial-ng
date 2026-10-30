@@ -17,6 +17,7 @@ if (-not $Src) {
   } else { $Src = Join-Path $repo 'src' }
 }
 node "$PSScriptRoot\build.js" $Src "$work\ext" $Format
+if ($LASTEXITCODE -ne 0) { throw "bench build failed" }
 $log = "$work\run.log"
 $p = Start-Process -FilePath "$Tools\node_modules\.bin\web-ext.cmd" -PassThru -WindowStyle Hidden -RedirectStandardOutput $log -RedirectStandardError "$work\err.log" -ArgumentList @(
   'run', '--source-dir', "`"$work\ext`"", '--firefox', "`"$Firefox`"", '--no-reload', '--no-input', '--verbose', '--arg=-headless',

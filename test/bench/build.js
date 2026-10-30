@@ -8,12 +8,12 @@ fs.mkdirSync(path.join(out, 'bench'), { recursive: true });
 for (const f of ['seed.js', 'probe.js']) fs.copyFileSync(path.join(__dirname, f), path.join(out, 'bench', f));
 // Default settings come from the extension itself
 const bg = fs.readFileSync(path.join(src, 'js', 'background.js'), 'utf8');
-const m = bg.match(/app\.Settings\.defaults = function\(\)\{[^]*?return (\{[^]*?\n\t\});\n\};/) || bg.match(/data = \{ version: 4, settings: (\{[^]*?\n\t\t\t\t\}), node/);
+const m = bg.match(/app\.Settings\.defaults = function\(\)\{[^]*?return (\{[^]*?\r?\n\t\});\r?\n\};/) || bg.match(/data = \{ version: 4, settings: (\{[^]*?\r?\n\t\t\t\t\}), node/);
 let defaults;
 if (m) defaults = m[1]; else {
 	// Upstream keeps defaults inline in the loader; fall back to NG's
 	const ng = fs.readFileSync(path.join(__dirname, '..', '..', 'src', 'js', 'background.js'), 'utf8');
-	defaults = ng.match(/app\.Settings\.defaults = function\(\)\{[^]*?return (\{[^]*?\n\t\});\n\};/)[1];
+	defaults = ng.match(/app\.Settings\.defaults = function\(\)\{[^]*?return (\{[^]*?\r?\n\t\});\r?\n\};/)[1];
 }
 fs.writeFileSync(path.join(out, 'bench', 'config.js'), `var BENCH_FORMAT = ${JSON.stringify(format)};\nvar BENCH_DEFAULTS = ${defaults};\n`);
 const manPath = path.join(out, 'manifest.json');
