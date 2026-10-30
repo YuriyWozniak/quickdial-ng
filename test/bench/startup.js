@@ -5,11 +5,13 @@
 //   runs        number of measured launches; one extra warm-up launch runs first
 //   --discover  dump everything the browser exposes about startup and extensions (for development)
 //   --disable-ng  disable Quick Dial NG in the profile before the warm-up launch
+//   --gecko-profile <file>  record the last measured launch with the Firefox Profiler and save it (open at profiler.firefox.com)
 // Never point this at a profile you use: it writes user.js and may disable add-ons.
 'use strict';
 const net = require('net'), fs = require('fs'), path = require('path'), { spawn } = require('child_process');
 
 const [ffPath, profile, runsArg, label, outFile, ...flags] = process.argv.slice(2);
+const gpIdx = flags.indexOf('--gecko-profile'), GECKO_PROFILE = gpIdx >= 0 ? path.resolve(flags[gpIdx + 1]) : null;
 const DISCOVER = flags.includes('--discover'), DISABLE_NG = flags.includes('--disable-ng'), HEADFUL = flags.includes('--headful');
 const PORT = 2829, NG = 'quickdial-ng@yuriywozniak', IDLE_MS = 8000;
 
@@ -155,7 +157,11 @@ async function launch(n, opts) {
 	const args = ['-profile', profile, '-no-remote', '-marionette'];
 	if (!HEADFUL) args.push('-headless');
 	const t0 = Date.now();
-	const ff = spawn(ffPath, args, { stdio: 'ignore', detached: false, env: Object.assign({}, process.env, { MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1' }) });
+	const env = Object.assign({}, process.env, { MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1' });
+	if (opts.profileTo) Object.assign(env, { MOZ_PROFILER_STARTUP: '1', MOZ_PROFILER_STARTUP_ENTRIES: '33554432', MOZ_PROFILER_STARTUP_INTERVAL: '1',
+		MOZ_PROFILER_STARTUP_FEATURES: 'js,stackwalk,markers,cpu,processcpu,ipcmessages',
+		MOZ_PROFILER_STARTUP_FILTERS: 'GeckoMain,Compositor,Renderer,IndexedDB,DOM Worker,StyleThread,BgIOThreadPool,StreamTrans,Timer' });
+	const ff = spawn(ffPath, args, { stdio: 'ignore', detached: false, env });
 	ff.on('error', e => log('spawn error', e));
 	const m = await connect(90000);
 	const tConnected = Date.now() - t0;
@@ -180,6 +186,10 @@ async function launch(n, opts) {
 				res.newTab = t;
 			} catch (e) { res.newTabErr = String(e).slice(0, 500); }
 		}
+		if (opts.profileTo) {
+			await m.send('Marionette:SetContext', { value: 'chrome' });
+			res.geckoProfile = await m.exec("const [f, done] = arguments; Services.profiler.dumpProfileToFileAsync(f).then(() => done('saved ' + f), e => done('ERR ' + e));", [opts.profileTo], true);
+		}
 		if (opts.disableNg) {
 			await m.send('Marionette:SetContext', { value: 'chrome' });
 			res.disableNg = await m.exec(CHROME_DISABLE_NG, [NG], true);
@@ -197,7 +207,7 @@ async function launch(n, opts) {
 	log(`start label=${label} runs=${runs} discover=${DISCOVER} disableNg=${DISABLE_NG}`);
 	if (DISABLE_NG) { const r = await launch(0, { disableNg: true }); log('disable launch:', r.disableNg || r.error); }
 	for (let n = 0; n <= runs; n++) {
-		const r = await launch(n, { newTab: true });
+		const r = await launch(n, { newTab: true, profileTo: GECKO_PROFILE && n === runs ? GECKO_PROFILE : null });
 		r.warmup = n === 0;
 		out(r);
 		log(`run ${n}${n === 0 ? ' (warm-up)' : ''}: sessionRestored=${r.startup && r.startup.sessionRestored} firstPaint=${r.startup && (r.startup.firstPaint2 || r.startup.firstPaint)} newTab=${r.newTab ? JSON.stringify(r.newTab) : r.newTabErr || r.error}`);
