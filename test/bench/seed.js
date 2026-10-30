@@ -58,9 +58,7 @@
 		else { data.version = 5; data.settings = settings; data.node = node; for(var id in images) data['img_' + id] = images[id]; }
 		await rawSet(data);
 		log({ seeded: BENCH_FORMAT, tiles: TILE_CELLS.length, cells: children.length, imageKB: Math.round(imageChars/1024) });
-		await browser.tabs.create({ url: 'about:blank' }); // Reloading closes our own tabs; without another tab Firefox would quit
-		await new Promise(function(r){ setTimeout(r, 1500); }); // Let the result file be written
-		browser.runtime.reload();
+		await new Promise(function(r){ setTimeout(r, 500); });
 	}
 	function waitFor(test, cb){ (function poll(){ if(test()) cb(); else setTimeout(poll, 1); })(); }
 	function median(a){ var s = a.slice().sort(function(x,y){ return x-y; }); return +s[Math.floor(s.length/2)].toFixed(1); }
@@ -75,18 +73,21 @@
 		await new Promise(function(r){ setTimeout(r, 300); });
 	}
 	rawGet('bench_seeded').then(function(d){
-		if(!d.bench_seeded){ // Places may still be starting up in a brand new profile: retry
+		if(!d.bench_seeded){ // Places may still be starting up in a brand new profile: retry. Then measure in this same page
 			var tries = 0;
-			(function attempt(){ seed().catch(function(e){ log({ seedError: String(e), attempt: tries }); if(++tries < 30) setTimeout(attempt, 1000); }); })();
+			(function attempt(){ seed().then(measure, function(e){ log({ seedError: String(e), attempt: tries }); if(++tries < 30) setTimeout(attempt, 1000); }); })();
 			return;
 		}
+		measure();
+	});
+	function measure(){
+		T0 = performance.now();
 		console.log('QDBENCH-progress loading background.js at ' + performance.now().toFixed(0));
 		setInterval(function(){ console.log('QDBENCH-progress ' + performance.now().toFixed(0) + ' stage=' + (results.stage || 'startup') + ' settings=' + !!(window.app && app.settings) + ' node=' + !!(window.app && app.node) + ' syncing=' + !!(window.app && app.GridNodes && app.GridNodes._syncing) + ' dialRuns=' + dialRuns.length); }, 5000);
 		var s = document.createElement('script'); s.src = '/js/background.js';
 		document.head.appendChild(s);
 		var watchdog = setTimeout(function(){ results.timedOutAt = results.stage || 'startup'; results.partialDial = dialRuns.length; log(results); log({ done: true }); }, 90000);
 		waitFor(function(){ return window.app && app.settings && app.node; }, function(){
-			results.bgReadyMs = +(performance.now()).toFixed(1); // since background page navigation start
 			results.bgScriptToReadyMs = +(performance.now() - T0).toFixed(1);
 			setTimeout(async function(){ // after the startup sync (500 ms)
 				results.startupIO = JSON.parse(JSON.stringify(io));
@@ -122,5 +123,5 @@
 				log({ done: true });
 			}, 2000);
 		});
-	});
+	}
 })();
