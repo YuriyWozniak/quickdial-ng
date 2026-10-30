@@ -5,6 +5,7 @@
 //   runs        number of measured launches; one extra warm-up launch runs first
 //   --discover  dump everything the browser exposes about startup and extensions (for development)
 //   --disable-ng  disable Quick Dial NG in the profile before the warm-up launch
+//   --homepage <url>  set Firefox's home page for these launches
 //   --gecko-profile <file>  record the last measured launch with the Firefox Profiler and save it (open at profiler.firefox.com)
 // Never point this at a profile you use: it writes user.js and may disable add-ons.
 'use strict';
@@ -12,6 +13,7 @@ const net = require('net'), fs = require('fs'), path = require('path'), { spawn 
 
 const [ffPath, profile, runsArg, label, outFile, ...flags] = process.argv.slice(2);
 const gpIdx = flags.indexOf('--gecko-profile'), GECKO_PROFILE = gpIdx >= 0 ? path.resolve(flags[gpIdx + 1]) : null;
+const hpIdx = flags.indexOf('--homepage'), HOMEPAGE = hpIdx >= 0 ? flags[hpIdx + 1] : null;
 const DISCOVER = flags.includes('--discover'), DISABLE_NG = flags.includes('--disable-ng'), HEADFUL = flags.includes('--headful');
 const PORT = 2829, NG = 'quickdial-ng@yuriywozniak', IDLE_MS = 8000;
 
@@ -27,6 +29,7 @@ function writeUserJs() {
 		'user_pref("app.update.checkInstallTime", false);',
 		'user_pref("datareporting.policy.dataSubmissionEnabled", false);',
 		'user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);',
+		HOMEPAGE ? `user_pref("browser.startup.homepage", ${JSON.stringify(HOMEPAGE)});` : '',
 		''].join('\n'));
 }
 
