@@ -95,11 +95,11 @@ const [ngId, idleMs, discover, done] = arguments;
 		const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
 		const a = await AddonManager.getAddonByID(ngId); r.ng = a ? { version: a.version, isActive: a.isActive } : null;
 	} catch (e) { r.ngErr = String(e); }
-	// per-extension timings Firefox keeps (ms)
+	// per-extension timings Firefox keeps: [total ms, count], cumulative across launches of this profile
 	const ext = {}, g = Glean.extensionsTiming;
 	for (const [metric, key] of [['extensionStartupByAddonid', 'startup'], ['backgroundPageLoadByAddonid', 'bgLoad'], ['storageLocalGetIdbByAddonid', 'idbGet']])
 		for (const id of Object.keys(r.extensions)) {
-			try { const v = g[metric][id].testGetValue(); if (v && v.count) (ext[id] = ext[id] || {})[key] = +(v.sum / 1e6 / v.count).toFixed(1) + (v.count > 1 ? 'x' + v.count : ''); } catch (e) {}
+			try { const v = g[metric][id].testGetValue(); if (v && v.count) (ext[id] = ext[id] || {})[key] = [+(v.sum / 1e6).toFixed(1), v.count]; } catch (e) {}
 		}
 	r.extTimings = ext;
 	// the start tab: what it loaded before, and when its page painted
@@ -242,7 +242,7 @@ async function launch(n, opts) {
 		const r = await launch(n, { newTab: true, profileTo: GECKO_PROFILE && n === runs ? GECKO_PROFILE : null });
 		r.warmup = n === 0;
 		out(r);
-		log(`run ${n}${n === 0 ? ' (warm-up)' : ''}: sessionRestored=${r.startup && r.startup.sessionRestored} firstPaint=${r.startup && (r.startup.firstPaint2 || r.startup.firstPaint)} startTab=${JSON.stringify(r.startTab || r.startTabErr)} tabs=${JSON.stringify(r.tabs)} ext=${JSON.stringify(r.extTimings)} newTab=${r.newTab ? JSON.stringify(r.newTab) : r.newTabErr || r.error}`);
+		log(`run ${n}${n === 0 ? ' (warm-up)' : ''}: sessionRestored=${r.startup && r.startup.sessionRestored} firstPaint=${r.startup && (r.startup.firstPaint2 || r.startup.firstPaint)} startTab=${JSON.stringify(r.startTab || r.startTabErr)} tabs=${JSON.stringify(r.tabs)} newTab=${r.newTab ? JSON.stringify(r.newTab) : r.newTabErr || r.error}`);
 	}
 	out({ done: true, label });
 	log('done');
