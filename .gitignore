@@ -2,3 +2,6 @@ web-ext-artifacts/
 .web-ext-secrets*
 __pycache__/
 .amo-upload-uuid
+release/node_modules/
+release/signed/
+release/config.local.json

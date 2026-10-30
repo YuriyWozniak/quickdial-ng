@@ -1,0 +1,11 @@
+{
+  "name": "quickdial-ng-release",
+  "private": true,
+  "description": "Signs and publishes Quick Dial NG releases. See README.md.",
+  "scripts": {
+    "release": "node release.js"
+  },
+  "dependencies": {
+    "web-ext": "^10.8.0"
+  }
+}
