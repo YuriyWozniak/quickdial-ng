@@ -9,7 +9,16 @@ const exIdx = flags.indexOf('--exclude'), ex = exIdx >= 0 ? new RegExp(flags[exI
 const names = {};
 const prof = JSON.parse(fs.readFileSync(file, 'utf8'));
 const base = prof.meta.startTime; // epoch ms of the parent process profile start
-let procStart = null;
+// marker payload fields stored as string-table indexes
+const uniq = {};
+for (const sc of prof.meta.markerSchema || []) for (const f of (sc.fields || sc.data || [])) if (f.format === 'unique-string' || f.format === 'flow-id' && false) (uniq[sc.name] = uniq[sc.name] || []).push(f.key);
+function resolve(data, st) {
+	if (!data || !data.type) return data;
+	const keys = (uniq[data.type] || []).concat(data.type === 'Text' ? ['name'] : []);
+	let out = data;
+	for (const k of keys) if (typeof data[k] === 'number' && st[data[k]] != null) { if (out === data) out = Object.assign({}, data); out[k] = st[data[k]]; }
+	return out;
+}
 const rows = [];
 
 function walk(p, procName) {
@@ -20,7 +29,7 @@ function walk(p, procName) {
 		const m = t.markers, s = m.schema, st = t.stringTable;
 		for (const d of m.data) {
 			const name = st[d[s.name]] || '';
-			const data = d[s.data];
+			const data = resolve(d[s.data], st);
 			const txt = name + ' ' + (data ? JSON.stringify(data) : '');
 			if (!re.test(txt) || (ex && ex.test(txt))) continue;
 			if (flags.includes('--names')) { const k = label.replace(/#\d+$/, '') + ' | ' + name; names[k] = (names[k] || 0) + 1; continue; }
