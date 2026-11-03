@@ -114,12 +114,34 @@ var QDUI = (function(){
 		}
 	}
 
+	// ---------- accent colour ----------
+	// The theme's accent (#rrggbb, or null for the default) for buttons, switches, tabs and focus rings.
+	// ui.css derives the hover, pressed, soft and dark-mode shades from it.
+	function setAccent(hex){
+		var root = document.documentElement;
+		if(!hex || !/^#[0-9a-f]{6}$/i.test(hex)){
+			root.classList.remove('qd-accented');
+			root.style.removeProperty('--qd-user-accent');
+			root.style.removeProperty('--qd-user-accent-text');
+			return;
+		}
+		var n = parseInt(hex.slice(1), 16);
+		var lin = function(v){ v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
+		var lum = .2126 * lin(n >> 16 & 255) + .7152 * lin(n >> 8 & 255) + .0722 * lin(n & 255);
+		root.style.setProperty('--qd-user-accent', hex);
+		root.style.setProperty('--qd-user-accent-text', lum > .4 ? '#15141a' : '#ffffff'); // whichever reads better on it
+		root.classList.add('qd-accented');
+	}
+
 	// ---------- dialogs ----------
-	// QDUI.dialog({ title, message, value, placeholder, okText, cancelText, danger, validate })
-	// resolves to the entered text (when `value` is given), true for a plain confirmation, or null if cancelled.
+	// QDUI.dialog({ title, message, value, placeholder, fields, okText, cancelText, danger, validate, transform })
+	// - plain confirmation: resolves to true
+	// - `value` (one text field): resolves to the entered text
+	// - `fields` ([{ name, label, value, placeholder }]): resolves to { name: text, ... }
+	// `validate` gets the same result and returns an error message ('' when fine). Cancel resolves to null.
 	function dialog(o){
 		return new Promise(function(resolve){
-			var hasInput = o.value !== undefined;
+			var fields = o.fields || (o.value !== undefined ? [{ value: o.value, placeholder: o.placeholder }] : []);
 			var overlay = document.createElement('div');
 			overlay.className = 'qd qd-overlay';
 			var box = document.createElement('div');
@@ -130,17 +152,25 @@ var QDUI = (function(){
 			box.setAttribute('aria-labelledby', h.id);
 			box.appendChild(h);
 			if(o.message){ var m = document.createElement('p'); m.className = 'qd-dialog-message'; m.textContent = o.message; box.appendChild(m); }
-			var input = null, error = null;
-			if(hasInput){
-				input = document.createElement('input');
+			var inputs = fields.map(function(f, i){
+				var input = document.createElement('input');
 				input.type = 'text';
-				input.value = o.value;
+				input.value = f.value || '';
 				input.spellcheck = false;
-				if(o.placeholder) input.placeholder = o.placeholder;
+				input.id = 'qd-dialog-field-' + i;
+				if(f.placeholder) input.placeholder = f.placeholder;
+				if(f.label){
+					var label = document.createElement('label'); label.className = 'qd-dialog-label'; label.htmlFor = input.id; label.textContent = f.label;
+					box.appendChild(label);
+				}
 				box.appendChild(input);
+				return input;
+			});
+			var error = null;
+			if(inputs.length){
 				error = document.createElement('div'); error.className = 'qd-dialog-error';
 				box.appendChild(error);
-				input.addEventListener('input', function(){ input.classList.remove('is-invalid'); error.textContent = ''; });
+				box.addEventListener('input', function(){ inputs.forEach(function(i){ i.classList.remove('is-invalid'); }); error.textContent = ''; });
 			}
 			var actions = document.createElement('div'); actions.className = 'qd-dialog-actions';
 			var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'qd-btn'; cancel.textContent = o.cancelText || 'Cancel';
@@ -158,11 +188,15 @@ var QDUI = (function(){
 				resolve(result);
 			}
 			function accept(){
-				if(!hasInput) return finish(true);
-				var v = input.value.trim();
-				var problem = o.validate ? o.validate(v) : (v ? '' : 'Please enter a value.');
-				if(problem){ input.classList.add('is-invalid'); error.textContent = problem; input.focus(); return; }
-				finish(o.transform ? o.transform(v) : v);
+				if(!inputs.length) return finish(true);
+				var result;
+				if(o.fields){
+					result = {};
+					o.fields.forEach(function(f, i){ result[f.name] = inputs[i].value.trim(); });
+				} else result = inputs[0].value.trim();
+				var problem = o.validate ? o.validate(result) : (inputs[0].value.trim() ? '' : 'Please enter a value.');
+				if(problem){ inputs[0].classList.add('is-invalid'); error.textContent = problem; inputs[0].focus(); return; }
+				finish(o.transform ? o.transform(result) : result);
 			}
 			function onKey(e){ // Capture phase on window: runs before the page's own shortcuts
 				if(e.key == 'Escape'){ e.preventDefault(); e.stopImmediatePropagation(); finish(null); }
@@ -179,9 +213,9 @@ var QDUI = (function(){
 			overlay.addEventListener('contextmenu', function(e){ e.preventDefault(); });
 			window.addEventListener('keydown', onKey, true);
 			document.body.appendChild(overlay);
-			if(input){ input.focus(); input.select(); } else (o.danger ? cancel : ok).focus();
+			if(inputs.length){ inputs[0].focus(); inputs[0].select(); } else (o.danger ? cancel : ok).focus();
 		});
 	}
 
-	return { closePopup: closePopup, tabs: tabs, changes: changes, applyMode: applyMode, imageDrop: imageDrop, dialog: dialog };
+	return { closePopup: closePopup, tabs: tabs, changes: changes, applyMode: applyMode, imageDrop: imageDrop, setAccent: setAccent, dialog: dialog };
 })();

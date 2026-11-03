@@ -32,7 +32,11 @@ Right-click the page → **Import from Quick Dial…** (or Settings → **Backup
 The original replaced blank tabs with the dial a set time after Firefox started (the "Startpage timeout" setting), which also caught blank tabs opened on purpose. Quick Dial NG instead sets itself as Firefox's home page, so the dial opens directly when Firefox starts and from the Home button. On a real profile the start tab begins loading at 0.8 s instead of 2.1 s after launch. Firefox asks once whether to keep the change; to use another page, go to Firefox Settings › Home.
 
 **Reworked Settings and Properties.**
-Settings and tile properties have a new layout with light and dark themes, a live preview of the tile style, image drag-and-drop and paste, and an Apply button that shows when there are unsaved changes. New bookmark, new folder and delete use in-page dialogs instead of browser prompts.
+Settings and tile properties have a new layout that follows Firefox's light or dark mode, a live preview of the tile style, image drag-and-drop and paste, and an Apply button that shows when there are unsaved changes. New bookmark, new folder and delete use in-page dialogs instead of browser prompts.
+
+**Themes.**
+Settings → **Themes** switches the whole look of the dial at once: background color, page margin, tile and title styles and the accent color of Quick Dial NG's windows. A theme never changes your background picture, rows and columns, tile shape or tiles. **Use** shows a theme in the settings first; Apply or OK puts it on the dial. Two themes are built in: **Classic** (the original look) and **Anori**, inspired by the [Anori](https://anori.app/) browser extension. Save your current look as a theme, export any theme to a `.json` file and import theme files from others. Backups include your themes.
+New style settings came with it: background opacity and glass blur for tiles, shadows, smooth hover effects (lift or grow), title font, bold titles and titles over the picture.
 
 **Refresh no longer hangs.**
 The automatic "Refresh" capture uses `drawWindow`, which recent Firefox no longer allows extensions to call. Instead of leaving a spinner forever, the tile now ends without a picture. Use **Capture in a new tab** to set one.

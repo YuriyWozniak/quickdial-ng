@@ -89,6 +89,26 @@
 	}
 }
 
+/* theme accent (QDUI.setAccent): one colour in, every accent shade derived from it */
+:root.qd-accented {
+	--qd-accent: var(--qd-user-accent);
+	--qd-accent-hover: color-mix(in srgb, var(--qd-user-accent) 85%, black);
+	--qd-accent-active: color-mix(in srgb, var(--qd-user-accent) 70%, black);
+	--qd-accent-text: var(--qd-user-accent-text);
+	--qd-accent-soft: color-mix(in srgb, var(--qd-user-accent) 14%, white);
+	--qd-focus: var(--qd-user-accent);
+}
+@media (prefers-color-scheme: dark) {
+	:root.qd-accented { /* lighter shades, so the accent stays readable on dark surfaces */
+		--qd-accent: color-mix(in srgb, var(--qd-user-accent) 55%, white);
+		--qd-accent-hover: color-mix(in srgb, var(--qd-user-accent) 40%, white);
+		--qd-accent-active: color-mix(in srgb, var(--qd-user-accent) 28%, white);
+		--qd-accent-text: #15141a;
+		--qd-accent-soft: color-mix(in srgb, var(--qd-user-accent) 30%, #1c1b22);
+		--qd-focus: var(--qd-accent);
+	}
+}
+
 /* ========== base (inside .qd only) ========== */
 .qd, .qd *, .qd *::before, .qd *::after { box-sizing: border-box; }
 .qd {
@@ -509,7 +529,8 @@
 	border-radius: 10px;
 }
 .qd-tile-slot { display: flex; width: 152px; height: 128px; }
-.qd-tile { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.qd-tile { position: relative; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.qd-tile.is-overlay .qd-tile-title { position: absolute; right: 0; bottom: 0; left: 0; }
 .qd-tile-img {
 	flex: 1;
 	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'%3E%3Crect width='120' height='80' fill='%23f3f3f7'/%3E%3Crect width='120' height='14' fill='%230061e0'/%3E%3Crect x='10' y='24' width='60' height='8' rx='2' fill='%23c9c9d6'/%3E%3Crect x='10' y='38' width='92' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='48' width='84' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='58' width='70' height='5' rx='2' fill='%23dcdce6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
@@ -533,6 +554,47 @@
 .qd-table-group td { padding-top: var(--qd-stack); color: var(--qd-accent); border-bottom-color: transparent; }
 .qd-table tbody tr:not(.qd-table-group):hover td { background: color-mix(in srgb, var(--qd-surface-2) 70%, transparent); }
 .qd-color-cell { display: flex; align-items: center; gap: 10px; }
+
+/* ========== theme gallery (Settings › Themes) ==========
+   Like the tile stage, a card's preview is painted by settings.js with the theme's own colors. */
+.qd-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--qd-gap); }
+.qd-theme {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background: var(--qd-surface);
+	border: 1px solid var(--qd-border-soft);
+	border-radius: var(--qd-radius);
+	box-shadow: var(--qd-shadow);
+	transition: border-color .15s, box-shadow .15s;
+}
+.qd-theme.is-current { border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
+.qd-theme-preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	height: 108px;
+	padding: 10px;
+	background-position: center;
+	background-size: cover;
+	border-bottom: 1px solid var(--qd-border-soft);
+}
+.qd-theme-preview .qd-tile-slot { zoom: .5; } /* the same 152 px sample tiles as the Tiles tab, at half size */
+.qd-theme-body { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px 12px; }
+.qd-theme-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: var(--qd-font-size); font-weight: 600; }
+.qd-theme-desc { flex: 1; margin: 0; font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
+.qd-theme-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.qd-badge {
+	padding: 1px 7px;
+	font-size: var(--qd-font-size-caps);
+	font-weight: 600;
+	color: var(--qd-muted);
+	background: var(--qd-surface-2);
+	border: 1px solid var(--qd-border-soft);
+	border-radius: 10px;
+}
+.qd-badge.is-accent { color: var(--qd-accent); background: var(--qd-accent-soft); border-color: transparent; }
 
 /* ========== status banner ========== */
 .qd-banner {
@@ -601,6 +663,8 @@
 .qd-dialog .qd-title { margin-bottom: 6px; }
 .qd-dialog-message { margin: 0 0 var(--qd-stack); color: var(--qd-muted); overflow-wrap: anywhere; }
 .qd-dialog input[type=text] { margin-bottom: 4px; }
+.qd-dialog-label { display: block; margin: 0 0 4px; font-weight: 500; }
+.qd-dialog input + .qd-dialog-label { margin-top: 10px; }
 .qd-dialog-error { min-height: 18px; font-size: var(--qd-font-size-sm); color: var(--qd-danger); }
 .qd-dialog-actions { display: flex; justify-content: flex-end; gap: var(--qd-row); margin-top: 10px; }
 

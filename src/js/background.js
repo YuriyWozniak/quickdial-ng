@@ -38,6 +38,8 @@ app.Messages.Commands = {
 	getImages: 11,
 	exportData: 12,
 	importData: 13,
+	getThemes: 14,
+	setThemes: 15,
 	settingsChanged: 100,
 	gridNodesLoaded: 101,
 	menuCreateBookmark: 200,
@@ -122,20 +124,23 @@ app.Messages.init = function(){ // Init Messages Listeners
 				return app.Backup.export();
 			case app.Messages.Commands.importData:
 				return app.Backup.import(request.data);
+			case app.Messages.Commands.getThemes:
+				sendResponse(app.Themes.list);
+				break;
+			case app.Messages.Commands.setThemes:
+				return app.Themes.save(request.themes);
 		}
 	});
 };
 
 app.Settings = {}; // Settings helper object
-app.Settings.defaults = function(){ // Default settings of a new install
-	return {
-		backgroundColor: '#3c4048',
+app.Settings.defaults = function(){ // Default settings of a new install: layout and behaviour here, the look from the Classic theme
+	return QDThemes.apply({
 		backgroundImage: null,
 		backgroundMode: 0,
 		menuShowAdd: true,
 		openQuickDialInNewPage: true,
 		grid: {
-			margin: 10,
 			rows: 4,
 			columns: 5,
 			ratioX: 4,
@@ -149,41 +154,18 @@ app.Settings.defaults = function(){ // Default settings of a new install
 			openBookmarkMethod: 0,
 			openFolderMethod: 0,
 			cells: {
-				margin: 4,
-				marginHover: 4,
-				opacity: 1,
-				opacityHover: 1,
-				backgroundColor: null,
-				backgroundColorHover: null,
-				borderColor: '#333333',
-				borderColorHover: '#a9a9a9',
-				borderRadius: 4,
-				borderRadiusHover: 4,
-				borderSize: 1,
-				borderSizeHover: 1,
-				title: true,
-				titleHover: true,
-				titleHeight: 16,
-				titleHeightHover: 16,
-				titleFontSize: 10,
-				titleFontSizeHover: 10,
-				titleFont: 'Arial, Verdana, Sans-serif',
-				titleColor: '#ffffff',
-				titleColorHover: '#33ccff',
-				titleBackgroundColor: null,
-				titleBackgroundColorHover: null,
-				titleBorderSize: 1,
-				titleBorderSizeHover: 1,
 				previewWidth: 1200,
 				previewHeight: 710,
 				snapshotDelay: 2000
 			},
 			root: 'Quick Dial',
 		}
-	};
+	}, QDThemes.CLASSIC);
 };
 app.Settings.init = function(callback){ // Load settings and nodes
-	browser.storage.local.get(['version', 'settings', 'node']).then(function(data){ // Images are stored under their own keys and loaded on demand (see app.Images)
+	browser.storage.local.get(['version', 'settings', 'node', 'themes']).then(function(data){ // Images are stored under their own keys and loaded on demand (see app.Images)
+		app.Themes.list = QDThemes.cleanList(data.themes);
+		delete data.themes;
 		if(Object.keys(data).length == 0 || ! data.settings) {
 			data = { version: 3, settings: app.Settings.defaults(), node: { children: [] } };
 		}
@@ -259,6 +241,7 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		app.node = data.node;
 		var obsolete = ('startpageTimeout' in app.settings); // Start page timer, replaced by the home page override (0.3.5)
 		delete app.settings.startpageTimeout;
+		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
 			app.Images.extractFromTree(app.node).then(function(){
 				app.Settings.save(callback);
@@ -424,6 +407,13 @@ app.Images.extractFromTree = function(gridNode, images){ // Move inline images (
 	return Promise.all(jobs);
 };
 
+app.Themes = { list: [] }; // The user's own themes ({ name, description, style }); built-in ones live in themes.js
+app.Themes.save = function(list){ // Promise<saved list>
+	app.Themes.list = QDThemes.cleanList(list);
+	var done = function(){ return app.Themes.list; };
+	return (app.Themes.list.length ? browser.storage.local.set({ themes: app.Themes.list }) : browser.storage.local.remove('themes')).then(done, done);
+};
+
 app.Backup = {}; // Export / import of settings, tiles and images
 app.Backup.export = function(){
 	var ids = [];
@@ -433,7 +423,9 @@ app.Backup.export = function(){
 		if(node.children) for(var child of node.children) collect(child);
 	})(app.node);
 	return app.Images.get(ids).then(function(images){
-		return { format: 'quickdial-ng', version: 5, settings: app.settings, node: JSON.parse(app.Settings._serialize()).node, images: images };
+		var data = { format: 'quickdial-ng', version: 5, settings: app.settings, node: JSON.parse(app.Settings._serialize()).node, images: images };
+		if(app.Themes.list.length) data.themes = app.Themes.list;
+		return data;
 	});
 };
 app.Backup._clean = function(value){ // Deep copy without transient "__" fields
@@ -510,6 +502,7 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error('Not a Quick Dial backup');
 	var settings = app.Backup._mergeDefaults(app.Settings.defaults(), app.Backup._clean(data.settings));
 	delete settings.startpageTimeout; // Obsolete (start page timer), found in older exports and backups
+	QDThemes.apply(settings, QDThemes.extract(settings)); // Style values end up in CSS text: keep only valid ones
 	var node = app.Backup._clean(data.node);
 	var stats = { tiles: 0, folders: 0, matched: 0, created: 0, images: 0 };
 	var idMap = {};
@@ -530,6 +523,10 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 		await app.Images.extractFromTree(app.node, images);
 		(function count(n){ if(n.image == '1') stats.images++; for(var c of n.children || []) count(c); })(app.node);
 		await new Promise(function(resolve){ app.Settings.save(resolve); });
+		if(Array.isArray(data.themes) && data.themes.length){ // Themes from the backup are added; a theme with the same name is replaced
+			var names = data.themes.map(function(t){ return String(t && t.name).trim().toLowerCase(); });
+			await app.Themes.save(data.themes.concat(app.Themes.list.filter(function(t){ return names.indexOf(t.name.toLowerCase()) < 0; })));
+		}
 	} finally {
 		app.Bookmarks.initListener();
 	}

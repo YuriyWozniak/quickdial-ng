@@ -6,6 +6,7 @@
 		<title id="title">Quick Dial NG Settings</title>
 		<link rel="stylesheet" href="../css/ui.css" />
 		<script type="text/javascript" src="../js/ui.js"></script>
+		<script type="text/javascript" src="../js/themes.js"></script>
 		<script type="text/javascript" src="/js/settings.js"></script>
 	</head>
 	<body id="body" class="qd qd-page">
@@ -24,6 +25,7 @@
 			<button type="button" class="qd-tab" role="tab" id="TabPageButton" aria-controls="TabPage" aria-selected="true">Page</button>
 			<button type="button" class="qd-tab" role="tab" id="TabGridButton" aria-controls="TabGrid">Grid</button>
 			<button type="button" class="qd-tab" role="tab" id="TabTilesButton" aria-controls="TabTiles">Tiles</button>
+			<button type="button" class="qd-tab" role="tab" id="TabThemesButton" aria-controls="TabThemes">Themes</button>
 			<button type="button" class="qd-tab" role="tab" id="TabBackupButton" aria-controls="TabBackup">Backup</button>
 		</nav>
 
@@ -56,7 +58,19 @@
 								<button type="button" class="qd-btn is-small" id="BackgroundImageClear">Remove</button>
 							</div>
 							<span class="qd-hint">Or drop an image on the preview.</span>
+							<div class="qd-inline" id="BackgroundGradientRow" hidden>
+								<span class="qd-hint">The theme adds a gradient, shown behind any picture.</span>
+								<button type="button" class="qd-btn is-small" id="BackgroundGradientClear">Remove gradient</button>
+							</div>
 						</div>
+					</div>
+				</section>
+
+				<section class="qd-card">
+					<h2>Interface</h2>
+					<div class="qd-switch-row">
+						<label class="qd-switch-label" for="AccentColor">Accent color<small>Buttons, switches, tabs and focus rings in Quick Dial NG's windows and dialogs</small></label>
+						<div class="qd-color-cell"><input id="AccentColor" type="color"><label class="qd-check"><input id="AccentDefault" type="checkbox"> Default</label></div>
 					</div>
 				</section>
 
@@ -223,6 +237,30 @@
 								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparent" type="checkbox"> None</label></div></td>
 								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparentHover" type="checkbox"> None</label></div></td>
 							</tr>
+							<tr>
+								<td>Background opacity</td>
+								<td><span class="qd-unit"><input id="GridCellsBackgroundOpacity" type="number" min="0" max="100" step="5"> %</span></td>
+								<td><span class="qd-unit"><input id="GridCellsBackgroundOpacityHover" type="number" min="0" max="100" step="5"> %</span></td>
+							</tr>
+							<tr>
+								<td>Glass blur<br><small class="qd-hint">Blurs the page behind the tile</small></td>
+								<td><span class="qd-unit"><input id="GridCellsBlur" type="number" min="0" max="40"> px</span></td>
+								<td><span class="qd-unit"><input id="GridCellsBlurHover" type="number" min="0" max="40"> px</span></td>
+							</tr>
+							<tr>
+								<td>Shadow</td>
+								<td><select id="GridCellsShadow"><option value="0">None</option><option value="1">Soft</option><option value="2">Strong</option></select></td>
+								<td><select id="GridCellsShadowHover"><option value="0">None</option><option value="1">Soft</option><option value="2">Strong</option></select></td>
+							</tr>
+							<tr>
+								<td>Hover effect</td>
+								<td colspan="2"><select id="GridCellsHoverEffect">
+									<option value="0">Instant change</option>
+									<option value="1">Smooth change</option>
+									<option value="2">Smooth, tile lifts</option>
+									<option value="3">Smooth, tile grows</option>
+								</select></td>
+							</tr>
 
 							<tr class="qd-table-group"><td colspan="3">Title</td></tr>
 							<tr>
@@ -237,8 +275,8 @@
 							</tr>
 							<tr>
 								<td>Font size</td>
-								<td><span class="qd-unit"><input id="GridCellsTitleFontSize" type="number" min="0"> pt</span></td>
-								<td><span class="qd-unit"><input id="GridCellsTitleFontSizeHover" type="number" min="0"> pt</span></td>
+								<td><span class="qd-unit"><input id="GridCellsTitleFontSize" type="number" min="1" step="0.5"> pt</span></td>
+								<td><span class="qd-unit"><input id="GridCellsTitleFontSizeHover" type="number" min="1" step="0.5"> pt</span></td>
 							</tr>
 							<tr>
 								<td>Divider width</td>
@@ -255,6 +293,22 @@
 								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparent" type="checkbox"> None</label></div></td>
 								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparentHover" type="checkbox"> None</label></div></td>
 							</tr>
+							<tr>
+								<td>Background opacity</td>
+								<td><span class="qd-unit"><input id="GridCellsTitleBackgroundOpacity" type="number" min="0" max="100" step="5"> %</span></td>
+								<td><span class="qd-unit"><input id="GridCellsTitleBackgroundOpacityHover" type="number" min="0" max="100" step="5"> %</span></td>
+							</tr>
+							<tr>
+								<td>Font</td>
+								<td colspan="2"><div class="qd-inline"><select id="GridCellsTitleFont"></select><label class="qd-check"><input id="GridCellsTitleBold" type="checkbox"> Bold</label></div></td>
+							</tr>
+							<tr>
+								<td>Position</td>
+								<td colspan="2"><select id="GridCellsTitlePosition">
+									<option value="0">Below the picture</option>
+									<option value="1">Over the bottom of the picture</option>
+								</select></td>
+							</tr>
 
 							<tr class="qd-table-group"><td colspan="3">Thumbnails</td></tr>
 							<tr>
@@ -266,13 +320,32 @@
 				</section>
 			</div>
 
+			<!-- ===== Themes ===== -->
+			<div class="qd-panel qd-stack" id="TabThemes" role="tabpanel" aria-labelledby="TabThemesButton" hidden>
+				<div id="ThemeStatus" class="qd-banner" hidden></div>
+
+				<section class="qd-card">
+					<h2>Themes</h2>
+					<p class="qd-muted">A theme is the look of the dial: background color, page margin, tile and title styles and the accent color.
+					It keeps your background picture, rows and columns, tile shape and tiles. Choose <b>Use</b> to try a theme here, then <b>Apply</b> or <b>OK</b> to keep it.</p>
+					<div class="qd-inline">
+						<button type="button" class="qd-btn" id="BtnThemeSave" title="Add the current look to your themes">Save current as theme…</button>
+						<button type="button" class="qd-btn" id="BtnThemeExport" title="Save the current look as a .json file">Export current…</button>
+						<button type="button" class="qd-btn" id="BtnThemeImport" title="Add a theme from a .json file">Import theme…</button>
+					</div>
+					<input id="ThemeFile" type="file" accept=".json,application/json" class="qd-file" data-no-dirty tabindex="-1">
+				</section>
+
+				<div class="qd-themes" id="ThemeList" data-no-dirty></div>
+			</div>
+
 			<!-- ===== Backup ===== -->
 			<div class="qd-panel qd-stack" id="TabBackup" role="tabpanel" aria-labelledby="TabBackupButton" hidden>
 				<div id="ImportStatus" class="qd-banner" hidden></div>
 
 				<section class="qd-card">
 					<h2>Quick Dial NG backup</h2>
-					<p class="qd-muted">Saves settings, tiles and pictures to one file. Restore it with <b>Import from file…</b> below.</p>
+					<p class="qd-muted">Saves settings, tiles, pictures and your themes to one file. Restore it with <b>Import from file…</b> below.</p>
 					<div class="qd-inline">
 						<button type="button" class="qd-btn is-primary" id="BtnExport" title="Save settings, tiles and images to a file">Export backup</button>
 						<button type="button" class="qd-btn" id="BtnImport" title="Import an original Quick Dial export or a Quick Dial NG backup">Import from file…</button>

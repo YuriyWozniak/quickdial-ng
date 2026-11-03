@@ -14,6 +14,7 @@ app.init = function(){
 	app.changes = QDUI.changes(BtnApply, Status);
 	app.Messages.getSettings(function(settings){
 		app.settings = settings;
+		QDUI.setAccent(settings.accentColor);
 		app.sizePreview();
 		app.Messages.getNodeByID(new URL(window.location).searchParams.get('id'), function(node){
 			app.Messages.getImages([node.id], function(images){ // Images are stored separately: get this one

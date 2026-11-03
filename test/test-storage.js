@@ -14,7 +14,8 @@ const H = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-test-'));
 const ext = (...p) => path.join(H, 'ext', ...p);
 fs.cpSync(path.join(__dirname, '..', 'src'), ext(), { recursive: true });
 for (const f of ['mock.js', 'index.html']) fs.copyFileSync(path.join(__dirname, f), path.join(H, f));
-fs.writeFileSync(ext('bg.html'), '<!doctype html><html><head><script>window.browser = parent.makeBrowser(window, "bg");</script><script src="js/background.js"></script></head><body></body></html>');
+const bgScripts = JSON.parse(fs.readFileSync(ext('manifest.json'), 'utf8')).background.scripts.map(s => `<script src="${s}"></script>`).join('');
+fs.writeFileSync(ext('bg.html'), '<!doctype html><html><head><script>window.browser = parent.makeBrowser(window, "bg");</script>' + bgScripts + '</head><body></body></html>');
 const patchPage = (from, to, tag, src) => {
 	const html = fs.readFileSync(ext(from), 'utf8');
 	if (!html.includes(tag)) throw new Error(`${from}: "${tag}" not found`);
@@ -202,6 +203,53 @@ async function main() {
 	await J("loadFrame('bg', 'ext/bg.html')"); await wait(1500);
 	st = await J('S.writes.map(w => w.k)');
 	check('O next start writes nothing again', st.length === 0, st);
+
+	// Phase P: themes (0.4.0)
+	st = await J(`(() => { const c = S.storage.settings.grid.cells; return { glass: c.backgroundOpacity, effect: c.hoverEffect, font: c.titleFont, accent: S.storage.settings.accentColor }; })()`);
+	check('P style keys added in 0.4.0 start at their Classic values', st.glass === 1 && st.effect === 0 && st.font === 'Arial, Verdana, Sans-serif' && st.accent === null, st);
+	await J(`${BG}.app.Themes.save([{ name: 'Mine', description: 'test', style: { backgroundColor: '#112233', grid: { cells: { borderRadius: 9 } } } },
+	    { name: 'Classic', style: {} }, { name: 'mine', style: {} }, { nameless: true }])`);
+	st = await J("S.storage.themes");
+	check('P custom themes saved; built-in names, duplicates and broken entries dropped', st.length === 1 && st[0].name === 'Mine' && st[0].style.grid.cells.borderRadius === 9 && st[0].style.grid.cells.margin === 4, st.map(t => t.name));
+	await J("loadFrame('bg', 'ext/bg.html')"); await wait(1500);
+	st = await J(`${BG}.app.Themes.list.map(t => t.name)`);
+	check('P custom themes loaded after restart', same(st, ['Mine']), st);
+	const T = `${BG}.QDThemes`;
+	st = await J(`(() => { const T = ${T}; const a = T.BUILTIN.find(t => t.id === 'anori'); const back = T.fromFile(JSON.parse(JSON.stringify(T.toFile(a))));
+	    const bad = T.normalize({ backgroundGradient: 'linear-gradient(red, blue), url(https://evil.example/x.png)', grid: { cells: { titleFont: 'x;} body{display:none', blur: 999, titleColor: 'red' } } });
+	    let err = ''; try { T.fromFile({ format: 'quickdial-ng', settings: {} }); } catch(e) { err = e.message; }
+	    return { round: T.equal(back.style, a.style) && back.name === 'Anori' && /anori\\.app/.test(back.description), grad: bad.backgroundGradient, font: bad.grid.cells.titleFont, blur: bad.grid.cells.blur, color: bad.grid.cells.titleColor, err }; })()`);
+	check('P theme file round trip keeps Anori', st.round, st);
+	check('P unsafe or invalid theme values replaced', st.grad === null && st.font === 'Arial, Verdana, Sans-serif' && st.blur === 40 && st.color === '#ffffff' && /backup/.test(st.err), st);
+	const bk = await J(`${BG}.app.Backup.export()`);
+	check('P backup carries custom themes', bk.themes && bk.themes.length === 1 && bk.themes[0].name === 'Mine');
+	bk.themes.push({ name: 'From backup', style: { accentColor: '#aa0000' } });
+	bk.settings.backgroundGradient = 'url(https://evil.example/)';
+	await J(`${BG}.app.Backup.import(${JSON.stringify(bk)})`); await wait(1000);
+	st = await J(`({ names: ${BG}.app.Themes.list.map(t => t.name), grad: ${BG}.app.settings.backgroundGradient })`);
+	check('P backup import adds its themes and cleans style values', same(st.names.sort(), ['From backup', 'Mine']) && st.grad === null, st);
+	// Settings › Themes: use Anori, apply, the dial follows; rows, columns and the background picture are kept
+	const before0 = await J(`(() => { const s = ${BG}.app.settings; return { rows: s.grid.rows, cols: s.grid.columns, ratio: s.grid.ratioX + ':' + s.grid.ratioY, pic: s.backgroundImage }; })()`);
+	await J("loadFrame('dial', 'ext/html/settingstest.html?tab=themes')"); await wait(1000);
+	st = await dial().locator('body').evaluate(() => ({ tab: !document.getElementById('TabThemes').hidden, cards: [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(h => h.firstChild.textContent),
+	    current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(h => h.firstChild.textContent) }));
+	check('P Themes tab lists built-in and custom themes', st.tab && same(st.cards, ['Classic', 'Anori', 'Mine', 'From backup']), st);
+	await dial().locator('.qd-theme').nth(1).locator('button', { hasText: 'Use' }).click(); await wait(300);
+	st = await dial().locator('body').evaluate(() => ({ accent: document.getElementById('AccentColor').value, pos: document.getElementById('GridCellsTitlePosition').value, glass: document.getElementById('GridCellsBackgroundOpacity').value,
+	    current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(h => h.firstChild.textContent), dirty: !document.getElementById('BtnApply').disabled,
+	    gradientRow: !document.getElementById('BackgroundGradientRow').hidden, rootAccent: document.documentElement.classList.contains('qd-accented') }));
+	check('P "Use" fills the form with Anori, nothing applied yet', st.accent === '#00794a' && st.pos === '1' && st.glass === '6' && same(st.current, ['Anori']) && st.dirty && st.gradientRow && st.rootAccent, st);
+	check('P dial not changed before Apply', (await J(`${BG}.app.settings.accentColor`)) === null);
+	await dial().locator('#BtnApply').click(); await wait(600);
+	st = await J(`(() => { const s = ${BG}.app.settings; return { accent: s.accentColor, grad: !!s.backgroundGradient, rows: s.grid.rows, cols: s.grid.columns, ratio: s.grid.ratioX + ':' + s.grid.ratioY, pic: s.backgroundImage,
+	    anori: ${T}.equal(${T}.extract(s), ${T}.BUILTIN[1].style) }; })()`);
+	check('P Apply puts Anori on, layout and picture kept', st.accent === '#00794a' && st.grad && st.anori && st.rows === before0.rows && st.cols === before0.cols && st.ratio === before0.ratio && st.pic === before0.pic, st);
+	await J("loadFrame('dial', 'ext/dialtest.html')"); await wait(1200);
+	st = await dial().locator('body').evaluate(() => { const a = document.querySelector('table.Grid a:not(.Empty)'); const cs = getComputedStyle(a), t = getComputedStyle(a.lastChild);
+	    return { bg: getComputedStyle(document.body).backgroundImage.slice(0, 15), radius: cs.borderTopLeftRadius, blur: cs.backdropFilter, shadow: cs.boxShadow !== 'none', titlePos: t.position, panelH: a.firstChild.offsetHeight, linkH: a.clientHeight }; });
+	check('P dial draws Anori: gradient, glass, shadow, title over the picture', st.bg.startsWith('radial-gradient') && st.radius === '14px' && st.blur === 'blur(14px)' && st.shadow && st.titlePos === 'absolute' && st.panelH === st.linkH, st);
+	st = await J(`(() => { const s = JSON.parse(JSON.stringify(${BG}.app.settings)); ${T}.apply(s, ${T}.BUILTIN[0].style); return new Promise(r => ${BG}.app.Settings.update(s, () => r(${T}.equal(${T}.extract(${BG}.app.settings), ${T}.CLASSIC)))); })()`);
+	check('P Classic brings the original look back', st);
 
 	// 404s (icons, favicons) and blocked external requests are expected; real script errors are not.
 	console.log('console errors:', JSON.stringify(errs.filter(e => !e.includes('no receiver') && !e.startsWith('Failed to load resource')).slice(0, 10)));
