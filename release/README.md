@@ -70,7 +70,7 @@ AMO refuses `update_url` in listed versions. The source keeps it for the GitHub 
    It lints the source without `update_url` with the listed rules (`web-ext lint --warnings-as-errors`, no `--self-hosted`) and saves `quickdial-ng-<version>-amo.zip` in the output folder.
 3. On [My Add-ons](https://addons.mozilla.org/developers/addons) open Quick Dial NG › **Upload New Version**, choose **On this site** and upload the `.zip`. Untick **Firefox for Android** under compatibility: Android doesn't let extensions replace the new tab or home page and has no bookmarks API. (`gecko_android` stays in the manifest only because the linter needs its minimum version, 142, for `data_collection_permissions`.)
    - No source code upload is needed: the package is the plain source, nothing is minified or generated.
-   - The first listed version asks for the listing (summary, description, categories, license **MPL 2.0**, support links, screenshots from [`screenshots/`](../screenshots/)).
+   - The first listed version asks for the listing (summary, description, categories, license, support links, screenshots and release notes). Copy them from [amo-listing.md](amo-listing.md). Keep that file up to date with every version: add the version's release notes there (and pass the same text to `--notes`), and update the description when features change.
    - **Notes to Reviewer**: paste the text below.
 4. After approval, download the signed file from the version's page and publish it on GitHub too:
    ```

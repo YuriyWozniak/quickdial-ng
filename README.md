@@ -75,6 +75,8 @@ Download the latest `.xpi` from [Releases](https://github.com/YuriyWozniak/quick
 
 From 0.3.4 on, Firefox updates Quick Dial NG by itself: it checks [`updates.json`](updates.json) in this repository, which lists each release's download link and checksum. Versions published on addons.mozilla.org update from there instead.
 
+What changed in each version is on the [Releases](https://github.com/YuriyWozniak/quickdial-ng/releases) page and in [release/amo-listing.md](release/amo-listing.md#release-notes), which also holds the texts of the addons.mozilla.org page, so both places describe the same thing.
+
 ## Moving from the original Quick Dial
 
 Quick Dial NG has its own add-on ID, so it starts with empty storage. The import brings everything over:
