@@ -1,6 +1,6 @@
 # Tests
 
-Functional tests for Quick Dial NG's storage, sync and import logic, plus performance benchmarks in [`bench/`](bench/README.md).
+Functional tests for Quick Dial NG's storage, sync and import logic, plus performance benchmarks in [`bench/`](bench/README.md) and the README screenshot maker in [`screenshots/`](screenshots/README.md), which reuses this harness.
 
 The functional tests don't need Firefox. They load the extension's own pages from `src/` in Chromium (through Playwright) and replace the Firefox WebExtension API with a simulation, so they run anywhere Node.js runs.
 
@@ -27,9 +27,9 @@ The script prints a `PASS`/`FAIL` line per check. It ends with `ALL PASS` (exit 
 
 | File | Purpose |
 |---|---|
-| `test-storage.js` | The test runner. Copies `src/` to a temporary folder and serves it over a local HTTP server. Loads `bg.html` (the background page) and the dial and settings pages into frames of `index.html`, then works through phases A–N (below). Deletes the temporary folder when done. |
+| `test-storage.js` | The test runner. Copies `src/` to a temporary folder and serves it over a local HTTP server. Loads `bg.html` (the background page) and the dial and settings pages into frames of `index.html`, then works through phases A–P (below). Deletes the temporary folder when done. |
 | `mock.js` | A simulated Firefox WebExtension API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the top window: storage contents, bookmark tree, listeners and a log of storage writes and removals, so the tests can check exactly what was written. It mirrors Firefox's real behaviour where it matters, e.g. `bookmarks.create` returns a new folder without `children`. |
-| `package.json` | The tests' only dependency, Playwright. `npm test` runs the tests and `npm run bench` the [extension benchmark](bench/README.md). |
+| `package.json` | The tests' only dependency, Playwright. `npm test` runs the tests, `npm run bench` the [extension benchmark](bench/README.md) and `npm run screenshots` the [screenshot maker](screenshots/README.md). |
 | `index.html` | The host page. Loads `mock.js` and provides `loadFrame()`, which opens an extension page (background, dial, settings) in an iframe. Reloading a frame removes its old listeners, which simulates a restart. |
 
 ## Test phases in `test-storage.js`
