@@ -143,16 +143,37 @@ function webExtBin(dir) {
 	return path.join(path.dirname(pkgJson), bin);
 }
 
+function writeSource(src, dir) {
+	for (const [name, data] of src) {
+		fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
+		fs.writeFileSync(path.join(dir, name), data);
+	}
+}
+
+// Lint exactly what will be signed. --self-hosted: the add-on has its own update_url (GitHub), which
+// the linter otherwise rejects as if it were listed on addons.mozilla.org.
+function lint(src, cfg) {
+	const bin = webExtBin(cfg.webExtDir);
+	const work = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-lint-'));
+	try {
+		const srcDir = path.join(work, 'src');
+		writeSource(src, srcDir);
+		log('Linting the source (web-ext lint --self-hosted --warnings-as-errors)...');
+		const r = spawnSync(process.execPath, [bin, 'lint', '--source-dir', srcDir, '--self-hosted', '--warnings-as-errors'], { cwd: work, stdio: 'inherit' });
+		if (r.status !== 0) fail('web-ext lint reported problems (see above); fix them before releasing.');
+		log('Lint: no errors or warnings');
+	} finally {
+		fs.rmSync(work, { recursive: true, force: true });
+	}
+}
+
 function sign(src, cfg, xpiPath) {
 	const keys = readKeys(cfg.keyFile);
 	const bin = webExtBin(cfg.webExtDir);
 	const work = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-sign-'));
 	try {
 		const srcDir = path.join(work, 'src'), artifacts = path.join(work, 'out');
-		for (const [name, data] of src) {
-			fs.mkdirSync(path.dirname(path.join(srcDir, name)), { recursive: true });
-			fs.writeFileSync(path.join(srcDir, name), data);
-		}
+		writeSource(src, srcDir);
 		log('Signing on addons.mozilla.org (unlisted). Approval usually takes a few minutes...');
 		const r = spawnSync(process.execPath, [bin, 'sign', '--source-dir', srcDir, '--artifacts-dir', artifacts,
 			'--channel', 'unlisted', '--approval-timeout', '900000'], {
@@ -222,7 +243,8 @@ async function main() {
 	if (srcVersion !== version) fail(`src/manifest.json at ${commit.slice(0, 7)} has version ${srcVersion}, not ${version}`);
 	log(`Commit: ${commit.slice(0, 7)} ${git(['log', '-1', '--format=%s', commit])}`);
 
-	// 2. Signed file
+	// 2. Signed file (the source is linted first whenever it is going to be signed, dry runs included)
+	if (!fs.existsSync(xpiPath) && !flags.xpi) lint(src, cfg);
 	if (fs.existsSync(xpiPath)) log(`Using signed file ${xpiPath}`);
 	else if (flags.xpi) fail(`File not found: ${xpiPath}`);
 	else if (dry) { log(`Would sign the source and save ${xpiPath}`); }

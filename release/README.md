@@ -3,7 +3,7 @@
 `release.js` takes a version that is already committed in `src/manifest.json` and turns it into a published, auto-updating release:
 
 1. **Commit.** Uses the last commit on `origin/develop` that changed `src/` (or `--commit`). Checks that its `src/manifest.json` has the requested version.
-2. **Sign.** Exports `src/` exactly as it is at that commit (not your working copy) and signs it on addons.mozilla.org as an *unlisted* add-on with `web-ext sign`. Mozilla's approval usually takes a few minutes. The result is saved as `quickdial-ng-<version>.xpi` in the output folder. If that file already exists, signing is skipped.
+2. **Lint and sign.** Exports `src/` exactly as it is at that commit (not your working copy) and runs `web-ext lint --self-hosted --warnings-as-errors` on it; any error or warning stops the release (dry runs included). Then it signs it on addons.mozilla.org as an *unlisted* add-on with `web-ext sign`. Mozilla's approval usually takes a few minutes. The result is saved as `quickdial-ng-<version>.xpi` in the output folder. If that file already exists, signing is skipped.
 3. **Verify.** Checks that the `.xpi` is signed by Mozilla (`META-INF/mozilla.rsa`), has the right version and contains exactly the source files of the commit.
 4. **Tag.** Tags the commit as `v<version>` and pushes the tag. It stops if the tag already exists at another commit.
 5. **GitHub release.** Creates the release *Quick Dial NG &lt;version&gt;* with the notes from `--notes` and attaches the `.xpi`.
