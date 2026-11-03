@@ -799,7 +799,7 @@ app.SiteInfos.fromFrame = function(url, callback){ // Retrieve infos from an ifr
 		ctx.scale(0.5, 0.5);
 		try {
 			ctx.drawWindow(iframe.contentWindow, 0, 0, previewWidth, previewHeight, 'rgb(255, 255, 255)');
-		} catch(e) { // drawWindow is not available to extensions in recent Firefox versions
+		} catch(e) { // drawWindow is refused to extensions in recent Firefox versions: no picture
 			document.body.removeChild(iframe);
 			iframe = null;
 			if(callback) callback();
@@ -817,6 +817,10 @@ app.SiteInfos.fromFrame = function(url, callback){ // Retrieve infos from an ifr
 	var previewHeight = previewWidth / app.settings.grid.ratioX * app.settings.grid.ratioY;
 	if(app.settings.grid.title == true) previewHeight -= app.settings.grid.titleHeight;
 	var iframe;
+	if(!/^https?:\/\//i.test(url)){ // Only web pages can be fetched (not place:, file:, javascript:...)
+		if(callback) callback();
+		return;
+	}
 	var xmlHttp = new XMLHttpRequest();
 	xmlHttp.timeout = 10000
 	xmlHttp.open('GET', url, true);
@@ -826,7 +830,15 @@ app.SiteInfos.fromFrame = function(url, callback){ // Retrieve infos from an ifr
 		iframe.height = previewHeight
 		iframe.style.position = 'absolute';
 		iframe.scrolling = 'no';
-		var content = xmlHttp.responseText.replace('<head>', '<head><base href="' + url + '">');
+		// The downloaded page is only drawn, never run: the sandbox (no allow-scripts) blocks all of its scripts,
+		// forms, pop-ups and navigation, on top of the extension's own content security policy.
+		// allow-same-origin keeps the frame readable for its title and for drawWindow.
+		iframe.setAttribute('sandbox', 'allow-same-origin');
+		iframe.setAttribute('referrerpolicy', 'no-referrer');
+		var base = '<base href="' + url.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '">';
+		var html = xmlHttp.responseText;
+		var content = html.replace(/<head(\s[^>]*)?>/i, function(tag){ return tag + base; }); // Relative links resolve against the site
+		if(content == html) content = base + html;
 		document.body.appendChild(iframe);
 		iframe.onload = function(){ pageLoaded(); }
 		iframe.srcdoc = content;

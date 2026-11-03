@@ -2,8 +2,8 @@
 
   "manifest_version": 2,
   "name": "Quick Dial NG",
-  "description": "Speed dial new tab page with tiles from a bookmarks folder. Optimized fork of Quick Dial by MatMoul.",
-  "version": "0.4.0",
+  "description": "Speed dial for the new tab and home page, with tiles from a bookmarks folder. Independent, optimized fork of Quick Dial by MatMoul.",
+  "version": "0.4.1",
   "author": "YuriyWozniak (fork of Quick Dial by MatMoul)",
   "homepage_url": "https://github.com/YuriyWozniak/quickdial-ng",
   "developer": {

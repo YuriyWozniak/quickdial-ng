@@ -251,8 +251,24 @@ async function main() {
 	st = await J(`(() => { const s = JSON.parse(JSON.stringify(${BG}.app.settings)); ${T}.apply(s, ${T}.BUILTIN[0].style); return new Promise(r => ${BG}.app.Settings.update(s, () => r(${T}.equal(${T}.extract(${BG}.app.settings), ${T}.CLASSIC)))); })()`);
 	check('P Classic brings the original look back', st);
 
-	// 404s (icons, favicons) and blocked external requests are expected; real script errors are not.
-	console.log('console errors:', JSON.stringify(errs.filter(e => !e.includes('no receiver') && !e.startsWith('Failed to load resource')).slice(0, 10)));
+	// Phase Q: refreshing a tile draws the downloaded page in a sandboxed frame; the page's own scripts never run.
+	// Chromium has no drawWindow (Firefox only), so a stand-in records what it was asked to draw.
+	fs.mkdirSync(path.join(H, 'site'), { recursive: true });
+	fs.writeFileSync(path.join(H, 'site', 'page.html'), '<!doctype html><html><head><title>Sandboxed page</title>' +
+		'<script>top.qdRan = "script";</script></head><body onload="top.qdRan = \'onload\'"><h1>Hello</h1></body></html>');
+	st = await J(`new Promise(r => { const w = ${BG}; w.CanvasRenderingContext2D.prototype.drawWindow = function(win){
+	    w.qdDrawn = { title: win.document.title, sandbox: win.frameElement.getAttribute('sandbox'), base: win.document.querySelector('base').href }; };
+	  w.app.SiteInfos.fromFrame('http://127.0.0.1:${port}/site/page.html?a=1&b="2"', infos => r({ infos: infos && { title: infos.title, pic: !!infos.screenshot },
+	    drawn: w.qdDrawn, ran: window.qdRan || w.qdRan || null, frames: w.document.querySelectorAll('iframe').length })); })`);
+	check('Q page drawn in a sandbox without scripts, title read, frame removed', st.infos && st.infos.title === 'Sandboxed page' && st.infos.pic && st.drawn.sandbox === 'allow-same-origin' &&
+		st.drawn.base.endsWith('/site/page.html?a=1&b=%222%22') && st.ran === null && st.frames === 0, st);
+	st = await J(`Promise.all(['javascript:alert(1)', 'place:sort=8', 'file:///C:/x.html'].map(u => new Promise(r => ${BG}.app.SiteInfos.fromFrame(u, i => r(i === undefined)))))`);
+	check('Q non-web addresses are not fetched', st.every(Boolean), st);
+
+	// 404s (icons, favicons), blocked external requests and the sandbox blocking page scripts (phase Q)
+	// are expected; real script errors are not.
+	console.log('console errors:', JSON.stringify(errs.filter(e => !e.includes('no receiver') && !e.startsWith('Failed to load resource') &&
+		!e.includes("'allow-scripts' permission is not set")).slice(0, 10)));
 	await b.close();
 }
 

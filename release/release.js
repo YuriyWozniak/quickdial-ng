@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds, signs and publishes a Quick Dial NG release. See README.md in this folder.
 // Usage: node release/release.js <version> [--commit <rev>] [--notes <file>] [--xpi <file>]
-//        [--no-updates-json] [--dry-run] [--config <file>]
+//        [--no-updates-json] [--amo] [--dry-run] [--config <file>]
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -19,7 +19,7 @@ function parseArgs(argv) {
 	const a = { flags: {} };
 	for (let i = 0; i < argv.length; i++) {
 		const v = argv[i];
-		if (v === '--dry-run' || v === '--no-updates-json' || v === '-h' || v === '--help') a.flags[v.replace(/^-+/, '')] = true;
+		if (v === '--dry-run' || v === '--no-updates-json' || v === '--amo' || v === '-h' || v === '--help') a.flags[v.replace(/^-+/, '')] = true;
 		else if (/^--(commit|notes|xpi|config)$/.test(v)) {
 			if (i + 1 >= argv.length) fail(`${v} needs a value`);
 			a.flags[v.slice(2)] = argv[++i];
@@ -89,10 +89,26 @@ function sourceAt(commit) {
 	return files;
 }
 
+// The add-on's own update address (GitHub). addons.mozilla.org refuses it in listed add-ons, which
+// update from AMO instead, so the AMO package is the source without it.
+function withoutUpdateUrl(manifest) {
+	const m = JSON.parse(manifest);
+	const gecko = m.browser_specific_settings && m.browser_specific_settings.gecko;
+	if (gecko) delete gecko.update_url;
+	return m;
+}
+
+function amoSource(src) {
+	const out = new Map(src);
+	out.set('manifest.json', Buffer.from(JSON.stringify(withoutUpdateUrl(src.get('manifest.json')), null, 2) + '\n'));
+	return out;
+}
+
 // The signer rewrites manifest.json and line endings may differ; compare what matters.
+// A file signed through AMO (listed) has no update_url; it still matches the source.
 function sameContent(name, a, b) {
 	if (name === 'manifest.json') {
-		try { return JSON.stringify(JSON.parse(a)) === JSON.stringify(JSON.parse(b)); } catch { return false; }
+		try { return JSON.stringify(withoutUpdateUrl(a)) === JSON.stringify(withoutUpdateUrl(b)); } catch { return false; }
 	}
 	if (a.equals(b)) return true;
 	const t = x => x.toString('latin1').replace(/\r\n/g, '\n');
@@ -151,17 +167,39 @@ function writeSource(src, dir) {
 }
 
 // Lint exactly what will be signed. --self-hosted: the add-on has its own update_url (GitHub), which
-// the linter otherwise rejects as if it were listed on addons.mozilla.org.
-function lint(src, cfg) {
+// the linter otherwise rejects as if it were listed on addons.mozilla.org. The AMO package (listed)
+// is linted with the stricter listed rules.
+function lint(src, cfg, listed) {
 	const bin = webExtBin(cfg.webExtDir);
 	const work = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-lint-'));
 	try {
 		const srcDir = path.join(work, 'src');
 		writeSource(src, srcDir);
-		log('Linting the source (web-ext lint --self-hosted --warnings-as-errors)...');
-		const r = spawnSync(process.execPath, [bin, 'lint', '--source-dir', srcDir, '--self-hosted', '--warnings-as-errors'], { cwd: work, stdio: 'inherit' });
+		const args = ['lint', '--source-dir', srcDir, '--warnings-as-errors'];
+		if (!listed) args.push('--self-hosted');
+		log(`Linting the source (web-ext ${args.filter(a => a.startsWith('--') && a !== '--source-dir').join(' ')})...`);
+		const r = spawnSync(process.execPath, [bin, ...args], { cwd: work, stdio: 'inherit' });
 		if (r.status !== 0) fail('web-ext lint reported problems (see above); fix them before releasing.');
 		log('Lint: no errors or warnings');
+	} finally {
+		fs.rmSync(work, { recursive: true, force: true });
+	}
+}
+
+// Package for uploading on addons.mozilla.org (Developer Hub › Upload New Version › On this site).
+// Listed versions are reviewed by Mozilla and signed there, so nothing is signed or published here.
+function buildAmo(src, cfg, zipPath) {
+	const bin = webExtBin(cfg.webExtDir);
+	const work = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-amo-'));
+	try {
+		const srcDir = path.join(work, 'src'), artifacts = path.join(work, 'out');
+		writeSource(src, srcDir);
+		const r = spawnSync(process.execPath, [bin, 'build', '--source-dir', srcDir, '--artifacts-dir', artifacts,
+			'--filename', path.basename(zipPath), '--overwrite-dest'], { cwd: work, stdio: 'inherit' });
+		if (r.status !== 0) fail(`web-ext build failed (exit ${r.status})`);
+		fs.mkdirSync(path.dirname(zipPath), { recursive: true });
+		fs.copyFileSync(path.join(artifacts, path.basename(zipPath)), zipPath);
+		log(`AMO package: ${zipPath}`);
 	} finally {
 		fs.rmSync(work, { recursive: true, force: true });
 	}
@@ -242,6 +280,17 @@ async function main() {
 	const srcVersion = JSON.parse(src.get('manifest.json')).version;
 	if (srcVersion !== version) fail(`src/manifest.json at ${commit.slice(0, 7)} has version ${srcVersion}, not ${version}`);
 	log(`Commit: ${commit.slice(0, 7)} ${git(['log', '-1', '--format=%s', commit])}`);
+
+	// --amo: only the package for addons.mozilla.org; the release follows once Mozilla has signed it (--xpi)
+	if (flags.amo) {
+		const amo = amoSource(src), zipPath = path.join(cfg.outDir, `quickdial-ng-${version}-amo.zip`);
+		lint(amo, cfg, true);
+		if (dry) log(`Would build ${zipPath}`);
+		else buildAmo(amo, cfg, zipPath);
+		log('Next: https://addons.mozilla.org/developers/addons › Quick Dial NG › Upload New Version › "On this site", and upload it.');
+		log(`After approval, download the signed file and run: node release/release.js ${version} --xpi <file> --notes <notes.md>`);
+		return;
+	}
 
 	// 2. Signed file (the source is linted first whenever it is going to be signed, dry runs included)
 	if (!fs.existsSync(xpiPath) && !flags.xpi) lint(src, cfg);

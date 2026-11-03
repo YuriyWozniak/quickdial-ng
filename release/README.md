@@ -50,7 +50,54 @@ Environment variables override the config file.
 | `--commit <rev>` | Release this commit instead of the last one that changed `src/`. |
 | `--xpi <file>` | Use an already signed file instead of the output folder; no signing. |
 | `--no-updates-json` | Publish the release without offering it as an automatic update. |
+| `--amo` | Only build the package for a listed version on addons.mozilla.org (see below); no signing, tag or release. |
 | `--config <file>` | Use another config file. |
 | `--dry-run` | Check everything and report what would be done, without signing, tagging, uploading or committing. |
 
 A version can be signed only once on addons.mozilla.org. If something is wrong with a signed build, fix it and release the next version.
+
+## Publishing on addons.mozilla.org (listed)
+
+The add-on ID is already registered on addons.mozilla.org (AMO) through the unlisted signing above, so a listed version is added to the same add-on. Listed versions are reviewed by Mozilla and signed there, and Firefox then updates them from AMO.
+
+AMO refuses `update_url` in listed versions. The source keeps it for the GitHub builds; `--amo` removes it from the package:
+
+1. Bump `version` in `src/manifest.json`, commit and push to `develop` (a version already signed, listed or not, can't be used again).
+2. Build and check the package:
+   ```
+   node release/release.js 0.4.1 --amo
+   ```
+   It lints the source without `update_url` with the listed rules (`web-ext lint --warnings-as-errors`, no `--self-hosted`) and saves `quickdial-ng-<version>-amo.zip` in the output folder.
+3. On [My Add-ons](https://addons.mozilla.org/developers/addons) open Quick Dial NG › **Upload New Version**, choose **On this site** and upload the `.zip`. Untick **Firefox for Android** under compatibility: Android doesn't let extensions replace the new tab or home page and has no bookmarks API. (`gecko_android` stays in the manifest only because the linter needs its minimum version, 142, for `data_collection_permissions`.)
+   - No source code upload is needed: the package is the plain source, nothing is minified or generated.
+   - The first listed version asks for the listing (summary, description, categories, license **MPL 2.0**, support links, screenshots from [`screenshots/`](../screenshots/)).
+   - **Notes to Reviewer**: paste the text below.
+4. After approval, download the signed file from the version's page and publish it on GitHub too:
+   ```
+   node release/release.js 0.4.1 --xpi quickdial-ng-0.4.1.xpi --notes notes.md
+   ```
+   The `.xpi` check accepts the AMO file: apart from the missing `update_url` it must match the commit. Copies installed from GitHub update to it through `updates.json`, and from then on update from AMO.
+
+Notes to Reviewer:
+
+```
+Quick Dial NG is an independent fork of Quick Dial by MatMoul (MPL 2.0): a speed dial on the
+new tab page (chrome_url_overrides) and the home page (chrome_settings_overrides), with tiles
+from a bookmarks folder. Source: https://github.com/YuriyWozniak/quickdial-ng - the package is
+the plain src/ folder, no build step, no minified or third-party code. No data is collected or sent.
+
+Permissions:
+- bookmarks: tiles are the bookmarks of one folder ("Quick Dial"), kept in sync both ways.
+- <all_urls>: "Capture in a new tab" takes tabs.captureVisibleTab of the site in a muted
+  background tab; "Refresh" downloads the page (XMLHttpRequest, background.js
+  app.SiteInfos.fromFrame) to read its title. That page is placed in an iframe with
+  sandbox="allow-same-origin" (no allow-scripts) via srcdoc, so none of its scripts run; only
+  http/https addresses are fetched.
+- tabs: create, activate and close that capture tab; open the dial from the toolbar button.
+- contextMenus: right-click menu on the dial page.
+- storage: settings, themes and tile pictures.
+
+To test: open a new tab; tiles are the bookmarks of Bookmarks Menu > Quick Dial (created if
+missing). Right-click the page for New > Bookmark and Quick Dial NG Settings; right-click a tile
+for Properties, Refresh and Capture in a new tab. Settings > Themes applies the built-in Anori theme.
+```

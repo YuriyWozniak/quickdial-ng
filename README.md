@@ -51,12 +51,29 @@ New style settings came with it: background opacity and glass blur for tiles, sh
 
 **Refresh no longer hangs.**
 The automatic "Refresh" capture uses `drawWindow`, which recent Firefox no longer allows extensions to call. Instead of leaving a spinner forever, the tile now ends without a picture. Use **Capture in a new tab** to set one.
+The page that Refresh downloads is only drawn, never run: it goes into a sandboxed frame, so none of its scripts, forms or pop-ups run inside the extension. Only web addresses (`http`, `https`) are downloaded.
+
+## Permissions and privacy
+
+Quick Dial NG collects no data and sends nothing anywhere. Everything stays in your Firefox profile: settings and pictures in the extension's storage, tiles in your bookmarks.
+
+| Permission | Why |
+|---|---|
+| Bookmarks | Tiles are the bookmarks of one folder ("Quick Dial" by default); adding, editing or deleting a tile changes that bookmark. |
+| Access your data for all websites | **Capture in a new tab** takes a screenshot of the site (as you see it, signed in), and **Refresh** downloads the page to read its title. |
+| Tabs | Opens the site in a background tab for the capture and closes it afterwards; opens the dial from the toolbar button. |
+| Menus | The right-click menu on the dial (new bookmark, properties, capture, settings…). |
+| Storage | Settings, themes and tile pictures. |
+
+It also replaces the new tab page and sets itself as the home page. Firefox asks once whether to keep the home page; to use another one, go to Firefox Settings › Home.
 
 ## Install
 
-Download the latest `.xpi` from [Releases](https://github.com/YuriyWozniak/quickdial-ng/releases/latest). Each one is signed by Mozilla for self-distribution. In Firefox, open `about:addons`, click the gear icon and choose **Install Add-on From File**.
+Quick Dial NG is for Firefox on the desktop, version 140 or later. Firefox for Android doesn't let extensions replace the new tab or home page, so it isn't offered there.
 
-From 0.3.4 on, Firefox updates Quick Dial NG by itself: it checks [`updates.json`](updates.json) in this repository, which lists each release's download link and checksum.
+Download the latest `.xpi` from [Releases](https://github.com/YuriyWozniak/quickdial-ng/releases/latest). Each one is signed by Mozilla. In Firefox, open `about:addons`, click the gear icon and choose **Install Add-on From File**.
+
+From 0.3.4 on, Firefox updates Quick Dial NG by itself: it checks [`updates.json`](updates.json) in this repository, which lists each release's download link and checksum. Versions published on addons.mozilla.org update from there instead.
 
 ## Moving from the original Quick Dial
 
@@ -77,10 +94,10 @@ How the import links tiles to bookmarks: each tile is matched to a bookmark in t
 ## Development
 
 - Source: `src/` (a Manifest V2 WebExtension).
-- Lint: `npx web-ext lint -s src --self-hosted` (should report no errors, warnings or notices). `--self-hosted` is needed because the add-on is distributed from GitHub with its own `update_url`, which the linter otherwise rejects as if it were listed on addons.mozilla.org.
-- Tests: `node test/test-storage.js` (after `npm install` in `test/`; see [test/README.md](test/README.md)). This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import, import from the original Quick Dial (bookmark matching/creation, cell positions, settings defaults) and image cleanup.
+- Lint: `npx web-ext lint -s src --self-hosted` (should report no errors, warnings or notices). `--self-hosted` is needed because the add-on is distributed from GitHub with its own `update_url`, which the linter otherwise rejects as if it were listed on addons.mozilla.org. The package for addons.mozilla.org is the same source without `update_url`; `release.js --amo` lints it with the listed rules.
+- Tests: `node test/test-storage.js` (after `npm install` in `test/`; see [test/README.md](test/README.md)). This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import, import from the original Quick Dial (bookmark matching/creation, cell positions, settings defaults), image cleanup, themes and the sandboxed Refresh download.
 - Screenshots: `npm run screenshots` in `test/` remakes the pictures in [`screenshots/`](screenshots/) from the current code, with invented sites (see [test/screenshots/README.md](test/screenshots/README.md)).
-- Release: `node release/release.js <version> --notes <file>` signs `src/` on addons.mozilla.org (unlisted), publishes a GitHub release with the signed `.xpi` and adds it to `updates.json`, so installed copies update themselves. See [release/README.md](release/README.md) for setup and options.
+- Release: `node release/release.js <version> --notes <file>` signs `src/` on addons.mozilla.org (unlisted), publishes a GitHub release with the signed `.xpi` and adds it to `updates.json`, so installed copies update themselves. With `--amo` it builds the package for a listed version on addons.mozilla.org instead. See [release/README.md](release/README.md) for setup and options.
 
 ## License
 
