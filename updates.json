@@ -11,6 +11,11 @@
           "version": "0.3.5",
           "update_link": "https://github.com/YuriyWozniak/quickdial-ng/releases/download/v0.3.5/quickdial-ng-0.3.5.xpi",
           "update_hash": "sha256:c75aa2005198875a9df9be8dec0dbabb8466bbd3573a78f98189936e3e98e51d"
+        },
+        {
+          "version": "0.4.0",
+          "update_link": "https://github.com/YuriyWozniak/quickdial-ng/releases/download/v0.4.0/quickdial-ng-0.4.0.xpi",
+          "update_hash": "sha256:fdb084c4d8c0c08c32f1bcad913d1bcc87e6cb07fbf823b73d272bfd633705c4"
         }
       ]
     }
