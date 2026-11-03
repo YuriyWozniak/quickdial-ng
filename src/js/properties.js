@@ -1,143 +1,140 @@
 var app = {};
 
-var Image = null;
+var Image = null; // The picture being edited: a CSS "url(...)" value, a data URL, or null
 
 document.addEventListener("DOMContentLoaded", function(event) {
 	app.init();
 });
 
 app.init = function(){
-	document.addEventListener('keyup', function(e){
-		switch(e.key){
-			case 'Escape':
-				window.frameElement.popup.close();
-				break;
-		}
+	document.addEventListener('keydown', function(e){
+		if(e.key == 'Escape') QDUI.closePopup();
+		else if(e.key == 'Enter' && (e.target === Title || e.target === Url)){ e.preventDefault(); BtnOk.onclick(); }
 	});
+	app.changes = QDUI.changes(BtnApply, Status);
 	app.Messages.getSettings(function(settings){
 		app.settings = settings;
+		app.sizePreview();
 		app.Messages.getNodeByID(new URL(window.location).searchParams.get('id'), function(node){
 			app.Messages.getImages([node.id], function(images){ // Images are stored separately: get this one
 				if(node.image == '1') node.image = images[node.id] || null;
 				app.initNode(node);
+				app.changes.start();
 			});
 		});
 	});
 	app.initButtons();
 };
 
+// Preview box in the same proportions as the tiles on the dial
+app.sizePreview = function(){
+	var rx = +app.settings.grid.ratioX || 4, ry = +app.settings.grid.ratioY || 3;
+	var w = 240, h = w * ry / rx;
+	if(h > 190){ h = 190; w = h * rx / ry; }
+	ImageZone.style.width = Math.round(w) + 'px';
+	ImageZone.style.height = Math.round(h) + 'px';
+	ImageZone.style.aspectRatio = 'auto';
+};
+
+app.cssUrl = function(img){ // node images are data URLs; folder defaults are already url(...)
+	if(!img || img == '0') return null;
+	return img.indexOf('url(') >= 0 ? img : 'url("' + img + '")';
+};
+
+app.showImage = function(){
+	var isFolder = app.node.type == app.GridNodes.GridNodeType.folder;
+	var css = app.cssUrl(Image);
+	if(!css && isFolder) css = app.settings.grid.folderIcon;
+	ImagePreview.style.backgroundImage = css || 'none';
+	ImageEmpty.hidden = !!css;
+	var mode = +ImageMode.value;
+	if(mode == -1) mode = isFolder ? app.settings.grid.folderIconMode : 0; // what "Default" means on the dial
+	QDUI.applyMode(ImagePreview, mode);
+	ImageDefault.disabled = isFolder && !Image;
+};
+
 app.initNode = function(node){
-			app.node = node;
-			Title.value = node.title;
-			if(node.imageMode == 0) ImageMode.value = 0;
-			else if(node.imageMode) ImageMode.value = node.imageMode;
-			ImagePreview.style.backgroundRepeat = 'no-repeat';
-			ImagePreview.style.backgroundSize = '100% 100%';
-			switch(node.type){
-				case app.GridNodes.GridNodeType.folder:
-					TitleLocked.parentNode.style.display = 'none';
-					ImageLocked.parentNode.style.display = 'none';
-					Url.parentNode.parentNode.style.display = 'none';
-					if(node.image){
-						if(node.image.indexOf('url(')>=0) Image = node.image;
-						else Image = 'url(' + node.image + ')';
-					} else Image = null;
-					if(Image==null) ImagePreview.style.backgroundImage = app.settings.grid.folderIcon;
-					else ImagePreview.style.backgroundImage = Image;
-					break;
-				case app.GridNodes.GridNodeType.bookmark:
-					TitleLocked.checked = (node.titleLocked==true);
-					ImageLocked.checked = (node.imageLocked==true);
-					ImageDefault.style.display = 'none';
-					Url.value = node.url;
-					if(!node.image || node.image == '0') Image = null;
-					else if(node.image.indexOf('url(')>=0) Image = node.image;
-					else Image = 'url(' + node.image + ')';
-					ImagePreview.style.backgroundImage = Image;
-					break;
-			}
-
-			ImageReset.onclick = function(){
-				switch(node.type){
-					case app.GridNodes.GridNodeType.folder:
-						if(node.image){
-							Image = node.image;
-							ImagePreview.style.backgroundImage = 'url(' + Image + ')';
-						} else {
-							Image = null;
-							ImagePreview.style.backgroundImage = app.settings.grid.folderIcon;
-						} 
-						break;
-					case app.GridNodes.GridNodeType.bookmark:
-						Image = node.image;
-						ImagePreview.style.backgroundImage = 'url(' + Image + ')';
-						break;
-				}
-			};
-
-			ImageDefault.onclick = function(){
-				switch(node.type){
-					case app.GridNodes.GridNodeType.folder:
-						Image = null;
-						ImagePreview.style.backgroundImage = app.settings.grid.folderIcon;
-						break;
-					case app.GridNodes.GridNodeType.bookmark:
-						break;
-				}
-			};
-
-
-			ImageFile.onclick = function(){
-				this.value = null;
-			}
-			ImageFile.onchange = function(){
-				var fileReader = new FileReader();
-				fileReader.onload = function(e){
-					app.toWebp(e.target.result, function(webp){ // Store uploads as compact WebP
-						Image = webp;
-						ImageFile.value = null;
-						ImagePreview.style.backgroundImage = 'url(' + Image + ')';
-					});
-				}
-				fileReader.readAsDataURL(ImageFile.files[0]);
-			}
+	app.node = node;
+	var isFolder = node.type == app.GridNodes.GridNodeType.folder;
+	Title.value = node.title;
+	ImageMode.value = (node.imageMode || node.imageMode == 0) ? node.imageMode : -1;
+	IconBookmark.toggleAttribute('hidden', isFolder); // SVG elements have no .hidden property
+	IconFolder.toggleAttribute('hidden', !isFolder);
+	HeaderTitle.textContent = isFolder ? 'Folder properties' : 'Bookmark properties';
+	if(isFolder){
+		HeaderSubtitle.textContent = node.title || 'Folder';
+		TitleLockBox.hidden = true;
+		ImageLockRow.hidden = true;
+		UrlRow.hidden = true;
+	} else {
+		var host = '';
+		try { host = new URL(node.url).host; } catch(e) {}
+		HeaderSubtitle.textContent = host || node.url || '';
+		HeaderSubtitle.title = node.url || '';
+		TitleLocked.checked = (node.titleLocked == true);
+		ImageLocked.checked = (node.imageLocked == true);
+		ImageDefault.hidden = true;
+		Url.value = node.url;
+	}
+	Image = (node.image && node.image != '0') ? node.image : null;
+	app.showImage();
+	if(window.frameElement && window.frameElement.popup && window.frameElement.popup.fit) window.frameElement.popup.fit();
+	setTimeout(function(){ Title.focus(); Title.select(); }, 0);
 };
 
 app.initButtons = function(){
 	BtnOk.onclick = function(){
-		BtnApply.onclick();
-		window.frameElement.popup.close();
-	}
+		if(BtnApply.onclick() === false) return;
+		QDUI.closePopup();
+	};
 	BtnApply.onclick = function(){
-		switch(app.node.type){
-			case app.GridNodes.GridNodeType.folder:
-				app.Messages.updateNode(app.node.id, { title: Title.value, image: Image, imageMode: +(ImageMode.value) })
-				break;
-			case app.GridNodes.GridNodeType.bookmark:
-				app.Messages.updateNode(app.node.id, { title: Title.value, titleLocked: TitleLocked.checked, imageLocked: ImageLocked.checked, url: Url.value, image: Image, imageMode: +(ImageMode.value) })
-				break;
+		if(!app.node) return false;
+		var isFolder = app.node.type == app.GridNodes.GridNodeType.folder;
+		if(!isFolder && !Url.value.trim()){
+			Url.classList.add('is-invalid');
+			Url.focus();
+			return false;
 		}
-	}
-	BtnCancel.onclick = function(){
-		window.frameElement.popup.close();
-	}
-
-	var tabButtons = Tabs.children[0].children[0].children[0];
-	for(var i=0; i<tabButtons.children.length-1; i++){
-		tabButtons.children[i].index = i;
-		tabButtons.children[i].onclick = function(){
-			for(var j=0; j<tabButtons.children.length-1; j++){
-				if(j==this.index){
-					tabButtons.children[j].className = 'TabButtonActive';
-					Tabs.children[1].children[j].className = '';
-				} else {
-					tabButtons.children[j].className = 'TabButton';
-					Tabs.children[1].children[j].className = 'hidden';
-				}
-			}
+		var image = Image; // Stored as a plain data URL: the dial adds url("...") itself
+		if(image && /^url\(/.test(image)) image = image.replace(/^url\(\s*["']?/, '').replace(/["']?\s*\)$/, '');
+		if(isFolder){
+			app.Messages.updateNode(app.node.id, { title: Title.value, image: image, imageMode: +(ImageMode.value) });
+		} else {
+			app.Messages.updateNode(app.node.id, { title: Title.value, titleLocked: TitleLocked.checked, imageLocked: ImageLocked.checked, url: Url.value.trim(), image: image, imageMode: +(ImageMode.value) });
 		}
-	}
+		app.changes.saved();
+	};
+	BtnCancel.onclick = BtnClose.onclick = function(){ QDUI.closePopup(); };
+	Url.addEventListener('input', function(){ Url.classList.remove('is-invalid'); });
 
+	ImageMode.onchange = function(){ app.showImage(); };
+	ImageReset.onclick = function(){ // Back to the picture the tile had when this window opened
+		Image = (app.node.image && app.node.image != '0') ? app.node.image : null;
+		app.showImage();
+		app.changes.mark();
+	};
+	ImageDefault.onclick = function(){ // Folders only: use the folder picture from the settings
+		Image = null;
+		app.showImage();
+		app.changes.mark();
+	};
+	ImageChoose.onkeydown = function(e){ if(e.key == 'Enter' || e.key == ' '){ e.preventDefault(); ImageFile.click(); } };
+	ImageFile.onclick = function(){ this.value = null; };
+	ImageFile.onchange = function(){
+		var file = ImageFile.files[0];
+		if(!file) return;
+		var fileReader = new FileReader();
+		fileReader.onload = function(e){
+			app.toWebp(e.target.result, function(webp){ // Store uploads as compact WebP
+				Image = webp;
+				ImageFile.value = null;
+				app.showImage();
+				app.changes.mark();
+			});
+		};
+		fileReader.readAsDataURL(file);
+	};
+	QDUI.imageDrop(ImageZone, ImageFile, { paste: true });
 };
 
 app.Messages = {};

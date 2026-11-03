@@ -18,20 +18,7 @@ app.init = function(){ // Init module
         app.Bookmarks.initListener();
       });
     }, 500);
-		
-		// Start page workaround :
-    if(app.settings.startpageTimeout>0){
-      setTimeout(function(){
-        browser.tabs.query({}).then( function(tabs) {
-          tabs.forEach(function(itm){
-            if(itm.url=='about:blank'){
-              browser.tabs.update(itm.id, {url: browser.runtime.getURL('dial.html')});
-            }
-          });
-        });
-      }, app.settings.startpageTimeout);
-    }
-		
+		// The start page is Firefox's home page, set to dial.html by chrome_settings_overrides in manifest.json
 	});
 };
 
@@ -266,13 +253,12 @@ app.Settings.init = function(callback){ // Load settings and nodes
 			if(!data.settings.openQuickDialInNewPage && data.settings.openQuickDialInNewPage != false){
 				data.settings.openQuickDialInNewPage = true;
 			}
-			if(!data.settings.startpageTimeout){
-        data.settings.startpageTimeout = 500;
-      }
 			//app.Settings.save();
 		}
 		app.settings = data.settings;
 		app.node = data.node;
+		var obsolete = ('startpageTimeout' in app.settings); // Start page timer, replaced by the home page override (0.3.5)
+		delete app.settings.startpageTimeout;
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
 			app.Images.extractFromTree(app.node).then(function(){
 				app.Settings.save(callback);
@@ -280,6 +266,7 @@ app.Settings.init = function(callback){ // Load settings and nodes
 			return;
 		}
 		app.Settings._lastSaved = app.Settings._serialize();
+		if(obsolete){ app.Settings._lastSaved = null; app.Settings.save(); } // Drop the old field from storage once
 		if(callback) callback();
 	}, function(){ console.log('Error loading data'); });
 };
@@ -522,7 +509,7 @@ app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){ //
 app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an original Quick Dial data dump ({ version: 4, settings, node })
 	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error('Not a Quick Dial backup');
 	var settings = app.Backup._mergeDefaults(app.Settings.defaults(), app.Backup._clean(data.settings));
-	if(!settings.startpageTimeout && settings.startpageTimeout !== 0) settings.startpageTimeout = 500;
+	delete settings.startpageTimeout; // Obsolete (start page timer), found in older exports and backups
 	var node = app.Backup._clean(data.node);
 	var stats = { tiles: 0, folders: 0, matched: 0, created: 0, images: 0 };
 	var idMap = {};

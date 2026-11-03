@@ -25,8 +25,18 @@
   },
 
   "AddFolderPrompt": {
-    "message": "Введіть им'я нової папки:",
+    "message": "Введіть ім'я нової папки:",
     "description": "Text of the add folder prompt."
+  },
+
+  "dialogNewBookmark": {
+    "message": "Нова закладка",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "Нова папка",
+    "description": "Title of the new folder dialog."
   },
 
   "menuProperties": {

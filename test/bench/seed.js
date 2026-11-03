@@ -51,7 +51,7 @@
 		settings.grid.cells.backgroundColor = '#000000'; settings.grid.cells.backgroundColorHover = '#000000';
 		settings.grid.cells.titleHeight = '12'; settings.grid.cells.titleHeightHover = '12'; settings.grid.cells.titleFontSize = '8'; settings.grid.cells.titleFontSizeHover = '8';
 		settings.grid.cells.titleBorderSize = '2'; settings.grid.cells.titleBorderSizeHover = '2';
-		settings.menuShowAdd = false; settings.startpageTimeout = 500;
+		settings.menuShowAdd = false;
 		var node = { id: folder.id, title: 'Quick Dial', type: 1, children: children };
 		var data = { bench_seeded: true };
 		if(BENCH_FORMAT == 'orig'){ data.version = 4; data.settings = settings; data.node = node; }

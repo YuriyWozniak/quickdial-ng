@@ -29,6 +29,16 @@
     "description": "Text of the add folder prompt."
   },
 
+  "dialogNewBookmark": {
+    "message": "New bookmark",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "New folder",
+    "description": "Title of the new folder dialog."
+  },
+
   "menuProperties": {
     "message": "Properties",
     "description": "Text of properties menu item."
@@ -55,7 +65,7 @@
   },
 
   "deleteItemConfimation": {
-    "message": "Delete $1 ?",
+    "message": "Delete $1?",
     "description": "Text of delete confirmation."
   },
 

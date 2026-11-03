@@ -1,0 +1,614 @@
+/* Quick Dial NG — shared UI styles for every place the user interacts:
+   the Settings and Properties pages, the popup frame and the dialogs on the dial page.
+
+   Conventions
+   - Every class starts with "qd-": a block (qd-card), its parts (qd-card-…), and
+     states/variants as "is-…" next to it (qd-btn is-primary).
+   - Plain elements (h2, p, code, input, select) are styled only inside .qd, so this sheet
+     never touches the speed dial grid itself. Components are single classes.
+   - Colors, sizes and spacing come from the tokens below; dark mode only swaps colors. */
+
+/* ========== tokens ========== */
+:root {
+	--qd-font: system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+	--qd-font-mono: ui-monospace, Consolas, "Cascadia Mono", monospace;
+	--qd-font-size: 13px;
+	--qd-font-size-sm: 12px;
+	--qd-font-size-caps: 11px;
+
+	--qd-radius-sm: 6px;
+	--qd-radius: 8px;
+	--qd-radius-lg: 12px;
+	--qd-control-h: 32px;
+	--qd-control-h-sm: 28px;
+	--qd-label-w: 136px;
+	--qd-pad-x: 18px;  /* page edge: header, tabs, content, footer */
+	--qd-pad-y: 16px;
+	--qd-gap: 12px;    /* between controls */
+	--qd-stack: 14px;  /* between cards */
+	--qd-row: 8px;     /* between form rows */
+	--qd-ease: cubic-bezier(.2, .8, .2, 1);
+
+	--qd-bg: #f9f9fb;
+	--qd-surface: #ffffff;
+	--qd-surface-2: #f0f0f4;
+	--qd-surface-3: #e0e0e6;
+	--qd-border: #cfcfd8;
+	--qd-border-soft: #e5e5ec;
+	--qd-text: #15141a;
+	--qd-muted: #5b5b66;
+	--qd-accent: #0061e0;
+	--qd-accent-hover: #0250bb;
+	--qd-accent-active: #053e94;
+	--qd-accent-text: #ffffff;
+	--qd-accent-soft: #deeafc;
+	--qd-focus: #0061e0;
+	--qd-danger: #c50042;
+	--qd-danger-hover: #a3003a;
+	--qd-danger-text: #ffffff;
+	--qd-danger-soft: #ffe8ee;
+	--qd-ok: #017a40;
+	--qd-ok-soft: #e3fff3;
+	--qd-knob: #ffffff;
+	--qd-checker: #e9e9ef;
+	--qd-backdrop: rgba(20, 20, 28, .45);
+	--qd-shadow: 0 1px 2px rgba(15, 15, 30, .08);
+	--qd-shadow-lg: 0 24px 64px rgba(10, 10, 20, .35), 0 4px 12px rgba(10, 10, 20, .18);
+	--qd-ring: 0 0 0 3px color-mix(in srgb, var(--qd-focus) 25%, transparent);
+	--qd-ring-danger: 0 0 0 3px color-mix(in srgb, var(--qd-danger) 20%, transparent);
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--qd-bg: #1c1b22;
+		--qd-surface: #2b2a33;
+		--qd-surface-2: #23222b;
+		--qd-surface-3: #42414d;
+		--qd-border: #52525e;
+		--qd-border-soft: #3a3944;
+		--qd-text: #fbfbfe;
+		--qd-muted: #bfbfc9;
+		--qd-accent: #00ddff;
+		--qd-accent-hover: #80ebff;
+		--qd-accent-active: #aaf2ff;
+		--qd-accent-text: #15141a;
+		--qd-accent-soft: #11394a;
+		--qd-focus: #00ddff;
+		--qd-danger: #ff6a75;
+		--qd-danger-hover: #ff9aa2;
+		--qd-danger-text: #15141a;
+		--qd-danger-soft: #4a1e26;
+		--qd-ok: #54ffbd;
+		--qd-ok-soft: #13342a;
+		--qd-checker: #34333d;
+		--qd-backdrop: rgba(0, 0, 0, .55);
+		--qd-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+		--qd-shadow-lg: 0 24px 64px rgba(0, 0, 0, .6), 0 4px 12px rgba(0, 0, 0, .4);
+		color-scheme: dark;
+	}
+}
+
+/* ========== base (inside .qd only) ========== */
+.qd, .qd *, .qd *::before, .qd *::after { box-sizing: border-box; }
+.qd {
+	font-family: var(--qd-font);
+	font-size: var(--qd-font-size);
+	line-height: 1.4;
+	color: var(--qd-text);
+	user-select: text;
+}
+.qd [hidden] { display: none !important; }
+.qd p { margin: 0 0 var(--qd-row); }
+.qd code {
+	padding: 1px 5px;
+	font-family: var(--qd-font-mono);
+	font-size: var(--qd-font-size-sm);
+	white-space: nowrap;
+	background: var(--qd-surface-2);
+	border: 1px solid var(--qd-border-soft);
+	border-radius: 4px;
+}
+
+/* small caps headings: card titles, table headers, table groups */
+.qd h2, .qd-table th, .qd-table-group td {
+	font-size: var(--qd-font-size-caps);
+	font-weight: 600;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: var(--qd-muted);
+}
+.qd h2 { margin: 0 0 var(--qd-row); }
+
+.qd-muted { color: var(--qd-muted); }
+.qd-hint { font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
+.qd-label { font-weight: 500; }
+
+/* ========== page layout (Settings / Properties inside the popup frame) ========== */
+.qd-page {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	margin: 0;
+	overflow: hidden;
+	background: var(--qd-bg);
+}
+.qd-header, .qd-footer {
+	display: flex;
+	align-items: center;
+	background: var(--qd-surface);
+}
+.qd-header {
+	gap: var(--qd-gap);
+	padding: 14px 14px 14px var(--qd-pad-x); /* close button sits closer to the edge */
+	border-bottom: 1px solid var(--qd-border-soft);
+}
+.qd-header-icon {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: var(--qd-control-h);
+	height: var(--qd-control-h);
+	border-radius: var(--qd-radius-sm);
+	background: var(--qd-accent-soft);
+	color: var(--qd-accent);
+}
+.qd-header-icon svg { width: 18px; height: 18px; }
+.qd-header-text { flex: 1; min-width: 0; }
+.qd-title { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.25; }
+.qd-subtitle {
+	margin: 1px 0 0;
+	overflow: hidden;
+	font-size: var(--qd-font-size-sm);
+	color: var(--qd-muted);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.qd-content {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: var(--qd-pad-y) var(--qd-pad-x);
+	scrollbar-width: thin;
+}
+.qd-footer {
+	gap: var(--qd-row);
+	padding: var(--qd-gap) var(--qd-pad-x);
+	border-top: 1px solid var(--qd-border-soft);
+}
+.qd-status { flex: 1; min-width: 0; font-size: var(--qd-font-size-sm); color: var(--qd-muted); transition: color .2s; }
+.qd-status.is-dirty { color: var(--qd-text); }
+.qd-status.is-dirty::before {
+	content: "";
+	display: inline-block;
+	width: 7px;
+	height: 7px;
+	margin-right: 7px;
+	border-radius: 50%;
+	background: var(--qd-accent);
+	vertical-align: 1px;
+}
+.qd-status.is-saved { color: var(--qd-ok); }
+
+/* ========== tabs ========== */
+.qd-tabs {
+	display: flex;
+	gap: 2px;
+	padding: 0 calc(var(--qd-pad-x) - 12px); /* tab text lines up with the page edge */
+	background: var(--qd-surface);
+	border-bottom: 1px solid var(--qd-border-soft);
+}
+.qd-tab {
+	position: relative;
+	padding: 10px 12px 11px;
+	font: inherit;
+	font-weight: 500;
+	color: var(--qd-muted);
+	background: none;
+	border: 0;
+	border-radius: var(--qd-radius-sm) var(--qd-radius-sm) 0 0;
+	cursor: pointer;
+	transition: color .15s, background-color .15s;
+}
+.qd-tab:hover { color: var(--qd-text); background: var(--qd-surface-2); }
+.qd-tab[aria-selected="true"] { color: var(--qd-accent); }
+.qd-tab[aria-selected="true"]::after {
+	content: "";
+	position: absolute;
+	right: 10px;
+	bottom: -1px;
+	left: 10px;
+	height: 3px;
+	border-radius: 3px 3px 0 0;
+	background: var(--qd-accent);
+}
+.qd-panel { animation: qd-fade .16s var(--qd-ease); }
+
+/* vertical stack of cards; the banner may be hidden, so it brings its own gap */
+.qd-stack > :not(.qd-banner) + * { margin-top: var(--qd-stack); }
+
+/* ========== cards and form rows ========== */
+.qd-card {
+	padding: 14px 16px;
+	background: var(--qd-surface);
+	border: 1px solid var(--qd-border-soft);
+	border-radius: var(--qd-radius);
+	box-shadow: var(--qd-shadow);
+}
+.qd-card.is-table { padding: 0 6px 6px; }
+
+/* label | control */
+.qd-row {
+	display: grid;
+	grid-template-columns: var(--qd-label-w) minmax(0, 1fr);
+	align-items: center;
+	gap: 6px var(--qd-gap);
+	min-height: var(--qd-control-h);
+}
+.qd-row > label:first-child { font-weight: 500; }
+.qd-row > .qd-hint { grid-column: 2; margin-top: -4px; }
+
+/* text with a description | switch or small control on the right */
+.qd-switch-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--qd-gap);
+	min-height: var(--qd-control-h);
+}
+.qd-switch-label { display: flex; flex-direction: column; gap: 1px; font-weight: 500; }
+.qd-switch-label small { font-size: var(--qd-font-size-sm); font-weight: 400; color: var(--qd-muted); }
+
+:is(.qd-row, .qd-switch-row) + :is(.qd-row, .qd-switch-row) { margin-top: var(--qd-row); }
+.qd-image + .qd-switch-row { margin-top: var(--qd-stack); }
+.qd-switch-row + .qd-columns { margin-top: var(--qd-gap); }
+
+/* small label | control pairs next to an image preview */
+.qd-pairs {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	gap: var(--qd-row) var(--qd-gap);
+	justify-items: start;
+}
+.qd-pairs > select { justify-self: stretch; }
+
+.qd-inline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--qd-row); min-width: 0; }
+.qd-grow { flex: 1; min-width: 0; }
+.qd-sep { font-weight: 500; color: var(--qd-muted); }
+.qd-unit { display: inline-flex; align-items: center; gap: 6px; color: var(--qd-muted); }
+.qd-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--qd-stack); }
+
+/* ========== text inputs and selects ========== */
+/* :where() keeps this base rule at the specificity of ".qd" alone, so the per-type rules below can refine it */
+.qd :where(input[type=text], input[type=url], input[type=number], select) {
+	height: var(--qd-control-h);
+	padding: 0 10px;
+	font: inherit;
+	color: var(--qd-text);
+	background-color: var(--qd-surface);
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius-sm);
+	transition: border-color .15s, box-shadow .15s, background-color .15s;
+}
+.qd :where(input[type=text], input[type=url]) { width: 100%; }
+.qd input[type=number] { width: 76px; padding-right: 4px; }
+.qd select {
+	appearance: none;
+	padding-right: 30px;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23808090' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 9px center;
+	cursor: pointer;
+}
+.qd input.is-invalid { border-color: var(--qd-danger) !important; box-shadow: var(--qd-ring-danger) !important; }
+
+/* color swatch */
+.qd input[type=color] {
+	appearance: none;
+	width: 46px;
+	height: var(--qd-control-h);
+	padding: 3px;
+	background: var(--qd-surface);
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius-sm);
+	cursor: pointer;
+}
+.qd input[type=color]::-moz-color-swatch { border: 0; border-radius: 4px; }
+/* Chromium, used by the test harness screenshots */
+.qd input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+.qd input[type=color]::-webkit-color-swatch { border: 0; border-radius: 4px; }
+
+/* shared hover / focus / disabled for every field */
+.qd :is(input[type=text], input[type=url], input[type=number], input[type=color], select):hover { border-color: var(--qd-muted); }
+.qd :is(input[type=text], input[type=url], input[type=number], select):focus,
+.qd input[type=color]:focus-visible {
+	outline: none;
+	border-color: var(--qd-focus);
+	box-shadow: var(--qd-ring);
+}
+.qd :is(input, select):disabled { opacity: .45; cursor: not-allowed; }
+
+/* ========== switch, checkbox, lock toggle ========== */
+.qd-switch {
+	appearance: none;
+	position: relative;
+	flex: none;
+	width: 34px;
+	height: 20px;
+	margin: 0;
+	vertical-align: middle;
+	background: var(--qd-surface-3);
+	border: 1px solid var(--qd-border);
+	border-radius: 10px;
+	cursor: pointer;
+	transition: background-color .18s, border-color .18s;
+}
+.qd-switch::before {
+	content: "";
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--qd-knob);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
+	transition: transform .18s var(--qd-ease);
+}
+.qd-switch:checked { background: var(--qd-accent); border-color: var(--qd-accent); }
+.qd-switch:checked::before { transform: translateX(14px); background: var(--qd-accent-text); }
+
+.qd-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--qd-font-size-sm); color: var(--qd-muted); white-space: nowrap; cursor: pointer; }
+.qd-check input { width: 15px; height: 15px; margin: 0; accent-color: var(--qd-accent); cursor: pointer; }
+
+/* checkbox shown as an icon button (open / closed padlock) */
+.qd-lock {
+	position: relative;
+	flex: none;
+	display: inline-grid;
+	place-items: center;
+	width: var(--qd-control-h);
+	height: var(--qd-control-h);
+	color: var(--qd-muted);
+	background: var(--qd-surface);
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius-sm);
+	cursor: pointer;
+	transition: background-color .15s, color .15s, border-color .15s;
+}
+.qd-lock input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.qd-lock svg { width: 16px; height: 16px; pointer-events: none; }
+.qd-lock:hover { color: var(--qd-text); border-color: var(--qd-muted); }
+.qd-lock-on, .qd-lock:has(input:checked) .qd-lock-off { display: none; }
+.qd-lock:has(input:checked) .qd-lock-on { display: block; }
+.qd-lock:has(input:checked) { color: var(--qd-accent); background: var(--qd-accent-soft); border-color: var(--qd-accent); }
+
+/* ========== buttons ========== */
+.qd-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	height: var(--qd-control-h);
+	padding: 0 14px;
+	font: inherit;
+	font-weight: 500;
+	color: var(--qd-text);
+	white-space: nowrap;
+	text-decoration: none;
+	background: var(--qd-surface-2);
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius-sm);
+	cursor: pointer;
+	user-select: none;
+	transition: background-color .15s, border-color .15s, color .15s, transform .05s;
+}
+.qd-btn:hover { background: var(--qd-surface-3); }
+.qd-btn:active { transform: translateY(1px); }
+.qd-btn:disabled { opacity: .45; cursor: default; transform: none; background: var(--qd-surface-2); }
+.qd-btn.is-small { height: var(--qd-control-h-sm); padding: 0 10px; font-size: var(--qd-font-size-sm); }
+.qd-btn.is-primary { min-width: 76px; color: var(--qd-accent-text); background: var(--qd-accent); border-color: var(--qd-accent); }
+.qd-btn.is-primary:hover { background: var(--qd-accent-hover); border-color: var(--qd-accent-hover); }
+.qd-btn.is-primary:active { background: var(--qd-accent-active); }
+.qd-btn.is-danger { color: var(--qd-danger-text); background: var(--qd-danger); border-color: var(--qd-danger); }
+.qd-btn.is-danger:hover { background: var(--qd-danger-hover); border-color: var(--qd-danger-hover); }
+
+.qd-icon-btn {
+	display: inline-grid;
+	place-items: center;
+	width: var(--qd-control-h);
+	height: var(--qd-control-h);
+	padding: 0;
+	color: var(--qd-muted);
+	background: transparent;
+	border: 0;
+	border-radius: var(--qd-radius-sm);
+	cursor: pointer;
+	transition: background-color .15s, color .15s;
+}
+.qd-icon-btn svg { width: 16px; height: 16px; }
+.qd-icon-btn:hover { color: var(--qd-text); background: var(--qd-surface-2); }
+
+/* keyboard focus outline for everything that isn't a text field */
+:is(.qd-btn, .qd-icon-btn, .qd-switch):focus-visible,
+.qd-lock:has(input:focus-visible) { outline: 2px solid var(--qd-focus); outline-offset: 2px; }
+.qd-tab:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -4px; }
+
+/* ========== image picker ========== */
+.qd-image {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: start;
+	gap: var(--qd-stack);
+}
+.qd-image.is-stacked { grid-template-columns: minmax(0, 1fr); gap: var(--qd-row); }
+.qd-image-controls { display: flex; flex-direction: column; gap: var(--qd-row); min-width: 0; }
+.qd-preview {
+	position: relative;
+	width: 240px;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius);
+	background-color: var(--qd-surface-2); /* checkerboard: shows transparency */
+	background-image:
+		linear-gradient(45deg, var(--qd-checker) 25%, transparent 25%, transparent 75%, var(--qd-checker) 75%),
+		linear-gradient(45deg, var(--qd-checker) 25%, transparent 25%, transparent 75%, var(--qd-checker) 75%);
+	background-position: 0 0, 8px 8px;
+	background-size: 16px 16px;
+	transition: border-color .15s, box-shadow .15s;
+}
+.qd-preview.is-screen { width: 224px; aspect-ratio: 16 / 10; }
+.qd-preview.is-small { width: 100%; aspect-ratio: 16 / 10; }
+.qd-preview.is-dragover { border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
+.qd-preview-img, .qd-preview-empty, .qd-preview-drop { position: absolute; inset: 0; }
+.qd-preview-img { background-repeat: no-repeat; background-size: 100% 100%; }
+.qd-preview-empty, .qd-preview-drop {
+	display: grid;
+	place-items: center;
+	padding: var(--qd-gap);
+	font-size: var(--qd-font-size-sm);
+	text-align: center;
+	pointer-events: none;
+}
+.qd-preview-empty { color: var(--qd-muted); }
+.qd-preview-drop {
+	font-weight: 500;
+	color: var(--qd-accent);
+	background: color-mix(in srgb, var(--qd-accent-soft) 88%, transparent);
+	opacity: 0;
+	transition: opacity .15s;
+}
+.qd-preview.is-dragover .qd-preview-drop { opacity: 1; }
+.qd-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+/* ========== tile style preview (Settings › Tiles) ==========
+   The stage stands in for the dial page, so its colors come from the user's settings (set
+   by settings.js), not from the theme; the sample screenshot is a fixed picture. */
+.qd-tile-stage {
+	display: flex;
+	justify-content: center;
+	gap: 28px;
+	padding: 18px var(--qd-gap) var(--qd-gap);
+	background-color: var(--qd-surface-3);
+	background-position: center;
+	background-size: cover;
+	border: 1px solid var(--qd-border-soft);
+	border-radius: var(--qd-radius);
+}
+.qd-tile-figure { display: flex; flex-direction: column; align-items: center; gap: var(--qd-row); margin: 0; }
+.qd-tile-caption {
+	padding: 2px 8px;
+	font-size: var(--qd-font-size-caps);
+	font-weight: 600;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	color: #fff;
+	background: rgba(0, 0, 0, .45);
+	border-radius: 10px;
+}
+.qd-tile-slot { display: flex; width: 152px; height: 128px; }
+.qd-tile { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.qd-tile-img {
+	flex: 1;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'%3E%3Crect width='120' height='80' fill='%23f3f3f7'/%3E%3Crect width='120' height='14' fill='%230061e0'/%3E%3Crect x='10' y='24' width='60' height='8' rx='2' fill='%23c9c9d6'/%3E%3Crect x='10' y='38' width='92' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='48' width='84' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='58' width='70' height='5' rx='2' fill='%23dcdce6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+.qd-tile-title { flex: none; overflow: hidden; font-family: Arial, Verdana, sans-serif; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
+
+/* ========== style table (Settings › Tiles) ========== */
+.qd-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.qd-table th {
+	position: sticky;
+	top: calc(-1 * var(--qd-pad-y)); /* sticks to the top of the scrolling content */
+	z-index: 1;
+	padding: var(--qd-row) 10px;
+	text-align: left;
+	background: var(--qd-surface);
+	border-bottom: 1px solid var(--qd-border-soft);
+}
+.qd-table td { padding: 5px 10px; vertical-align: middle; border-bottom: 1px solid var(--qd-border-soft); }
+.qd-table td:first-child { width: 40%; font-weight: 500; }
+.qd-table tr:last-child td { border-bottom: 0; }
+.qd-table-group td { padding-top: var(--qd-stack); color: var(--qd-accent); border-bottom-color: transparent; }
+.qd-table tbody tr:not(.qd-table-group):hover td { background: color-mix(in srgb, var(--qd-surface-2) 70%, transparent); }
+.qd-color-cell { display: flex; align-items: center; gap: 10px; }
+
+/* ========== status banner ========== */
+.qd-banner {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin-bottom: var(--qd-stack);
+	padding: 10px var(--qd-gap);
+	background: var(--qd-ok-soft);
+	border: 1px solid color-mix(in srgb, var(--qd-ok) 45%, transparent);
+	border-radius: var(--qd-radius-sm);
+}
+.qd-banner.is-error { background: var(--qd-danger-soft); border-color: color-mix(in srgb, var(--qd-danger) 45%, transparent); }
+.qd-banner.is-busy { background: var(--qd-surface-2); border-color: var(--qd-border); }
+
+/* ========== numbered steps ========== */
+.qd-steps { margin: 6px 0 var(--qd-gap); padding: 0; list-style: none; counter-reset: step; }
+.qd-steps li { position: relative; padding: 2px 0 10px 36px; counter-increment: step; }
+.qd-steps li::before {
+	content: counter(step);
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
+	font-size: var(--qd-font-size-sm);
+	font-weight: 600;
+	color: var(--qd-accent);
+	background: var(--qd-accent-soft);
+	border-radius: 50%;
+}
+.qd-steps .qd-btn { margin-top: 6px; }
+
+/* ========== popup frame and dialogs on the dial page ========== */
+.qd-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 2147483000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px 16px;
+	background: var(--qd-backdrop);
+	backdrop-filter: blur(3px);
+	animation: qd-fade .16s ease-out;
+}
+.qd-overlay.is-closing { animation: qd-fade-out .12s ease-in forwards; }
+.qd-frame, .qd-dialog {
+	max-width: 100%;
+	border: 1px solid color-mix(in srgb, var(--qd-border) 60%, transparent);
+	border-radius: var(--qd-radius-lg);
+	box-shadow: var(--qd-shadow-lg);
+	animation: qd-pop .2s var(--qd-ease);
+}
+.qd-frame {
+	position: relative;
+	max-height: 100%;
+	overflow: hidden;
+	background: var(--qd-bg);
+	transition: height .15s var(--qd-ease);
+}
+.qd-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+.qd-dialog { width: 420px; padding: 20px 20px var(--qd-pad-y); background: var(--qd-surface); }
+.qd-dialog .qd-title { margin-bottom: 6px; }
+.qd-dialog-message { margin: 0 0 var(--qd-stack); color: var(--qd-muted); overflow-wrap: anywhere; }
+.qd-dialog input[type=text] { margin-bottom: 4px; }
+.qd-dialog-error { min-height: 18px; font-size: var(--qd-font-size-sm); color: var(--qd-danger); }
+.qd-dialog-actions { display: flex; justify-content: flex-end; gap: var(--qd-row); margin-top: 10px; }
+
+/* ========== motion ========== */
+@keyframes qd-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes qd-fade-out { to { opacity: 0; } }
+@keyframes qd-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+	.qd-overlay, .qd-frame, .qd-dialog, .qd-panel { animation: none !important; }
+	.qd-frame { transition: none; }
+}

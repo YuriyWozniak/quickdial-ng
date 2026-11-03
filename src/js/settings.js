@@ -10,25 +10,20 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
 app.init = function(){
-	document.addEventListener('keyup', function(e){
-		switch(e.key){
-			case 'Escape':
-				window.frameElement.popup.close();
-				break;
-		}
+	document.addEventListener('keydown', function(e){
+		if(e.key == 'Escape') QDUI.closePopup();
 	});
+	try { Version.textContent = 'Version ' + browser.runtime.getManifest().version; } catch(e) { Version.textContent = ''; }
+	app.tabs = QDUI.tabs(Tabs, function(){ Content.scrollTop = 0; });
+	app.changes = QDUI.changes(BtnApply, Status);
+
 	app.Messages.getSettings(function(settings){
 		app.settings = settings;
 		MenuShowAdd.checked = app.settings.menuShowAdd;
 		BackgroundColor.value = app.settings.backgroundColor;
 		BackgroundImage = app.settings.backgroundImage;
 		BackgroundMode.value = app.settings.backgroundMode;
-		BackgroundPreview.style.backgroundColor = app.settings.backgroundColor;
-		BackgroundPreview.style.backgroundImage = app.settings.backgroundImage;
-		BackgroundPreview.style.backgroundRepeat = 'no-repeat';
-		BackgroundPreview.style.backgroundSize = '100% 100%';
 		ButtonOpenInNewPage.checked = app.settings.openQuickDialInNewPage;
-    StartupTimeout.value = app.settings.startpageTimeout;
 		GridRoot.value = app.settings.grid.root;
 		GridRows.value = app.settings.grid.rows;
 		GridRatioX.value = app.settings.grid.ratioX;
@@ -40,24 +35,18 @@ app.init = function(){
 		GridBackNode.checked = app.settings.grid.backNode;
 		GridBackMode.value = app.settings.grid.backIconMode;
 		GridBackImage = app.settings.grid.backIcon;
-		GridBackPreview.style.backgroundImage = app.settings.grid.backIcon;
-		GridBackPreview.style.backgroundRepeat = 'no-repeat';
-		GridBackPreview.style.backgroundPosition = '50% 50%';
 		GridFolderMode.value = app.settings.grid.folderIconMode;
 		GridFolderImage = app.settings.grid.folderIcon;
-		GridFolderPreview.style.backgroundImage = app.settings.grid.folderIcon;
-		GridFolderPreview.style.backgroundRepeat = 'no-repeat';
-		GridFolderPreview.style.backgroundSize = '100% 100%';
 		GridCellsMargins.value = app.settings.grid.cells.margin;
 		GridCellsMarginsHover.value = app.settings.grid.cells.marginHover;
-		GridCellsOpacity.value = app.settings.grid.cells.opacity * 100;
-		GridCellsOpacityHover.value = app.settings.grid.cells.opacityHover * 100;
+		GridCellsOpacity.value = Math.round(app.settings.grid.cells.opacity * 100);
+		GridCellsOpacityHover.value = Math.round(app.settings.grid.cells.opacityHover * 100);
 		GridCellsBorderSize.value = app.settings.grid.cells.borderSize;
 		GridCellsBorderSizeHover.value = app.settings.grid.cells.borderSizeHover;
 		GridCellsBackgroundTransparent.checked = (app.settings.grid.cells.backgroundColor == null);
-		GridCellsBackgroundColor.value = app.settings.grid.cells.backgroundColor;
+		GridCellsBackgroundColor.value = app.settings.grid.cells.backgroundColor || '#ffffff';
 		GridCellsBackgroundTransparentHover.checked = (app.settings.grid.cells.backgroundColorHover == null);
-		GridCellsBackgroundColorHover.value = app.settings.grid.cells.backgroundColorHover;
+		GridCellsBackgroundColorHover.value = app.settings.grid.cells.backgroundColorHover || '#ffffff';
 		GridCellsBorderRadius.value = app.settings.grid.cells.borderRadius;
 		GridCellsBorderRadiusHover.value = app.settings.grid.cells.borderRadiusHover;
 		GridCellsBorderColor.value = app.settings.grid.cells.borderColor;
@@ -73,23 +62,25 @@ app.init = function(){
 		GridCellsTitleColor.value = app.settings.grid.cells.titleColor;
 		GridCellsTitleColorHover.value = app.settings.grid.cells.titleColorHover;
 		GridCellsTitleBackgroundTransparent.checked = (app.settings.grid.cells.titleBackgroundColor == null);
-		GridCellsTitleBackgroundColor.value = app.settings.grid.cells.titleBackgroundColor;
-		GridCellsTitleBackgroundColorHover.value = app.settings.grid.cells.titleBackgroundColorHover;
+		GridCellsTitleBackgroundColor.value = app.settings.grid.cells.titleBackgroundColor || '#ffffff';
+		GridCellsTitleBackgroundColorHover.value = app.settings.grid.cells.titleBackgroundColorHover || '#ffffff';
 		GridCellsTitleBackgroundTransparentHover.checked = (app.settings.grid.cells.titleBackgroundColorHover == null);
 		GridCellsSnapshotDelay.value = app.settings.grid.cells.snapshotDelay;
+		app.updatePreviews();
+		app.changes.start();
 	});
 
 	BtnOk.onclick = function(){
 		BtnApply.onclick();
-		window.frameElement.popup.close();
+		QDUI.closePopup();
 	}
 	BtnApply.onclick = function(){
+		if(!app.settings) return;
 		app.settings.menuShowAdd = MenuShowAdd.checked;
 		app.settings.backgroundColor = BackgroundColor.value;
 		app.settings.backgroundImage = BackgroundImage;
 		app.settings.backgroundMode = +(BackgroundMode.value);
 		app.settings.openQuickDialInNewPage = ButtonOpenInNewPage.checked;
-    app.settings.startpageTimeout = StartupTimeout.value;
 		app.settings.grid.rows = +(GridRows.value);
 		app.settings.grid.margin = +(GridMargins.value);
 		app.settings.grid.columns = +(GridColumns.value);
@@ -133,27 +124,13 @@ app.init = function(){
 		app.settings.grid.cells.snapshotDelay = GridCellsSnapshotDelay.value;
 		app.settings.grid.root = GridRoot.value;
 		browser.runtime.sendMessage( { cmd: app.Messages.Commands.setSettings, settings: app.settings } );
+		app.changes.saved('Changes applied to the dial');
 	}
-	BtnCancel.onclick = function(){
-		window.frameElement.popup.close();
-	}
-
-	var tabButtons = Tabs.children[0].children[0].children[0];
-	for(var i=0; i<tabButtons.children.length-1; i++){
-		tabButtons.children[i].index = i;
-		tabButtons.children[i].onclick = function(){
-			for(var j=0; j<tabButtons.children.length-1; j++){
-				if(j==this.index){
-					tabButtons.children[j].className = 'TabButtonActive';
-					Tabs.children[1].children[j].className = '';
-				} else {
-					tabButtons.children[j].className = 'TabButton';
-					Tabs.children[1].children[j].className = 'hidden';
-				}
-			}
-		}
+	BtnCancel.onclick = BtnClose.onclick = function(){
+		QDUI.closePopup();
 	}
 
+	// ----- Backup -----
 	BtnExport.onclick = function(){
 		browser.runtime.sendMessage({ cmd: app.Messages.Commands.exportData }).then(function(data){
 			var blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
@@ -186,91 +163,126 @@ app.init = function(){
 				return;
 			}
 			var source = data.format == 'quickdial-ng' ? 'Quick Dial NG backup' : 'Quick Dial export';
-			if(!confirm('Import this ' + source + '?\n\nYour current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.')) return;
-			BtnImport.disabled = true;
-			app.Backup.showStatus('Importing…');
-			browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(function(r){
-				var text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
-					+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
-				location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
-			}, function(err){
-				BtnImport.disabled = false;
-				app.Backup.showStatus('Import failed: ' + err.message, true);
+			QDUI.dialog({
+				title: 'Import this ' + source + '?',
+				message: 'Your current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.',
+				okText: 'Import',
+				danger: true
+			}).then(function(ok){
+				if(!ok) return;
+				BtnImport.disabled = true;
+				app.Backup.showStatus('Importing…', false, true);
+				browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(function(r){
+					var text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
+						+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
+					location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
+				}, function(err){
+					BtnImport.disabled = false;
+					app.Backup.showStatus('Import failed: ' + err.message, true);
+				});
 			});
 		}
 		fileReader.readAsText(ImportFile.files[0]);
 	}
 
 	var params = new URLSearchParams(location.search);
-	if(params.get('tab') == 'backup') TabBackupButton.onclick();
+	if(params.get('tab') == 'backup') app.tabs.select('TabBackupButton');
 	if(params.get('result')) app.Backup.showStatus(params.get('result'));
 
-	BackgroundColor.onchange = function(){
-		BackgroundPreview.style.backgroundColor = BackgroundColor.value;
+	// ----- Pictures -----
+	function picker(input, choose, apply){ // file input -> data URL -> apply(cssValue)
+		if(choose) choose.onkeydown = function(e){ if(e.key == 'Enter' || e.key == ' '){ e.preventDefault(); input.click(); } };
+		input.onclick = function(){ this.value = null; };
+		input.onchange = function(){
+			var file = input.files[0];
+			if(!file) return;
+			var fileReader = new FileReader();
+			fileReader.onload = function(e){
+				input.value = null;
+				apply('url(' + e.target.result + ')');
+				app.updatePreviews();
+				app.changes.mark();
+			};
+			fileReader.readAsDataURL(file);
+		};
 	}
+	picker(BackgroundImageFile, BackgroundImageChoose, function(v){ BackgroundImage = v; });
+	picker(GridBackImageFile, GridBackImageFile.previousElementSibling, function(v){ GridBackImage = v; });
+	picker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, function(v){ GridFolderImage = v; });
+	QDUI.imageDrop(BackgroundZone, BackgroundImageFile);
+	QDUI.imageDrop(GridBackZone, GridBackImageFile);
+	QDUI.imageDrop(GridFolderZone, GridFolderImageFile);
+
 	BackgroundImageClear.onclick = function(){
 		BackgroundImage = null;
-		BackgroundPreview.style.backgroundImage = BackgroundImage;
+		app.updatePreviews();
+		app.changes.mark();
 	}
-	BackgroundImageFile.onclick = function(){
-		this.value = null;
-	}
-	BackgroundImageFile.onchange = function(){
-		var fileReader = new FileReader();
-		fileReader.onload = function(e){
-			BackgroundImage = 'url(' + e.target.result + ')';
-			BackgroundImageFile.value = null;
-			BackgroundPreview.style.backgroundImage = BackgroundImage;
-		}
-		fileReader.readAsDataURL(BackgroundImageFile.files[0]);
-	}
-
-	GridRows.onchange = function(){
-		if(GridRatioAuto.checked){
-			GridRatioX.value = GridColumns.value;
-			GridRatioY.value = GridRows.value;
-		}
-	}
-	GridColumns.onchange = function(){
-		if(GridRatioAuto.checked){
-			GridRatioX.value = GridColumns.value;
-			GridRatioY.value = GridRows.value;
-		}
-	}
-
 	GridBackImageReset.onclick = function(){
 		GridBackImage = 'url(/img/back.png)';
-		GridBackPreview.style.backgroundImage = GridBackImage;
+		app.updatePreviews();
+		app.changes.mark();
 	}
-	GridBackImageFile.onclick = function(){
-		this.value = null;
-	}
-	GridBackImageFile.onchange = function(){
-		var fileReader = new FileReader();
-		fileReader.onload = function(e){
-			GridBackImage = 'url(' + e.target.result + ')';
-			GridBackImageFile.value = null;
-			GridBackPreview.style.backgroundImage = GridBackImage;
-		}
-		fileReader.readAsDataURL(GridBackImageFile.files[0]);
-	}
-
 	GridFolderImageReset.onclick = function(){
 		GridFolderImage = 'url(/img/folder.png)';
-		GridFolderPreview.style.backgroundImage = GridFolderImage;
+		app.updatePreviews();
+		app.changes.mark();
 	}
-	GridFolderImageFile.onclick = function(){
-		this.value = null;
+
+	// Live previews follow every edit
+	document.addEventListener('input', app.updatePreviews);
+	document.addEventListener('change', app.updatePreviews);
+};
+
+app.updatePreviews = function(){
+	if(!app.settings) return;
+	BackgroundPreview.style.backgroundColor = BackgroundColor.value;
+	BackgroundPreview.style.backgroundImage = BackgroundImage || 'none';
+	QDUI.applyMode(BackgroundPreview, BackgroundMode.value);
+	BackgroundImageClear.disabled = !BackgroundImage;
+	GridBackPreview.style.backgroundImage = GridBackImage || 'none';
+	QDUI.applyMode(GridBackPreview, GridBackMode.value);
+	GridFolderPreview.style.backgroundImage = GridFolderImage || 'none';
+	QDUI.applyMode(GridFolderPreview, GridFolderMode.value);
+
+	// "None" switches off the colour next to it
+	[['GridCellsBackgroundTransparent', 'GridCellsBackgroundColor'], ['GridCellsBackgroundTransparentHover', 'GridCellsBackgroundColorHover'],
+	 ['GridCellsTitleBackgroundTransparent', 'GridCellsTitleBackgroundColor'], ['GridCellsTitleBackgroundTransparentHover', 'GridCellsTitleBackgroundColorHover']
+	].forEach(function(p){ document.getElementById(p[1]).disabled = document.getElementById(p[0]).checked; });
+
+	app.updateTilePreview();
+};
+
+// Two sample tiles drawn with the values in the form (normal and hover state)
+app.updateTilePreview = function(){
+	TileStage.style.backgroundColor = BackgroundColor.value;
+	TileStage.style.backgroundImage = BackgroundImage || 'none';
+	var rx = +GridRatioX.value || 4, ry = +GridRatioY.value || 3;
+	function n(el){ return Math.max(0, +el.value || 0); }
+	function draw(tile, hover){
+		var h = hover ? 'Hover' : '';
+		var v = function(name){ return document.getElementById('GridCells' + name + h); };
+		var margin = n(v('Margins')), border = n(v('BorderSize'));
+		var showTitle = v('Title').checked, titleHeight = n(v('TitleHeight'));
+		var w = 152 - 2 * margin, height = Math.round((152 - 2 * margin - 2 * border) * ry / rx) + 2 * border + (showTitle ? titleHeight : 0);
+		tile.parentNode.style.height = (Math.min(height, 200) + 2 * margin) + 'px';
+		var s = tile.style;
+		s.margin = margin + 'px';
+		s.opacity = Math.min(100, n(v('Opacity'))) / 100;
+		s.border = border + 'px solid ' + v('BorderColor').value;
+		s.borderRadius = n(v('BorderRadius')) + 'px';
+		s.backgroundColor = v('BackgroundTransparent').checked ? 'transparent' : v('BackgroundColor').value;
+		var title = tile.lastElementChild.style;
+		title.display = showTitle ? '' : 'none';
+		title.height = titleHeight + 'px';
+		title.lineHeight = titleHeight + 'px';
+		title.fontSize = n(v('TitleFontSize')) + 'pt';
+		title.color = v('TitleColor').value;
+		title.backgroundColor = v('TitleBackgroundTransparent').checked ? 'transparent' : v('TitleBackgroundColor').value;
+		title.borderTop = n(v('TitleBorderSize')) + 'px solid ' + v('BorderColor').value;
 	}
-	GridFolderImageFile.onchange = function(){
-		var fileReader = new FileReader();
-		fileReader.onload = function(e){
-			GridFolderImage = 'url(' + e.target.result + ')';
-			GridFolderImageFile.value = null;
-			GridFolderPreview.style.backgroundImage = GridFolderImage;
-		}
-		fileReader.readAsDataURL(GridFolderImageFile.files[0]);
-	}
+	draw(TileNormal, false);
+	draw(TileHover, true);
 };
 
 app.Messages = {};
@@ -294,14 +306,11 @@ app.Messages.Commands = {
 };
 app.Backup = {};
 app.Backup.exportSnippet = "(async()=>{const a=(await browser.runtime.getBackgroundPage()).app;const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:4,settings:a.settings,node:a.node})],{type:'application/json'}));l.download='quickdial-export.json';document.body.appendChild(l);l.click();})()";
-app.Backup.showStatus = function(text, isError){
+app.Backup.showStatus = function(text, isError, isBusy){
 	ImportStatus.textContent = text;
-	ImportStatus.className = 'Status' + (isError ? ' Error' : '');
+	ImportStatus.className = 'qd-banner' + (isError ? ' is-error' : '') + (isBusy ? ' is-busy' : '');
+	ImportStatus.hidden = false;
 };
 app.Messages.getSettings = function(callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback);
 };
-
-
-
-

@@ -128,7 +128,7 @@ async function main() {
 
 	// Phase I: import an original Quick Dial export whose bookmark ids don't exist here (other profile / deleted bookmarks)
 	const settings = await J('S.storage.settings');
-	delete settings.startpageTimeout;
+	settings.startpageTimeout = 500; // obsolete start page timer: must be dropped on import
 	settings.grid = { ...settings.grid, columns: 7, cells: { ...settings.grid.cells, titleColor: '#ff0000' } };
 	delete settings.grid.cells.snapshotDelay;
 	const orig = { version: 4, settings, node: { id: 'oldroot', type: 1, title: 'Quick Dial', children: [
@@ -151,7 +151,7 @@ async function main() {
 	check('I new folder at cell 5 with its bookmark', st.c5.title === 'Brand new' && same(st.g, ['https://new11.example/']), st.g);
 	check('I root linked to the Quick Dial folder', st.rootId === 'qd', st.rootId);
 	check('I pictures follow their tiles (3, under new ids)', st.imgs.length === 3 && st.imgs.includes('img_b1') && st.imgs.includes('img_' + st.c3.id) && st.imgs.includes('img_' + st.c4.children[1].id), st.imgs);
-	check('I style/grid imported, missing fields defaulted', st.s.grid.columns === 7 && st.s.grid.cells.titleColor === '#ff0000' && st.s.grid.cells.snapshotDelay === 2000 && st.s.startpageTimeout === 500, st.s.grid.columns);
+	check('I style/grid imported, missing fields defaulted', st.s.grid.columns === 7 && st.s.grid.cells.titleColor === '#ff0000' && st.s.grid.cells.snapshotDelay === 2000 && !('startpageTimeout' in st.s), st.s.grid.columns);
 
 	// Phase J: importing the same export again creates nothing (idempotent)
 	r = await J(`${BG}.app.Backup.import(${js})`); await wait(1000);
@@ -160,8 +160,8 @@ async function main() {
 	// Phase K: UI entry points
 	const m = await J('S.menus'); check('K page menu has Import from Quick Dial', m.includes('menuImportQuickDial'), m);
 	await J("loadFrame('dial', 'ext/html/settingstest.html?tab=backup')"); await wait(800);
-	const ui = await dial().locator('body').evaluate(() => ({ tab: document.getElementById('TabBackup').className, btn: document.getElementById('TabBackupButton').className, imp: !!document.getElementById('BtnImport'), copy: !!document.getElementById('BtnCopySnippet') }));
-	check('K settings ?tab=backup opens the Backup tab', ui.tab === '' && ui.btn === 'TabButtonActive' && ui.imp && ui.copy, ui);
+	const ui = await dial().locator('body').evaluate(() => ({ tab: document.getElementById('TabBackup').hidden, btn: document.getElementById('TabBackupButton').getAttribute('aria-selected'), imp: !!document.getElementById('BtnImport'), copy: !!document.getElementById('BtnCopySnippet') }));
+	check('K settings ?tab=backup opens the Backup tab', ui.tab === false && ui.btn === 'true' && ui.imp && ui.copy, ui);
 
 	// Phase L: dial picks up a changed picture from the background cache (refresh / capture)
 	await J("loadFrame('dial', 'ext/dialtest.html')"); await wait(1000);
@@ -192,6 +192,16 @@ async function main() {
 	st = await J(`(() => { const w = document.getElementById('dial').contentWindow; return { html: w.document.documentElement.style.backgroundColor, body: w.getComputedStyle(w.document.body).backgroundColor,
 	    tiles: w.document.querySelectorAll('table.Grid a').length, listeners: (S.listeners['rt.onMessage.dial'] || []).length }; })()`);
 	check('N dial drawn once background is ready', st.html === '' && st.body === 'rgb(18, 52, 86)' && st.tiles > 0 && st.listeners === 1, st);
+
+	// Phase O: the old start page timer setting (before 0.3.5) is removed from storage on the next start
+	await J('S.storage.settings.startpageTimeout = 500; S.writes = [];');
+	await J("loadFrame('bg', 'ext/bg.html')"); await wait(1500);
+	st = await J(`({ stored: 'startpageTimeout' in S.storage.settings, live: 'startpageTimeout' in ${BG}.app.settings, writes: S.writes.map(w => w.k) })`);
+	check('O obsolete startpageTimeout dropped and saved once', !st.stored && !st.live && st.writes.includes('settings'), st);
+	await J('S.writes = [];');
+	await J("loadFrame('bg', 'ext/bg.html')"); await wait(1500);
+	st = await J('S.writes.map(w => w.k)');
+	check('O next start writes nothing again', st.length === 0, st);
 
 	// 404s (icons, favicons) and blocked external requests are expected; real script errors are not.
 	console.log('console errors:', JSON.stringify(errs.filter(e => !e.includes('no receiver') && !e.startsWith('Failed to load resource')).slice(0, 10)));

@@ -39,14 +39,21 @@
     "newtab": "dial.html"
   },
 
+  "chrome_settings_overrides": {
+    "homepage": "dial.html"
+  },
+
   "browser_specific_settings": {
     "gecko": {
       "id": "quickdial-ng@yuriywozniak",
       "strict_min_version": "140.0",
       "update_url": "https://raw.githubusercontent.com/YuriyWozniak/quickdial-ng/develop/updates.json",
-			"data_collection_permissions": {
-				"required": ["none"]
-			}
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
     }
   },
 

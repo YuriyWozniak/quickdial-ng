@@ -672,17 +672,47 @@ dial.populateGrid = function(){
 		});
 	}
 };
+// Shared dialog styles and helpers (css/ui.css, js/ui.js) are loaded only when first needed,
+// so they never slow down drawing the dial.
+dial.loadUI = function(){
+	if(!dial._ui) dial._ui = new Promise(function(resolve){
+		var pending = 2, done = function(){ if(--pending == 0) resolve(window.QDUI); };
+		var css = document.createElement('link');
+		css.rel = 'stylesheet'; css.href = '/css/ui.css';
+		css.onload = css.onerror = done;
+		var js = document.createElement('script');
+		js.src = '/js/ui.js';
+		js.onload = js.onerror = done;
+		document.head.appendChild(css);
+		document.head.appendChild(js);
+	});
+	return dial._ui;
+};
 dial.createBookmark = function(){
-	var url = prompt(browser.i18n.getMessage("AddBookmarkPrompt"), 'https://');
-	if(url) app.Messages.createBookmark(url);
+	dial.loadUI().then(function(ui){
+		return ui.dialog({
+			title: browser.i18n.getMessage("dialogNewBookmark"),
+			message: browser.i18n.getMessage("AddBookmarkPrompt"),
+			value: 'https://', placeholder: 'https://example.com', okText: 'Add',
+			validate: function(v){
+				var u = /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v;
+				try { var p = new URL(u); if(!/^https?:$/.test(p.protocol) || p.hostname) return ''; } catch(e) {}
+				return 'Enter a web address, e.g. https://example.com';
+			},
+			transform: function(v){ return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v; }
+		});
+	}).then(function(url){ if(url) app.Messages.createBookmark(url); });
 };
 dial.createFolder = function(){
-	var name = prompt(browser.i18n.getMessage("AddFolderPrompt"), 'New Folder');
-	if(name) app.Messages.createFolder(name);
+	dial.loadUI().then(function(ui){
+		return ui.dialog({ title: browser.i18n.getMessage("dialogNewFolder"), message: browser.i18n.getMessage("AddFolderPrompt"), value: 'New Folder', okText: 'Create' });
+	}).then(function(name){ if(name) app.Messages.createFolder(name); });
 };
 dial.deleteNode = function(){
-	if(confirm(browser.i18n.getMessage("deleteItemConfimation", dial._selectedItem.Node.title)))
-		app.Messages.deleteNode(dial._selectedItem.Node.id);
+	var node = dial._selectedItem.Node;
+	dial.loadUI().then(function(ui){
+		return ui.dialog({ title: browser.i18n.getMessage("deleteItemConfimation", node.title), message: node.url || '', okText: browser.i18n.getMessage("menuDeleteItem"), danger: true });
+	}).then(function(ok){ if(ok) app.Messages.deleteNode(node.id); });
 }
 dial.refreshNode = function(selectedItem){
 	selectedItem.className = 'BookmarkLoading';
@@ -700,80 +730,64 @@ dial.capturePage = function(selectedItem){
 
 
 
-dial.PopupPanel = function(width, height, modal){ // PopupPanel Object
-	this.panelContainer = document.createElement('div');
-	this.panelContainer.style.position = 'fixed';
-	this.panelContainer.style.left = '0pt';
-	this.panelContainer.style.top = '0pt';
-	this.panelContainer.style.width = '100%';
-	this.panelContainer.style.height = '100%';
-	
+dial.PopupPanel = function(width, height){ // Modal frame for the Settings and Properties pages
+	var self = this;
+	this.overlay = document.createElement('div');
+	this.overlay.className = 'qd qd-overlay';
 	this.panel = document.createElement('div');
-	this.panel.style.margin = 'auto';
-	this.panel.style.marginTop = '30pt';
+	this.panel.className = 'qd-frame';
 	this.panel.style.width = width + 'px';
 	this.panel.style.height = height + 'px';
-	this.panel.style.backgroundColor = '#FFFFFF';
-	this.panelContainer.appendChild(this.panel);
+	this.overlay.appendChild(this.panel);
 	this.frame = this.panel;
-	if(modal == true){
-		this.modal = document.createElement('div');
-		this.modal.style.position = 'fixed';
-		this.modal.style.left = '0px';
-		this.modal.style.top = '0px';
-		this.modal.style.width = '100%';
-		this.modal.style.height = '100%';
-		this.modal.style.backgroundColor = '#404040';
-		this.modal.style.opacity = 0.5;
-		this._contextMenuHandler = function(e){ e.preventDefault(); }
-		this.popup = function(){
-			window.addEventListener('contextmenu', this._contextMenuHandler, false);
-			document.body.appendChild(this.modal);
-			document.body.appendChild(this.panelContainer);
-		}
-		this.close = function(){
-			document.body.removeChild(this.modal);
-			document.body.removeChild(this.panelContainer);
-			window.removeEventListener('contextmenu', this._contextMenuHandler, false);
-		}
-	} else {
-		this.popup = function(){
-			document.body.appendChild(this.panelContainer);
-		}
-		this.close = function(){
-			document.body.removeChild(this.panelContainer);
-		}
-	}
+	this._contextMenuHandler = function(e){ e.preventDefault(); };
+	this._keyHandler = function(e){ if(e.key == 'Escape') self.close(); }; // when focus is outside the frame
+	this.overlay.addEventListener('mousedown', function(e){ // keep focus in the frame
+		if(e.target === self.overlay){ e.preventDefault(); var f = self.panel.querySelector('iframe'); if(f) f.focus(); }
+	});
+	this.popup = function(){
+		if(dial._popup) dial._popup.close(true);
+		dial._popup = self;
+		window.addEventListener('contextmenu', self._contextMenuHandler, false);
+		window.addEventListener('keydown', self._keyHandler, false);
+		document.body.appendChild(self.overlay);
+	};
+	this.fit = function(){ // Called by the page inside: shrink the frame to its content (never above the requested height)
+		var f = self.panel.querySelector('iframe'), d = f && f.contentDocument;
+		if(!d) return;
+		var needed = 2, content = d.querySelector('.qd-content');
+		if(content) content.style.flex = '0 0 auto'; // natural height instead of "fill the frame"
+		for(var el of d.body.children) needed += el.offsetHeight;
+		if(content) content.style.flex = '';
+		self.panel.style.height = Math.min(height, Math.ceil(needed)) + 'px';
+	};
+	this.close = function(immediate){
+		if(self._closed) return;
+		self._closed = true;
+		if(dial._popup === self) dial._popup = null;
+		window.removeEventListener('contextmenu', self._contextMenuHandler, false);
+		window.removeEventListener('keydown', self._keyHandler, false);
+		if(immediate) self.overlay.remove();
+		else { self.overlay.classList.add('is-closing'); setTimeout(function(){ self.overlay.remove(); }, 120); }
+	};
+}
+
+dial.openPopup = function(src, width, height){
+	dial.loadUI().then(function(){
+		var popup = new dial.PopupPanel(width, height);
+		var iframe = document.createElement('iframe');
+		iframe.src = src;
+		iframe.popup = popup;
+		popup.frame.appendChild(iframe);
+		popup.popup();
+		iframe.focus();
+	});
 }
 
 dial.editSettings = function(tab){ // tab: optional settings tab to open ('backup')
-	var popup = new dial.PopupPanel(500, 440, true);
-	var iframe = document.createElement('iframe');
-	iframe.style.width = '100%';
-	iframe.style.height = '100%';
-	iframe.style.backgroundColor = 'transparent';
-	iframe.style.border = '0px none transparent';
-	iframe.style.padding = '0px';
-	iframe.style.overflow = 'hidden';
-	popup.frame.appendChild(iframe);
-	iframe.src = '/html/settings.html' + (tab ? '?tab=' + tab : '');
-	iframe.popup = popup;
-	popup.popup();
-	iframe.focus();
+	dial.openPopup('/html/settings.html' + (tab ? '?tab=' + tab : ''), 640, 600);
 }
 
 dial.editProperties = function(selectedItem){
-	var popup = new dial.PopupPanel(500, 420, true);
-	var iframe = document.createElement('iframe');
-	iframe.style.width = '100%';
-	iframe.style.height = '100%';
-	iframe.style.backgroundColor = 'transparent';
-	iframe.style.border = '0px none transparent';
-	iframe.style.padding = '0px';
-	iframe.style.overflow = 'hidden';
-	popup.frame.appendChild(iframe);
-	iframe.src = '/html/properties.html?id=' + selectedItem.Node.id;
-	iframe.popup = popup;
-	popup.popup();
-	iframe.focus();
+	dial.openPopup('/html/properties.html?id=' + selectedItem.Node.id, 560, 590);
 }

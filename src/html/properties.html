@@ -2,80 +2,80 @@
 <html>
 	<head>
 		<meta charset="utf-8" />
-		<link rel="shortcut icon" type="image/png" href="img/24.png" />
+		<link rel="shortcut icon" type="image/png" href="../img/24.png" />
 		<title id="title">Quick Dial NG Node Properties</title>
+		<link rel="stylesheet" href="../css/ui.css" />
+		<script type="text/javascript" src="../js/ui.js"></script>
 		<script type="text/javascript" src="/js/properties.js"></script>
-		<style>
-			body { margin: 0px; padding: 4px; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; }
-			h1 { font-size: 11pt; text-decoration: underline; }
-			input[type=number] { width: 56px; }
-			input[type=color] { width: 60px; }
-			.hidden { display: none; }
-			.Tab>table { width: 100%; border-collapse: collapse; }
-			.Tab .TabSpace { width: 100%; border-bottom: solid 1px #505050; }
-			.Tab .TabButton { border: solid 1px #505050; padding: 2px 6px 2px 6px; cursor: default; }
-			.Tab .TabButtonActive { border: solid 1px #505050; border-bottom: none; padding: 2px 6px 2px 6px; cursor: default; }
-			.Tab>div { padding: 8px; height: 330px; border-left: solid 1px #505050; border-bottom: solid 1px #505050; border-right: solid 1px #505050; }
-		</style>
 	</head>
-	<body>
-		<div id="Tabs" class="Tab">
-			<table>
-				<tr>
-					<td class="TabButtonActive">Main</td>
-					<td class="TabButton" style="display:none">Temp</td>
-					<td class="TabSpace"></td>
-				</tr>
-			</table>
-			<div>
-				<div>
-					<table style="width:100%">
-						<tr>
-							<td><span>Title :</span></td>
-							<td><input id="Title" type="text" style="width:100%"></td>
-							<td style="width:20px"><input id="TitleLocked" type="checkbox" title="Lock title"></td>
-						</tr>
-						<tr>
-							<td><span>Url :</span></td>
-							<td colspan="2"><input id="Url" type="text" style="width:100%"></td>
-						</tr>
-					
-					
-						<tr>
-							<td><span>Image :</span></td>
-							<td>
-								<select id="ImageMode">
-									<option value="-1">Default</option>
-									<option value="0">Stretch</option>
-									<option value="1">Cover</option>
-									<option value="2">Contain</option>
-									<option value="3">Center</option>
-								</select>
-								<button id="ImageReset">Reset</button>
-								<button id="ImageDefault">Default</button>
-								<button class="hidden" id="ImageRefresh">Refresh</button>
-								<button class="hidden" id="ImageCapture">Capture</button>
-								<input id="ImageFile" type="file" style="width:180px;">
-							</td>
-							<td style="width:20px"><input id="ImageLocked" type="checkbox" title="Lock image"></td>
-						</tr>
-						<tr>
-							<td></td>
-							<td colspan="2"><div id="ImagePreview" style="width: 300px; height: 180px;"></div></td>
-						</tr>
-						
-					
-					</table>
-				</div>
-				<div class="hidden">
-				</div>
+	<body class="qd qd-page">
+		<header class="qd-header">
+			<div class="qd-header-icon" aria-hidden="true"><svg id="IconBookmark" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><path d="M2.5 7.5h15"/><circle cx="5" cy="5.5" r=".5" fill="currentColor"/><circle cx="7" cy="5.5" r=".5" fill="currentColor"/></svg><svg id="IconFolder" hidden viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.6l1.8 2h6.6a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5z"/></svg></div>
+			<div class="qd-header-text">
+				<h1 class="qd-title" id="HeaderTitle">Properties</h1>
+				<p class="qd-subtitle" id="HeaderSubtitle">&nbsp;</p>
 			</div>
-		</div>
+			<button type="button" class="qd-icon-btn" id="BtnClose" title="Close (Esc)" aria-label="Close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+		</header>
 
-		<div style="text-align: right; margin-top: 14px;">
-			<button id="BtnOk">OK</button>
-			<button id="BtnApply">Apply</button>
-			<button id="BtnCancel">Cancel</button>
-		</div>
+		<main class="qd-content qd-stack">
+			<section class="qd-card">
+				<div class="qd-row">
+					<label for="Title">Title</label>
+					<div class="qd-inline">
+						<input id="Title" type="text" class="qd-grow" autocomplete="off" spellcheck="false">
+						<label class="qd-lock" id="TitleLockBox" title="Lock the title: refreshing the tile won't rename it">
+							<input id="TitleLocked" type="checkbox" aria-label="Lock title">
+							<span class="qd-lock-off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 4.8-1"/></svg></span><span class="qd-lock-on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span>
+						</label>
+					</div>
+				</div>
+				<div class="qd-row" id="UrlRow">
+					<label for="Url">Address</label>
+					<input id="Url" type="url" autocomplete="off" spellcheck="false" placeholder="https://">
+				</div>
+			</section>
+
+			<section class="qd-card">
+				<h2>Picture</h2>
+				<div class="qd-image">
+					<div class="qd-preview" id="ImageZone" title="Drop an image here">
+						<div class="qd-preview-img" id="ImagePreview"></div>
+						<div class="qd-preview-empty" id="ImageEmpty" hidden>No picture yet</div>
+						<div class="qd-preview-drop">Drop to use this image</div>
+					</div>
+					<div class="qd-image-controls">
+						<label class="qd-label" for="ImageMode">Fit</label>
+						<select id="ImageMode">
+							<option value="-1">Default</option>
+							<option value="0">Stretch</option>
+							<option value="1">Cover</option>
+							<option value="2">Contain</option>
+							<option value="3">Center</option>
+						</select>
+						<div class="qd-inline">
+							<label class="qd-btn" for="ImageFile" id="ImageChoose" tabindex="0" role="button">Choose image…</label>
+							<input id="ImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
+						</div>
+						<div class="qd-inline">
+							<button type="button" class="qd-btn is-small" id="ImageReset" title="Undo picture changes made in this window">Revert</button>
+							<button type="button" class="qd-btn is-small" id="ImageDefault" title="Use the default folder picture">Use default</button>
+						</div>
+						<span class="qd-hint">Drop an image on the preview or paste one with Ctrl+V.</span>
+					</div>
+				</div>
+				<div class="qd-switch-row" id="ImageLockRow">
+					<label class="qd-switch-label" for="ImageLocked">Keep this picture<small>Refresh and capture won't replace it</small></label>
+					<input id="ImageLocked" type="checkbox" class="qd-switch">
+				</div>
+			</section>
+		</main>
+
+		<footer class="qd-footer">
+			<span class="qd-status" id="Status" aria-live="polite"></span>
+			<button type="button" class="qd-btn" id="BtnCancel">Cancel</button>
+			<button type="button" class="qd-btn" id="BtnApply">Apply</button>
+			<button type="button" class="qd-btn is-primary" id="BtnOk">OK</button>
+		</footer>
 	</body>
 </html>

@@ -50,3 +50,4 @@ The script prints a `PASS`/`FAIL` line per check. It ends with `ALL PASS` (exit 
 | L | The dial shows an updated picture after a refresh or capture. |
 | M | A brand-new profile without a Quick Dial folder creates it and keeps syncing. |
 | N | The background colour is remembered for the dial page and updated when settings change. While the background page is still loading, the dial shows that colour and waits; it draws once the background page is ready, with no duplicate retry. |
+| O | The old start page timer setting (`startpageTimeout`, before 0.3.5) is removed from stored settings on the next start, saved once, and the start after that writes nothing. Imports drop it too (phase I). |

@@ -2,275 +2,303 @@
 <html>
 	<head id="head">
 		<meta charset="utf-8" />
-		<link rel="shortcut icon" type="image/png" href="img/24.png" />
+		<link rel="shortcut icon" type="image/png" href="../img/24.png" />
 		<title id="title">Quick Dial NG Settings</title>
+		<link rel="stylesheet" href="../css/ui.css" />
+		<script type="text/javascript" src="../js/ui.js"></script>
 		<script type="text/javascript" src="/js/settings.js"></script>
-		<style>
-			body { margin: 0px; padding: 4px; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; }
-			h1 { font-size: 11pt; text-decoration: underline; }
-			input[type=number] { width: 56px; }
-			input[type=color] { width: 60px; }
-			.hidden { display: none; }
-			.Tab>table { width: 100%; border-collapse: collapse; }
-			.Tab>div { overflow: auto; }
-			.Tab .TabSpace { width: 100%; border-bottom: solid 1px #505050; }
-			.Tab .TabButton { border: solid 1px #505050; padding: 2px 6px 2px 6px; cursor: default; }
-			.Tab .TabButtonActive { border: solid 1px #505050; border-bottom: none; padding: 2px 6px 2px 6px; cursor: default; }
-			.Tab>div { padding: 8px; height: 350px; border-left: solid 1px #505050; border-bottom: solid 1px #505050; border-right: solid 1px #505050; }
-			.Note { margin: 4px 0 6px 0; color: #444; }
-			.Steps { margin: 4px 0 8px 0; padding-left: 20px; }
-			.Steps li { margin-bottom: 6px; }
-			.Status { padding: 6px; margin-bottom: 8px; border: solid 1px #6a9955; background: #eef6ea; }
-			.Status.Error { border-color: #b33; background: #fbecec; }
-			code { font-size: 9pt; }
-		</style>
 	</head>
-	<body id="body">
-		<div id="Tabs" class="Tab">
-			<table>
-				<tr>
-					<td class="TabButtonActive">Page</td>
-					<td class="TabButton">Grid</td>
-					<td class="TabButton">Cells</td>
-					<td class="TabButton" id="TabBackupButton">Backup</td>
-					<td class="TabSpace"></td>
-				</tr>
-			</table>
-			<div>
-				<div>
-					<table>
-						<tr>
-							<td><span>Background Color :</span></td>
-							<td><input id="BackgroundColor" type="color"></td>
-						</tr>
-						<tr>
-							<td><span>Background Mode :</span></td>
-							<td>
+	<body id="body" class="qd qd-page">
+		<header class="qd-header">
+			<div class="qd-header-icon" aria-hidden="true">
+				<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg>
+			</div>
+			<div class="qd-header-text">
+				<h1 class="qd-title">Quick Dial NG Settings</h1>
+				<p class="qd-subtitle" id="Version">&nbsp;</p>
+			</div>
+			<button type="button" class="qd-icon-btn" id="BtnClose" title="Close (Esc)" aria-label="Close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+		</header>
+
+		<nav class="qd-tabs" id="Tabs" role="tablist">
+			<button type="button" class="qd-tab" role="tab" id="TabPageButton" aria-controls="TabPage" aria-selected="true">Page</button>
+			<button type="button" class="qd-tab" role="tab" id="TabGridButton" aria-controls="TabGrid">Grid</button>
+			<button type="button" class="qd-tab" role="tab" id="TabTilesButton" aria-controls="TabTiles">Tiles</button>
+			<button type="button" class="qd-tab" role="tab" id="TabBackupButton" aria-controls="TabBackup">Backup</button>
+		</nav>
+
+		<main class="qd-content" id="Content">
+
+			<!-- ===== Page ===== -->
+			<div class="qd-panel qd-stack" id="TabPage" role="tabpanel" aria-labelledby="TabPageButton">
+				<section class="qd-card">
+					<h2>Background</h2>
+					<div class="qd-image">
+						<div class="qd-preview is-screen" id="BackgroundZone" title="Drop an image here">
+							<div class="qd-preview-img" id="BackgroundPreview"></div>
+							<div class="qd-preview-drop">Drop to use this image</div>
+						</div>
+						<div class="qd-image-controls">
+							<div class="qd-pairs">
+								<label class="qd-label" for="BackgroundColor">Color</label>
+								<input id="BackgroundColor" type="color">
+								<label class="qd-label" for="BackgroundMode">Fit</label>
 								<select id="BackgroundMode">
 									<option value="0">Stretch</option>
 									<option value="1">Cover</option>
 									<option value="2">Contain</option>
 									<option value="3">Center</option>
 								</select>
-							</td>
-						</tr>
-						<tr>
-							<td><span>Background Image :</span></td>
-							<td>
-								<button id="BackgroundImageClear">Clear</button>
-								<input id="BackgroundImageFile" type="file" style="width:265px;">
-							</td>
-						</tr>
-						<tr>
-							<td>Preview :</td>
-							<td><div id="BackgroundPreview" style="width: 300px; height: 180px;"></div></td>
-						</tr>
-						<tr>
-							<td>Show "Add to ..." :</td>
-							<td><input id="MenuShowAdd" type="checkbox"></td>
-						</tr>
+							</div>
+							<div class="qd-inline">
+								<label class="qd-btn is-small" for="BackgroundImageFile" id="BackgroundImageChoose" tabindex="0" role="button">Choose image…</label>
+								<input id="BackgroundImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
+								<button type="button" class="qd-btn is-small" id="BackgroundImageClear">Remove</button>
+							</div>
+							<span class="qd-hint">Or drop an image on the preview.</span>
+						</div>
+					</div>
+				</section>
 
-						<tr>
-							<td>Open QD in new page :</td>
-							<td><input id="ButtonOpenInNewPage" type="checkbox"></td>
-						</tr>
-
-						<tr>
-							<td>Startpage timeout :</td>
-							<td><input id="StartupTimeout" type="number"></td>
-						</tr>
-
-
-					</table>
-				</div>
-				<div class="hidden">
-					<table>
-						<tr>
-							<td><span>Rows x Columns :</span></td>
-							<td>
-								<input id="GridRows" type="number" min="1">
-								<input id="GridColumns" type="number" min="1">
-							</td>
-						</tr>
-						<tr>
-							<td><span>Ratio (X/Y) :</span></td>
-							<td>
-								<input id="GridRatioX" type="number" min="1">
-								<input id="GridRatioY" type="number" min="1">
-							</td>
-						</tr>
-						<tr>
-							<td><span>Margins :</span></td>
-							<td><input id="GridMargins" type="number" min="0"></td>
-						</tr>
-						<tr>
-							<td><span>Open Bookmarks In :</span></td>
-							<td>
-								<select id="GridOpenBookmarksIn">
-									<option value="0">Default</option>
-									<option value="1">New Tab</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<td><span>Open Folders In :</span></td>
-							<td>
-								<select id="GridOpenFoldersIn">
-									<option value="0">Default</option>
-									<option value="1">New Tab</option>
-								</select>
-							</td>
-						</tr>
-						<tr>
-							<td><span>Back Button :</span></td>
-							<td><input id="GridBackNode" type="checkbox"></td>
-						</tr>
-					</table>
-					<table>
-						<tr>
-							<td>
-								<div>Back :</div>
-								<div>
-									<select id="GridBackMode">
-										<option value="0">Stretch</option>
-										<option value="1">Cover</option>
-										<option value="2">Contain</option>
-										<option value="3">Center</option>
-									</select>
-								</div>
-								<button id="GridBackImageReset">Reset</button>
-								<input id="GridBackImageFile" type="file" style="width:220px;">
-								<div id="GridBackPreview" style="width: 220px; height: 150px; border: 1px solid #000000"></div>
-							</td>
-							<td>
-								<div>Folder :</div>
-								<div>
-									<select id="GridFolderMode">
-										<option value="0">Stretch</option>
-										<option value="1">Cover</option>
-										<option value="2">Contain</option>
-										<option value="3">Center</option>
-									</select>
-								</div>
-								<button id="GridFolderImageReset">Reset</button>
-								<input id="GridFolderImageFile" type="file" style="width:220px;">
-								<div id="GridFolderPreview" style="width: 220px; height: 150px; border: 1px solid #000000"></div>
-							</td>
-						</tr>
-					</table>
-					<table style="width:100%;">
-						<tr>
-							<td><span>Root Folder :</span></td>
-							<td><input id="GridRoot" type="text" style="width:100%;"></td>
-						</tr>
-					</table>
-				</div>
-				<div class="hidden">
-					<table>
-						<tr>
-							<td></td>
-							<td>Default :</td>
-							<td>Hover :</td>
-						</tr>
-						<tr>
-							<td><span>Margins :</span></td>
-							<td><input id="GridCellsMargins" type="number" min="0"></td>
-							<td><input id="GridCellsMarginsHover" type="number" min="0"></td>
-						</tr>
-						<tr>
-							<td><span>Opacity :</span></td>
-							<td><input id="GridCellsOpacity" type="number" min="0" max="100"></td>
-							<td><input id="GridCellsOpacityHover" type="number" min="0" max="100"></td>
-						</tr>
-						<tr>
-							<td><span>Border Size :</span></td>
-							<td><input id="GridCellsBorderSize" type="number" min="0"></td>
-							<td><input id="GridCellsBorderSizeHover" type="number" min="0"></td>
-						</tr>
-						<tr>
-							<td><span>Border Radius :</span></td>
-							<td><input id="GridCellsBorderRadius" type="number" min="0"></td>
-							<td><input id="GridCellsBorderRadiusHover" type="number" min="0"></td>
-						</tr>
-						<tr>
-							<td><span>Background Transparent :</span></td>
-							<td><input id="GridCellsBackgroundTransparent" type="checkbox"></td>
-							<td><input id="GridCellsBackgroundTransparentHover" type="checkbox"></td>
-						</tr>
-						<tr>
-							<td><span>Background Color :</span></td>
-							<td><input id="GridCellsBackgroundColor" type="color"></td>
-							<td><input id="GridCellsBackgroundColorHover" type="color"></td>
-						</tr>
-						<tr>
-							<td><span>Border Color :</span></td>
-							<td><input id="GridCellsBorderColor" type="color"></td>
-							<td><input id="GridCellsBorderColorHover" type="color"></td>
-						</tr>
-						<tr>
-							<td><span>Title :</span></td>
-							<td><input id="GridCellsTitle" type="checkbox"></td>
-							<td><input id="GridCellsTitleHover" type="checkbox"></td>
-						</tr>
-						<tr>
-							<td><span>Title Height :</span></td>
-							<td><input id="GridCellsTitleHeight" type="number" min="0"></td>
-							<td><input id="GridCellsTitleHeightHover" type="number" min="0"></td>
-						</tr>
-						<tr>
-							<td><span>Title Font Size :</span></td>
-							<td><input id="GridCellsTitleFontSize" type="number" min="0"></td>
-							<td><input id="GridCellsTitleFontSizeHover" type="number" min="0"></td>
-						</tr>
-						<tr>
-							<td><span>Title Border Size :</span></td>
-							<td><input id="GridCellsTitleBorderSize" type="number" min="0"></td>
-							<td><input id="GridCellsTitleBorderSizeHover" type="number" min="0"></td>
-						</tr>
-						<tr>
-							<td><span>Title Text Color :</span></td>
-							<td><input id="GridCellsTitleColor" type="color"></td>
-							<td><input id="GridCellsTitleColorHover" type="color"></td>
-						</tr>
-						<tr>
-							<td><span>Title Background Transparent :</span></td>
-							<td><input id="GridCellsTitleBackgroundTransparent" type="checkbox"></td>
-							<td><input id="GridCellsTitleBackgroundTransparentHover" type="checkbox"></td>
-						</tr>
-						<tr>
-							<td><span>Title Background Color :</span></td>
-							<td><input id="GridCellsTitleBackgroundColor" type="color"></td>
-							<td><input id="GridCellsTitleBackgroundColorHover" type="color"></td>
-						</tr>
-						<tr>
-							<td><span>Snapshot Delay :</span></td>
-							<td colspan="2"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000"></td>
-						</tr>
-					</table>
-				</div>
-				<div class="hidden" id="TabBackup">
-					<h1>Import from Quick Dial</h1>
-					<p class="Note">Brings over your tiles with their exact grid positions, folders, pictures, grid and style settings.
-					Bookmarks already in your Quick Dial folder are reused; missing ones are created.</p>
-					<ol class="Steps">
-						<li>Open <code>about:debugging#/runtime/this-firefox</code>, find the original <b>Quick Dial</b> and click <b>Inspect</b>.</li>
-						<li><button id="BtnCopySnippet">Copy export snippet</button> and paste it into the <b>Console</b> tab
-						(type <code>allow pasting</code> first if Firefox asks). It saves <code>quickdial-export.json</code> to Downloads.</li>
-						<li><button id="BtnImport" title="Import an original Quick Dial export or a Quick Dial NG backup">Import from file…</button></li>
-					</ol>
-					<div id="ImportStatus" class="Status hidden"></div>
-					<input id="ImportFile" type="file" accept=".json,application/json" class="hidden">
-					<h1>Quick Dial NG backup</h1>
-					<p class="Note">Saves settings, tiles and pictures to one file. Restore it with <b>Import from file…</b> above.</p>
-					<button id="BtnExport" title="Save settings, tiles and images to a file">Export backup</button>
-				</div>
+				<section class="qd-card">
+					<h2>Behavior</h2>
+					<div class="qd-switch-row">
+						<label class="qd-switch-label" for="MenuShowAdd">"Add to Quick Dial NG" menu item<small>In the right-click menu of web pages</small></label>
+						<input id="MenuShowAdd" type="checkbox" class="qd-switch">
+					</div>
+					<div class="qd-switch-row">
+						<label class="qd-switch-label" for="ButtonOpenInNewPage">Toolbar button opens a new tab<small>Otherwise Quick Dial NG replaces the current tab</small></label>
+						<input id="ButtonOpenInNewPage" type="checkbox" class="qd-switch">
+					</div>
+					<div class="qd-switch-row">
+						<span class="qd-switch-label">Start page<small>Quick Dial NG is Firefox's home page: it opens when Firefox starts and with the Home button. To use another page, go to Firefox Settings › Home.</small></span>
+					</div>
+				</section>
 			</div>
-		</div>
 
-		<div style="text-align: right; margin-top: 14px;">
-			<button id="BtnOk">OK</button>
-			<button id="BtnApply">Apply</button>
-			<button id="BtnCancel">Cancel</button>
-		</div>
+			<!-- ===== Grid ===== -->
+			<div class="qd-panel qd-stack" id="TabGrid" role="tabpanel" aria-labelledby="TabGridButton" hidden>
+				<section class="qd-card">
+					<h2>Layout</h2>
+					<div class="qd-row">
+						<label for="GridRows">Rows × columns</label>
+						<div class="qd-inline">
+							<input id="GridRows" type="number" min="1" aria-label="Rows">
+							<span class="qd-sep">×</span>
+							<input id="GridColumns" type="number" min="1" aria-label="Columns">
+						</div>
+					</div>
+					<div class="qd-row">
+						<label for="GridRatioX">Tile shape</label>
+						<div class="qd-inline">
+							<input id="GridRatioX" type="number" min="1" aria-label="Width ratio">
+							<span class="qd-sep">:</span>
+							<input id="GridRatioY" type="number" min="1" aria-label="Height ratio">
+							<span class="qd-hint">width : height</span>
+						</div>
+					</div>
+					<div class="qd-row">
+						<label for="GridMargins">Page margin</label>
+						<span class="qd-unit"><input id="GridMargins" type="number" min="0"> px</span>
+					</div>
+					<div class="qd-row">
+						<label for="GridRoot">Bookmarks folder</label>
+						<input id="GridRoot" type="text" spellcheck="false">
+						<span class="qd-hint">The bookmarks folder shown on the dial</span>
+					</div>
+				</section>
+
+				<section class="qd-card">
+					<h2>Opening</h2>
+					<div class="qd-row">
+						<label for="GridOpenBookmarksIn">Open bookmarks in</label>
+						<select id="GridOpenBookmarksIn">
+							<option value="0">The same tab</option>
+							<option value="1">A new tab</option>
+						</select>
+					</div>
+					<div class="qd-row">
+						<label for="GridOpenFoldersIn">Open folders in</label>
+						<select id="GridOpenFoldersIn">
+							<option value="0">The same tab</option>
+							<option value="1">A new tab</option>
+						</select>
+					</div>
+				</section>
+
+				<section class="qd-card">
+					<h2>Folder tiles</h2>
+					<div class="qd-switch-row">
+						<label class="qd-switch-label" for="GridBackNode">Show a Back tile inside folders</label>
+						<input id="GridBackNode" type="checkbox" class="qd-switch">
+					</div>
+					<div class="qd-columns">
+						<div class="qd-image is-stacked">
+							<span class="qd-label">Back tile picture</span>
+							<div class="qd-preview is-small" id="GridBackZone" title="Drop an image here">
+								<div class="qd-preview-img" id="GridBackPreview"></div>
+								<div class="qd-preview-drop">Drop to use this image</div>
+							</div>
+							<div class="qd-inline">
+								<select id="GridBackMode" aria-label="Back picture fit">
+									<option value="0">Stretch</option>
+									<option value="1">Cover</option>
+									<option value="2">Contain</option>
+									<option value="3">Center</option>
+								</select>
+								<label class="qd-btn is-small" for="GridBackImageFile" tabindex="0" role="button">Choose…</label>
+								<input id="GridBackImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
+								<button type="button" class="qd-btn is-small" id="GridBackImageReset" title="Use the built-in picture">Reset</button>
+							</div>
+						</div>
+						<div class="qd-image is-stacked">
+							<span class="qd-label">Folder picture</span>
+							<div class="qd-preview is-small" id="GridFolderZone" title="Drop an image here">
+								<div class="qd-preview-img" id="GridFolderPreview"></div>
+								<div class="qd-preview-drop">Drop to use this image</div>
+							</div>
+							<div class="qd-inline">
+								<select id="GridFolderMode" aria-label="Folder picture fit">
+									<option value="0">Stretch</option>
+									<option value="1">Cover</option>
+									<option value="2">Contain</option>
+									<option value="3">Center</option>
+								</select>
+								<label class="qd-btn is-small" for="GridFolderImageFile" tabindex="0" role="button">Choose…</label>
+								<input id="GridFolderImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
+								<button type="button" class="qd-btn is-small" id="GridFolderImageReset" title="Use the built-in picture">Reset</button>
+							</div>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<!-- ===== Tiles ===== -->
+			<div class="qd-panel qd-stack" id="TabTiles" role="tabpanel" aria-labelledby="TabTilesButton" hidden>
+				<div class="qd-tile-stage" id="TileStage">
+					<figure class="qd-tile-figure">
+						<div class="qd-tile-slot"><div class="qd-tile" id="TileNormal"><div class="qd-tile-img"></div><div class="qd-tile-title">Example site</div></div></div>
+						<figcaption class="qd-tile-caption">Normal</figcaption>
+					</figure>
+					<figure class="qd-tile-figure">
+						<div class="qd-tile-slot"><div class="qd-tile" id="TileHover"><div class="qd-tile-img"></div><div class="qd-tile-title">Example site</div></div></div>
+						<figcaption class="qd-tile-caption">Hover</figcaption>
+					</figure>
+				</div>
+
+				<section class="qd-card is-table">
+					<table class="qd-table">
+						<thead>
+							<tr><th></th><th>Normal</th><th>Hover</th></tr>
+						</thead>
+						<tbody>
+							<tr class="qd-table-group"><td colspan="3">Tile</td></tr>
+							<tr>
+								<td>Spacing</td>
+								<td><span class="qd-unit"><input id="GridCellsMargins" type="number" min="0"> px</span></td>
+								<td><span class="qd-unit"><input id="GridCellsMarginsHover" type="number" min="0"> px</span></td>
+							</tr>
+							<tr>
+								<td>Opacity</td>
+								<td><span class="qd-unit"><input id="GridCellsOpacity" type="number" min="0" max="100" step="5"> %</span></td>
+								<td><span class="qd-unit"><input id="GridCellsOpacityHover" type="number" min="0" max="100" step="5"> %</span></td>
+							</tr>
+							<tr>
+								<td>Border width</td>
+								<td><span class="qd-unit"><input id="GridCellsBorderSize" type="number" min="0"> px</span></td>
+								<td><span class="qd-unit"><input id="GridCellsBorderSizeHover" type="number" min="0"> px</span></td>
+							</tr>
+							<tr>
+								<td>Corner radius</td>
+								<td><span class="qd-unit"><input id="GridCellsBorderRadius" type="number" min="0"> px</span></td>
+								<td><span class="qd-unit"><input id="GridCellsBorderRadiusHover" type="number" min="0"> px</span></td>
+							</tr>
+							<tr>
+								<td>Border color</td>
+								<td><input id="GridCellsBorderColor" type="color"></td>
+								<td><input id="GridCellsBorderColorHover" type="color"></td>
+							</tr>
+							<tr>
+								<td>Background</td>
+								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparent" type="checkbox"> None</label></div></td>
+								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparentHover" type="checkbox"> None</label></div></td>
+							</tr>
+
+							<tr class="qd-table-group"><td colspan="3">Title</td></tr>
+							<tr>
+								<td>Show title</td>
+								<td><input id="GridCellsTitle" type="checkbox" class="qd-switch"></td>
+								<td><input id="GridCellsTitleHover" type="checkbox" class="qd-switch"></td>
+							</tr>
+							<tr>
+								<td>Height</td>
+								<td><span class="qd-unit"><input id="GridCellsTitleHeight" type="number" min="0"> px</span></td>
+								<td><span class="qd-unit"><input id="GridCellsTitleHeightHover" type="number" min="0"> px</span></td>
+							</tr>
+							<tr>
+								<td>Font size</td>
+								<td><span class="qd-unit"><input id="GridCellsTitleFontSize" type="number" min="0"> pt</span></td>
+								<td><span class="qd-unit"><input id="GridCellsTitleFontSizeHover" type="number" min="0"> pt</span></td>
+							</tr>
+							<tr>
+								<td>Divider width</td>
+								<td><span class="qd-unit"><input id="GridCellsTitleBorderSize" type="number" min="0"> px</span></td>
+								<td><span class="qd-unit"><input id="GridCellsTitleBorderSizeHover" type="number" min="0"> px</span></td>
+							</tr>
+							<tr>
+								<td>Text color</td>
+								<td><input id="GridCellsTitleColor" type="color"></td>
+								<td><input id="GridCellsTitleColorHover" type="color"></td>
+							</tr>
+							<tr>
+								<td>Background</td>
+								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparent" type="checkbox"> None</label></div></td>
+								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparentHover" type="checkbox"> None</label></div></td>
+							</tr>
+
+							<tr class="qd-table-group"><td colspan="3">Thumbnails</td></tr>
+							<tr>
+								<td>Capture delay</td>
+								<td colspan="2"><span class="qd-unit"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000" step="100"> ms after the page loads</span></td>
+							</tr>
+						</tbody>
+					</table>
+				</section>
+			</div>
+
+			<!-- ===== Backup ===== -->
+			<div class="qd-panel qd-stack" id="TabBackup" role="tabpanel" aria-labelledby="TabBackupButton" hidden>
+				<div id="ImportStatus" class="qd-banner" hidden></div>
+
+				<section class="qd-card">
+					<h2>Quick Dial NG backup</h2>
+					<p class="qd-muted">Saves settings, tiles and pictures to one file. Restore it with <b>Import from file…</b> below.</p>
+					<div class="qd-inline">
+						<button type="button" class="qd-btn is-primary" id="BtnExport" title="Save settings, tiles and images to a file">Export backup</button>
+						<button type="button" class="qd-btn" id="BtnImport" title="Import an original Quick Dial export or a Quick Dial NG backup">Import from file…</button>
+					</div>
+					<input id="ImportFile" type="file" accept=".json,application/json" class="qd-file" data-no-dirty tabindex="-1">
+				</section>
+
+				<section class="qd-card">
+					<h2>Import from the original Quick Dial</h2>
+					<p class="qd-muted">Brings over your tiles with their exact grid positions, folders, pictures, grid and style settings.
+					Bookmarks already in your Quick Dial folder are reused; missing ones are created.</p>
+					<ol class="qd-steps">
+						<li>Open <code>about:debugging#/runtime/this-firefox</code>, find the original <b>Quick Dial</b> and click <b>Inspect</b>.</li>
+						<li>Copy the export snippet and paste it into the <b>Console</b> tab (type <code>allow pasting</code> first if Firefox asks). It saves <code>quickdial-export.json</code> to Downloads.<br>
+							<button type="button" class="qd-btn is-small" id="BtnCopySnippet">Copy export snippet</button></li>
+						<li>Choose that file with <b>Import from file…</b> above.</li>
+					</ol>
+				</section>
+			</div>
+		</main>
+
+		<footer class="qd-footer">
+			<span class="qd-status" id="Status" aria-live="polite"></span>
+			<button type="button" class="qd-btn" id="BtnCancel">Cancel</button>
+			<button type="button" class="qd-btn" id="BtnApply">Apply</button>
+			<button type="button" class="qd-btn is-primary" id="BtnOk">OK</button>
+		</footer>
 	</body>
 </html>
