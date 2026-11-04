@@ -73,6 +73,7 @@ Open source (MPL 2.0): <a href="https://github.com/YuriyWozniak/quickdial-ng">gi
 | License | Mozilla Public License 2.0 |
 | Privacy policy | None needed: nothing is collected. |
 | Compatibility | Firefox (desktop) only; untick Firefox for Android. |
+| Add-on icon | [`amo-icon.png`](amo-icon.png) (128×128; AMO doesn't use the SVG icon from the manifest). Remake it after changing `src/img/icon.svg`: `node ../release/make-amo-icon.js` in `test/`. |
 
 ## Screenshots
 
