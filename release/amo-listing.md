@@ -77,15 +77,20 @@ Open source (MPL 2.0): <a href="https://github.com/YuriyWozniak/quickdial-ng">gi
 
 ## Screenshots
 
-From [`screenshots/`](../screenshots/), in this order:
+All ten from [`screenshots/`](../screenshots/), in alphabetical order (the first one is the main picture of the listing). When a screenshot is added or renamed, keep the order and add its caption here.
 
-| File | Caption |
-|---|---|
-| [`dial-anori.png`](../screenshots/dial-anori.png) | The dial with the built-in Anori theme: glass tiles and titles over the pictures. |
-| [`dial-classic.png`](../screenshots/dial-classic.png) | The Classic theme, the original Quick Dial look. |
-| [`dial-picture.png`](../screenshots/dial-picture.png) | Your own background picture behind the tiles. |
-| [`settings-themes.png`](../screenshots/settings-themes.png) | Settings › Themes: preview a theme, then apply it, or save, export and import your own. |
-| [`settings-tiles-glass.png`](../screenshots/settings-tiles-glass.png) | Tile styles with a live preview: glass, shadows, hover effects and title fonts. |
+| # | File | Caption |
+|---|---|---|
+| 1 | [`dial-anori.png`](../screenshots/dial-anori.png) | The dial with the built-in Anori theme: glass tiles and titles over the pictures. |
+| 2 | [`dial-classic.png`](../screenshots/dial-classic.png) | The Classic theme, the original Quick Dial look. |
+| 3 | [`dial-picture.png`](../screenshots/dial-picture.png) | Your own background picture behind the tiles. |
+| 4 | [`properties.png`](../screenshots/properties.png) | Bookmark properties: title, address and picture. Choose, drop or paste an image, or keep it from being replaced. |
+| 5 | [`settings-grid.png`](../screenshots/settings-grid.png) | Settings › Grid: rows and columns, tile shape, page margin, the bookmarks folder, and where bookmarks and folders open. |
+| 6 | [`settings-page.png`](../screenshots/settings-page.png) | Settings › Page: background colour, picture or gradient, and the accent colour of Quick Dial NG's windows. |
+| 7 | [`settings-themes.png`](../screenshots/settings-themes.png) | Settings › Themes: preview a theme, then apply it, or save, export and import your own. |
+| 8 | [`settings-themes-dark.png`](../screenshots/settings-themes-dark.png) | Settings follow Firefox's dark mode. |
+| 9 | [`settings-tiles.png`](../screenshots/settings-tiles.png) | Settings › Tiles: a live preview of the normal and hover look, with size, spacing, borders and colours. |
+| 10 | [`settings-tiles-glass.png`](../screenshots/settings-tiles-glass.png) | Tile styles: glass blur, background opacity, shadows, hover effects and title settings. |
 
 ## Release notes
 
