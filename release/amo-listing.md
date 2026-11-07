@@ -2,7 +2,7 @@
 
 The texts of Quick Dial NG's page on addons.mozilla.org (AMO), kept here so the listing and the GitHub documentation stay the same. When a feature changes, update this file together with the [README](../README.md), then paste the changed parts into the AMO Developer Hub (Edit Product Page).
 
-The description uses only the formatting AMO accepts: `<b>`, `<i>`, `<ul>`/`<ol>`/`<li>`, `<a>`, `<code>`, `<blockquote>`. Line breaks are kept; headings and Markdown are not.
+The description uses AMO's limited Markdown: `**bold**`, `_italic_`, `[links](https://…)`, `` `code` ``, `>` quotes and `-`/`1.` lists. HTML tags and `#` headings are not supported (AMO shows HTML as plain text), so section titles are bold lines. Keep a blank line between paragraphs and before each list.
 
 ## Name
 
@@ -20,46 +20,47 @@ Speed dial for your new tab and home page. Tiles come from a bookmarks folder, w
 
 ## Description
 
-```html
+```markdown
 Quick Dial NG turns your new tab and home page into a grid of tiles. Each tile is a bookmark in one bookmarks folder ("Quick Dial"), so the dial always matches your bookmarks, and Firefox Sync carries the tiles to your other computers (pictures stay on each computer).
 
-<b>Tiles</b>
-<ul>
-<li>Add, edit, move and delete tiles right on the page; subfolders become folder tiles.</li>
-<li>Pictures: "Capture in a new tab" takes a screenshot of the site as you see it, signed in. You can also upload, drag in or paste your own picture.</li>
-<li>Set the number of rows and columns, the tile shape, margins, borders, titles and the background colour or picture.</li>
-</ul>
+**Tiles**
 
-<b>Themes</b>
-<ul>
-<li>Switch the whole look at once: background, tile and title styles, and the accent colour of the settings.</li>
-<li>Built in: Classic (the original Quick Dial look) and Anori, inspired by the <a href="https://anori.app/">Anori</a> extension.</li>
-<li>Glass tiles with blur, shadows, smooth hover effects, title fonts, and titles over the picture.</li>
-<li>Save your own themes, and export or import them as .json files.</li>
-</ul>
+- Add, edit, move and delete tiles right on the page; subfolders become folder tiles.
+- Pictures: "Capture in a new tab" takes a screenshot of the site as you see it, signed in. You can also upload, drag in or paste your own picture.
+- Set the number of rows and columns, the tile shape, margins, borders, titles and the background colour or picture.
 
-<b>Moving from Quick Dial</b>
+**Themes**
+
+- Switch the whole look at once: background, tile and title styles, and the accent colour of the settings.
+- Built in: Classic (the original Quick Dial look) and Anori, inspired by the [Anori](https://anori.app/) extension.
+- Glass tiles with blur, shadows, smooth hover effects, title fonts, and titles over the picture.
+- Save your own themes, and export or import them as .json files.
+
+**Moving from Quick Dial**
+
 Right-click the page and choose "Import from Quick Dial…". Tiles keep their exact places, pictures, folders and settings. "Export backup" saves everything to one file for another profile or PC.
 
-<b>Why NG</b>
-Quick Dial NG is an independent fork of <a href="https://addons.mozilla.org/firefox/addon/quick-dial/">Quick Dial</a> by MatMoul. Its storage was rebuilt: pictures are stored as WebP in separate entries, so Firefox starts faster and uses less disk and memory (10.5 MB of pictures shrank to about 1.5 MB on a real profile). Settings were redesigned and follow Firefox's light or dark mode. It also needs fewer permissions than the original.
+**Why NG**
 
-<b>Home page</b>
+Quick Dial NG is an independent fork of [Quick Dial](https://addons.mozilla.org/firefox/addon/quick-dial/) by MatMoul. Its storage was rebuilt: pictures are stored as WebP in separate entries, so Firefox starts faster and uses less disk and memory (10.5 MB of pictures shrank to about 1.5 MB on a real profile). Settings were redesigned and follow Firefox's light or dark mode. It also needs fewer permissions than the original.
+
+**Home page**
+
 Quick Dial NG also sets itself as the home page, so the dial opens when Firefox starts and from the Home button. Firefox asks once whether to keep this; to use another home page, go to Firefox Settings › Home.
 
-<b>Permissions and privacy</b>
+**Permissions and privacy**
+
 No data is collected or sent anywhere. Settings and pictures stay in your Firefox profile.
-<ul>
-<li>Bookmarks: tiles are the bookmarks of the Quick Dial folder.</li>
-<li>Access to all websites: to capture a site's picture and read its title.</li>
-<li>Tabs: opens the site in a background tab for the capture, then closes it.</li>
-<li>Menus: the right-click menu on the dial.</li>
-<li>Storage: settings, themes and pictures.</li>
-</ul>
+
+- Bookmarks: tiles are the bookmarks of the Quick Dial folder.
+- Access to all websites: to capture a site's picture and read its title.
+- Tabs: opens the site in a background tab for the capture, then closes it.
+- Menus: the right-click menu on the dial.
+- Storage: settings, themes and pictures.
 
 For Firefox on the desktop, version 140 or later. Available in English, German, Spanish, French, Hebrew, Italian, Polish, Portuguese (Brazil), Russian, Serbian and Ukrainian.
 
-Open source (MPL 2.0): <a href="https://github.com/YuriyWozniak/quickdial-ng">github.com/YuriyWozniak/quickdial-ng</a>
+Open source (MPL 2.0): [github.com/YuriyWozniak/quickdial-ng](https://github.com/YuriyWozniak/quickdial-ng)
 ```
 
 ## Categories and details
