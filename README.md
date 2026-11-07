@@ -71,9 +71,13 @@ It also replaces the new tab page and sets itself as the home page. Firefox asks
 
 Quick Dial NG is for Firefox on the desktop, version 140 or later. Firefox for Android doesn't let extensions replace the new tab or home page, so it isn't offered there.
 
-Download the latest `.xpi` from [Releases](https://github.com/YuriyWozniak/quickdial-ng/releases/latest). Each one is signed by Mozilla. In Firefox, open `about:addons`, click the gear icon and choose **Install Add-on From File**.
+[![Get Quick Dial NG on Firefox Add-ons](https://img.shields.io/amo/v/quick-dial-ng?label=Firefox%20Add-ons&logo=firefox-browser)](https://addons.mozilla.org/firefox/addon/quick-dial-ng/)
 
-From 0.3.4 on, Firefox updates Quick Dial NG by itself: it checks [`updates.json`](updates.json) in this repository, which lists each release's download link and checksum. Versions published on addons.mozilla.org update from there instead.
+**From addons.mozilla.org (recommended):** open [Quick Dial NG on Firefox Add-ons](https://addons.mozilla.org/firefox/addon/quick-dial-ng/) and click **Add to Firefox**. Firefox keeps it up to date from there.
+
+**From GitHub:** download the latest `.xpi` from [Releases](https://github.com/YuriyWozniak/quickdial-ng/releases/latest). Each one is signed by Mozilla, and from 0.4.1 on it is the same file as on addons.mozilla.org. In Firefox, open `about:addons`, click the gear icon and choose **Install Add-on From File**.
+
+Copies installed from GitHub (0.3.4 to 0.4.0) update themselves through [`updates.json`](updates.json) in this repository, which lists each release's download link and checksum. Once they reach 0.4.1 they update from addons.mozilla.org, like copies installed there.
 
 What changed in each version is on the [Releases](https://github.com/YuriyWozniak/quickdial-ng/releases) page and in [release/amo-listing.md](release/amo-listing.md#release-notes), which also holds the texts of the addons.mozilla.org page, so both places describe the same thing.
 
@@ -99,7 +103,7 @@ How the import links tiles to bookmarks: each tile is matched to a bookmark in t
 - Lint: `npx web-ext lint -s src --self-hosted` (should report no errors, warnings or notices). `--self-hosted` is needed because the add-on is distributed from GitHub with its own `update_url`, which the linter otherwise rejects as if it were listed on addons.mozilla.org. The package for addons.mozilla.org is the same source without `update_url`; `release.js --amo` lints it with the listed rules.
 - Tests: `node test/test-storage.js` (after `npm install` in `test/`; see [test/README.md](test/README.md)). This runs the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`). It covers migration, startup writes, bookmark filtering, the dial page, export/import, import from the original Quick Dial (bookmark matching/creation, cell positions, settings defaults), image cleanup, themes and the sandboxed Refresh download.
 - Screenshots: `npm run screenshots` in `test/` remakes the pictures in [`screenshots/`](screenshots/) from the current code, with invented sites (see [test/screenshots/README.md](test/screenshots/README.md)).
-- Release: `node release/release.js <version> --notes <file>` signs `src/` on addons.mozilla.org (unlisted), publishes a GitHub release with the signed `.xpi` and adds it to `updates.json`, so installed copies update themselves. With `--amo` it builds the package for a listed version on addons.mozilla.org instead. See [release/README.md](release/README.md) for setup and options.
+- Release: `node release/release.js <version> --notes <file>` signs `src/` on addons.mozilla.org (unlisted), publishes a GitHub release with the signed `.xpi` and adds it to `updates.json`, so installed copies update themselves. With `--amo` it builds the package for a listed version on addons.mozilla.org instead. From 0.4.1 on, each version is published on addons.mozilla.org first (`--amo`, upload, review), then the signed file from there goes to GitHub with `--xpi`. See [release/README.md](release/README.md) for setup and options.
 
 ## License
 
