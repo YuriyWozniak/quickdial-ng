@@ -2,6 +2,8 @@
 
 Quick Dial NG is a speed dial new tab page for Firefox. Its tiles come from a bookmarks folder ("Quick Dial" by default).
 
+Website: **[qdng.srv.if.ua](https://qdng.srv.if.ua)**: features, install and migration guide, privacy and changelog.
+
 It is a fork of [Quick Dial](https://github.com/MatMoul/quickdial-webext) by MatMoul ([on addons.mozilla.org](https://addons.mozilla.org/firefox/addon/quick-dial/)). It works the same way, but its storage has been reworked so Firefox starts faster and uses less disk and memory, and it adds themes and redesigned settings.
 
 ![The dial with the built-in Anori theme](screenshots/dial-anori.png)
