@@ -42,7 +42,7 @@ Right-click the page and choose "Import from Quick Dial…". Tiles keep their ex
 
 **Why NG**
 
-Quick Dial NG is an independent fork of [Quick Dial](https://addons.mozilla.org/firefox/addon/quick-dial/) by MatMoul. Its storage was rebuilt: pictures are stored as WebP in separate entries, so Firefox starts faster and uses less disk and memory (10.5 MB of pictures shrank to about 1.5 MB on a real profile). Settings were redesigned and follow Firefox's light or dark mode. It also needs fewer permissions than the original.
+Quick Dial NG is an independent fork of [Quick Dial](https://addons.mozilla.org/firefox/addon/quick-dial/) by MatMoul. Its storage was rebuilt: pictures are stored as WebP in separate entries, so Firefox starts faster and uses less disk and memory (10.5 MB of pictures shrank to about 1.5 MB on a real profile). Settings were redesigned: they open in their own tab and follow Firefox's light or dark mode. It also needs fewer permissions than the original.
 
 **Home page**
 
@@ -54,7 +54,7 @@ No data is collected or sent anywhere. Settings and pictures stay in your Firefo
 
 - Bookmarks: tiles are the bookmarks of the Quick Dial folder.
 - Access to all websites: to capture a site's picture and read its title.
-- Tabs: opens the site in a background tab for the capture, then closes it.
+- Tabs: opens the site in a background tab for the capture, then closes it; opens the dial or Settings from the toolbar button.
 - Menus: the right-click menu on the dial and on the toolbar button.
 - Storage: settings, themes and pictures.
 
@@ -96,6 +96,15 @@ All ten from [`screenshots/`](../screenshots/), in alphabetical order (the first
 ## Release notes
 
 The "Release notes" field of each version on AMO; the same text goes to the GitHub release (`--notes`). Newest first.
+
+### 0.5.0
+
+```
+- Settings open in their own tab, with a sidebar and two columns on wide screens. Firefox's Add-ons page opens them too (Options).
+- The toolbar button opens Settings, or the dial in a new or the current tab (Settings › Page). Its right-click menu has both. Existing installs keep what they had.
+- Ctrl+S applies, Discard changes goes back to what the dial uses, and Firefox asks before closing Settings with changes not applied.
+- Toolbar and add-on icons: the bottom-right tile is filled, like the website's icon.
+```
 
 ### 0.4.1
 

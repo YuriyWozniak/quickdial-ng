@@ -89,12 +89,10 @@ app.Messages.Commands = {
 	gridNodesLoaded: 101,
 	menuCreateBookmark: 200,
 	menuCreateFolder: 201,
-	menuEditSettings: 202,
 	menuEditProperties: 203,
 	menuRefreshNode: 204,
 	menuCapturePage: 206,
-	menuDeleteNode: 207,
-	menuImportQuickDial: 208
+	menuDeleteNode: 207
 };
 app.Messages.init = function(){
 	if(app.Messages._listening) return; // app.init can run more than once; register the listener only once
@@ -112,12 +110,6 @@ app.Messages.init = function(){
 				break;
 			case app.Messages.Commands.menuCreateFolder:
 				dial.createFolder();
-				break;
-			case app.Messages.Commands.menuEditSettings:
-				dial.editSettings();
-				break;
-			case app.Messages.Commands.menuImportQuickDial:
-				dial.editSettings('backup');
 				break;
 			case app.Messages.Commands.menuEditProperties:
 				dial.editProperties(dial._selectedItem);

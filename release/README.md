@@ -93,11 +93,14 @@ Permissions:
   app.SiteInfos.fromFrame) to read its title. That page is placed in an iframe with
   sandbox="allow-same-origin" (no allow-scripts) via srcdoc, so none of its scripts run; only
   http/https addresses are fetched.
-- tabs: create, activate and close that capture tab; open the dial from the toolbar button.
-- contextMenus: right-click menu on the dial page.
+- tabs: create, activate and close that capture tab; open the dial or the Settings tab from the
+  toolbar button, and bring an already open Settings tab forward (tabs.query, matched by the
+  add-on's own html/settings.html address).
+- contextMenus: right-click menu on the dial page and on the toolbar button.
 - storage: settings, themes and tile pictures.
 
 To test: open a new tab; tiles are the bookmarks of Bookmarks Menu > Quick Dial (created if
 missing). Right-click the page for New > Bookmark and Quick Dial NG Settings; right-click a tile
-for Properties, Refresh and Capture in a new tab. Settings > Themes applies the built-in Anori theme.
+for Properties, Refresh and Capture in a new tab. The toolbar button opens Settings in its own tab
+(also Add-ons > Quick Dial NG > Options); Settings > Themes applies the built-in Anori theme.
 ```

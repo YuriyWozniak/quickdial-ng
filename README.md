@@ -91,7 +91,7 @@ What changed in each version is on the [Releases](https://github.com/YuriyWoznia
 Quick Dial NG has its own add-on ID, so it starts with empty storage. The import brings everything over:
 
 1. Install Quick Dial NG (keep the original enabled for now).
-2. Right-click the Quick Dial NG page → **Import from Quick Dial…**. The Backup tab opens with the steps:
+2. Right-click the Quick Dial NG page → **Import from Quick Dial…**. Settings opens on **Backup** with the steps:
    - Open `about:debugging#/runtime/this-firefox`, find the original **Quick Dial** and click **Inspect**.
    - Click **Copy export snippet** and paste it into the **Console** tab (Firefox may ask you to type `allow pasting` first). It saves `quickdial-export.json` to Downloads. The snippet is:
      ```js

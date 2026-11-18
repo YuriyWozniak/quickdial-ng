@@ -48,13 +48,12 @@ app.Messages.Commands = {
 	gridNodesLoaded: 101,
 	menuCreateBookmark: 200,
 	menuCreateFolder: 201,
-	menuEditSettings: 202,
 	menuEditProperties: 203,
 	menuRefreshNode: 204,
 	menuCapturePage: 206,
 	menuDeleteNode: 207,
-	menuImportQuickDial: 208,
 	showSettingsSection: 209
+	// 202 and 208 (the menu's Settings and Import items, sent to the dial) are unused since 0.5.0: those items open the Settings tab
 };
 app.Messages.broadcast = function(cmd){ // Notify open Quick Dial pages; having none open is normal
 	browser.runtime.sendMessage({ cmd: cmd }).catch(function(){});
