@@ -120,8 +120,8 @@ async function openDial(browser, port, scheme, pictures, errors) {
 		currentStyle: async () => pg.evaluate(`${BG}.QDThemes.extract(${BG}.app.settings)`),
 		/** (Re)loads the dial page and returns its frame. */
 		dial: async () => { await pg.evaluate("loadFrame('dial', 'dial.html')"); await wait(1800); return pg.frame({ url: /dial\.html/ }); },
-		/** Opens Settings (optionally on a tab) over the dial and returns the settings frame. */
-		openSettings: async (dial, tab) => { await dial.evaluate(() => dial.editSettings()); await wait(1300); const f = pg.frame({ url: /settings\.html/ }); if (tab) await f.click(`#Tab${tab}Button`); return f; },
+		/** Opens Settings (optionally on a section) in the window, as in its own Firefox tab, and returns its frame. */
+		openSettings: async tab => { await pg.evaluate(`loadFrame('dial', 'html/settings.html${tab ? '?tab=' + tab.toLowerCase() : ''}')`); await wait(1300); return pg.frame({ url: /settings\.html/ }); },
 		/** Moves the mouse over the tile with this title (hover state), or away when no title is given. */
 		hover: async (dial, title) => {
 			if (!title) return pg.mouse.move(2, 2);
@@ -140,12 +140,21 @@ const scrollTo = (frame, selector, offset = 16) => frame.evaluate(([sel, off]) =
 	content.scrollTop += el.getBoundingClientRect().top - content.getBoundingClientRect().top - off;
 }, [selector, offset]);
 
+// Playwright's own Chromium, or else Edge / Chrome if it isn't downloaded (as in test-storage.js)
+async function launch() {
+	const errors = [];
+	for (const opts of [{}, { channel: 'msedge' }, { channel: 'chrome' }]) {
+		try { return await chromium.launch(opts); } catch (e) { errors.push(e.message.split('\n')[0]); }
+	}
+	throw new Error('No browser could be started. Run "npx playwright install chromium" in the test folder.\n  ' + errors.join('\n  '));
+}
+
 // ---------- the screenshots ----------
 async function main() {
 	fs.mkdirSync(OUT, { recursive: true });
 	await new Promise(r => server.listen(0, '127.0.0.1', r));
 	const port = server.address().port;
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const errors = [];
 	const pictures = await renderPictures(browser);
 
@@ -172,21 +181,20 @@ async function main() {
 
 	await s.settings((st, T) => { T.apply(st, T.BUILTIN.find(t => t.id === 'anori').style); st.backgroundImage = null; });
 	dial = await s.dial();
-	const settings = await s.openSettings(dial, 'Themes');
+	const settings = await s.openSettings('Themes');
 	await scrollTo(settings, '#TabThemes .qd-card'); await s.shot('settings-themes');   // gallery: Classic, Anori (in use), Dusk
 	await settings.click('#TabTilesButton'); await s.shot('settings-tiles');            // live preview of the tile style
 	await scrollTo(settings, 'tr:has(#GridCellsBackgroundColor)', 44); await s.shot('settings-tiles-glass'); // glass, shadow, hover effect
 	await settings.click('#TabPageButton'); await s.shot('settings-page');
 	await settings.click('#TabGridButton'); await s.shot('settings-grid');
-	await settings.click('#BtnCancel'); await wait(600);
+	dial = await s.dial();
 	await dial.evaluate(() => dial.editProperties([...document.querySelectorAll('.Grid a')].find(a => a.Node && a.Node.title === 'Weather')));
 	await wait(1300); await s.shot('properties');
 	await s.ctx.close();
 
 	// Dark mode: the theme gallery after choosing Use on Anori
 	s = await openDial(browser, port, 'dark', pictures, errors);
-	dial = await s.dial();
-	const dark = await s.openSettings(dial, 'Themes');
+	const dark = await s.openSettings('Themes');
 	await dark.locator('.qd-theme', { hasText: 'Anori' }).locator('button', { hasText: 'Use' }).click(); await wait(300);
 	await scrollTo(dark, '#TabThemes .qd-card'); await s.shot('settings-themes-dark');
 	await s.ctx.close();

@@ -30,8 +30,8 @@ var QDUI = (function(){
 			b.addEventListener('click', function(){ select(b); });
 			b.addEventListener('keydown', function(e){
 				var n = null;
-				if(e.key == 'ArrowRight') n = buttons[(i + 1) % buttons.length];
-				else if(e.key == 'ArrowLeft') n = buttons[(i - 1 + buttons.length) % buttons.length];
+				if(e.key == 'ArrowRight' || e.key == 'ArrowDown') n = buttons[(i + 1) % buttons.length];
+				else if(e.key == 'ArrowLeft' || e.key == 'ArrowUp') n = buttons[(i - 1 + buttons.length) % buttons.length];
 				else if(e.key == 'Home') n = buttons[0];
 				else if(e.key == 'End') n = buttons[buttons.length - 1];
 				if(n){ e.preventDefault(); select(n, true); }
@@ -42,16 +42,24 @@ var QDUI = (function(){
 
 	// ---------- unsaved changes ----------
 	// Marks the form dirty on any input/change (except elements marked data-no-dirty),
-	// enables the Apply button and shows a status line in the footer.
-	function changes(applyButton, statusEl){
+	// enables the Apply button (and the optional Discard button) and shows a status line in the footer.
+	function changes(applyButton, statusEl, discardButton){
 		var dirty = false, timer = null, ready = false;
 		function render(){
 			applyButton.disabled = !dirty;
+			if(discardButton) discardButton.disabled = !dirty;
 			statusEl.classList.toggle('is-dirty', dirty);
 			if(dirty){ statusEl.classList.remove('is-saved'); statusEl.textContent = 'Unsaved changes'; }
 		}
 		function mark(){ if(!ready) return; dirty = true; clearTimeout(timer); render(); }
 		function onEvent(e){ if(e.target.closest && e.target.closest('[data-no-dirty]')) return; mark(); }
+		function done(text, applied){ // back to clean, with a short note in the status line
+			dirty = false; render();
+			statusEl.textContent = text;
+			statusEl.classList.toggle('is-saved', applied);
+			clearTimeout(timer);
+			timer = setTimeout(function(){ if(!dirty){ statusEl.textContent = ''; statusEl.classList.remove('is-saved'); } }, 2500);
+		}
 		document.addEventListener('input', onEvent, true);
 		document.addEventListener('change', onEvent, true);
 		render();
@@ -59,13 +67,8 @@ var QDUI = (function(){
 			mark: mark,
 			start: function(){ ready = true; }, // Call after the form has been filled in
 			isDirty: function(){ return dirty; },
-			saved: function(text){
-				dirty = false; render();
-				statusEl.textContent = text || 'Changes applied';
-				statusEl.classList.add('is-saved');
-				clearTimeout(timer);
-				timer = setTimeout(function(){ if(!dirty){ statusEl.textContent = ''; statusEl.classList.remove('is-saved'); } }, 2500);
-			}
+			saved: function(text){ done(text || 'Changes applied', true); },
+			discarded: function(text){ done(text || 'Changes discarded', false); }
 		};
 	}
 

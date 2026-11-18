@@ -36,6 +36,12 @@
     ]
   },
 
+  "options_ui": {
+    "page": "html/settings.html",
+    "open_in_tab": true,
+    "browser_style": false
+  },
+
   "chrome_url_overrides" : {
     "newtab": "dial.html"
   },

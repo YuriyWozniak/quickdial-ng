@@ -55,7 +55,7 @@ No data is collected or sent anywhere. Settings and pictures stay in your Firefo
 - Bookmarks: tiles are the bookmarks of the Quick Dial folder.
 - Access to all websites: to capture a site's picture and read its title.
 - Tabs: opens the site in a background tab for the capture, then closes it.
-- Menus: the right-click menu on the dial.
+- Menus: the right-click menu on the dial and on the toolbar button.
 - Storage: settings, themes and pictures.
 
 For Firefox on the desktop, version 140 or later. Available in English, German, Spanish, French, Hebrew, Italian, Polish, Portuguese (Brazil), Russian, Serbian and Ukrainian.

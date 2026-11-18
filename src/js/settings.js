@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 app.Fields = (function(){
 	var f = [
 		['MenuShowAdd', 'menuShowAdd', 'bool'],
-		['ButtonOpenInNewPage', 'openQuickDialInNewPage', 'bool'],
+		['ToolbarAction', 'toolbarAction', 'text'],
 		['BackgroundColor', 'backgroundColor', 'color'],
 		['BackgroundMode', 'backgroundMode', 'num'],
 		['AccentColor', 'accentColor', 'color?', 'AccentDefault', '#0061e0'],
@@ -106,39 +106,40 @@ app.readForm = function(settings){
 app.current = function(){ return app.readForm(app.clone(app.settings)); };
 
 app.init = function(){
-	document.addEventListener('keydown', function(e){
-		if(e.key == 'Escape') QDUI.closePopup();
-	});
+	// Settings has its own tab (opened from the toolbar button, the dial's menu or Firefox's Add-ons page)
 	try { Version.textContent = 'Version ' + browser.runtime.getManifest().version; } catch(e) { Version.textContent = ''; }
-	app.tabs = QDUI.tabs(Tabs, function(){ Content.scrollTop = 0; });
-	app.changes = QDUI.changes(BtnApply, Status);
+	app.tabs = QDUI.tabs(Tabs, function(btn){
+		Content.scrollTop = 0;
+		PanelTitle.textContent = btn.textContent.trim();
+		history.replaceState(null, '', '?tab=' + btn.id.replace(/^Tab|Button$/g, '').toLowerCase()); // a reload stays on this section
+	});
+	app.changes = QDUI.changes(BtnApply, Status, BtnDiscard);
 	QDThemes.FONTS.forEach(function(f){ GridCellsTitleFont.add(new Option(f.label, f.value)); });
 
-	app.Messages.getSettings(function(settings){
-		app.settings = settings;
-		QDThemes.complete(app.settings);
-		app.fillForm(app.settings);
-		app.updatePreviews();
-		app.changes.start();
-		app.Messages.getThemes(function(list){
-			app.Themes.list = list || [];
-			app.Themes.render();
-		});
-	});
+	app.load();
+	app.Messages.init();
 
-	BtnOk.onclick = function(){
-		BtnApply.onclick();
-		QDUI.closePopup();
-	}
 	BtnApply.onclick = function(){
-		if(!app.settings) return;
+		if(!app.settings || !app.changes.isDirty()) return;
 		app.readForm(app.settings);
 		browser.runtime.sendMessage( { cmd: app.Messages.Commands.setSettings, settings: app.settings } );
 		app.changes.saved('Changes applied to the dial');
 	}
-	BtnCancel.onclick = BtnClose.onclick = function(){
-		QDUI.closePopup();
+	BtnDiscard.onclick = function(){
+		app.fillForm(app.settings);
+		app.updatePreviews();
+		ThemeStatus.hidden = true;
+		app.changes.discarded('Changes discarded');
 	}
+	BtnOpenDial.onclick = function(){
+		browser.tabs.create({ url: '/dial.html' });
+	}
+	document.addEventListener('keydown', function(e){
+		if((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() == 's'){ e.preventDefault(); BtnApply.onclick(); }
+	});
+	window.addEventListener('beforeunload', function(e){ // closing the tab with changes not applied
+		if(app.changes.isDirty()){ e.preventDefault(); e.returnValue = ''; }
+	});
 
 	// ----- Backup -----
 	BtnExport.onclick = function(){
@@ -186,8 +187,7 @@ app.init = function(){
 	}
 
 	var params = new URLSearchParams(location.search);
-	if(params.get('tab') == 'backup') app.tabs.select('TabBackupButton');
-	else if(params.get('tab') == 'themes') app.tabs.select('TabThemesButton');
+	app.showSection(params.get('tab'));
 	if(params.get('result')) app.showStatus(ImportStatus, params.get('result'));
 
 	// ----- Pictures -----
@@ -234,6 +234,26 @@ app.init = function(){
 	// Live previews follow every edit
 	document.addEventListener('input', app.updatePreviews);
 	document.addEventListener('change', app.updatePreviews);
+};
+
+// Reads the settings and themes the dial uses now into the form
+app.load = function(){
+	app.Messages.getSettings(function(settings){
+		app.settings = settings;
+		QDThemes.complete(app.settings);
+		app.fillForm(app.settings);
+		app.updatePreviews();
+		app.changes.start();
+		app.Messages.getThemes(function(list){
+			app.Themes.list = list || [];
+			app.Themes.render();
+		});
+	});
+};
+// ?tab=page|grid|tiles|themes|backup
+app.showSection = function(name){
+	var btn = name && document.getElementById('Tab' + name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() + 'Button');
+	app.tabs.select(btn && btn.getAttribute('role') == 'tab' ? btn : 'TabPageButton');
 };
 
 app.download = function(data, name){
@@ -382,7 +402,7 @@ app.Themes.use = function(theme){
 	app.fillForm(s);
 	app.updatePreviews();
 	app.changes.mark();
-	app.showStatus(ThemeStatus, '"' + theme.name + '" is shown in all tabs. Apply or OK puts it on the dial; Cancel keeps your previous look.');
+	app.showStatus(ThemeStatus, '"' + theme.name + '" is shown here only. Apply puts it on the dial; Discard changes keeps your previous look.');
 };
 // Asks for a name and description: resolves to { name, description } or null
 app.Themes.ask = function(title, okText, forSaving){
@@ -456,8 +476,22 @@ app.Messages.Commands = {
 	importData: 13,
 	getThemes: 14,
 	setThemes: 15,
+	openSettings: 16,
 	settingsChanged: 100,
-	gridNodesLoaded: 101
+	gridNodesLoaded: 101,
+	showSettingsSection: 209
+};
+app.Messages.init = function(){
+	browser.runtime.onMessage.addListener(function(request){
+		switch(request.cmd){
+			case app.Messages.Commands.settingsChanged: // applied here or in another window: show it unless there are edits not applied yet
+				if(app.settings && !app.changes.isDirty()) app.load();
+				break;
+			case app.Messages.Commands.showSettingsSection: // the Settings tab was already open when the user asked for a section
+				if(request.tab) app.showSection(request.tab);
+				break;
+		}
+	});
 };
 app.Messages.getSettings = function(callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback);

@@ -265,6 +265,67 @@ async function main() {
 	st = await J(`Promise.all(['javascript:alert(1)', 'place:sort=8', 'file:///C:/x.html'].map(u => new Promise(r => ${BG}.app.SiteInfos.fromFrame(u, i => r(i === undefined)))))`);
 	check('Q non-web addresses are not fetched', st.every(Boolean), st);
 
+	// Phase R: Settings in its own tab (0.5.0): what the toolbar button opens, its right-click menu,
+	// opening or bringing forward the Settings tab, and the page itself (sections, Discard, Ctrl+S, refresh)
+	st = await J(`(() => { const d = ${BG}.app.Settings.defaults(); return { action: d.toolbarAction, old: 'openQuickDialInNewPage' in d }; })()`);
+	check('R new installs: the toolbar button opens Settings', st.action === 'settings' && !st.old, st);
+	for (const [old, want] of [[true, 'newtab'], [false, 'current']]) {
+		await J(`(() => { const s = S.storage.settings; delete s.toolbarAction; s.openQuickDialInNewPage = ${old}; S.writes = []; return loadFrame('bg', 'ext/bg.html'); })()`); await wait(1500);
+		st = await J(`({ stored: S.storage.settings.toolbarAction, old: 'openQuickDialInNewPage' in S.storage.settings, writes: S.writes.map(w => w.k) })`);
+		check(`R existing installs keep their toolbar button (${old} -> ${want}), saved once`, st.stored === want && !st.old && st.writes.includes('settings'), st);
+	}
+	await J("S.writes = []; loadFrame('bg', 'ext/bg.html')"); await wait(1500);
+	check('R the start after that writes nothing', !(await J('S.writes.map(w => w.k)')).includes('settings'), await J('S.writes.map(w => w.k)'));
+	st = await J(`(() => { const m = ${BG}.app.Settings.migrateToolbar; const r = s => [m(s), s.toolbarAction, 'openQuickDialInNewPage' in s];
+	    return [r({}), r({ openQuickDialInNewPage: false }), r({ toolbarAction: 'bogus', openQuickDialInNewPage: true }), r({ toolbarAction: 'current' })]; })()`);
+	check('R backups and old exports: the toolbar switch becomes toolbarAction', same(st, [[true, 'settings', false], [true, 'current', false], [true, 'newtab', false], [false, 'current', false]]), st);
+	check('R toolbar button menu: open the dial, Settings', (await J('S.menus')).includes('menuOpenDial'), await J('S.menus.slice(-2)'));
+
+	// a stand-in for the tabs API records what the background page asks for
+	const SPY = `(() => { const w = ${BG}; w.qdTabs = []; w.qdOpen = [];
+	    w.browser.tabs.create = o => { w.qdTabs.push(['create', o]); return Promise.resolve({ id: 5 }); };
+	    w.browser.tabs.update = (id, o) => { w.qdTabs.push(['update', id, o]); return Promise.resolve({ id }); };
+	    w.browser.tabs.query = () => Promise.resolve(w.qdOpen);
+	    w.browser.tabs.sendMessage = (id, m) => { w.qdTabs.push(['message', id, m.cmd, m.tab]); return Promise.resolve(); }; })()`;
+	await J(SPY);
+	const clicks = {};
+	for (const action of ['settings', 'newtab', 'current']) {
+		await J(`(() => { ${BG}.app.settings.toolbarAction = '${action}'; ${BG}.qdTabs = []; fire('ba.onClicked', { id: 3 }); })()`); await wait(100);
+		clicks[action] = await J(`${BG}.qdTabs`);
+	}
+	check('R toolbar button: Settings / dial in a new tab / dial in this tab', same(clicks, { settings: [['create', { url: 'html/settings.html' }]], newtab: [['create', {}]], current: [['update', 3, { url: '/dial.html' }]] }), clicks);
+	await J(`(() => { const w = ${BG}; w.qdTabs = []; w.qdOpen = [{ id: 9, windowId: 1, url: 'html/settings.html?tab=grid' }]; return w.app.openSettings('backup'); })()`);
+	st = await J(`${BG}.qdTabs`);
+	check('R Settings already open: that tab comes forward and shows the section', same(st, [['message', 9, 209, 'backup'], ['update', 9, { active: true }]]), st);
+	await J(`${BG}.qdOpen = []; ${BG}.qdTabs = []; ${BG}.app.settings.toolbarAction = 'settings'`);
+	await J("loadFrame('dial', 'ext/dialtest.html')"); await wait(1000);
+	await dial().locator('body').evaluate(() => { dial.editSettings('backup'); dial.editSettings(new MouseEvent('click')); }); await wait(300);
+	st = await J(`${BG}.qdTabs`);
+	check('R the dial\'s Settings items open the Settings tab', same(st, [['create', { url: 'html/settings.html?tab=backup' }], ['create', { url: 'html/settings.html' }]]), st);
+
+	await J("loadFrame('dial', 'ext/html/settingstest.html?tab=grid')"); await wait(1000);
+	const form = () => dial().locator('body').evaluate(() => ({ title: PanelTitle.textContent, grid: !TabGrid.hidden, rows: GridRows.value, toolbar: ToolbarAction.value,
+	    apply: BtnApply.disabled, discard: BtnDiscard.disabled, url: location.search }));
+	st = await form();
+	check('R Settings opens on the asked section, nothing to apply', st.title === 'Grid' && st.grid && st.toolbar === 'settings' && st.apply && st.discard, st);
+	const rows0 = st.rows;
+	await dial().locator('#GridRows').fill('9'); await wait(100);
+	st = await form();
+	check('R an edit enables Apply and Discard', !st.apply && !st.discard && st.rows === '9', st);
+	await dial().locator('#BtnDiscard').click(); await wait(100);
+	st = await form();
+	check('R Discard changes brings back what the dial uses', st.rows === rows0 && st.apply && st.discard && (await J(`${BG}.app.settings.grid.rows`)) == rows0, st);
+	await dial().locator('#GridRows').fill('6'); await dial().locator('#GridRows').press('Control+s'); await wait(500);
+	check('R Ctrl+S applies', (await J(`${BG}.app.settings.grid.rows`)) === 6 && (await form()).apply, await J(`${BG}.app.settings.grid.rows`));
+	await J(`(() => { const a = ${BG}.app; const s = JSON.parse(JSON.stringify(a.settings)); s.grid.rows = 3; s.toolbarAction = 'current';
+	    return new Promise(r => a.Settings.update(s, () => { a.Messages.broadcast(a.Messages.Commands.settingsChanged); r(); })); })()`); await wait(400);
+	st = await form();
+	check('R settings changed elsewhere show up in the open Settings tab', st.rows === '3' && st.toolbar === 'current', st);
+	await dial().locator('#TabTilesButton').click(); await J("fire('rt.onMessage.dial', { cmd: 209, tab: 'themes' }, {}, () => {})"); await wait(200);
+	st = await dial().locator('body').evaluate(() => ({ themes: !TabThemes.hidden, title: PanelTitle.textContent, url: location.search }));
+	check('R the open Settings tab switches to the asked section', st.themes && st.title === 'Themes' && st.url === '?tab=themes', st);
+	await J(`(() => { const a = ${BG}.app; const s = JSON.parse(JSON.stringify(a.settings)); s.toolbarAction = 'settings'; return new Promise(r => a.Settings.update(s, r)); })()`);
+
 	// 404s (icons, favicons), blocked external requests and the sandbox blocking page scripts (phase Q)
 	// are expected; real script errors are not.
 	console.log('console errors:', JSON.stringify(errs.filter(e => !e.includes('no receiver') && !e.startsWith('Failed to load resource') &&

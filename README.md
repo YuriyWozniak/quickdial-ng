@@ -47,8 +47,11 @@ The original replaced blank tabs with the dial a set time after Firefox started 
 **Reworked Settings and Properties.**
 Settings and tile properties have a new layout that follows Firefox's light or dark mode, a live preview of the tile style, image drag-and-drop and paste, and an Apply button that shows when there are unsaved changes. New bookmark, new folder and delete use in-page dialogs instead of browser prompts.
 
+**Settings in its own tab.**
+Settings opens as a full page in its own tab, like the dashboards of other add-ons: from the toolbar button, the dial's right-click menu, or Firefox's Add-ons page (**Options**). Wide windows get a sidebar and the settings in two columns; the tile style table keeps its live preview beside it. If Settings is already open, that tab comes forward. **Ctrl+S** applies, **Discard changes** goes back to what the dial uses, and Firefox asks before closing the tab with changes not applied. Settings › Page › **Toolbar button** chooses what a click on the button opens: Settings (the default for new installs), the dial in a new tab, or the dial in the current tab (existing installs keep what they had). The button's right-click menu has both.
+
 **Themes.**
-Settings → **Themes** switches the whole look of the dial at once: background color, page margin, tile and title styles and the accent color of Quick Dial NG's windows. A theme never changes your background picture, rows and columns, tile shape or tiles. **Use** shows a theme in the settings first; Apply or OK puts it on the dial. Two themes are built in: **Classic** (the original look) and **Anori**, inspired by the [Anori](https://anori.app/) browser extension. Save your current look as a theme, export any theme to a `.json` file and import theme files from others. Backups include your themes.
+Settings → **Themes** switches the whole look of the dial at once: background color, page margin, tile and title styles and the accent color of Quick Dial NG's windows. A theme never changes your background picture, rows and columns, tile shape or tiles. **Use** shows a theme in the settings first; **Apply** puts it on the dial. Two themes are built in: **Classic** (the original look) and **Anori**, inspired by the [Anori](https://anori.app/) browser extension. Save your current look as a theme, export any theme to a `.json` file and import theme files from others. Backups include your themes.
 New style settings came with it: background opacity and glass blur for tiles, shadows, smooth hover effects (lift or grow), title font, bold titles and titles over the picture.
 
 **Refresh no longer hangs.**
@@ -63,8 +66,8 @@ Quick Dial NG collects no data and sends nothing anywhere. Everything stays in y
 |---|---|
 | Bookmarks | Tiles are the bookmarks of one folder ("Quick Dial" by default); adding, editing or deleting a tile changes that bookmark. |
 | Access your data for all websites | **Capture in a new tab** takes a screenshot of the site (as you see it, signed in), and **Refresh** downloads the page to read its title. |
-| Tabs | Opens the site in a background tab for the capture and closes it afterwards; opens the dial from the toolbar button. |
-| Menus | The right-click menu on the dial (new bookmark, properties, capture, settings…). |
+| Tabs | Opens the site in a background tab for the capture and closes it afterwards; opens the dial or Settings from the toolbar button, and brings an open Settings tab forward. |
+| Menus | The right-click menu on the dial (new bookmark, properties, capture, settings…) and on the toolbar button. |
 | Storage | Settings, themes and tile pictures. |
 
 It also replaces the new tab page and sets itself as the home page. Firefox asks once whether to keep the home page; to use another one, go to Firefox Settings › Home.

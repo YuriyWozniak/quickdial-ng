@@ -34,7 +34,7 @@ All are 1280×800. The light and dark ones come from the browser's colour scheme
 
 1. **Tile pictures.** Each invented site in [`sites.js`](sites.js) is a complete HTML page. It is rendered at 1280×960 and captured as JPEG, the way Quick Dial NG captures a real page, so the tiles show real text and layout. The background picture (dusk over mountains) is made the same way.
 2. **A dial with sample data.** A temporary copy of `src/` is served over a local HTTP server and opened in frames of the test harness's `index.html`. A Quick Dial bookmarks folder gets the twelve sites and two folders. The pictures go in as original Quick Dial data (pictures inside the tile tree), so they take the normal migration path into storage, like a user's own data would.
-3. **Scenes.** The script changes settings and themes through the background page, reloads the dial, opens Settings and Properties, hovers tiles and saves each view. The pages get the real version number and English texts from `src/_locales/en`.
+3. **Scenes.** The script changes settings and themes through the background page, reloads the dial, opens Settings (in the window, as in its own tab) and Properties, hovers tiles and saves each view. The pages get the real version number and English texts from `src/_locales/en`.
 
 ## Files
 
@@ -45,6 +45,6 @@ All are 1280×800. The light and dark ones come from the browser's colour scheme
 
 ## Changing the screenshots
 
-- **Another view:** add a few lines to `main()`. The helpers from `openDial()` change settings (`settings(fn)`), save themes (`themes(list)`), reload the dial (`dial()`), open Settings on a tab (`openSettings(dial, 'Tiles')`), hover a tile (`hover(dial, 'Weather')`) and save the window (`shot('name')`). `scrollTo(frame, selector)` scrolls the Settings content.
+- **Another view:** add a few lines to `main()`. The helpers from `openDial()` change settings (`settings(fn)`), save themes (`themes(list)`), reload the dial (`dial()`), open Settings on a section (`openSettings('Tiles')`), hover a tile (`hover(dial, 'Weather')`) and save the window (`shot('name')`). `scrollTo(frame, selector)` scrolls the Settings content.
 - **Another site:** append `{ title, url, html: page(css, body) }` to `SITES` in `sites.js`. Sites fill the grid in order, followed by the two folders. The grid is 3 rows of 5 (set in `openDial()`), so one more site fits before it needs another row.
 - **New UI text or controls** need nothing here: the pages come from `src/` at every run. A scene breaks only if an element it clicks (by id) is renamed.

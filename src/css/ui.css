@@ -144,7 +144,7 @@
 .qd-hint { font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
 .qd-label { font-weight: 500; }
 
-/* ========== page layout (Settings / Properties inside the popup frame) ========== */
+/* ========== page layout (Properties inside the popup frame; the Settings tab builds on it) ========== */
 .qd-page {
 	display: flex;
 	flex-direction: column;
@@ -246,6 +246,110 @@
 
 /* vertical stack of cards; the banner may be hidden, so it brings its own gap */
 .qd-stack > :not(.qd-banner) + * { margin-top: var(--qd-stack); }
+
+/* ========== Settings page (opens in its own tab) ==========
+   Wide windows: a sidebar (title, sections, links) and a centred content column with the
+   cards in two columns. Below 860 px it folds into the narrow layout: tabs across the top
+   and one column, as on phones. */
+.qd-settings {
+	--qd-side-w: 236px;
+	--qd-content-max: 1100px;
+	--qd-pad-y: 28px; /* content top padding; the sticky table header uses it */
+	--qd-gutter: max(36px, calc((100% - var(--qd-content-max)) / 2)); /* centres the content column */
+	display: grid;
+	grid-template-columns: var(--qd-side-w) minmax(0, 1fr);
+	grid-template-rows: auto auto 1fr auto;
+	grid-template-areas: "head main" "nav main" "side main" "side foot";
+}
+.qd-settings > .qd-header { grid-area: head; padding: 22px 16px 16px 20px; border-bottom: 0; }
+.qd-settings > .qd-tabs { grid-area: nav; }
+.qd-settings > .qd-side { grid-area: side; }
+.qd-settings > .qd-content { grid-area: main; padding: var(--qd-pad-y) var(--qd-gutter) 40px; scrollbar-width: auto; container-type: inline-size; }
+.qd-settings > .qd-footer { grid-area: foot; padding: var(--qd-gap) var(--qd-gutter); }
+.qd-settings > :is(.qd-header, .qd-tabs, .qd-side) { background: var(--qd-surface); border-right: 1px solid var(--qd-border-soft); }
+.qd-settings .qd-title { font-size: 16px; }
+
+/* sections: a vertical list in the sidebar */
+.qd-settings .qd-tabs { flex-direction: column; gap: 2px; padding: 4px 12px; border-bottom: 0; }
+.qd-settings .qd-tab {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 10px;
+	text-align: left;
+	border-radius: var(--qd-radius-sm);
+}
+.qd-settings .qd-tab[aria-selected="true"] { color: var(--qd-accent); background: var(--qd-accent-soft); }
+.qd-settings .qd-tab[aria-selected="true"]::after { display: none; }
+.qd-tab-icon { flex: none; width: 18px; height: 18px; }
+
+.qd-side {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: flex-start;
+	gap: 2px;
+	padding: 16px 12px 18px;
+}
+.qd-side-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 10px;
+	font: inherit;
+	font-size: var(--qd-font-size-sm);
+	color: var(--qd-muted);
+	text-decoration: none;
+	background: none;
+	border: 0;
+	border-radius: var(--qd-radius-sm);
+	cursor: pointer;
+}
+.qd-side-link svg { width: 15px; height: 15px; }
+.qd-side-link:hover { color: var(--qd-text); background: var(--qd-surface-2); }
+.qd-side-link:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
+.qd-side-link:first-child { margin-bottom: 6px; font-size: var(--qd-font-size); font-weight: 500; color: var(--qd-accent); }
+
+.qd-panel-title { margin: 0 0 18px; font-size: 22px; font-weight: 600; line-height: 1.2; }
+
+/* cards side by side, while the content area is wide enough for two columns */
+.qd-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--qd-stack) 18px; }
+.qd-cols.is-aside { grid-template-columns: minmax(0, 1fr) 300px; }
+.qd-aside { order: 2; position: sticky; top: 0; }
+.qd-aside .qd-tile-stage { flex-direction: column; align-items: center; gap: 18px; padding: 22px var(--qd-gap); }
+.qd-settings .qd-card { padding: 16px 18px; }
+.qd-settings .qd-card.is-table { padding: 0 6px 6px; }
+.qd-settings .qd-preview.is-screen { width: 260px; }
+.qd-settings .qd-footer .qd-btn { min-width: 96px; }
+
+@media (max-width: 860px) {
+	.qd-settings {
+		--qd-pad-y: 16px;
+		--qd-gutter: var(--qd-pad-x);
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto auto 1fr auto;
+		grid-template-areas: "head" "nav" "main" "foot";
+	}
+	.qd-settings > :is(.qd-header, .qd-tabs) { border-right: 0; }
+	.qd-settings > .qd-header { padding: 14px var(--qd-pad-x); border-bottom: 1px solid var(--qd-border-soft); }
+	.qd-settings > .qd-side, .qd-settings .qd-panel-title, .qd-settings .qd-tab-icon { display: none; }
+	.qd-settings .qd-tabs { flex-direction: row; overflow-x: auto; padding: 0 calc(var(--qd-pad-x) - 12px); border-bottom: 1px solid var(--qd-border-soft); scrollbar-width: none; }
+	.qd-settings .qd-tab { padding: 10px 12px 11px; border-radius: var(--qd-radius-sm) var(--qd-radius-sm) 0 0; }
+	.qd-settings .qd-tab[aria-selected="true"] { background: none; }
+	.qd-settings .qd-tab[aria-selected="true"]::after { display: block; }
+	.qd-settings .qd-footer .qd-btn { min-width: 0; }
+}
+@container (max-width: 780px) { /* one column; the tile preview goes above the style table */
+	.qd-cols, .qd-cols.is-aside { grid-template-columns: minmax(0, 1fr); }
+	.qd-aside { order: 0; position: static; }
+	.qd-aside .qd-tile-stage { flex-direction: row; justify-content: center; }
+}
+@media (max-width: 520px) { /* phones: the picture preview goes above its controls */
+	.qd-settings .qd-image { grid-template-columns: minmax(0, 1fr); }
+	.qd-settings .qd-preview.is-screen { width: 100%; }
+	.qd-settings .qd-row { grid-template-columns: minmax(0, 1fr); }
+	.qd-settings .qd-row > .qd-hint { grid-column: 1; }
+}
 
 /* ========== cards and form rows ========== */
 .qd-card {

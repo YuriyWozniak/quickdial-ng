@@ -77,6 +77,11 @@
   "menuImportQuickDial": {
     "message": "Імпорт з Quick Dial…",
     "description": "Text of the menu item that opens the import from the original Quick Dial."
+  },
+
+  "menuOpenDial": {
+    "message": "Відкрити Quick Dial NG",
+    "description": "Toolbar button right-click menu: opens the dial in a new tab."
   }
 
 }

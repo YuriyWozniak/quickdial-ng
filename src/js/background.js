@@ -7,9 +7,12 @@ app.init = function(){ // Init module
 		app._setReady();
 		app.Messages.init();
 		app.Messages.broadcast(app.Messages.Commands.settingsChanged);
-		browser.browserAction.onClicked.addListener(function(e){
-			if(app.settings.openQuickDialInNewPage) browser.tabs.create({});
-			else browser.tabs.update(e.id, {url: '/dial.html'}).then();				
+		browser.browserAction.onClicked.addListener(function(tab){
+			switch(app.settings.toolbarAction){
+				case 'settings': app.openSettings(); break;
+				case 'current': browser.tabs.update(tab.id, {url: '/dial.html'}); break;
+				default: browser.tabs.create({});
+			}
 		});
     app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
     app.ContextMenus.initMenu();
@@ -40,6 +43,7 @@ app.Messages.Commands = {
 	importData: 13,
 	getThemes: 14,
 	setThemes: 15,
+	openSettings: 16,
 	settingsChanged: 100,
 	gridNodesLoaded: 101,
 	menuCreateBookmark: 200,
@@ -49,7 +53,8 @@ app.Messages.Commands = {
 	menuRefreshNode: 204,
 	menuCapturePage: 206,
 	menuDeleteNode: 207,
-	menuImportQuickDial: 208
+	menuImportQuickDial: 208,
+	showSettingsSection: 209
 };
 app.Messages.broadcast = function(cmd){ // Notify open Quick Dial pages; having none open is normal
 	browser.runtime.sendMessage({ cmd: cmd }).catch(function(){});
@@ -129,6 +134,8 @@ app.Messages.init = function(){ // Init Messages Listeners
 				break;
 			case app.Messages.Commands.setThemes:
 				return app.Themes.save(request.themes);
+			case app.Messages.Commands.openSettings:
+				return app.openSettings(request.tab);
 		}
 	});
 };
@@ -139,7 +146,7 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 		backgroundImage: null,
 		backgroundMode: 0,
 		menuShowAdd: true,
-		openQuickDialInNewPage: true,
+		toolbarAction: 'settings',
 		grid: {
 			rows: 4,
 			columns: 5,
@@ -241,6 +248,7 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		app.node = data.node;
 		var obsolete = ('startpageTimeout' in app.settings); // Start page timer, replaced by the home page override (0.3.5)
 		delete app.settings.startpageTimeout;
+		if(app.Settings.migrateToolbar(app.settings)) obsolete = true;
 		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
 			app.Images.extractFromTree(app.node).then(function(){
@@ -252,6 +260,19 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		if(obsolete){ app.Settings._lastSaved = null; app.Settings.save(); } // Drop the old field from storage once
 		if(callback) callback();
 	}, function(){ console.log('Error loading data'); });
+};
+// What the toolbar button opens: 'settings', 'newtab' or 'current' (0.5.0). Before, a switch chose
+// between the dial in a new tab or the current tab; existing installs keep what they had.
+// Returns true when `settings` changed.
+app.Settings.TOOLBAR_ACTIONS = ['settings', 'newtab', 'current'];
+app.Settings.migrateToolbar = function(settings){
+	if(!settings) return false;
+	var old = ('openQuickDialInNewPage' in settings);
+	if(app.Settings.TOOLBAR_ACTIONS.indexOf(settings.toolbarAction) < 0)
+		settings.toolbarAction = !old ? 'settings' : settings.openQuickDialInNewPage === false ? 'current' : 'newtab';
+	else if(!old) return false;
+	delete settings.openQuickDialInNewPage;
+	return true;
 };
 app.Settings.update = function(settings, callback){ // Save new settings
 	app.settings = settings;
@@ -500,7 +521,9 @@ app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){ //
 };
 app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an original Quick Dial data dump ({ version: 4, settings, node })
 	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error('Not a Quick Dial backup');
-	var settings = app.Backup._mergeDefaults(app.Settings.defaults(), app.Backup._clean(data.settings));
+	var imported = app.Backup._clean(data.settings);
+	app.Settings.migrateToolbar(imported); // older backups and the original Quick Dial: the toolbar switch becomes toolbarAction
+	var settings = app.Backup._mergeDefaults(app.Settings.defaults(), imported);
 	delete settings.startpageTimeout; // Obsolete (start page timer), found in older exports and backups
 	QDThemes.apply(settings, QDThemes.extract(settings)); // Style values end up in CSS text: keep only valid ones
 	var node = app.Backup._clean(data.node);
@@ -588,16 +611,12 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Init context m
 	browser.contextMenus.create({
 		parentId: "pagemenu",
 		title: browser.i18n.getMessage("menuSettings"),
-		onclick(info, tab) {
-			browser.tabs.sendMessage(tab.id, { cmd: app.Messages.Commands.menuEditSettings });	
-		}
+		onclick() { app.openSettings(); }
 	});
 	browser.contextMenus.create({
 		parentId: "pagemenu",
 		title: browser.i18n.getMessage("menuImportQuickDial"),
-		onclick(info, tab) {
-			browser.tabs.sendMessage(tab.id, { cmd: app.Messages.Commands.menuImportQuickDial });	
-		}
+		onclick() { app.openSettings('backup'); }
 	});
 	// Create WebExt Link Context menu
 	browser.contextMenus.create({
@@ -658,15 +677,40 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Init context m
 	browser.contextMenus.create({
 		parentId: "itemmenu",
 		title: browser.i18n.getMessage("menuSettings"),
-		onclick(info, tab) {
-			browser.tabs.sendMessage(tab.id, { cmd: app.Messages.Commands.menuEditSettings });	
-		}
+		onclick() { app.openSettings(); }
+	});
+	// Right-click menu of the toolbar button: both places, whatever a click on it opens
+	browser.contextMenus.create({
+		id: 'toolbarOpenDial',
+		title: browser.i18n.getMessage("menuOpenDial"),
+		contexts: ["browser_action"],
+		onclick() { browser.tabs.create({ url: '/dial.html' }); }
+	});
+	browser.contextMenus.create({
+		id: 'toolbarSettings',
+		title: browser.i18n.getMessage("menuSettings"),
+		contexts: ["browser_action"],
+		onclick() { app.openSettings(); }
 	});
 };
 app.ContextMenus.updateMenu = function(){
 	browser.contextMenus.onClicked.removeListener(app.ContextMenus.menuItemClicked);
 	browser.contextMenus.removeAll();
 	app.ContextMenus.initMenu();
+};
+
+// Opens Settings in its own tab, or brings the tab forward when it is already open.
+// section: optional 'page', 'grid', 'tiles', 'themes' or 'backup'.
+app.openSettings = function(section){
+	section = typeof section == 'string' && /^[a-z]+$/.test(section) ? section : '';
+	var page = browser.runtime.getURL('html/settings.html');
+	return browser.tabs.query({}).then(function(tabs){
+		var open = tabs.filter(function(t){ return t.url && t.url.split(/[?#]/)[0] == page; })[0];
+		if(!open) return browser.tabs.create({ url: page + (section ? '?tab=' + section : '') });
+		if(section) browser.tabs.sendMessage(open.id, { cmd: app.Messages.Commands.showSettingsSection, tab: section }).catch(function(){});
+		if(browser.windows) browser.windows.update(open.windowId, { focused: true }).catch(function(){}); // no windows API on Android
+		return browser.tabs.update(open.id, { active: true });
+	});
 };
 
 app.Bookmarks = {} // Bookmarks helper object

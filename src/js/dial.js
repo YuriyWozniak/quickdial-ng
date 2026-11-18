@@ -84,6 +84,7 @@ app.Messages.Commands = {
 	refreshNode: 9,
 	capturePage: 10,
 	getImages: 11,
+	openSettings: 16,
 	settingsChanged: 100,
 	gridNodesLoaded: 101,
 	menuCreateBookmark: 200,
@@ -801,8 +802,8 @@ dial.openPopup = function(src, width, height){
 	});
 }
 
-dial.editSettings = function(tab){ // tab: optional settings tab to open ('backup')
-	dial.openPopup('/html/settings.html' + (tab ? '?tab=' + tab : ''), 640, 600);
+dial.editSettings = function(tab){ // Settings opens in its own tab; tab: optional section ('backup')
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.openSettings, tab: typeof tab == 'string' ? tab : null }).catch(function(){});
 }
 
 dial.editProperties = function(selectedItem){
