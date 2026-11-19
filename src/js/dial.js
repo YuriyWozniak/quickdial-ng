@@ -191,11 +191,11 @@ dial.initStyles = function(){
 	const motion = +c.hoverEffect || 0; // 0 none, 1 smooth, 2 lift, 3 zoom
 	const overlay = c.titlePosition == 1; // title over the bottom of the picture
 	dial.styles.html = rule('html { height: 100%; }');
-	dial.styles.body = rule('body { user-select: none; -moz-user-select: none; display: flex; width: 100%; height: 100%; margin: 0px; padding: 0px; background-color: ' + s.backgroundColor + '; background-image: ' + T.background(s.backgroundImage, s.backgroundGradient) + '; }');
+	dial.styles.body = rule('body { user-select: none; display: flex; width: 100%; height: 100%; margin: 0; padding: 0; background-color: ' + s.backgroundColor + '; background-image: ' + T.background(s.backgroundImage, s.backgroundGradient) + '; }');
 	applyImageMode(s.backgroundMode, dial.styles.body);
 	dial.styles.grid = {};
 	dial.styles.grid.grid = rule('.Grid { border-collapse: collapse; margin: auto; }');
-	dial.styles.grid.cell = rule('.Grid td { margin: 0px; padding: 0px; }');
+	dial.styles.grid.cell = rule('.Grid td { margin: 0; padding: 0; }');
 	dial.styles.grid.cellHover = rule('.Grid td:hover {}');
 	dial.styles.grid.link = rule('.Grid td>a { display: block; position: relative; z-index: 0; outline: none; overflow: hidden; text-decoration: none;'
 		+ ' margin: ' + c.margin + 'px; opacity: ' + c.opacity + '; border: ' + c.borderSize + 'px solid ' + c.borderColor + '; border-radius: ' + c.borderRadius + 'px;'
@@ -221,10 +221,11 @@ dial.initStyles = function(){
 	dial.styles.grid.linkEmpty = rule('.Grid td>a.Empty { display: none; }');
 	dial.styles.grid.linkBack = rule('.Grid td>a.Back :first-child { background-image: ' + s.grid.backIcon + '; }');
 	applyImageMode(s.grid.backIconMode, dial.styles.grid.linkBack);
-	dial.styles.grid.linkFolder = rule('.Grid td>a.Folder :first-child { background-image: ' + s.grid.folderIcon + '; background-repeat: no-repeat; background-size: 100% 100%; }');
+	// Folder and bookmark pictures are stretched unless a mode says otherwise (no-repeat comes from linkPanel)
+	dial.styles.grid.linkFolder = rule('.Grid td>a.Folder :first-child { background-image: ' + s.grid.folderIcon + '; background-size: 100% 100%; }');
 	applyImageMode(s.grid.folderIconMode, dial.styles.grid.linkFolder);
-	dial.styles.grid.linkBookmark = rule('.Grid td>a.Bookmark :first-child { background-repeat: no-repeat; background-size: 100% 100%; }');
-	dial.styles.grid.linkBookmarkLoading = rule('.Grid td>a.BookmarkLoading :first-child { background-image: url("' + c.loadingIcon + '"); background-repeat: no-repeat; background-position: center center; }');
+	dial.styles.grid.linkBookmark = rule('.Grid td>a.Bookmark :first-child { background-size: 100% 100%; }');
+	dial.styles.grid.linkBookmarkLoading = rule('.Grid td>a.BookmarkLoading :first-child { background-image: url("' + c.loadingIcon + '"); background-position: center; }');
 	dial.applyAccent();
 	if(oldStyle) document.head.removeChild(oldStyle);
 };
