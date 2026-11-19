@@ -18,7 +18,6 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 			backIconMode: 3,
 			folderIcon: 'url(/img/folder.svg)',
 			folderIconMode: 0,
-			loadingIcon: 'url(/img/throbber.gif)',
 			openBookmarkMethod: 0,
 			openFolderMethod: 0,
 			cells: {
@@ -64,7 +63,6 @@ app.Settings._upgrade = function(data){
 		data.grid.backNode = true;
 		data.grid.backIcon = 'url(/img/back.svg)';
 		data.grid.folderIcon = 'url(/img/folder.svg)';
-		data.grid.loadingIcon = 'url(/img/throbber.gif)';
 		data.grid.cells.backgroundColor = null;
 		data.grid.cells.backgroundColorHover = null;
 		data.grid.cells.titleBackgroundColor = null;
@@ -138,6 +136,7 @@ app.Settings.migrateToolbar = function(settings){
 
 // The default folder and Back pictures were redrawn as SVG (0.5.1): settings that still
 // point at the old PNG defaults move to the new ones; the user's own pictures stay.
+// The loading picture is no longer a setting (the dial always shows its SVG spinner).
 // Returns true when `settings` changed.
 app.Settings.ICONS = { 'url(/img/back.png)': 'url(/img/back.svg)', 'url(/img/folder.png)': 'url(/img/folder.svg)' };
 app.Settings.migrateIcons = function(settings){
@@ -148,6 +147,7 @@ app.Settings.migrateIcons = function(settings){
 		const next = app.Settings.ICONS[grid[key]];
 		if(next){ grid[key] = next; changed = true; }
 	}
+	if('loadingIcon' in grid){ delete grid.loadingIcon; changed = true; }
 	return changed;
 };
 

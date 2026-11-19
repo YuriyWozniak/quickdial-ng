@@ -32,6 +32,13 @@ test('migrateToolbar: the old new-tab switch becomes toolbarAction', () => {
 	assert.equal(w.app.Settings.migrateToolbar(null), false);
 });
 
+test('migrateIcons: the old loading picture setting goes (the spinner is built in)', () => {
+	const w = loadBackground(), s = { grid: { backIcon: 'url(/img/back.svg)', loadingIcon: 'url(/img/throbber.gif)' } };
+	assert.equal(w.app.Settings.migrateIcons(s), true);
+	assert.deepEqual(plain(s.grid), { backIcon: 'url(/img/back.svg)' });
+	assert.equal('loadingIcon' in w.app.Settings.defaults().grid, false);
+});
+
 test('migrateIcons: the old PNG folder and Back defaults become the SVG ones, own pictures stay', () => {
 	const w = loadBackground(), m = grid => { const s = { grid }; return [w.app.Settings.migrateIcons(s), s.grid.backIcon, s.grid.folderIcon]; };
 	assert.deepEqual(m({ backIcon: 'url(/img/back.png)', folderIcon: 'url(/img/folder.png)' }), [true, 'url(/img/back.svg)', 'url(/img/folder.svg)']);
