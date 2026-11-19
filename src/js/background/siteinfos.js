@@ -92,7 +92,12 @@ app.SiteInfos.fromFrame = function(url, callback){
 	};
 	const xhr = new XMLHttpRequest();
 	xhr.timeout = 10000;
-	xhr.open('GET', url, true);
+	try {
+		xhr.open('GET', url, true);
+	} catch(e) { // Not a valid address after all (e.g. "http://a b")
+		fail();
+		return;
+	}
 	xhr.onload = () => {
 		iframe = document.createElement('iframe');
 		iframe.width = size.width;

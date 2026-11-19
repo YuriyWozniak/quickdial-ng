@@ -291,7 +291,7 @@ dial._onDrop = function(ev){
 	ev.preventDefault();
 	if(ev.buttons == 1) return;
 	const data = dial._dragData(ev);
-	if(!data) return;
+	if(!data || (dial._backShown() && dial._cellIndex(ev.target) == 0)) return; // the Back cell takes no drop
 	const newIndex = dial._nodeIndex(dial._cellIndex(ev.target));
 	if(data.index != newIndex) app.Messages.setNodeIndex(data.index, newIndex);
 };
@@ -450,7 +450,10 @@ dial.createBookmark = function(){
 			value: 'https://', placeholder: 'https://example.com', okText: 'Add',
 			validate: function(v){
 				const u = /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v;
-				try { const p = new URL(u); if(!/^https?:$/.test(p.protocol) || p.hostname) return ''; } catch(e) {}
+				try { // web addresses need a host; other schemes (file:, about:...) are kept, except scripts and inline data
+					const p = new URL(u);
+					if(/^https?:$/.test(p.protocol) ? p.hostname : !/^(javascript|data):$/i.test(p.protocol)) return '';
+				} catch(e) {}
 				return 'Enter a web address, e.g. https://example.com';
 			},
 			transform: function(v){ return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v; }

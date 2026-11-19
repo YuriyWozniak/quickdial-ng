@@ -181,7 +181,7 @@ app.GridNodes._place = function(gridNode, newGridNode){ // Into the first gap, o
 	app.GridNodes.save();
 };
 app.GridNodes.createBookmark = function(gridNode, url, title, callback){ // New bookmark in a folder. callback(gridNode, newGridNode)
-	const fullUrl = url.includes('://') ? url : 'http://' + url;
+	const fullUrl = /^[a-z][a-z0-9+.-]*:/i.test(url) ? url : 'http://' + url; // "example.com" gets a scheme; "about:config" keeps its own
 	app.Bookmarks.quietly('onCreated', () => browser.bookmarks.create({ parentId: gridNode.id, title: title || url, url: fullUrl })).then(bookmarkItem => {
 		const newGridNode = { id: bookmarkItem.id, type: app.GridNodes.GridNodeType.bookmark, url: fullUrl, title };
 		app.GridNodes._place(gridNode, newGridNode);
