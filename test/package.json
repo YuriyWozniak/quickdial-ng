@@ -1,9 +1,12 @@
 {
   "name": "quickdial-ng-tests",
   "private": true,
-  "description": "Functional tests and benchmarks for Quick Dial NG. See README.md.",
+  "description": "Unit tests, integration tests and benchmarks for Quick Dial NG. See README.md.",
   "scripts": {
-    "test": "node test-storage.js",
+    "test": "node --test \"unit/*.test.js\" && node run.js",
+    "test:unit": "node --test \"unit/*.test.js\"",
+    "test:integration": "node run.js",
+    "coverage": "node run.js --coverage",
     "bench": "node bench/run.js",
     "screenshots": "node screenshots/make-screenshots.js"
   },

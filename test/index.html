@@ -1,5 +1,36 @@
 <!doctype html><html><head><script src="mock.js"></script></head><body>
 <script>
-function loadFrame(role, src){ return new Promise(res => { const old = document.getElementById(role); if (old) { old.remove(); S.frames = S.frames.filter(f => f.role !== role); for (const k in S.listeners) S.listeners[k] = S.listeners[k].filter(fn => fn.__owner !== role); }
-  const f = document.createElement('iframe'); f.id = role; f.style.width = '1200px'; f.style.height = '700px'; f.onload = () => res(f.contentWindow); f.src = src; document.body.appendChild(f); }); }
+// The host page of the tests: extension pages run in frames of this page and share the API of mock.js.
+// Test code evaluated here can use S, fire, loadFrame, win, bg and bgIdle.
+
+// Opens an extension page in the frame for `role` ('bg' for the background page, 'dial' for the
+// other pages). Replacing a frame removes its old listeners, which simulates a restart.
+async function loadFrame(role, src){
+  if (window.qdBeforeFrameLoad) await window.qdBeforeFrameLoad(); // coverage: keep what the old frame ran
+  return new Promise(res => { const old = document.getElementById(role); if (old) { old.remove(); S.frames = S.frames.filter(f => f.role !== role); for (const k in S.listeners) S.listeners[k] = S.listeners[k].filter(fn => fn.__owner !== role); }
+  const f = document.createElement('iframe'); f.id = role; f.style.width = '1200px'; f.style.height = '700px'; f.onload = () => res(f.contentWindow); f.src = src; document.body.appendChild(f); });
+}
+function win(role){ const f = document.getElementById(role); return f && f.contentWindow; }
+function bg(){ return win('bg'); }
+
+// Resolves once the background page has nothing left to do: settings loaded, the first bookmark sync
+// done (its bookmark listeners are attached), nothing waiting to be saved, and storage and bookmarks
+// unchanged for four checks in a row (about 120 ms).
+function bgIdle(timeout = 10000){
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    let quiet = 0, last = '';
+    (function poll(){
+      const a = bg() && bg().app;
+      const listening = ['onCreated', 'onChanged', 'onMoved', 'onRemoved'].every(e => (S.listeners['bm.' + e] || []).some(f => f.__owner === 'bg'));
+      const busy = !a || !a.settings || a.GridNodes._syncing || a.Settings._saveTimer || !listening;
+      const mark = S.writes.length + ',' + S.removes.length + ',' + S.nextId;
+      quiet = !busy && mark === last ? quiet + 1 : 0;
+      last = mark;
+      if (quiet >= 4) return resolve();
+      if (Date.now() - start > timeout) return reject(new Error('the background page is still busy after ' + timeout + ' ms'));
+      setTimeout(poll, 30);
+    })();
+  });
+}
 </script></body></html>

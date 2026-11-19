@@ -8,15 +8,8 @@
 // Usage, from the test folder:  node screenshots/make-screenshots.js [--out <folder>]
 // Default output: the screenshots folder at the top of the repository.
 'use strict';
-const fs = require('fs'), os = require('os'), path = require('path'), http = require('http');
-
-let chromium;
-try { ({ chromium } = require('playwright')); }
-catch { console.error('Playwright not found. Run "npm install" in the test folder.'); process.exit(1); }
-
-const ROOT = path.resolve(__dirname, '..', '..');
-const SRC = path.join(ROOT, 'src');
-const TEST = path.join(ROOT, 'test');
+const fs = require('fs'), path = require('path');
+const { ROOT, SRC, prepare, serve, launch } = require('../lib/harness');
 const { SITES, WALLPAPER } = require('./sites.js');
 
 const args = process.argv.slice(2);
@@ -27,44 +20,26 @@ const VERSION = JSON.parse(fs.readFileSync(path.join(SRC, 'manifest.json'), 'utf
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 // ---------- a temporary copy of the extension, served over HTTP ----------
-// Same setup as test-storage.js: the pages run in frames of index.html, which provides the mock API.
-// The dial frame is sized to the screenshot and the background frame is hidden.
-const H = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-shots-'));
-fs.cpSync(SRC, H, { recursive: true });
-fs.copyFileSync(path.join(TEST, 'mock.js'), path.join(H, 'mock.js'));
-{
-	const index = fs.readFileSync(path.join(TEST, 'index.html'), 'utf8');
-	const size = "f.style.width = '1200px'; f.style.height = '700px';";
-	if (!index.includes(size)) throw new Error('test/index.html changed: frame size not found');
-	fs.writeFileSync(path.join(H, 'index.html'), index.replace(size,
-		`f.style.width = '${VIEW.width}px'; f.style.height = role === 'bg' ? '0' : '${VIEW.height}px'; f.style.border = '0'; f.style.display = 'block';`).replace('<body>', '<body style="margin:0">'));
-}
-// Background page: the scripts listed in the manifest, after the mock
-const bgScripts = JSON.parse(fs.readFileSync(path.join(SRC, 'manifest.json'), 'utf8')).background.scripts;
-fs.writeFileSync(path.join(H, 'bg.html'), '<!doctype html><html><head><script>window.browser = top.makeBrowser(window, "bg");</script>'
-	+ bgScripts.map(s => `<script src="${s}"></script>`).join('') + '</head><body></body></html>');
-// Extension pages: the mock first, with the real version number and English texts (the test mock returns message keys)
+// The test harness (../lib/harness.js): the pages run in frames of index.html, which provides the mock API.
+// Here the pages also get the real version number and English texts (the test mock returns message keys),
+// the dial frame is sized to the screenshot and the background frame is hidden.
 const messages = JSON.parse(fs.readFileSync(path.join(SRC, '_locales', 'en', 'messages.json'), 'utf8'));
-const pageMock = `<script>window.browser = top.makeBrowser(window, "dial");
+const H = prepare({ prefix: 'qdng-shots-', pageScript: `
 	browser.runtime.getManifest = () => ({ version: ${JSON.stringify(VERSION)} });
 	browser.i18n.getMessage = (function(messages){ return function(key, subs){
 		const m = messages[key]; if (!m) return key;
 		subs = [].concat(subs === undefined ? [] : subs);
 		return m.message.replace(/\\$(\\w+)\\$/g, (_, name) => ((m.placeholders || {})[name.toLowerCase()] || {}).content || '')
 			.replace(/\\$(\\d)/g, (_, n) => subs[n - 1] === undefined ? '' : subs[n - 1]);
-	}; })(${JSON.stringify(messages)});</script>`;
-for (const f of ['dial.html', 'html/settings.html', 'html/properties.html']) {
-	const p = path.join(H, f);
-	fs.writeFileSync(p, fs.readFileSync(p, 'utf8').replace(/<head[^>]*>/, m => m + pageMock));
+	}; })(${JSON.stringify(messages)});` });
+{
+	const index = fs.readFileSync(path.join(H, 'index.html'), 'utf8');
+	const size = "f.style.width = '1200px'; f.style.height = '700px';";
+	if (!index.includes(size)) throw new Error('test/index.html changed: frame size not found');
+	fs.writeFileSync(path.join(H, 'index.html'), index.replace(size,
+		`f.style.width = '${VIEW.width}px'; f.style.height = role === 'bg' ? '0' : '${VIEW.height}px'; f.style.border = '0'; f.style.display = 'block';`).replace('<body>', '<body style="margin:0">'));
 }
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json',
-	'.png': 'image/png', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.gif': 'image/gif', '.jpg': 'image/jpeg' };
-const server = http.createServer((req, res) => {
-	const file = path.join(H, decodeURIComponent(new URL(req.url, 'http://x').pathname));
-	if (!file.startsWith(H) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end(); }
-	res.writeHead(200, { 'Content-Type': TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream' });
-	fs.createReadStream(file).pipe(res);
-});
+let server;
 
 // ---------- pictures: tile captures and the background picture ----------
 async function renderPictures(browser) {
@@ -140,22 +115,11 @@ const scrollTo = (frame, selector, offset = 16) => frame.evaluate(([sel, off]) =
 	content.scrollTop += el.getBoundingClientRect().top - content.getBoundingClientRect().top - off;
 }, [selector, offset]);
 
-// Playwright's own Chromium, or else Edge / Chrome if it isn't downloaded (as in test-storage.js)
-async function launch(port) {
-	const errors = [];
-	// The server port is picked by the system; Chromium refuses some ports (e.g. 6566) unless allowed
-	const args = ['--explicitly-allowed-ports=' + port];
-	for (const opts of [{ args }, { channel: 'msedge', args }, { channel: 'chrome', args }]) {
-		try { return await chromium.launch(opts); } catch (e) { errors.push(e.message.split('\n')[0]); }
-	}
-	throw new Error('No browser could be started. Run "npx playwright install chromium" in the test folder.\n  ' + errors.join('\n  '));
-}
-
 // ---------- the screenshots ----------
 async function main() {
 	fs.mkdirSync(OUT, { recursive: true });
-	await new Promise(r => server.listen(0, '127.0.0.1', r));
-	const port = server.address().port;
+	server = await serve(H);
+	const port = server.port;
 	const browser = await launch(port);
 	const errors = [];
 	const pictures = await renderPictures(browser);
@@ -206,7 +170,7 @@ async function main() {
 	else console.log('Done:', OUT);
 }
 
-main().catch(e => { console.error(e); process.exitCode = 1; }).finally(() => {
-	server.close();
+main().catch(e => { console.error(e); process.exitCode = 1; }).finally(async () => {
+	if (server) await server.close();
 	fs.rmSync(H, { recursive: true, force: true });
 });
