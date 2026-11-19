@@ -4,40 +4,42 @@
 var app = {};
 
 // Pictures and the theme gradient have no form field of their own
-let BackgroundImage = null;
-let BackgroundGradient = null;
-let GridBackImage = null;
-let GridFolderImage = null;
+let backgroundImage = null;
+let backgroundGradient = null;
+let backIcon = null;
+let folderIcon = null;
 
-document.addEventListener("DOMContentLoaded", event => {
+document.addEventListener('DOMContentLoaded', event => {
 	app.init();
 });
 
-// Form fields and the setting each one edits: [element id, settings path, kind, "None"/"Default" checkbox id, colour shown when null]
+// Form fields and the setting each one edits: { id: element id, path: settings path, kind, nullToggle: id of the
+// "None"/"Default" checkbox (color? only), nullColor: colour shown while that checkbox is on }
 // Kinds: num, pct (0..1 shown as %), bool, color, color? (null = the checkbox), text
-app.Fields = (function(){
-	const f = [
-		['MenuShowAdd', 'menuShowAdd', 'bool'],
-		['ToolbarAction', 'toolbarAction', 'text'],
-		['BackgroundColor', 'backgroundColor', 'color'],
-		['BackgroundMode', 'backgroundMode', 'num'],
-		['AccentColor', 'accentColor', 'color?', 'AccentDefault', '#0061e0'],
-		['GridRoot', 'grid.root', 'text'],
-		['GridRows', 'grid.rows', 'num'],
-		['GridColumns', 'grid.columns', 'num'],
-		['GridRatioX', 'grid.ratioX', 'num'],
-		['GridRatioY', 'grid.ratioY', 'num'],
-		['GridMargins', 'grid.margin', 'num'],
-		['GridOpenBookmarksIn', 'grid.openBookmarkMethod', 'num'],
-		['GridOpenFoldersIn', 'grid.openFolderMethod', 'num'],
-		['GridBackNode', 'grid.backNode', 'bool'],
-		['GridBackMode', 'grid.backIconMode', 'num'],
-		['GridFolderMode', 'grid.folderIconMode', 'num'],
-		['GridCellsHoverEffect', 'grid.cells.hoverEffect', 'num'],
-		['GridCellsTitleFont', 'grid.cells.titleFont', 'text'],
-		['GridCellsTitleBold', 'grid.cells.titleBold', 'bool'],
-		['GridCellsTitlePosition', 'grid.cells.titlePosition', 'num'],
-		['GridCellsSnapshotDelay', 'grid.cells.snapshotDelay', 'num']
+const FIELDS = (function(){
+	const field = (id, path, kind, nullToggle, nullColor) => ({ id, path, kind, nullToggle, nullColor });
+	const fields = [
+		field('MenuShowAdd', 'menuShowAdd', 'bool'),
+		field('ToolbarAction', 'toolbarAction', 'text'),
+		field('BackgroundColor', 'backgroundColor', 'color'),
+		field('BackgroundMode', 'backgroundMode', 'num'),
+		field('AccentColor', 'accentColor', 'color?', 'AccentDefault', '#0061e0'),
+		field('GridRoot', 'grid.root', 'text'),
+		field('GridRows', 'grid.rows', 'num'),
+		field('GridColumns', 'grid.columns', 'num'),
+		field('GridRatioX', 'grid.ratioX', 'num'),
+		field('GridRatioY', 'grid.ratioY', 'num'),
+		field('GridMargins', 'grid.margin', 'num'),
+		field('GridOpenBookmarksIn', 'grid.openBookmarkMethod', 'num'),
+		field('GridOpenFoldersIn', 'grid.openFolderMethod', 'num'),
+		field('GridBackNode', 'grid.backNode', 'bool'),
+		field('GridBackMode', 'grid.backIconMode', 'num'),
+		field('GridFolderMode', 'grid.folderIconMode', 'num'),
+		field('GridCellsHoverEffect', 'grid.cells.hoverEffect', 'num'),
+		field('GridCellsTitleFont', 'grid.cells.titleFont', 'text'),
+		field('GridCellsTitleBold', 'grid.cells.titleBold', 'bool'),
+		field('GridCellsTitlePosition', 'grid.cells.titlePosition', 'num'),
+		field('GridCellsSnapshotDelay', 'grid.cells.snapshotDelay', 'num')
 	];
 	// Tile and title styles come in pairs: GridCells<Name> / GridCells<Name>Hover
 	[
@@ -49,13 +51,13 @@ app.Fields = (function(){
 		['TitleBackgroundColor', 'titleBackgroundColor', 'color?', 'TitleBackgroundTransparent'], ['TitleBackgroundOpacity', 'titleBackgroundOpacity', 'pct']
 	].forEach(p => {
 		['', 'Hover'].forEach(h => {
-			f.push(['GridCells' + p[0] + h, 'grid.cells.' + p[1] + h, p[2], p[3] ? 'GridCells' + p[3] + h : null, '#ffffff']);
+			fields.push(field('GridCells' + p[0] + h, 'grid.cells.' + p[1] + h, p[2], p[3] ? 'GridCells' + p[3] + h : null, '#ffffff'));
 		});
 	});
-	return f;
+	return fields;
 })();
 
-app.path = {
+app.objectPath = {
 	get: function(obj, path){ return path.split('.').reduce((o, k) => { return o == null ? undefined : o[k]; }, obj); },
 	set: function(obj, path, value){
 		const keys = path.split('.'), last = keys.pop();
@@ -66,12 +68,12 @@ app.clone = function(v){ return JSON.parse(JSON.stringify(v)); };
 
 // settings -> form
 app.fillForm = function(settings){
-	app.Fields.forEach(f => {
-		const el = document.getElementById(f[0]), v = app.path.get(settings, f[1]);
-		switch(f[2]){
+	FIELDS.forEach(f => {
+		const el = document.getElementById(f.id), v = app.objectPath.get(settings, f.path);
+		switch(f.kind){
 			case 'bool': el.checked = !!v; break;
 			case 'pct': el.value = Math.round((v == null ? 1 : v) * 100); break;
-			case 'color?': document.getElementById(f[3]).checked = (v == null); el.value = v || f[4]; break;
+			case 'color?': document.getElementById(f.nullToggle).checked = (v == null); el.value = v || f.nullColor; break;
 			case 'text':
 				if(el.tagName == 'SELECT' && v && !Array.prototype.some.call(el.options, o => { return o.value == v; })){
 					el.add(new Option('Custom (' + v.split(',')[0].replace(/["']/g, '') + ')', v)); // a font from an imported theme
@@ -81,43 +83,43 @@ app.fillForm = function(settings){
 			default: el.value = v == null ? '' : v;
 		}
 	});
-	BackgroundImage = settings.backgroundImage;
-	BackgroundGradient = settings.backgroundGradient;
-	GridBackImage = settings.grid.backIcon;
-	GridFolderImage = settings.grid.folderIcon;
+	backgroundImage = settings.backgroundImage;
+	backgroundGradient = settings.backgroundGradient;
+	backIcon = settings.grid.backIcon;
+	folderIcon = settings.grid.folderIcon;
 };
 // form -> settings (written into `settings`, which is returned)
 app.readForm = function(settings){
-	app.Fields.forEach(f => {
-		const el = document.getElementById(f[0]);
+	FIELDS.forEach(f => {
+		const el = document.getElementById(f.id);
 		let v;
-		switch(f[2]){
+		switch(f.kind){
 			case 'bool': v = el.checked; break;
-			case 'num': v = el.value === '' || isNaN(+el.value) ? app.path.get(settings, f[1]) : +el.value; break;
-			case 'pct': v = el.value === '' || isNaN(+el.value) ? app.path.get(settings, f[1]) : Math.min(100, Math.max(0, +el.value)) / 100; break;
-			case 'color?': v = document.getElementById(f[3]).checked ? null : el.value; break;
+			case 'num': v = el.value === '' || isNaN(+el.value) ? app.objectPath.get(settings, f.path) : +el.value; break;
+			case 'pct': v = el.value === '' || isNaN(+el.value) ? app.objectPath.get(settings, f.path) : Math.min(100, Math.max(0, +el.value)) / 100; break;
+			case 'color?': v = document.getElementById(f.nullToggle).checked ? null : el.value; break;
 			default: v = el.value;
 		}
-		app.path.set(settings, f[1], v);
+		app.objectPath.set(settings, f.path, v);
 	});
-	settings.backgroundImage = BackgroundImage;
-	settings.backgroundGradient = BackgroundGradient;
-	settings.grid.backIcon = GridBackImage;
-	settings.grid.folderIcon = GridFolderImage;
+	settings.backgroundImage = backgroundImage;
+	settings.backgroundGradient = backgroundGradient;
+	settings.grid.backIcon = backIcon;
+	settings.grid.folderIcon = folderIcon;
 	return settings;
 };
 // What the form shows right now, as a full settings object (the saved settings are not touched)
-app.current = function(){ return app.readForm(app.clone(app.settings)); };
+app.formSettings = function(){ return app.readForm(app.clone(app.settings)); };
 
 app.init = function(){
 	// Settings has its own tab (opened from the toolbar button, the dial's menu or Firefox's Add-ons page)
 	try { Version.textContent = 'Version ' + browser.runtime.getManifest().version; } catch(e) { Version.textContent = ''; }
-	app.tabs = QDUI.tabs(Tabs, btn => {
+	app.tabs = QDUI.initTabs(Tabs, btn => {
 		Content.scrollTop = 0;
 		PanelTitle.textContent = btn.textContent.trim();
 		history.replaceState(null, '', '?tab=' + btn.id.replace(/^Tab|Button$/g, '').toLowerCase()); // a reload stays on this section
 	});
-	app.changes = QDUI.changes(BtnApply, Status, BtnDiscard);
+	app.changes = QDUI.trackChanges(BtnApply, Status, BtnDiscard);
 	QDThemes.FONTS.forEach(f => { GridCellsTitleFont.add(new Option(f.label, f.value)); });
 
 	app.load();
@@ -127,17 +129,17 @@ app.init = function(){
 		if(!app.settings || !app.changes.isDirty()) return;
 		app.readForm(app.settings);
 		browser.runtime.sendMessage( { cmd: app.Messages.Commands.setSettings, settings: app.settings } );
-		app.changes.saved('Changes applied to the dial');
-	}
+		app.changes.markSaved('Changes applied to the dial');
+	};
 	BtnDiscard.onclick = function(){
 		app.fillForm(app.settings);
 		app.updatePreviews();
 		ThemeStatus.hidden = true;
-		app.changes.discarded('Changes discarded');
-	}
+		app.changes.markDiscarded('Changes discarded');
+	};
 	BtnOpenDial.onclick = function(){
 		browser.tabs.create({ url: '/dial.html' });
-	}
+	};
 	document.addEventListener('keydown', e => {
 		if((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() == 's'){ e.preventDefault(); BtnApply.onclick(); }
 	});
@@ -150,20 +152,20 @@ app.init = function(){
 		browser.runtime.sendMessage({ cmd: app.Messages.Commands.exportData }).then(data => {
 			app.download(data, 'quickdial-ng-backup-' + new Date().toISOString().substr(0, 10) + '.json');
 		});
-	}
+	};
 	BtnImport.onclick = function(){
 		ImportFile.value = null;
 		ImportFile.click();
-	}
+	};
 	BtnCopySnippet.onclick = function(){
 		navigator.clipboard.writeText(app.Backup.exportSnippet).then(() => {
 			BtnCopySnippet.textContent = 'Copied ✓';
 			setTimeout(() => { BtnCopySnippet.textContent = 'Copy export snippet'; }, 2000);
 		}, () => { prompt('Copy this snippet:', app.Backup.exportSnippet); });
-	}
+	};
 	ImportFile.onchange = function(){
 		if(!ImportFile.files[0]) return;
-		app.readJSON(ImportFile.files[0], data => {
+		app.readJsonFile(ImportFile.files[0], data => {
 			if(!data || !data.settings || !data.node || !data.settings.grid){
 				app.showStatus(ImportStatus, data && data.format == 'quickdial-ng-theme' ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
 				return;
@@ -188,7 +190,7 @@ app.init = function(){
 				});
 			});
 		});
-	}
+	};
 
 	const params = new URLSearchParams(location.search);
 	app.showSection(params.get('tab'));
@@ -211,18 +213,18 @@ app.init = function(){
 			fileReader.readAsDataURL(file);
 		};
 	}
-	picker(BackgroundImageFile, BackgroundImageChoose, v => { BackgroundImage = v; });
-	picker(GridBackImageFile, GridBackImageFile.previousElementSibling, v => { GridBackImage = v; });
-	picker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, v => { GridFolderImage = v; });
+	picker(BackgroundImageFile, BackgroundImageChoose, v => { backgroundImage = v; });
+	picker(GridBackImageFile, GridBackImageFile.previousElementSibling, v => { backIcon = v; });
+	picker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, v => { folderIcon = v; });
 	QDUI.imageDrop(BackgroundZone, BackgroundImageFile);
 	QDUI.imageDrop(GridBackZone, GridBackImageFile);
 	QDUI.imageDrop(GridFolderZone, GridFolderImageFile);
 
 	function edit(fn){ return function(){ fn(); app.updatePreviews(); app.changes.mark(); }; }
-	BackgroundImageClear.onclick = edit(() => { BackgroundImage = null; });
-	BackgroundGradientClear.onclick = edit(() => { BackgroundGradient = null; });
-	GridBackImageReset.onclick = edit(() => { GridBackImage = 'url(/img/back.svg)'; });
-	GridFolderImageReset.onclick = edit(() => { GridFolderImage = 'url(/img/folder.svg)'; });
+	BackgroundImageClear.onclick = edit(() => { backgroundImage = null; });
+	BackgroundGradientClear.onclick = edit(() => { backgroundGradient = null; });
+	GridBackImageReset.onclick = edit(() => { backIcon = 'url(/img/back.svg)'; });
+	GridFolderImageReset.onclick = edit(() => { folderIcon = 'url(/img/folder.svg)'; });
 
 	// ----- Themes -----
 	BtnThemeSave.onclick = app.Themes.saveCurrent;
@@ -230,10 +232,10 @@ app.init = function(){
 	BtnThemeImport.onclick = function(){
 		ThemeFile.value = null;
 		ThemeFile.click();
-	}
+	};
 	ThemeFile.onchange = function(){
-		if(ThemeFile.files[0]) app.readJSON(ThemeFile.files[0], app.Themes.importFile);
-	}
+		if(ThemeFile.files[0]) app.readJsonFile(ThemeFile.files[0], app.Themes.importFile);
+	};
 
 	// Live previews follow every edit
 	document.addEventListener('input', app.updatePreviews);
@@ -269,7 +271,7 @@ app.download = function(data, name){
 	link.click();
 	setTimeout(() => { URL.revokeObjectURL(link.href); link.remove(); }, 1000);
 };
-app.readJSON = function(file, callback){ // callback(parsed object, or null when it isn't JSON)
+app.readJsonFile = function(file, callback){ // callback(parsed object, or null when it isn't JSON)
 	const fileReader = new FileReader();
 	fileReader.onload = function(e){
 		let data = null;
@@ -287,23 +289,23 @@ app.showStatus = function(el, text, isError, isBusy){
 // ---------- previews ----------
 app.updatePreviews = function(){
 	if(!app.settings) return;
-	const s = app.current();
+	const s = app.formSettings();
 	BackgroundPreview.style.backgroundColor = s.backgroundColor;
-	BackgroundPreview.style.backgroundImage = QDThemes.background(BackgroundImage, BackgroundGradient);
-	QDUI.applyMode(BackgroundPreview, s.backgroundMode);
-	BackgroundImageClear.disabled = !BackgroundImage;
-	BackgroundGradientRow.hidden = !BackgroundGradient;
-	GridBackPreview.style.backgroundImage = GridBackImage || 'none';
-	QDUI.applyMode(GridBackPreview, s.grid.backIconMode);
-	GridFolderPreview.style.backgroundImage = GridFolderImage || 'none';
-	QDUI.applyMode(GridFolderPreview, s.grid.folderIconMode);
+	BackgroundPreview.style.backgroundImage = QDThemes.background(backgroundImage, backgroundGradient);
+	QDUI.applyImageMode(s.backgroundMode, BackgroundPreview.style);
+	BackgroundImageClear.disabled = !backgroundImage;
+	BackgroundGradientRow.hidden = !backgroundGradient;
+	GridBackPreview.style.backgroundImage = backIcon || 'none';
+	QDUI.applyImageMode(s.grid.backIconMode, GridBackPreview.style);
+	GridFolderPreview.style.backgroundImage = folderIcon || 'none';
+	QDUI.applyImageMode(s.grid.folderIconMode, GridFolderPreview.style);
 	QDUI.setAccent(s.accentColor); // this window shows the accent right away
 
 	// "None" / "Default" switch off the colour next to them
-	app.Fields.forEach(f => { if(f[3]) document.getElementById(f[0]).disabled = document.getElementById(f[3]).checked; });
+	FIELDS.forEach(f => { if(f.nullToggle) document.getElementById(f.id).disabled = document.getElementById(f.nullToggle).checked; });
 
 	TileStage.style.backgroundColor = s.backgroundColor;
-	TileStage.style.backgroundImage = QDThemes.background(BackgroundImage, BackgroundGradient);
+	TileStage.style.backgroundImage = QDThemes.background(backgroundImage, backgroundGradient);
 	const ratio = (+s.grid.ratioY || 3) / (+s.grid.ratioX || 4);
 	app.paintTile(TileNormal, s.grid.cells, false, ratio);
 	app.paintTile(TileHover, s.grid.cells, true, ratio);
@@ -311,33 +313,33 @@ app.updatePreviews = function(){
 };
 
 // Draws a sample tile (.qd-tile in a .qd-tile-slot, 152 px wide) the way the dial would
-app.paintTile = function(tile, c, hover, ratio){
-	const h = hover ? 'Hover' : '';
-	const n = function(name){ return Math.max(0, +c[name + h] || 0); };
-	const margin = n('margin'), border = n('borderSize'), showTitle = !!c['title' + h], titleHeight = n('titleHeight');
-	const overlay = c.titlePosition == 1, effect = +c.hoverEffect || 0;
-	const height = Math.round((152 - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !overlay ? titleHeight : 0);
+app.paintTile = function(tile, cells, hover, ratio){
+	const suffix = hover ? 'Hover' : '';
+	const num = function(name){ return Math.max(0, +cells[name + suffix] || 0); };
+	const margin = num('margin'), border = num('borderSize'), showTitle = !!cells['title' + suffix], titleHeight = num('titleHeight');
+	const titleOverlay = cells.titlePosition == 1, effect = +cells.hoverEffect || 0;
+	const height = Math.round((152 - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !titleOverlay ? titleHeight : 0);
 	tile.parentNode.style.height = (Math.min(height, 200) + 2 * margin) + 'px';
-	tile.classList.toggle('is-overlay', overlay);
-	const s = tile.style;
-	s.margin = margin + 'px';
-	s.opacity = Math.min(1, n('opacity'));
-	s.border = border + 'px solid ' + c['borderColor' + h];
-	s.borderRadius = n('borderRadius') + 'px';
-	s.backgroundColor = QDThemes.rgba(c['backgroundColor' + h], n('backgroundOpacity'));
-	s.boxShadow = QDThemes.shadow(c['shadow' + h]);
-	s.backdropFilter = n('blur') ? 'blur(' + n('blur') + 'px)' : 'none';
-	s.transform = hover && effect == 2 ? 'translateY(-4px)' : hover && effect == 3 ? 'scale(1.04)' : 'none';
+	tile.classList.toggle('is-overlay', titleOverlay);
+	const style = tile.style;
+	style.margin = margin + 'px';
+	style.opacity = Math.min(1, num('opacity'));
+	style.border = border + 'px solid ' + cells['borderColor' + suffix];
+	style.borderRadius = num('borderRadius') + 'px';
+	style.backgroundColor = QDThemes.rgba(cells['backgroundColor' + suffix], num('backgroundOpacity'));
+	style.boxShadow = QDThemes.shadow(cells['shadow' + suffix]);
+	style.backdropFilter = num('blur') ? 'blur(' + num('blur') + 'px)' : 'none';
+	style.transform = hover && effect == 2 ? 'translateY(-4px)' : hover && effect == 3 ? 'scale(1.04)' : 'none';
 	const title = tile.lastElementChild.style;
 	title.display = showTitle ? '' : 'none';
 	title.height = titleHeight + 'px';
 	title.lineHeight = titleHeight + 'px';
-	title.fontSize = n('titleFontSize') + 'pt';
-	title.fontFamily = c.titleFont;
-	title.fontWeight = c.titleBold ? '600' : 'normal';
-	title.color = c['titleColor' + h];
-	title.backgroundColor = QDThemes.rgba(c['titleBackgroundColor' + h], n('titleBackgroundOpacity'));
-	title.borderTop = n('titleBorderSize') + 'px solid ' + c['borderColor' + h];
+	title.fontSize = num('titleFontSize') + 'pt';
+	title.fontFamily = cells.titleFont;
+	title.fontWeight = cells.titleBold ? '600' : 'normal';
+	title.color = cells['titleColor' + suffix];
+	title.backgroundColor = QDThemes.rgba(cells['titleBackgroundColor' + suffix], num('titleBackgroundOpacity'));
+	title.borderTop = num('titleBorderSize') + 'px solid ' + cells['borderColor' + suffix];
 };
 
 // ---------- themes ----------
@@ -390,7 +392,7 @@ app.Themes.render = function(){
 		ThemeList.appendChild(card);
 		return { theme: theme, card: card, badge: current, use: use };
 	});
-	app.Themes.markCurrent(app.current());
+	app.Themes.markCurrent(app.formSettings());
 };
 app.Themes.markCurrent = function(settings){ // highlights the theme the form currently matches
 	const style = QDThemes.extract(settings);
@@ -402,7 +404,7 @@ app.Themes.markCurrent = function(settings){ // highlights the theme the form cu
 	});
 };
 app.Themes.use = function(theme){
-	const s = QDThemes.apply(app.current(), theme.style);
+	const s = QDThemes.apply(app.formSettings(), theme.style);
 	app.fillForm(s);
 	app.updatePreviews();
 	app.changes.mark();
@@ -410,7 +412,7 @@ app.Themes.use = function(theme){
 };
 // Asks for a name and description: resolves to { name, description } or null
 app.Themes.ask = function(title, okText, forSaving){
-	const style = QDThemes.extract(app.current());
+	const style = QDThemes.extract(app.formSettings());
 	const match = app.Themes.all().filter(t => { return QDThemes.equal(style, t.style); })[0];
 	return QDUI.dialog({
 		title: title,
@@ -439,14 +441,14 @@ app.Themes.add = function(theme, done){
 app.Themes.saveCurrent = function(){
 	app.Themes.ask('Save current as theme', 'Save', true).then(v => {
 		if(!v) return;
-		const theme = { name: v.name, description: v.description, style: QDThemes.extract(app.current()) };
+		const theme = { name: v.name, description: v.description, style: QDThemes.extract(app.formSettings()) };
 		app.Themes.add(theme, () => { app.showStatus(ThemeStatus, 'Saved "' + theme.name + '" to your themes.'); });
 	});
 };
 app.Themes.exportCurrent = function(){
 	app.Themes.ask('Export current as theme', 'Export', false).then(v => {
 		if(!v) return;
-		app.download(QDThemes.toFile({ name: v.name, description: v.description, style: QDThemes.extract(app.current()) }), QDThemes.fileName(v.name));
+		app.download(QDThemes.toFile({ name: v.name, description: v.description, style: QDThemes.extract(app.formSettings()) }), QDThemes.fileName(v.name));
 	});
 };
 app.Themes.importFile = function(data){

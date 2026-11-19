@@ -6,11 +6,11 @@
 	wrap(app.Settings, '_changed', 'settingsApplied');
 	wrap(dial, 'populateGrid', 'gridPopulated');
 	document.addEventListener('DOMContentLoaded', function(){ mark('domContentLoaded'); });
-	function imagesSet(){ var n = 0; if(dial.Grid) for(var a of dial.Grid.querySelectorAll('a')) if((a.firstChild.style.backgroundImage||'').indexOf('data:image') >= 0) n++; return n; }
+	function imagesSet(){ var n = 0; if(dial.grid) for(var a of dial.grid.querySelectorAll('a')) if((a.firstChild.style.backgroundImage||'').indexOf('data:image') >= 0) n++; return n; }
 	(function poll(){
 		if(imagesSet() >= 13){
 			mark('imagesSet');
-			var urls = []; for(var a of dial.Grid.querySelectorAll('a')){ var m = (a.firstChild.style.backgroundImage||'').match(/url\("?(data:[^")]+)/); if(m) urls.push(m[1]); }
+			var urls = []; for(var a of dial.grid.querySelectorAll('a')){ var m = (a.firstChild.style.backgroundImage||'').match(/url\("?(data:[^")]+)/); if(m) urls.push(m[1]); }
 			Promise.all(urls.map(function(u){ var i = new Image(); i.src = u; return i.decode(); })).then(function(){
 				mark('imagesDecoded');
 				requestAnimationFrame(function(){ requestAnimationFrame(function(){

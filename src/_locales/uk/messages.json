@@ -14,7 +14,7 @@
     "description": "Text of add bookmark menu item."
   },
 
-  "AddBookmarkPrompt": {
+  "dialogNewBookmarkPrompt": {
     "message": "Введіть URL-адресу нової закладки:",
     "description": "Text of the add bookmark prompt."
   },
@@ -24,7 +24,7 @@
     "description": "Text of add folder menu item."
   },
 
-  "AddFolderPrompt": {
+  "dialogNewFolderPrompt": {
     "message": "Введіть ім'я нової папки:",
     "description": "Text of the add folder prompt."
   },
@@ -49,11 +49,6 @@
     "description": "Text of refresh menu item."
   },
 
-  "menuCaptureHere": {
-    "message": "Захватити тут",
-    "description": "Text of capture here menu item."
-  },
-
   "menuCapturePage": {
     "message": "Захватити на новій вкладці",
     "description": "Text of capture menu item."
@@ -64,7 +59,7 @@
     "description": "Text of delete menu item."
   },
 
-  "deleteItemConfimation": {
+  "dialogDeleteConfirmation": {
     "message": "Видалити $1?",
     "description": "Text of delete confirmation."
   },

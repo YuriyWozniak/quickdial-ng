@@ -10,7 +10,7 @@ var QDCommon = Object.freeze({
 		getSettings: 0,
 		setSettings: 1,
 		getNode: 2,
-		getNodeByID: 3,
+		getNodeById: 3,
 		updateNode: 4,
 		setNodeIndex: 5,
 		createBookmark: 6,

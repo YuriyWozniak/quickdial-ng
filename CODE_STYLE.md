@@ -1,0 +1,54 @@
+# Code style
+
+How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](eslint.config.mjs) and TypeScript's checker) enforces part of it, including camelCase names; the rest is kept by review. When something isn't covered here, follow the code around it.
+
+## Formatting
+
+- Indent with tabs.
+- `src/` keeps the compact style it inherited from the original Quick Dial: `if(x){`, `function(){`, `} else {`. The tests (`test/`) use the usual Node spacing: `if (x) {`. Follow the file you are editing.
+- Single quotes for strings; end statements with a semicolon.
+- No build step and no modules: each page loads plain scripts that share a few globals (see [README.md](README.md#development)).
+
+## Names
+
+| What | Style | Examples |
+| --- | --- | --- |
+| Parts of `app`, page globals | PascalCase; page globals start with `QD` | `app.GridNodes`, `app.Settings`, `QDCommon`, `QDThemes`, `QDUI` |
+| Frozen lookup objects (enums) | PascalCase, members camelCase | `QDCommon.Commands.getNodeById`, `QDCommon.NodeType.folder` |
+| Constructors | PascalCase | `dial.PopupPanel` |
+| Functions and methods | camelCase, starting with a verb | `getNodeById`, `refreshNode`, `readJsonFile`, `toCssUrl` |
+| Event handlers | `on` + event | `_onDrop`, `_onKeyDown` |
+| Variables and properties | camelCase | `cellsPerPage`, `backIcon`, `dial.titleElement` |
+| True/false values | say what is true | `isFolder`, `hasLegacySwitch`, `titleBelow`, `urlChanged` |
+| Constants | UPPER_SNAKE | `LOADING_ICON`, `TOOLBAR_ACTIONS`, `LEGACY_ICONS`, `FIELDS` |
+| Internal to a part | leading `_` | `app.Settings._serialize`, `dial._selectedLink` |
+| Kept on a node only while the extension runs | leading `__` (never saved: `Settings._serialize` drops them) | `node.__isLoading` |
+| Our properties on DOM elements | camelCase, `_` when internal | `link.gridNode`, `link._imageId` |
+| Files | lowercase, named after the part they hold | `js/background/gridnodes.js` holds `app.GridNodes` |
+
+- **Abbreviations are words:** `Id`, `Url`, `Json`, `Css`, `Webp`: `getNodeById`, `dataUrl`, `readJsonFile`, `toWebp`. Names that come from the platform stay as they are (`JSON.parse`, `toDataURL`), and so does the `QD` prefix.
+- **One job, one name:** code that does the same thing in two places has the same name and the same argument order, e.g. `dial.applyImageMode(mode, style)` and `QDUI.applyImageMode(mode, style)`.
+- **Short names** only for loop indexes (`i`, `j`), events (`e`), short arrow functions (`t => t.name`) and the usual aliases in style code: `s` (settings), `g` (`settings.grid`), `c` (`settings.grid.cells`). Write longer aliases out: `const NodeType = QDCommon.NodeType`, `const Commands = app.Messages.Commands`. Never use one short name for two different things in the same file.
+- **Messages** between the pages and the background page: the `QDCommon.Commands` key is a camelCase verb phrase; the number is what gets sent, so a number is never reused for another command.
+
+## HTML and CSS
+
+- **Element ids** are PascalCase, because the Settings and Properties pages use them as globals (`BtnApply.onclick`):
+  - action buttons are `Btn<Action>`: `BtnApply`, `BtnThemeImport`;
+  - other elements are `<Subject><Role>`: `ImageZone`, `GridBackPreview`, `TabGridButton`;
+  - a form field is named after the setting it edits: `GridCellsTitleFont` for `grid.cells.titleFont`.
+
+  Only give an id to an element that needs one, and never two ids that differ only by case.
+- **CSS classes** are kebab-case with the `qd-` prefix (`qd-grid`, `qd-dialog`, `qd-tile-slot`). States and variants are `is-*` classes (`is-loading`, `is-dirty`, `is-primary`).
+- **Custom properties** start with `--qd-`: `--qd-accent`.
+- **Attributes of our own** are `data-*` attributes (`cell.dataset.index`), never made-up attribute names.
+
+## Translations
+
+- Message keys in `src/_locales/*/messages.json` are camelCase and start with where they are used: `menu*` for menu items, `dialog*` for dialogs (`dialogNewBookmarkPrompt`, `dialogDeleteConfirmation`).
+- English (`en`) is the default locale: add new keys there first. A key that is no longer used is removed from every locale.
+
+## Comments
+
+- The first lines of each file say what it is and how it fits in.
+- Comments explain why, and what isn't obvious from the names; keep them in sync when the code changes.

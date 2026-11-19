@@ -48,6 +48,17 @@ test('migrateIcons: the old PNG folder and Back defaults become the SVG ones, ow
 	assert.equal(w.app.Settings.migrateIcons({}), false);
 });
 
+test('dropObsolete: the start page timer and the fixed picture size go; nothing else', () => {
+	const w = loadBackground();
+	const s = { startpageTimeout: 500, toolbarAction: 'newtab', grid: { rows: 2, cells: { previewWidth: 1200, previewHeight: 710, snapshotDelay: 500 } } };
+	assert.equal(w.app.Settings.dropObsolete(s), true);
+	assert.deepEqual(plain(s), { toolbarAction: 'newtab', grid: { rows: 2, cells: { snapshotDelay: 500 } } });
+	assert.equal(w.app.Settings.dropObsolete(s), false, 'nothing left to drop');
+	assert.equal(w.app.Settings.dropObsolete({ grid: {} }), false);
+	assert.equal(w.app.Settings.dropObsolete(null), false);
+	assert.equal('previewWidth' in w.app.Settings.defaults().grid.cells, false, 'not in new installs');
+});
+
 test('_upgrade: version 1 data (settings at the top, tiles inside them) reaches version 4', () => {
 	const w = loadBackground();
 	const v1 = { backgroundColor: '#000000', grid: { rows: 2, columns: 3, node: { children: [{ id: 'a', type: 2 }] },
@@ -89,11 +100,13 @@ test('init: obsolete fields are dropped and saved once; nothing else is written'
 	const w = loadBackground();
 	const settings = w.app.Settings.defaults();
 	settings.startpageTimeout = 500;
+	Object.assign(settings.grid.cells, { previewWidth: 1200, previewHeight: 710 }); // the fixed picture size of older versions
 	delete settings.grid.cells.hoverEffect; // a 0.4.0 key an older version didn't have
 	Object.assign(w.browser.store, { version: 5, settings, node: { children: [] }, themes: [{ name: 'Mine', style: {} }, { name: 'Classic', style: {} }] });
 	await init(w);
 	await settle();
 	assert.ok(!('startpageTimeout' in w.app.settings) && !('startpageTimeout' in w.browser.store.settings));
+	assert.ok(!('previewWidth' in w.browser.store.settings.grid.cells) && !('previewHeight' in w.browser.store.settings.grid.cells));
 	assert.equal(w.app.settings.grid.cells.hoverEffect, 0);
 	assert.deepEqual(plain(w.app.Themes.list.map(t => t.name)), ['Mine']);
 	const w2 = loadBackground();

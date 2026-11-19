@@ -7,70 +7,73 @@ app.Messages.broadcast = function(cmd){ // Notify open Quick Dial pages; having 
 };
 
 app.Messages.init = function(){
-	const C = app.Messages.Commands, G = app.GridNodes;
-	const nodeAt = path => G.getNode(app.node, path.slice(1)); // pages send folder paths like "/Work/"
-	const loaded = () => app.Messages.broadcast(C.gridNodesLoaded);
+	const Commands = app.Messages.Commands, GridNodes = app.GridNodes;
+	const nodeAt = path => GridNodes.getNode(app.node, path.slice(1)); // pages send folder paths like "/Work/"
+	const loaded = () => app.Messages.broadcast(Commands.gridNodesLoaded);
 	// Each case answers through sendResponse, or returns a promise of the answer
 	browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		switch(request.cmd){
-			case C.getSettings:
+			case Commands.getSettings:
 				sendResponse(app.settings);
 				break;
-			case C.setSettings: {
+			case Commands.setSettings: {
 				const rootChanged = app.settings.grid.root != request.settings.grid.root;
 				app.settings = request.settings;
 				app.Settings.save();
 				sendResponse(app.settings);
-				app.Messages.broadcast(C.settingsChanged);
+				app.Messages.broadcast(Commands.settingsChanged);
 				if(rootChanged){
 					app.Images.removeTree(app.node);
 					app.node = { children: [] };
-					G.sync(app.node, app.settings.grid.root, loaded);
+					GridNodes.sync(app.node, app.settings.grid.root, loaded);
 				} else {
 					loaded();
 				}
 				app.ContextMenus.updateMenu();
 				break;
 			}
-			case C.getNodeByID:
-				sendResponse(G.getNodeById(request.id));
+			case Commands.getNodeById:
+				sendResponse(GridNodes.getNodeById(request.id));
 				break;
-			case C.updateNode:
-				G.updateNode(G.getNodeById(request.id), request.value, loaded);
+			case Commands.updateNode: { // Answers false when the tile is gone (deleted while its Properties window was open)
+				const gridNode = GridNodes.getNodeById(request.id);
+				if(gridNode) GridNodes.updateNode(gridNode, request.value, loaded);
+				sendResponse(!!gridNode);
 				break;
-			case C.getNode:
+			}
+			case Commands.getNode:
 				sendResponse(nodeAt(request.path));
 				break;
-			case C.setNodeIndex:
-				G.setNodeIndex(nodeAt(request.path), request.index, request.newIndex, loaded);
+			case Commands.setNodeIndex:
+				GridNodes.setNodeIndex(nodeAt(request.path), request.index, request.newIndex, loaded);
 				break;
-			case C.createBookmark:
-				G.createBookmark(nodeAt(request.path), request.url, request.title, loaded);
+			case Commands.createBookmark:
+				GridNodes.createBookmark(nodeAt(request.path), request.url, request.title, loaded);
 				break;
-			case C.createFolder:
-				G.createFolder(nodeAt(request.path), request.name, loaded);
+			case Commands.createFolder:
+				GridNodes.createFolder(nodeAt(request.path), request.name, loaded);
 				break;
-			case C.deleteNode:
-				G.deleteNode(nodeAt(request.path), request.id, loaded);
+			case Commands.deleteNode:
+				GridNodes.deleteNode(nodeAt(request.path), request.id, loaded);
 				break;
-			case C.refreshNode:
-				G.refreshNode(G.getChildNode(nodeAt(request.path), request.id), loaded);
+			case Commands.refreshNode:
+				GridNodes.refreshNode(GridNodes.getChildNode(nodeAt(request.path), request.id), loaded);
 				break;
-			case C.capturePage:
-				G.capturePage(G.getChildNode(nodeAt(request.path), request.id), loaded);
+			case Commands.capturePage:
+				GridNodes.capturePage(GridNodes.getChildNode(nodeAt(request.path), request.id), loaded);
 				break;
-			case C.getImages:
+			case Commands.getImages:
 				return app.Images.get(request.ids);
-			case C.exportData:
+			case Commands.exportData:
 				return app.Backup.export();
-			case C.importData:
+			case Commands.importData:
 				return app.Backup.import(request.data);
-			case C.getThemes:
+			case Commands.getThemes:
 				sendResponse(app.Themes.list);
 				break;
-			case C.setThemes:
+			case Commands.setThemes:
 				return app.Themes.save(request.themes);
-			case C.openSettings:
+			case Commands.openSettings:
 				return app.openSettings(request.tab);
 		}
 	});

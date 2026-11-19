@@ -30,7 +30,7 @@ app.Backup._loadRoot = function(rootPath){ // Promise<bookmark subtree of the Qu
 };
 // Links each tile to a bookmark (by id, then URL / folder name), creating missing ones; cell positions are kept
 app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){
-	const T = app.GridNodes.GridNodeType;
+	const NodeType = QDCommon.NodeType;
 	const claimed = new Set();
 	const bookmarks = (folder.children || []).slice();
 	const pick = test => {
@@ -42,20 +42,20 @@ app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){
 	const children = gridNode.children || [];
 	for(const c of children){ // Pass 1: tiles whose bookmark still exists with the same id
 		if(!c || !c.id) continue;
-		const same = pick(b => b.id == c.id && (c.type == T.folder ? b.type == 'folder' : b.url == c.url));
+		const same = pick(b => b.id == c.id && (c.type == NodeType.folder ? b.type == 'folder' : b.url == c.url));
 		if(same) c.__match = same;
 	}
 	for(let i = 0; i < children.length; i++){
 		const c = children[i];
-		if(!c || (c.type != T.bookmark && c.type != T.folder) || (c.type == T.bookmark && !c.url)){
-			children[i] = { type: T.empty }; // Empty cell (or unusable entry): keeps the gap
+		if(!c || (c.type != NodeType.bookmark && c.type != NodeType.folder) || (c.type == NodeType.bookmark && !c.url)){
+			children[i] = { type: NodeType.empty }; // Empty cell (or unusable entry): keeps the gap
 			continue;
 		}
 		const oldId = c.id;
 		let match = c.__match;
 		delete c.__match;
 		if(!match){
-			match = c.type == T.folder
+			match = c.type == NodeType.folder
 				? pick(b => b.type == 'folder' && b.title == c.title)
 				: pick(b => b.type == 'bookmark' && b.url == c.url);
 		}
@@ -63,14 +63,14 @@ app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){
 			stats.matched++;
 		} else {
 			const info = { parentId: folder.id, title: c.title || c.url || 'Folder' };
-			if(c.type == T.bookmark) info.url = c.url;
+			if(c.type == NodeType.bookmark) info.url = c.url;
 			match = await browser.bookmarks.create(info);
-			if(c.type == T.folder) match.children = [];
+			if(c.type == NodeType.folder) match.children = [];
 			stats.created++;
 		}
 		c.id = match.id;
 		if(oldId) idMap[oldId] = match.id;
-		if(c.type == T.folder){
+		if(c.type == NodeType.folder){
 			stats.folders++;
 			if(!c.children) c.children = [];
 			await app.Backup._attachBookmarks(c, match, idMap, stats);
@@ -79,7 +79,7 @@ app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){
 		}
 	}
 	gridNode.children = children;
-	while(children.length && children[children.length - 1].type == T.empty) children.pop();
+	while(children.length && children[children.length - 1].type == NodeType.empty) children.pop();
 };
 app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an original Quick Dial data dump ({ version: 4, settings, node })
 	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error('Not a Quick Dial backup');
@@ -87,7 +87,7 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 	app.Settings.migrateToolbar(imported); // older backups and the original Quick Dial: the toolbar switch becomes toolbarAction
 	app.Settings.migrateIcons(imported); // and the old PNG folder and Back pictures become the SVG ones
 	const settings = app.Backup._mergeDefaults(app.Settings.defaults(), imported);
-	delete settings.startpageTimeout; // Obsolete (start page timer), found in older exports and backups
+	app.Settings.dropObsolete(settings); // found in older exports and backups
 	QDThemes.apply(settings, QDThemes.extract(settings)); // Style values end up in CSS text: keep only valid ones
 	const node = app.Backup._clean(data.node);
 	const stats = { tiles: 0, folders: 0, matched: 0, created: 0, images: 0 };

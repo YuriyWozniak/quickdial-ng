@@ -65,15 +65,28 @@ test('sync: a new address drops the stored picture; a gone bookmark takes its pi
 	assert.ok(!('img_a' in w.browser.store) && !('img_b' in w.browser.store));
 });
 
-test('sync called again while running runs once more afterwards, with one callback', async () => {
+test('sync called again while running runs once more afterwards, and calls back every caller', async () => {
 	const w = await setup([bm('a')]);
-	let calls = 0;
-	const done = new Promise(r => w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => { calls++; r(); }));
+	const order = [];
+	const first = new Promise(r => w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => { order.push('first'); r(); }));
 	w.browser.bookmarks.find('qd').children.push(bm('b'));
-	w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => calls++);
-	await done;
-	assert.equal(calls, 1);
+	const second = new Promise(r => w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => { order.push('second'); r(); }));
+	const third = new Promise(r => w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => { order.push('third'); r(); }));
+	await Promise.all([first, second, third]);
+	assert.deepEqual(plain(order), ['first', 'second', 'third'], 'all after the second run, in order');
 	assert.deepEqual(ids(w.app.node), ['a', 'b']);
+	assert.equal(w.app.GridNodes._syncing, undefined, 'not left locked');
+});
+
+test('a sync asked for while one runs uses its own tree: a tree replaced meanwhile (import, new root) is synced', async () => {
+	const w = await setup([bm('a')]);
+	const old = w.app.node;
+	const first = new Promise(r => w.app.GridNodes.sync(old, 'Quick Dial', r));
+	const fresh = { children: [] };
+	const second = new Promise(r => w.app.GridNodes.sync(fresh, 'Quick Dial', r));
+	await Promise.all([first, second]);
+	assert.equal(fresh.id, 'qd');
+	assert.deepEqual(ids(fresh), ['a']);
 });
 
 test('sync creates a missing root folder; an absolute root path starts at the top', async () => {

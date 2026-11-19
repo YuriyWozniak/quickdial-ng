@@ -74,7 +74,13 @@ module.exports = {
 		await capture(t, 'f1');
 		await t.idle();
 		st = { tabs: await t.J(() => bg().qdTabs[0]), image: await t.J(() => bg().app.GridNodes.getNodeById('f1').image) };
-		t.check('capturing a folder takes a picture of its own dial page', t.same(st.tabs, ['create', '/dial.html?path=/Folder', false]) && st.image === '1', st);
+		t.check('capturing a folder takes a picture of its own dial page', t.same(st.tabs, ['create', '/dial.html?path=%2FFolder', false]) && st.image === '1', st);
+		await t.J(() => { bg().app.GridNodes.getNodeById('f1').title = 'R&D #1?'; });
+		await fakeTabs(t);
+		await capture(t, 'f1');
+		await t.idle();
+		st = await t.J(() => { const url = bg().qdTabs[0][1]; bg().app.GridNodes.getNodeById('f1').title = 'Folder'; return { url, path: new URL(url, 'moz-extension://x/').searchParams.get('path') }; });
+		t.check('...whose path keeps a folder name with & # ? in it', st.path === '/R&D #1?', st);
 		await fakeTabs(t, true);
 		st = await capture(t, 'b4');
 		await t.idle();

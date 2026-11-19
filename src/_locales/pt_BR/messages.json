@@ -14,7 +14,7 @@
     "description": "Texto do iten de menu adicionar favorito."
   },
 
-  "AddBookmarkPrompt": {
+  "dialogNewBookmarkPrompt": {
     "message": "Entre com a url do novo favorito :",
     "description": "Texto do rótulo adicionar favorito."
   },
@@ -24,7 +24,7 @@
     "description": "Texto do item de menu adicionar pasta."
   },
 
-  "AddFolderPrompt": {
+  "dialogNewFolderPrompt": {
     "message": "Entre com o nome da nova pasta :",
     "description": "Texto do rótulo adicionar pasta."
   },
@@ -39,11 +39,6 @@
     "description": "Texto do item de menu atualizar."
   },
 
-  "menuCaptureHere": {
-    "message": "Capturar aqui",
-    "description": "Texto do item de menu capturar aqui."
-  },
-
   "menuCapturePage": {
     "message": "Capturar em uma nova guia",
     "description": "Texto do item de menu capturar em uma nova guia."
@@ -54,7 +49,7 @@
     "description": "Texto do item de menu excluir."
   },
 
-  "deleteItemConfimation": {
+  "dialogDeleteConfirmation": {
     "message": "Excluir $1 ?",
     "description": "Texto de confirmação da exclusão."
   },
