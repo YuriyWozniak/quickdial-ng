@@ -21,8 +21,6 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 			openBookmarkMethod: 0,
 			openFolderMethod: 0,
 			cells: {
-				previewWidth: 1200,
-				previewHeight: 710,
 				snapshotDelay: 2000
 			},
 			root: 'Quick Dial',
@@ -40,8 +38,7 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		data = app.Settings._upgrade(data);
 		app.settings = data.settings;
 		app.node = data.node;
-		let migrated = ('startpageTimeout' in app.settings); // Start page timer, replaced by the home page override (0.3.5)
-		delete app.settings.startpageTimeout;
+		let migrated = app.Settings.dropObsolete(app.settings);
 		if(app.Settings.migrateToolbar(app.settings)) migrated = true;
 		if(app.Settings.migrateIcons(app.settings)) migrated = true;
 		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
@@ -148,6 +145,20 @@ app.Settings.migrateIcons = function(settings){
 		if(next){ grid[key] = next; changed = true; }
 	}
 	if('loadingIcon' in grid){ delete grid.loadingIcon; changed = true; }
+	return changed;
+};
+
+// Settings nothing reads any more: the start page timer (replaced by the home page override in 0.3.5)
+// and the fixed picture size (the original Quick Dial made pictures follow the tile proportions, see SiteInfos).
+// Returns true when `settings` changed.
+app.Settings.dropObsolete = function(settings){
+	if(!settings) return false;
+	let changed = false;
+	if('startpageTimeout' in settings){ delete settings.startpageTimeout; changed = true; }
+	const cells = settings.grid && settings.grid.cells;
+	for(const key of ['previewWidth', 'previewHeight']){
+		if(cells && key in cells){ delete cells[key]; changed = true; }
+	}
 	return changed;
 };
 

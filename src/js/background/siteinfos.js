@@ -2,9 +2,10 @@
 // Both functions call back with { url, title, icon, screenshot }, or with nothing on failure.
 app.SiteInfos = {};
 
+app.SiteInfos.PREVIEW_WIDTH = 1200; // Width a page is drawn at for its picture; the height follows the tile proportions
 app.SiteInfos._previewSize = function(){ // Size of a tile picture, in the tiles' proportions
 	const grid = app.settings.grid;
-	const width = 1200;
+	const width = app.SiteInfos.PREVIEW_WIDTH;
 	let height = width / grid.ratioX * grid.ratioY;
 	if(grid.title == true) height -= grid.titleHeight; // grid.title / grid.titleHeight: settings of the original Quick Dial 1.x
 	return { width, height };

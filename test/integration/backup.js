@@ -37,7 +37,7 @@ module.exports = {
 		await t.idle();
 		const settings = await t.J(() => S.storage.settings);
 		settings.startpageTimeout = 500; // the obsolete start page timer: dropped on import
-		settings.grid = { ...settings.grid, columns: 7, cells: { ...settings.grid.cells, titleColor: '#ff0000' } };
+		settings.grid = { ...settings.grid, columns: 7, cells: { ...settings.grid.cells, titleColor: '#ff0000', previewWidth: 1200, previewHeight: 710 } }; // the fixed picture size: dropped too
 		delete settings.grid.cells.snapshotDelay;
 		const [img1, img2, img3] = await pictures(t, 3);
 		const original = { version: 4, settings, node: { id: 'oldroot', type: 1, title: 'Quick Dial', children: [
@@ -62,7 +62,7 @@ module.exports = {
 		t.check('a new folder at cell 5 with its bookmark', st.c5.title === 'Brand new' && t.same(st.g, ['https://new11.example/']), st.g);
 		t.check('the tiles are linked to the Quick Dial folder', st.rootId === 'qd', st.rootId);
 		t.check('the pictures follow their tiles (3, under the new ids)', st.imgs.length === 3 && st.imgs.includes('img_b1') && st.imgs.includes('img_' + st.c3.id) && st.imgs.includes('img_' + st.c4.children[1].id), st.imgs);
-		t.check('style and grid imported, missing fields defaulted, obsolete ones dropped', st.s.grid.columns === 7 && st.s.grid.cells.titleColor === '#ff0000' && st.s.grid.cells.snapshotDelay === 2000 && !('startpageTimeout' in st.s), st.s.grid);
+		t.check('style and grid imported, missing fields defaulted, obsolete ones dropped', st.s.grid.columns === 7 && st.s.grid.cells.titleColor === '#ff0000' && st.s.grid.cells.snapshotDelay === 2000 && !('startpageTimeout' in st.s) && !('previewWidth' in st.s.grid.cells) && !('previewHeight' in st.s.grid.cells), st.s.grid);
 		r = await t.J(data => bg().app.Backup.import(data), original);
 		await t.idle();
 		t.check('importing the same export again matches everything and creates nothing', r.created === 0 && r.matched === 7, r);

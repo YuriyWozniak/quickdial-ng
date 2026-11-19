@@ -35,9 +35,12 @@ app.Messages.init = function(){
 			case Commands.getNodeById:
 				sendResponse(GridNodes.getNodeById(request.id));
 				break;
-			case Commands.updateNode:
-				GridNodes.updateNode(GridNodes.getNodeById(request.id), request.value, loaded);
+			case Commands.updateNode: { // Answers false when the tile is gone (deleted while its Properties window was open)
+				const gridNode = GridNodes.getNodeById(request.id);
+				if(gridNode) GridNodes.updateNode(gridNode, request.value, loaded);
+				sendResponse(!!gridNode);
 				break;
+			}
 			case Commands.getNode:
 				sendResponse(nodeAt(request.path));
 				break;

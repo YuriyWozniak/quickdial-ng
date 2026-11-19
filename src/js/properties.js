@@ -20,6 +20,7 @@ app.init = function(){
 		QDUI.setAccent(settings.accentColor);
 		app.sizePreview();
 		app.Messages.getNodeById(new URL(window.location).searchParams.get('id'), node => {
+			if(!node){ app.showDeleted(); return; }
 			app.Messages.getImages([node.id], images => { // Images are stored separately: get this one
 				if(node.image == '1') node.image = images[node.id] || null;
 				app.initNode(node);
@@ -27,7 +28,26 @@ app.init = function(){
 			});
 		});
 	});
+	browser.runtime.onMessage.addListener(request => { // The tiles changed: is this one still there?
+		if(request.cmd != app.Messages.Commands.gridNodesLoaded || !app.node || app.deleted) return;
+		app.Messages.getNodeById(app.node.id, node => { if(!node) app.showDeleted(); });
+	});
 	app.initButtons();
+};
+
+// The tile was deleted (in another tab, or its bookmark in the Library) before or while this window was open:
+// nothing left to edit or save, only Close.
+app.showDeleted = function(){
+	app.deleted = true;
+	HeaderSubtitle.textContent = 'This tile no longer exists';
+	HeaderSubtitle.title = '';
+	document.querySelector('main').hidden = true;
+	BtnApply.hidden = BtnOk.hidden = true;
+	BtnCancel.textContent = 'Close';
+	BtnCancel.focus(); // First: leaving an edited field fires its change event, which marks the form as changed
+	Status.classList.remove('is-dirty', 'is-saved');
+	Status.textContent = 'The tile was deleted';
+	if(window.frameElement && window.frameElement.popup && window.frameElement.popup.fit) window.frameElement.popup.fit();
 };
 
 // Preview box in the same proportions as the tiles on the dial
@@ -86,28 +106,29 @@ app.initNode = function(node){
 	setTimeout(() => { Title.focus(); Title.select(); }, 0);
 };
 
-app.initButtons = function(){
-	BtnOk.onclick = function(){
-		if(BtnApply.onclick() === false) return;
-		QDUI.closePopup();
-	};
-	BtnApply.onclick = function(){
-		if(!app.node) return false;
-		const isFolder = app.node.type == QDCommon.NodeType.folder;
-		if(!isFolder && !Url.value.trim()){
-			Url.classList.add('is-invalid');
-			Url.focus();
-			return false;
-		}
-		let image = picture; // Stored as a plain data URL: the dial adds url("...") itself
-		if(image && /^url\(/.test(image)) image = image.replace(/^url\(\s*["']?/, '').replace(/["']?\s*\)$/, '');
-		if(isFolder){
-			app.Messages.updateNode(app.node.id, { title: Title.value, image: image, imageMode: +(ImageMode.value) });
-		} else {
-			app.Messages.updateNode(app.node.id, { title: Title.value, titleLocked: TitleLocked.checked, imageLocked: ImageLocked.checked, url: Url.value.trim(), image: image, imageMode: +(ImageMode.value) });
-		}
+app.save = function(onSaved){ // Apply and OK; onSaved() runs once the tile has the change
+	if(!app.node || app.deleted) return;
+	const isFolder = app.node.type == QDCommon.NodeType.folder;
+	if(!isFolder && !Url.value.trim()){
+		Url.classList.add('is-invalid');
+		Url.focus();
+		return;
+	}
+	let image = picture; // Stored as a plain data URL: the dial adds url("...") itself
+	if(image && /^url\(/.test(image)) image = image.replace(/^url\(\s*["']?/, '').replace(/["']?\s*\)$/, '');
+	const value = isFolder
+		? { title: Title.value, image: image, imageMode: +(ImageMode.value) }
+		: { title: Title.value, titleLocked: TitleLocked.checked, imageLocked: ImageLocked.checked, url: Url.value.trim(), image: image, imageMode: +(ImageMode.value) };
+	app.Messages.updateNode(app.node.id, value, found => {
+		if(found === false){ app.showDeleted(); return; }
 		app.changes.markSaved();
-	};
+		if(onSaved) onSaved();
+	});
+};
+
+app.initButtons = function(){
+	BtnOk.onclick = function(){ app.save(QDUI.closePopup); };
+	BtnApply.onclick = function(){ app.save(); };
 	BtnCancel.onclick = BtnClose.onclick = function(){ QDUI.closePopup(); };
 	Url.addEventListener('input', () => { Url.classList.remove('is-invalid'); });
 

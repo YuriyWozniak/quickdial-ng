@@ -38,10 +38,12 @@ module.exports = {
 		t.check('getNodeById', st.title === 'Site 7', st);
 
 		// ----- updateNode: what the Properties page sends -----
-		await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', titleLocked: true, imageLocked: true, image: pic, imageMode: 3, url: 'https://site1.example/' } });
+		const found = await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', titleLocked: true, imageLocked: true, image: pic, imageMode: 3, url: 'https://site1.example/' } });
 		await t.idle();
 		st = { node: await node(t, 'b1'), bookmark: await bookmark(t, 'b1'), stored: await t.J(() => (S.storage.img_b1 || '').slice(0, 15)) };
-		t.check('updateNode sets the title, locks, fit and picture, and renames the bookmark', st.node.title === 'Mine' && st.node.titleLocked && st.node.imageLocked && st.node.imageMode === 3 && st.node.image === '1' && st.stored === 'data:image/png;' && st.bookmark.title === 'Mine', st);
+		t.check('updateNode sets the title, locks, fit and picture, and renames the bookmark', found === true && st.node.title === 'Mine' && st.node.titleLocked && st.node.imageLocked && st.node.imageMode === 3 && st.node.image === '1' && st.stored === 'data:image/png;' && st.bookmark.title === 'Mine', st);
+		st = await ask(t, { cmd: C.updateNode, id: 'gone', value: { title: 'X' } });
+		t.check('updateNode for a tile that is gone answers false (the Properties page shows it was deleted)', st === false, st);
 		await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', image: null, imageMode: -1 } });
 		await t.idle();
 		st = await node(t, 'b1');

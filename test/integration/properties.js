@@ -9,6 +9,8 @@
 //   b1: renamed "My site" (title locked, fit Contain), a picture from a file (locked), then a new address
 //   b2: a dropped and a pasted picture, then Cancel and Escape: nothing is saved
 //   f1: a folder's form; renamed "Work", its picture back to the folder icon
+//   b3: its bookmark deleted while the window is open, then opened again while gone
+//   b4: taken out of the tree without the window being told, then OK
 // Related: the updateNode message the popup sends is tested on its own in messages.js.
 'use strict';
 const { freshProfile, stubDrawWindow, pictures } = require('../lib/fixtures');
@@ -124,5 +126,33 @@ module.exports = {
 		const folder = await node(t, 'f1');
 		const bookmark = await t.J(() => S.bm.children[0].children[0].children.find(c => c.id === 'f1').title);
 		t.check('"Use default" shows the folder icon; OK renames the folder and drops its picture', st.pic.includes('folder.svg') && st.disabled && folder.title === 'Work' && !folder.image && bookmark === 'Work', [st, folder, bookmark]);
+
+		// ----- the tile deleted while its window is open, or before it opens: only Close is left -----
+		const deletedState = () => inPopup(t, () => ({ sub: HeaderSubtitle.textContent, form: document.querySelector('main').hidden,
+			buttons: [BtnApply.hidden, BtnOk.hidden], close: BtnCancel.textContent, status: Status.textContent, focused: document.activeElement.id }));
+		const isDeletedState = st => st.sub === 'This tile no longer exists' && st.form && t.same(st.buttons, [true, true]) && st.close === 'Close' && st.status === 'The tile was deleted' && st.focused === 'BtnCancel';
+		p = await open(t, 'b3');
+		await p.locator('#Title').fill('Too late');
+		await t.J(() => bg().browser.bookmarks.removeTree('b3')); // as in the Library
+		await t.waitFor('the window to see the tile is gone', () => { const w = (win('dial').document.querySelector('.qd-frame iframe') || {}).contentWindow; return w && w.app && w.app.deleted; });
+		st = await deletedState();
+		t.check('a tile deleted while its Properties are open: the window says so, nothing to save', isDeletedState(st), st);
+		await p.locator('#BtnCancel').click();
+		await closed(t);
+		await t.inDial(() => dial.editProperties({ gridNode: { id: 'b3' } }));
+		await t.waitFor('the window to open', () => { const w = (win('dial').document.querySelector('.qd-frame iframe') || {}).contentWindow; return w && w.app && w.app.deleted; });
+		st = await deletedState();
+		t.check('Properties of a tile already gone open in the same state', isDeletedState(st), st);
+		await p.locator('#BtnCancel').press('Escape');
+		await closed(t);
+		p = await open(t, 'b4');
+		await p.locator('#Title').fill('Too late');
+		await t.J(() => { const a = bg().app; a.node.children = a.node.children.filter(c => !c || c.id !== 'b4'); }); // gone, and the window not told
+		await p.locator('#BtnOk').click();
+		await t.waitFor('the answer', () => { const w = (win('dial').document.querySelector('.qd-frame iframe') || {}).contentWindow; return w && w.app && w.app.deleted; });
+		st = { state: await deletedState(), open: await t.J(() => !!win('dial').document.querySelector('.qd-overlay')) };
+		t.check('OK on a tile that is gone: the window stays open and says so (no error in the background page)', isDeletedState(st.state) && st.open, st);
+		await p.locator('#BtnCancel').click();
+		await closed(t);
 	}
 };
