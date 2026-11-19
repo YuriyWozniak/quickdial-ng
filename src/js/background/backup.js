@@ -85,6 +85,7 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error('Not a Quick Dial backup');
 	const imported = app.Backup._clean(data.settings);
 	app.Settings.migrateToolbar(imported); // older backups and the original Quick Dial: the toolbar switch becomes toolbarAction
+	app.Settings.migrateIcons(imported); // and the old PNG folder and Back pictures become the SVG ones
 	const settings = app.Backup._mergeDefaults(app.Settings.defaults(), imported);
 	delete settings.startpageTimeout; // Obsolete (start page timer), found in older exports and backups
 	QDThemes.apply(settings, QDThemes.extract(settings)); // Style values end up in CSS text: keep only valid ones

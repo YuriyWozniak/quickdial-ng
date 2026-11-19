@@ -33,7 +33,7 @@ module.exports = {
 		await t.J(() => bg().app.Themes.save([{ name: 'Mine', style: { backgroundColor: '#112233' } }]));
 
 		// ----- Settings › Themes: Use Anori, Apply, the dial follows; rows, columns and the background picture are kept -----
-		await t.J(() => { const s = bg().app.settings; s.backgroundImage = 'url(/img/back.png)'; });
+		await t.J(() => { const s = bg().app.settings; s.backgroundImage = 'url(/img/back.svg)'; });
 		const layout = () => t.J(() => { const s = bg().app.settings; return { rows: s.grid.rows, cols: s.grid.columns, ratio: s.grid.ratioX + ':' + s.grid.ratioY, pic: s.backgroundImage }; });
 		const before = await layout();
 		await t.loadSettings('themes');
@@ -57,7 +57,7 @@ module.exports = {
 		await t.loadDial();
 		st = await t.inDial(() => { const a = document.querySelector('table.Grid a:not(.Empty)'), cs = getComputedStyle(a), title = getComputedStyle(a.lastChild);
 			return { bg: getComputedStyle(document.body).backgroundImage.slice(0, 40), radius: cs.borderTopLeftRadius, blur: cs.backdropFilter, shadow: cs.boxShadow !== 'none', titlePos: title.position, panelH: a.firstChild.offsetHeight, linkH: a.clientHeight }; });
-		t.check('the dial draws Anori: picture over the gradient, glass, shadow, title over the picture', st.bg.startsWith('url(') && st.bg.includes('back.png') && st.radius === '14px' && st.blur === 'blur(14px)' && st.shadow && st.titlePos === 'absolute' && st.panelH === st.linkH, st);
+		t.check('the dial draws Anori: picture over the gradient, glass, shadow, title over the picture', st.bg.startsWith('url(') && st.bg.includes('back.svg') && st.radius === '14px' && st.blur === 'blur(14px)' && st.shadow && st.titlePos === 'absolute' && st.panelH === st.linkH, st);
 		st = await t.J(() => { const a = bg().app, T = bg().QDThemes, s = JSON.parse(JSON.stringify(a.settings)); T.apply(s, T.BUILTIN[0].style);
 			return new Promise(r => a.Settings.update(s, () => r(T.equal(T.extract(a.settings), T.CLASSIC)))); });
 		t.check('Classic brings the original look back', st);

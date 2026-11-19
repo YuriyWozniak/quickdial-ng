@@ -123,6 +123,6 @@ module.exports = {
 		await t.idle();
 		const folder = await node(t, 'f1');
 		const bookmark = await t.J(() => S.bm.children[0].children[0].children.find(c => c.id === 'f1').title);
-		t.check('"Use default" shows the folder icon; OK renames the folder and drops its picture', st.pic.includes('folder.png') && st.disabled && folder.title === 'Work' && !folder.image && bookmark === 'Work', [st, folder, bookmark]);
+		t.check('"Use default" shows the folder icon; OK renames the folder and drops its picture', st.pic.includes('folder.svg') && st.disabled && folder.title === 'Work' && !folder.image && bookmark === 'Work', [st, folder, bookmark]);
 	}
 };
