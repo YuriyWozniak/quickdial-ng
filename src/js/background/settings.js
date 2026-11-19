@@ -40,17 +40,17 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		data = app.Settings._upgrade(data);
 		app.settings = data.settings;
 		app.node = data.node;
-		let obsolete = ('startpageTimeout' in app.settings); // Start page timer, replaced by the home page override (0.3.5)
+		let migrated = ('startpageTimeout' in app.settings); // Start page timer, replaced by the home page override (0.3.5)
 		delete app.settings.startpageTimeout;
-		if(app.Settings.migrateToolbar(app.settings)) obsolete = true;
-		if(app.Settings.migrateIcons(app.settings)) obsolete = true;
+		if(app.Settings.migrateToolbar(app.settings)) migrated = true;
+		if(app.Settings.migrateIcons(app.settings)) migrated = true;
 		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
 			app.Images.extractFromTree(app.node).then(() => app.Settings.save(callback));
 			return;
 		}
 		app.Settings._lastSaved = app.Settings._serialize();
-		if(obsolete){ app.Settings._lastSaved = null; app.Settings.save(); } // Drop the old field from storage once
+		if(migrated){ app.Settings._lastSaved = null; app.Settings.save(); } // Drop the old field from storage once
 		if(callback) callback();
 	}, () => console.log('Error loading data'));
 };
@@ -126,10 +126,10 @@ app.Settings._upgrade = function(data){
 app.Settings.TOOLBAR_ACTIONS = ['settings', 'newtab', 'current'];
 app.Settings.migrateToolbar = function(settings){
 	if(!settings) return false;
-	const old = ('openQuickDialInNewPage' in settings);
+	const hasLegacySwitch = ('openQuickDialInNewPage' in settings);
 	if(!app.Settings.TOOLBAR_ACTIONS.includes(settings.toolbarAction))
-		settings.toolbarAction = !old ? 'settings' : settings.openQuickDialInNewPage === false ? 'current' : 'newtab';
-	else if(!old) return false;
+		settings.toolbarAction = !hasLegacySwitch ? 'settings' : settings.openQuickDialInNewPage === false ? 'current' : 'newtab';
+	else if(!hasLegacySwitch) return false;
 	delete settings.openQuickDialInNewPage;
 	return true;
 };
@@ -138,13 +138,13 @@ app.Settings.migrateToolbar = function(settings){
 // point at the old PNG defaults move to the new ones; the user's own pictures stay.
 // The loading picture is no longer a setting (the dial always shows its SVG spinner).
 // Returns true when `settings` changed.
-app.Settings.ICONS = { 'url(/img/back.png)': 'url(/img/back.svg)', 'url(/img/folder.png)': 'url(/img/folder.svg)' };
+app.Settings.LEGACY_ICONS = { 'url(/img/back.png)': 'url(/img/back.svg)', 'url(/img/folder.png)': 'url(/img/folder.svg)' };
 app.Settings.migrateIcons = function(settings){
 	const grid = settings && settings.grid;
 	if(!grid) return false;
 	let changed = false;
 	for(const key of ['backIcon', 'folderIcon']){
-		const next = app.Settings.ICONS[grid[key]];
+		const next = app.Settings.LEGACY_ICONS[grid[key]];
 		if(next){ grid[key] = next; changed = true; }
 	}
 	if('loadingIcon' in grid){ delete grid.loadingIcon; changed = true; }

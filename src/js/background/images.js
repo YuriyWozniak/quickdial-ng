@@ -5,7 +5,7 @@ app.Images = {};
 app.Images._cache = new Map();
 app.Images.quality = 0.85;
 app.Images.maxSize = 1200; // Longest side in pixels for imported/uploaded images
-app.Images.key = id => 'img_' + id;
+app.Images.storageKey = id => 'img_' + id;
 
 app.Images.unwrap = function(image){ // 'url("data:...")' -> 'data:...'
 	if(typeof image != 'string') return image;
@@ -20,9 +20,9 @@ app.Images.get = function(ids){ // Promise<{ id: dataUrl }>
 		else missing.push(id);
 	}
 	if(missing.length == 0) return Promise.resolve(result);
-	return browser.storage.local.get(missing.map(app.Images.key)).then(data => {
+	return browser.storage.local.get(missing.map(app.Images.storageKey)).then(data => {
 		for(const id of missing){
-			const image = data[app.Images.key(id)];
+			const image = data[app.Images.storageKey(id)];
 			if(image){
 				app.Images._cache.set(id, image);
 				result[id] = image;
@@ -33,12 +33,12 @@ app.Images.get = function(ids){ // Promise<{ id: dataUrl }>
 };
 app.Images.set = function(id, image){
 	app.Images._cache.set(id, image);
-	return browser.storage.local.set({ [app.Images.key(id)]: image });
+	return browser.storage.local.set({ [app.Images.storageKey(id)]: image });
 };
 app.Images.remove = function(ids){
 	if(ids.length == 0) return Promise.resolve();
 	for(const id of ids) app.Images._cache.delete(id);
-	return browser.storage.local.remove(ids.map(app.Images.key));
+	return browser.storage.local.remove(ids.map(app.Images.storageKey));
 };
 app.Images.idsInTree = function(gridNode){ // Ids of a node and its descendants that have a stored picture
 	const ids = [];

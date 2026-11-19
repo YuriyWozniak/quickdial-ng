@@ -13,15 +13,15 @@
 'use strict';
 const { freshProfile, makeVersion4, changeSettings } = require('../lib/fixtures');
 
-// The tiles the dial shows, in cell order: "Bookmark:Site 1", "Folder:Folder", "Back:Back", "-" for an empty cell
-const shown = t => t.inDial(() => [...document.querySelectorAll('table.Grid a')].map(a => a.className === 'Empty' ? '-' : a.className + ':' + a.lastChild.innerText));
+// The tiles the dial shows, in cell order: "bookmark:Site 1", "folder:Folder", "back:Back", "-" for an empty cell
+const shown = t => t.inDial(() => [...document.querySelectorAll('table.qd-grid a')].map(a => a.className === 'is-empty' ? '-' : a.className.slice(3) + ':' + a.lastChild.innerText));
 // The top folder's tiles in the background page, by bookmark id ('-' for a gap)
 const ids = t => t.J(() => bg().app.node.children.map(c => c.id || '-'));
 // A drag from one cell to another (or with the given drag data), as synthetic drag events.
 // Returns the drop effect the target cell offers while dragging over it ('move' or 'none'): read
 // from the dial's dragover handler, since synthetic events don't keep it.
 const drag = (t, from, to, data) => t.inDial(([from, to, data]) => {
-	const cells = document.querySelectorAll('table.Grid td'), dt = new DataTransfer();
+	const cells = document.querySelectorAll('table.qd-grid td'), dt = new DataTransfer();
 	if (data) dt.setData('text/plain', JSON.stringify(data));
 	else cells[from].firstChild.dispatchEvent(new DragEvent('dragstart', { dataTransfer: dt, bubbles: true, cancelable: true }));
 	const probe = { getData: k => dt.getData(k), dropEffect: '' };
@@ -42,12 +42,12 @@ module.exports = {
 
 		// ----- tiles and pictures -----
 		await t.loadDial();
-		await t.waitFor('the pictures', () => [...win('dial').document.querySelectorAll('table.Grid a.Bookmark')].filter(a => a.firstChild.style.backgroundImage.includes('data:image/webp')).length === 6);
-		t.check('the dial shows 6 tiles with their WebP pictures and the folder', t.same((await shown(t)).slice(0, 7), ['Site 1', 'Site 2', 'Site 3', 'Site 4', 'Site 5', 'Site 6'].map(s => 'Bookmark:' + s).concat('Folder:Folder')), await shown(t));
-		const before = await t.inDial(() => document.querySelector('table.Grid a').firstChild.style.backgroundImage.length);
+		await t.waitFor('the pictures', () => [...win('dial').document.querySelectorAll('table.qd-grid a.is-bookmark')].filter(a => a.firstChild.style.backgroundImage.includes('data:image/webp')).length === 6);
+		t.check('the dial shows 6 tiles with their WebP pictures and the folder', t.same((await shown(t)).slice(0, 7), ['Site 1', 'Site 2', 'Site 3', 'Site 4', 'Site 5', 'Site 6'].map(s => 'bookmark:' + s).concat('folder:Folder')), await shown(t));
+		const before = await t.inDial(() => document.querySelector('table.qd-grid a').firstChild.style.backgroundImage.length);
 		await t.J(() => { const a = bg().app, c = document.createElement('canvas'); c.width = 40; c.height = 30;
 			return a.Images.setNodeImage(a.node.children[0], c.toDataURL('image/webp')).then(() => a.Messages.broadcast(a.Messages.Commands.gridNodesLoaded)); });
-		const after = await t.waitFor('the new picture', () => { const l = win('dial').document.querySelector('table.Grid a').firstChild.style.backgroundImage.length; return l < 1000 && l; });
+		const after = await t.waitFor('the new picture', () => { const l = win('dial').document.querySelector('table.qd-grid a').firstChild.style.backgroundImage.length; return l < 1000 && l; });
 		t.check('a changed picture (refresh, capture) shows up', before > 1000 && after > 0, [before, after]);
 		st = await t.inDial(() => document.title);
 		t.check('the page title is the folder\'s', st === 'Quick Dial', st);
@@ -64,26 +64,26 @@ module.exports = {
 		st = await t.J(() => { const w = win('dial'); return { html: w.document.documentElement.style.backgroundColor, drawn: !!w.app.settings, listeners: (S.listeners['rt.onMessage.dial'] || []).length }; });
 		t.check('while the background page loads: its colour, nothing drawn, no retry', st.html === 'rgb(18, 52, 86)' && !st.drawn && st.listeners === 0, st);
 		await t.J(() => window.releaseBg());
-		st = await t.waitFor('the dial to draw', () => { const w = win('dial'); const tiles = w.document.querySelectorAll('table.Grid a:not(.Empty)').length;
+		st = await t.waitFor('the dial to draw', () => { const w = win('dial'); const tiles = w.document.querySelectorAll('table.qd-grid a:not(.Empty)').length;
 			return tiles && { html: w.document.documentElement.style.backgroundColor, body: w.getComputedStyle(w.document.body).backgroundColor, tiles, listeners: (S.listeners['rt.onMessage.dial'] || []).length }; });
 		t.check('the dial draws once the background page is ready, listening once', st.html === '' && st.body === 'rgb(18, 52, 86)' && st.listeners === 1, st);
 
 		// ----- folders and Back -----
-		st = await t.inDial(() => document.querySelector('table.Grid a.Folder').getAttribute('href'));
+		st = await t.inDial(() => document.querySelector('table.qd-grid a.is-folder').getAttribute('href'));
 		t.check('a folder tile opens the dial on that folder', st === '?bg=%23123456&path=%2FFolder', st);
 		await t.loadDial('?path=%2FFolder');
 		st = { tiles: (await shown(t)).filter(s => s !== '-'), title: await t.inDial(() => document.title) };
-		t.check('a folder\'s dial: Back first, then its tiles', t.same(st.tiles, ['Back:Back', 'Bookmark:Site 7']) && st.title === 'Folder', st);
+		t.check('a folder\'s dial: Back first, then its tiles', t.same(st.tiles, ['back:Back', 'bookmark:Site 7']) && st.title === 'Folder', st);
 		await changeSettings(t, { grid: { backNode: false } });
-		await t.waitFor('the dial to follow', () => !win('dial').document.querySelector('table.Grid a.Back'));
-		t.check('without the Back tile setting, no Back tile', t.same((await shown(t)).filter(s => s !== '-'), ['Bookmark:Site 7']), await shown(t));
+		await t.waitFor('the dial to follow', () => !win('dial').document.querySelector('table.qd-grid a.is-back'));
+		t.check('without the Back tile setting, no Back tile', t.same((await shown(t)).filter(s => s !== '-'), ['bookmark:Site 7']), await shown(t));
 		await changeSettings(t, { grid: { backNode: true } });
 
 		// ----- pages (mouse wheel, Page Down / Page Up) -----
 		await t.loadDial();
 		await changeSettings(t, { grid: { rows: 1, columns: 3 } });
-		await t.waitFor('the 3-cell grid', () => win('dial').document.querySelectorAll('table.Grid td').length === 3);
-		const page = () => t.inDial(() => [dial.page, dial.maxpage, ...[...document.querySelectorAll('table.Grid a')].map(a => a.className === 'Empty' ? '-' : a.lastChild.innerText)]);
+		await t.waitFor('the 3-cell grid', () => win('dial').document.querySelectorAll('table.qd-grid td').length === 3);
+		const page = () => t.inDial(() => [dial.page, dial.maxPage, ...[...document.querySelectorAll('table.qd-grid a')].map(a => a.className === 'is-empty' ? '-' : a.lastChild.innerText)]);
 		st = [await page()];
 		const pageDown = () => t.inDial(() => window.dispatchEvent(new KeyboardEvent('keyup', { key: 'PageDown' })));
 		await pageDown(); st.push(await page());
@@ -101,9 +101,9 @@ module.exports = {
 		await drag(t, 0, 7);
 		await t.waitFor('the swap', () => bg().app.node.children[7] && bg().app.node.children[7].id === 'b1');
 		await t.idle();
-		await t.waitFor('the dial to follow', () => win('dial').document.querySelectorAll('table.Grid a')[7].className === 'Bookmark');
+		await t.waitFor('the dial to follow', () => win('dial').document.querySelectorAll('table.qd-grid a')[7].className === 'is-bookmark');
 		st = { ids: await ids(t), stored: await t.J(() => S.storage.node.children.map(c => c.id || '-')), shown: await shown(t) };
-		t.check('a tile dragged to an empty cell moves there, saved and shown', t.same(st.ids, ['-', 'b2', 'b3', 'b4', 'b5', 'b6', 'f1', 'b1']) && t.same(st.stored, st.ids) && st.shown[0] === '-' && st.shown[7] === 'Bookmark:Site 1', st);
+		t.check('a tile dragged to an empty cell moves there, saved and shown', t.same(st.ids, ['-', 'b2', 'b3', 'b4', 'b5', 'b6', 'f1', 'b1']) && t.same(st.stored, st.ids) && st.shown[0] === '-' && st.shown[7] === 'bookmark:Site 1', st);
 		st = await drag(t, 7, 0);
 		await t.waitFor('the swap back', () => bg().app.node.children[0].id === 'b1');
 		t.check('dragged back: the gap at the end is trimmed', t.same(await ids(t), ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'f1']) && st === 'move', [st, await ids(t)]);

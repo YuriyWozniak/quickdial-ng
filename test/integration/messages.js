@@ -17,7 +17,7 @@ const ask = (t, msg) => t.J(msg => {
 	return tester.runtime.sendMessage(msg);
 }, msg);
 // The command numbers used here (QDCommon.Commands); a node by id in the background page; a bookmark by id
-const C = { getSettings: 0, setSettings: 1, getNode: 2, getNodeByID: 3, updateNode: 4, setNodeIndex: 5, createBookmark: 6, createFolder: 7, deleteNode: 8,
+const C = { getSettings: 0, setSettings: 1, getNode: 2, getNodeById: 3, updateNode: 4, setNodeIndex: 5, createBookmark: 6, createFolder: 7, deleteNode: 8,
 	refreshNode: 9, getImages: 11, exportData: 12, importData: 13, getThemes: 14, setThemes: 15, openSettings: 16 };
 const node = (t, id) => t.J(id => bg().app.GridNodes.getNodeById(id), id);
 const bookmark = (t, id) => t.J(id => { const f = n => n.id === id ? n : (n.children || []).map(f).find(Boolean); return f(S.bm); }, id);
@@ -34,8 +34,8 @@ module.exports = {
 		t.check('getSettings', st.grid.rows === 4 && st.toolbarAction === 'settings', st.grid);
 		st = [await ask(t, { cmd: C.getNode, path: '/' }), await ask(t, { cmd: C.getNode, path: '/Folder/' }), await ask(t, { cmd: C.getNode, path: '/Nope/' })];
 		t.check('getNode: the root, a folder, a missing folder', st[0].children.length === 7 && st[1].children[0].id === 'b7' && st[2] === null, st.map(n => n && n.title));
-		st = await ask(t, { cmd: C.getNodeByID, id: 'b7' });
-		t.check('getNodeByID', st.title === 'Site 7', st);
+		st = await ask(t, { cmd: C.getNodeById, id: 'b7' });
+		t.check('getNodeById', st.title === 'Site 7', st);
 
 		// ----- updateNode: what the Properties page sends -----
 		await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', titleLocked: true, imageLocked: true, image: pic, imageMode: 3, url: 'https://site1.example/' } });

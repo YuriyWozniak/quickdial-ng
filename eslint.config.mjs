@@ -32,7 +32,11 @@ export default [
 			'no-redeclare': ['error', { builtinGlobals: true }], // e.g. a page variable called Image
 			'no-implicit-globals': 'error',
 			'no-shadow-restricted-names': 'error',
-			'prefer-arrow-callback': ['error', { allowUnboundThis: false }]
+			'prefer-arrow-callback': ['error', { allowUnboundThis: false }],
+			// CODE_STYLE.md: camelCase names (UPPER_SNAKE constants are allowed), single quotes, semicolons
+			camelcase: ['error', { properties: 'always' }],
+			quotes: ['error', 'single', { avoidEscape: true }],
+			semi: 'error'
 		}
 	},
 	// The scripts that define those globals (with `var` and an /* exported */ comment, so they are window properties)

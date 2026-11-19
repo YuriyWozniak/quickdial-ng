@@ -128,7 +128,7 @@ class TestPage {
 	/** Opens the dial (query: e.g. '?path=/Folder') and waits until it shows its tiles. */
 	async loadDial(query = '') {
 		await this.page.evaluate(src => loadFrame('dial', src), 'dial.html' + query);
-		await this.waitFor('the dial to draw', () => { const w = win('dial'); return w.app && w.app.node && w.dial.Grid && w.document.querySelector('table.Grid'); });
+		await this.waitFor('the dial to draw', () => { const w = win('dial'); return w.app && w.app.node && w.dial.grid && w.document.querySelector('table.qd-grid'); });
 	}
 	/** Opens Settings on a section and waits until its form and themes are filled in. */
 	async loadSettings(tab = '') {

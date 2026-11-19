@@ -100,7 +100,7 @@ async function openDial(browser, port, scheme, pictures, errors) {
 		/** Moves the mouse over the tile with this title (hover state), or away when no title is given. */
 		hover: async (dial, title) => {
 			if (!title) return pg.mouse.move(2, 2);
-			const box = await dial.locator('table.Grid a', { hasText: title }).boundingBox();
+			const box = await dial.locator('table.qd-grid a', { hasText: title }).boundingBox();
 			await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await wait(500);
 		},
 		/** Saves the window as <name>.png in the output folder. */
@@ -154,7 +154,7 @@ async function main() {
 	await settings.click('#TabPageButton'); await s.shot('settings-page');
 	await settings.click('#TabGridButton'); await s.shot('settings-grid');
 	dial = await s.dial();
-	await dial.evaluate(() => dial.editProperties([...document.querySelectorAll('.Grid a')].find(a => a.Node && a.Node.title === 'Weather')));
+	await dial.evaluate(() => dial.editProperties([...document.querySelectorAll('.qd-grid a')].find(a => a.gridNode && a.gridNode.title === 'Weather')));
 	await wait(1300); await s.shot('properties');
 	await s.ctx.close();
 

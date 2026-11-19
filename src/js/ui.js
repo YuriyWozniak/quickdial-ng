@@ -14,7 +14,7 @@ var QDUI = (function(){
 
 	// ---------- tabs ----------
 	// Buttons with role="tab" and aria-controls="<panel id>" inside `list`.
-	function tabs(list, onChange){
+	function initTabs(list, onChange){
 		const buttons = Array.prototype.slice.call(list.querySelectorAll('[role=tab]'));
 		function select(btn, focus){
 			if(typeof btn == 'string') btn = buttons.filter(b => { return b.id == btn || b.getAttribute('aria-controls') == btn; })[0];
@@ -45,7 +45,7 @@ var QDUI = (function(){
 	// ---------- unsaved changes ----------
 	// Marks the form dirty on any input/change (except elements marked data-no-dirty),
 	// enables the Apply button (and the optional Discard button) and shows a status line in the footer.
-	function changes(applyButton, statusEl, discardButton){
+	function trackChanges(applyButton, statusEl, discardButton){
 		let dirty = false, timer = null, ready = false;
 		function render(){
 			applyButton.disabled = !dirty;
@@ -69,21 +69,20 @@ var QDUI = (function(){
 			mark: mark,
 			start: function(){ ready = true; }, // Call after the form has been filled in
 			isDirty: function(){ return dirty; },
-			saved: function(text){ done(text || 'Changes applied', true); },
-			discarded: function(text){ done(text || 'Changes discarded', false); }
+			markSaved: function(text){ done(text || 'Changes applied', true); },
+			markDiscarded: function(text){ done(text || 'Changes discarded', false); }
 		};
 	}
 
 	// ---------- images ----------
 	// Same mapping as the dial page: -1 default, 0 stretch, 1 cover, 2 contain, 3 center.
-	function applyMode(el, mode){
-		const s = el.style;
+	function applyImageMode(mode, style){
 		switch(+mode){
-			case 0: s.backgroundRepeat = 'no-repeat'; s.backgroundSize = '100% 100%'; s.backgroundPosition = 'center'; break;
-			case 1: s.backgroundRepeat = 'no-repeat'; s.backgroundSize = 'cover'; s.backgroundPosition = 'center'; break;
-			case 2: s.backgroundRepeat = 'no-repeat'; s.backgroundSize = 'contain'; s.backgroundPosition = 'center'; break;
-			case 3: s.backgroundRepeat = 'no-repeat'; s.backgroundSize = 'auto'; s.backgroundPosition = 'center'; break;
-			default: s.backgroundRepeat = 'no-repeat'; s.backgroundSize = '100% 100%'; s.backgroundPosition = 'center';
+			case 0: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = '100% 100%'; style.backgroundPosition = 'center'; break;
+			case 1: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = 'cover'; style.backgroundPosition = 'center'; break;
+			case 2: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = 'contain'; style.backgroundPosition = 'center'; break;
+			case 3: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = 'auto'; style.backgroundPosition = 'center'; break;
+			default: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = '100% 100%'; style.backgroundPosition = 'center';
 		}
 	}
 
@@ -144,19 +143,19 @@ var QDUI = (function(){
 	// - `value` (one text field): resolves to the entered text
 	// - `fields` ([{ name, label, value, placeholder }]): resolves to { name: text, ... }
 	// `validate` gets the same result and returns an error message ('' when fine). Cancel resolves to null.
-	function dialog(o){
+	function dialog(options){
 		return new Promise(resolve => {
-			const fields = o.fields || (o.value !== undefined ? [{ value: o.value, placeholder: o.placeholder }] : []);
+			const fields = options.fields || (options.value !== undefined ? [{ value: options.value, placeholder: options.placeholder }] : []);
 			const overlay = document.createElement('div');
 			overlay.className = 'qd qd-overlay';
 			const box = document.createElement('div');
 			box.className = 'qd-dialog';
-			box.setAttribute('role', o.danger ? 'alertdialog' : 'dialog');
+			box.setAttribute('role', options.danger ? 'alertdialog' : 'dialog');
 			box.setAttribute('aria-modal', 'true');
-			const h = document.createElement('h1'); h.className = 'qd-title'; h.textContent = o.title || ''; h.id = 'qd-dialog-title';
+			const h = document.createElement('h1'); h.className = 'qd-title'; h.textContent = options.title || ''; h.id = 'qd-dialog-title';
 			box.setAttribute('aria-labelledby', h.id);
 			box.appendChild(h);
-			if(o.message){ const m = document.createElement('p'); m.className = 'qd-dialog-message'; m.textContent = o.message; box.appendChild(m); }
+			if(options.message){ const m = document.createElement('p'); m.className = 'qd-dialog-message'; m.textContent = options.message; box.appendChild(m); }
 			const inputs = fields.map((f, i) => {
 				const input = document.createElement('input');
 				input.type = 'text';
@@ -178,8 +177,8 @@ var QDUI = (function(){
 				box.addEventListener('input', () => { inputs.forEach(i => { i.classList.remove('is-invalid'); }); error.textContent = ''; });
 			}
 			const actions = document.createElement('div'); actions.className = 'qd-dialog-actions';
-			const cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'qd-btn'; cancel.textContent = o.cancelText || 'Cancel';
-			const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'qd-btn ' + (o.danger ? 'is-danger' : 'is-primary'); ok.textContent = o.okText || 'OK';
+			const cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'qd-btn'; cancel.textContent = options.cancelText || 'Cancel';
+			const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'qd-btn ' + (options.danger ? 'is-danger' : 'is-primary'); ok.textContent = options.okText || 'OK';
 			actions.appendChild(cancel); actions.appendChild(ok);
 			box.appendChild(actions);
 			overlay.appendChild(box);
@@ -195,13 +194,13 @@ var QDUI = (function(){
 			function accept(){
 				if(!inputs.length) return finish(true);
 				let result;
-				if(o.fields){
+				if(options.fields){
 					result = {};
-					o.fields.forEach((f, i) => { result[f.name] = inputs[i].value.trim(); });
+					options.fields.forEach((f, i) => { result[f.name] = inputs[i].value.trim(); });
 				} else result = inputs[0].value.trim();
-				const problem = o.validate ? o.validate(result) : (inputs[0].value.trim() ? '' : 'Please enter a value.');
+				const problem = options.validate ? options.validate(result) : (inputs[0].value.trim() ? '' : 'Please enter a value.');
 				if(problem){ inputs[0].classList.add('is-invalid'); error.textContent = problem; inputs[0].focus(); return; }
-				finish(o.transform ? o.transform(result) : result);
+				finish(options.transform ? options.transform(result) : result);
 			}
 			function onKey(e){ // Capture phase on window: runs before the page's own shortcuts
 				if(e.key == 'Escape'){ e.preventDefault(); e.stopImmediatePropagation(); finish(null); }
@@ -218,9 +217,9 @@ var QDUI = (function(){
 			overlay.addEventListener('contextmenu', e => { e.preventDefault(); });
 			window.addEventListener('keydown', onKey, true);
 			document.body.appendChild(overlay);
-			if(inputs.length){ inputs[0].focus(); inputs[0].select(); } else (o.danger ? cancel : ok).focus();
+			if(inputs.length){ inputs[0].focus(); inputs[0].select(); } else (options.danger ? cancel : ok).focus();
 		});
 	}
 
-	return { closePopup: closePopup, tabs: tabs, changes: changes, applyMode: applyMode, imageDrop: imageDrop, setAccent: setAccent, dialog: dialog };
+	return { closePopup: closePopup, initTabs: initTabs, trackChanges: trackChanges, applyImageMode: applyImageMode, imageDrop: imageDrop, setAccent: setAccent, dialog: dialog };
 })();

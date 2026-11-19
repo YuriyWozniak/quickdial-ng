@@ -8,7 +8,7 @@ app.ContextMenus.menuItemClicked = function(info, tab){
 };
 
 app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all menus
-	const C = app.Messages.Commands;
+	const Commands = app.Messages.Commands;
 	const create = props => browser.contextMenus.create(props);
 	const text = key => browser.i18n.getMessage(key);
 	const toDial = cmd => (info, tab) => { browser.tabs.sendMessage(tab.id, { cmd }); }; // the dial page acts on the tile under the mouse
@@ -16,8 +16,8 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all me
 	const dialPages = ['moz-extension://*/dial.html', 'moz-extension://*/dial.html?*'];
 	const newItems = parentId => { // "New" › Bookmark, Folder
 		create({ id: parentId + 'new', parentId, title: text('menuNew') });
-		create({ parentId: parentId + 'new', title: text('menuNewBookmark'), onclick: toDial(C.menuCreateBookmark) });
-		create({ parentId: parentId + 'new', title: text('menuNewFolder'), onclick: toDial(C.menuCreateFolder) });
+		create({ parentId: parentId + 'new', title: text('menuNewBookmark'), onclick: toDial(Commands.menuCreateBookmark) });
+		create({ parentId: parentId + 'new', title: text('menuNewFolder'), onclick: toDial(Commands.menuCreateFolder) });
 		create({ parentId, type: 'separator' });
 	};
 
@@ -39,10 +39,10 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all me
 	// A tile on the dial
 	create({ id: 'itemmenu', title: 'Quick Dial NG', documentUrlPatterns: dialPages, contexts: ['link'] });
 	newItems('itemmenu');
-	create({ parentId: 'itemmenu', title: text('menuProperties'), onclick: toDial(C.menuEditProperties) });
-	create({ parentId: 'itemmenu', title: text('menuRefreshItem'), onclick: toDial(C.menuRefreshNode) });
-	create({ parentId: 'itemmenu', title: text('menuCapturePage'), onclick: toDial(C.menuCapturePage) });
-	create({ parentId: 'itemmenu', title: text('menuDeleteItem'), onclick: toDial(C.menuDeleteNode) });
+	create({ parentId: 'itemmenu', title: text('menuProperties'), onclick: toDial(Commands.menuEditProperties) });
+	create({ parentId: 'itemmenu', title: text('menuRefreshItem'), onclick: toDial(Commands.menuRefreshNode) });
+	create({ parentId: 'itemmenu', title: text('menuCapturePage'), onclick: toDial(Commands.menuCapturePage) });
+	create({ parentId: 'itemmenu', title: text('menuDeleteItem'), onclick: toDial(Commands.menuDeleteNode) });
 	create({ parentId: 'itemmenu', type: 'separator' });
 	create({ parentId: 'itemmenu', title: text('menuSettings'), onclick: openSettings });
 	// Right-click menu of the toolbar button: both places, whatever a click on it opens

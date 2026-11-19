@@ -99,7 +99,7 @@
 				var t = [];
 				results.stage = 'sync';
 				for(var i=0; i<20; i++){
-					await new Promise(function(r){ waitFor(function(){ return !app.GridNodes._syncing; }, r); }); // A sync already running would swallow our callback
+					await new Promise(function(r){ waitFor(function(){ return !app.GridNodes._syncing; }, r); }); // Start from a settled tree
 					var a = performance.now(); await new Promise(function(r){ app.GridNodes.sync(app.node, app.settings.grid.root, r); }); t.push(performance.now()-a);
 				}
 				results.syncMs = median(t);

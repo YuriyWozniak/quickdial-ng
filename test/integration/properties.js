@@ -16,7 +16,7 @@ const { freshProfile, stubDrawWindow, pictures } = require('../lib/fixtures');
 // Opens Properties for a tile, as its context menu item does, and waits until the form is filled in.
 // Returns a locator for the popup's frame.
 async function open(t, id) {
-	await t.inDial(id => dial.editProperties({ Node: { id } }), id);
+	await t.inDial(id => dial.editProperties({ gridNode: { id } }), id);
 	await t.waitFor('Properties to load', () => { const f = win('dial').document.querySelector('.qd-frame iframe'); return f && f.contentWindow.app && f.contentWindow.app.node && f.contentWindow.document.getElementById('Title').value; });
 	return t.dial().frameLocator('.qd-frame iframe');
 }
@@ -48,7 +48,7 @@ module.exports = {
 		await t.idle();
 		st = { node: await node(t, 'b1'), bookmark: await t.J(() => S.bm.children[0].children[0].children[0].title), open: await t.J(() => !!win('dial').document.querySelector('.qd-overlay')) };
 		t.check('Apply saves title, lock and fit, renames the bookmark, and stays open', st.node.title === 'My site' && st.node.titleLocked && st.node.imageMode === 2 && st.bookmark === 'My site' && st.open, st);
-		await t.waitFor('the dial to follow', () => [...win('dial').document.querySelectorAll('table.Grid a')].some(a => a.lastChild.innerText === 'My site'));
+		await t.waitFor('the dial to follow', () => [...win('dial').document.querySelectorAll('table.qd-grid a')].some(a => a.lastChild.innerText === 'My site'));
 
 		// ----- a picture from a file: re-encoded as WebP; Revert brings the old one back; OK -----
 		const [png] = await pictures(t, 1);

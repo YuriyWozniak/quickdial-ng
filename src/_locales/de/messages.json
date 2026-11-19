@@ -14,7 +14,7 @@
     "description": "Text of add bookmark menu item."
   },
 
-  "AddBookmarkPrompt": {
+  "dialogNewBookmarkPrompt": {
     "message": "Neue Lesezeichen URL eingeben:",
     "description": "Text of the add bookmark prompt."
   },
@@ -24,7 +24,7 @@
     "description": "Text of add folder menu item."
   },
 
-  "AddFolderPrompt": {
+  "dialogNewFolderPrompt": {
     "message": "Neuen Ordner Namen eingeben:",
     "description": "Text of the add folder prompt."
   },
@@ -39,11 +39,6 @@
     "description": "Text of refresh menu item."
   },
 
-  "menuCaptureHere": {
-    "message": "Hier aufnehmen",
-    "description": "Text of capture here menu item."
-  },
-
   "menuCapturePage": {
     "message": "In einem neuen Tab aufnehmen",
     "description": "Text of capture menu item."
@@ -54,7 +49,7 @@
     "description": "Text of delete menu item."
   },
 
-  "deleteItemConfimation": {
+  "dialogDeleteConfirmation": {
     "message": "Löschen $1?",
     "description": "Text of delete confirmation."
   },

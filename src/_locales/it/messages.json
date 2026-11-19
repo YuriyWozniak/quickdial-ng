@@ -14,7 +14,7 @@
     "description": "Text of add bookmark menu item."
   },
 
-  "AddBookmarkPrompt": {
+  "dialogNewBookmarkPrompt": {
     "message": "Scrivi l'url del nuovo segnalibro:",
     "description": "Text of the add bookmark prompt."
   },
@@ -24,7 +24,7 @@
     "description": "Text of add folder menu item."
   },
 
-  "AddFolderPrompt": {
+  "dialogNewFolderPrompt": {
     "message": "Scrivi il nome della nuova cartella:",
     "description": "Text of the add folder prompt."
   },
@@ -49,7 +49,7 @@
     "description": "Text of delete menu item."
   },
 
-  "deleteItemConfimation": {
+  "dialogDeleteConfirmation": {
     "message": "Eliminare $1?",
     "description": "Text of delete confirmation."
   },
