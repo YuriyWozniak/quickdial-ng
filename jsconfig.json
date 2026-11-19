@@ -1,0 +1,13 @@
+{
+  "//": "Type checks the background page (npm run typecheck; VSCodium shows the same in the editor). The pages are checked by ESLint only.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["firefox-webext-browser"],
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false
+  },
+  "include": ["src/js/common.js", "src/js/themes.js", "src/js/background/*.js"]
+}

@@ -1,10 +1,23 @@
 // Quick Dial NG — background page: the tree of tiles (app.node), kept in sync with the Quick Dial
-// bookmarks folder. A node is { id, type, title, url?, children?, image?, imageMode?, titleLocked?, imageLocked? };
-// a folder's children are its cells in order, with { type: empty } for gaps.
+// bookmarks folder. A folder's children are its cells in order, with { type: empty } for gaps.
+/**
+ * @typedef {object} GridNode
+ * @property {string} [id] bookmark id (none for an empty cell)
+ * @property {number} type one of QDCommon.NodeType
+ * @property {string} [title]
+ * @property {string} [url] bookmarks only
+ * @property {GridNode[]} [children] folders only
+ * @property {string} [image] '1': picture stored (see images.js), '0': none could be made
+ * @property {number} [imageMode] how the picture fills the tile (dial.applyImageMode); none: the default
+ * @property {boolean} [titleLocked] Refresh and Capture keep the title
+ * @property {boolean} [imageLocked] ...and the picture
+ */
 app.GridNodes = {};
 app.GridNodes.GridNodeType = QDCommon.NodeType;
 
-app.GridNodes.sync = function(gridNode, rootPath, callback){ // Sync GridNodes with Bookmarks
+/** Brings the tree under gridNode in line with the bookmarks folder at rootPath, then saves it.
+ * @param {GridNode} gridNode @param {string} rootPath @param {() => void} [callback] */
+app.GridNodes.sync = function(gridNode, rootPath, callback){
 	const T = app.GridNodes.GridNodeType;
 	if(app.GridNodes._syncing){
 		app.GridNodes._needSync = true;
@@ -86,7 +99,8 @@ app.GridNodes.save = function(callback){ // The tree is saved with the settings
 	app.Settings.save(callback);
 };
 
-app.GridNodes.getNode = function(gridNode, path){ // The folder node at a path like "Work/Tools/" below gridNode
+/** The folder node at a path like "Work/Tools/" below gridNode. @param {GridNode} gridNode @param {string} path @returns {GridNode|null} */
+app.GridNodes.getNode = function(gridNode, path){
 	if(path.length == 0 || path == '/') return gridNode;
 	for(const child of gridNode.children)
 		if(path.startsWith(child.title + '/'))
@@ -96,11 +110,13 @@ app.GridNodes.getNode = function(gridNode, path){ // The folder node at a path l
 app.GridNodes.getChildNode = function(gridNode, id){ // Child node by id
 	return gridNode.children.find(child => child.id == id) || null;
 };
+/** @param {string} id @returns {GridNode|null} */
 app.GridNodes.getNodeById = function(id){
 	const nodes = app.GridNodes.getNodeWithParents(id);
 	return nodes ? nodes[nodes.length - 1] : null;
 };
-app.GridNodes.getNodeWithParents = function(id){ // [root, ..., node], or null
+/** [root, ..., node], or null. @param {string} id @returns {GridNode[]|null} */
+app.GridNodes.getNodeWithParents = function(id){
 	const find = gridNode => {
 		if(gridNode.id == id) return [gridNode];
 		for(const child of gridNode.children || []){
