@@ -15,7 +15,9 @@ const m = bg.match(/data = \{ version: 4, settings: (\{[^]*?\r?\n\t\t\t\t\}), no
 let defaults;
 if (m) defaults = m[1];
 else { // Quick Dial NG: run its background scripts (without main.js, which starts it) and ask
-	const ctx = vm.createContext({ console });
+	// Up to 0.5.0 a single background.js started itself as it loaded: give it a browser API whose calls never answer
+	const idle = new Proxy(function(){}, { get: () => idle, apply: () => new Promise(() => {}) });
+	const ctx = vm.createContext({ console, browser: idle });
 	for (const s of bgScripts) if (!/(^|\/)main\.js$/.test(s)) vm.runInContext(fs.readFileSync(path.join(src, s), 'utf8'), ctx, { filename: s });
 	defaults = JSON.stringify(vm.runInContext('app.Settings.defaults()', ctx), null, '\t');
 }
