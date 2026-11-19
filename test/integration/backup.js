@@ -4,7 +4,8 @@
 //
 // Starts from: the standard bookmarks (lib/fixtures.js) with every tile holding a picture (makeVersion4).
 // The steps build on each other:
-//   1. export, empty the storage, import: everything comes back (the bookmarks stay as they were)
+//   1. a background picture is set, then export, empty the storage, import: everything comes back (the
+//      bookmarks stay as they were); the background travels inline and is stored under its own key again
 //   2. the folder f1 (with b7) is removed, then an original Quick Dial export from another profile is
 //      imported: its bookmark ids don't exist here, so tiles are matched by address or folder name,
 //      or their bookmarks are created; importing it again creates nothing
@@ -21,14 +22,19 @@ module.exports = {
 		await t.loadBg();
 
 		// ----- export, then import into an empty profile -----
+		const background = 'url(' + (await pictures(t, 1))[0] + ')'; // a picture picked in Settings: stored under its own key
+		await t.J(p => new Promise(r => bg().app.Settings.update(Object.assign(JSON.parse(JSON.stringify(bg().app.settings)), { backgroundImage: p }), r)), background);
 		const exp = await t.J(() => bg().app.Backup.export());
 		t.check('an export has the 7 pictures', Object.keys(exp.images).length === 7, Object.keys(exp.images));
+		t.check('and the background picture inline in its settings', exp.settings.backgroundImage === background);
 		await t.J(() => { S.storage = {}; });
 		await t.loadBg();
 		let r = await t.J(data => bg().app.Backup.import(data), exp);
 		await t.idle();
 		let st = await t.J(() => Object.keys(S.storage).filter(k => k.startsWith('img_')).length);
 		t.check('importing it into an empty profile restores the 7 pictures', st === 7 && r.matched === 8 && r.created === 0, [st, r]);
+		st = await t.J(() => ({ key: S.storage.picture_background, stored: S.storage.settings.backgroundImage, shown: bg().app.settings.backgroundImage }));
+		t.check('and the background under its own key', st.key === background && st.stored === '1' && st.shown === background, [st.stored, !!st.key, (st.shown || '').slice(0, 30)]);
 		st = await t.J(() => bg().app.Backup.import({ settings: {} }).then(() => 'imported', e => e.message));
 		t.check('data that is not a backup is refused', st === 'Not a Quick Dial backup', st);
 
@@ -63,6 +69,8 @@ module.exports = {
 		t.check('the tiles are linked to the Quick Dial folder', st.rootId === 'qd', st.rootId);
 		t.check('the pictures follow their tiles (3, under the new ids)', st.imgs.length === 3 && st.imgs.includes('img_b1') && st.imgs.includes('img_' + st.c3.id) && st.imgs.includes('img_' + st.c4.children[1].id), st.imgs);
 		t.check('style and grid imported, missing fields defaulted, obsolete ones dropped', st.s.grid.columns === 7 && st.s.grid.cells.titleColor === '#ff0000' && st.s.grid.cells.snapshotDelay === 2000 && !('startpageTimeout' in st.s) && !('previewWidth' in st.s.grid.cells) && !('previewHeight' in st.s.grid.cells), st.s.grid);
+		st = await t.J(() => ({ stored: S.storage.settings.backgroundImage, key: 'picture_background' in S.storage }));
+		t.check('a stored-picture mark without its picture (copied from storage) imports as no background', st.stored === null && !st.key, st);
 		r = await t.J(data => bg().app.Backup.import(data), original);
 		await t.idle();
 		t.check('importing the same export again matches everything and creates nothing', r.created === 0 && r.matched === 7, r);
