@@ -1,56 +1,132 @@
 # Tests
 
-Functional tests for Quick Dial NG's storage, sync and import logic, plus performance benchmarks in [`bench/`](bench/README.md) and the README screenshot maker in [`screenshots/`](screenshots/README.md), which reuses this harness.
+Two kinds of tests, plus performance benchmarks in [`bench/`](bench/README.md) and the README screenshot maker in [`screenshots/`](screenshots/README.md):
 
-The functional tests don't need Firefox. They load the extension's own pages from `src/` in Chromium (through Playwright) and replace the Firefox WebExtension API with a simulation, so they run anywhere Node.js runs.
+- **Unit tests** (`unit/`) check the logic on its own: theme rules and files, upgrades of stored data, the tile tree and its sync with the bookmarks, backup helpers, pictures. They load the extension's scripts from `src/js` into plain Node (`node:test`, no browser) and run in about a second. They need nothing installed.
+- **Integration tests** (`integration/`) run the extension's real pages in Chromium (through Playwright) against a simulated Firefox WebExtension API, so they run anywhere Node.js runs, without Firefox. Each suite covers one area and starts from a fresh profile, so any of them can run alone.
 
-Once, in this folder:
+## Running them
+
+The unit tests, from the repository root or this folder:
+
+```
+npm run test:unit
+```
+
+For the integration tests, once, in this folder:
 
 ```
 npm install
 npx playwright install chromium
 ```
 
-The second command downloads Playwright's own Chromium (about 150 MB, into a per-user cache). It can be skipped where Microsoft Edge or Google Chrome is installed: if Playwright's Chromium is missing, the tests use one of those instead.
+The second command downloads Playwright's own Chromium (about 150 MB, into a per-user cache). It can be skipped where Microsoft Edge or Google Chrome is installed: the tests then use one of those.
 
-Then, from the repository root:
+Then, in this folder:
+
+| Command | Runs |
+|---|---|
+| `npm test` | the unit tests, then all integration suites |
+| `npm test -- dial sync` | the unit tests, then only the `dial` and `sync` suites |
+| `npm run test:integration` | all integration suites (`node run.js`) |
+| `node run.js --list` | lists the suites |
+| `node run.js --jobs 1` | one suite at a time (by default up to four run at once) |
+| `npm run coverage` | all of it, then which lines of `src/js` ran, per file, with the functions that never ran |
+
+Each suite prints a `PASS`/`FAIL` line per check (a failure also shows what it got). A suite also fails on a script error in its pages (its last check, `no script errors`). `FAIL suite stopped: …` means a step could not go on, usually `timed out waiting for <what>`: the checks after it in that suite didn't run, and the other suites are unaffected. The run ends with `ALL PASS` (exit code 0) or `SOME FAILED` (exit code 1).
+
+The unit tests print Node's test report; `node --test --test-reporter=spec "unit/*.test.js"` lists every test by name.
+
+## Integration suites
+
+Each suite file starts with a comment that says what it covers, what it starts from, how its steps build on each other, and which other suite or unit test covers the rest. Its steps are grouped under `// ----- … -----` headings.
+
+| Suite | Covers |
+|---|---|
+| `startup` | A fresh install; migration of the original Quick Dial's data (version 4, inline PNG screenshots) to separate WebP pictures; restarts that write nothing; obsolete settings (`startpageTimeout`, the toolbar switch before 0.5.0) dropped and saved once; a profile without the Quick Dial folder. |
+| `sync` | Bookmark changes inside the Quick Dial folder are synced (rename, new address, delete, folder removed, created, moved in, out and within); changes elsewhere are ignored; pictures go with their tiles; gaps are kept and filled. |
+| `backup` | Export and import into an empty profile; an original Quick Dial export from another profile (bookmarks matched or created, cell positions, settings defaults, obsolete fields); importing twice creates nothing; themes in backups; unsafe style values cleaned. |
+| `themes` | Custom themes saved, cleaned and reloaded; in Settings › Themes, **Use** fills the form, **Apply** puts the theme on the dial (layout and background picture kept), the dial draws it, Classic brings the original look back. |
+| `settings-page` | Settings sections (`?tab=`), **Apply**, **Discard changes**, **Ctrl+S**, changes made elsewhere; the background picture; Backup: export, import (asks first, wrong files explained), the export snippet; Themes: save (built-in names refused, same name replaced after asking), export, import, delete. |
+| `dial` | Tiles and their pictures; the background colour painted before the background page is ready; folders and the Back tile; pages (Page Down, mouse wheel); drag and drop. |
+| `dial-edit` | The dial's context menu commands: new bookmark (address checked) and folder, delete, refresh, capture, properties; dialogs by keyboard; the Settings items. |
+| `properties` | The Properties popup: title, address (required), locks, fit, a picture from a file, by drop or paste, Revert, a folder's "Use default"; OK, Apply, Cancel, Enter and Escape. |
+| `toolbar-menus` | The toolbar button (Settings, the dial in a new tab or this tab); bringing an open Settings tab forward; every context menu item; "Add to Quick Dial" turned off. |
+| `messages` | Every message the pages send to the background page: settings, tiles (read, update, swap, create, delete, refresh), pictures, backups, themes, another root folder. |
+| `siteinfos` | Refresh draws the downloaded page in a sandboxed frame (its scripts never run; other addresses aren't downloaded); Capture page in a background tab (title, picture, locked title or picture kept, folders, failures). |
+
+## Unit tests
+
+Each file starts with a comment on what it tests and how; every test's name says what it checks.
+
+| File | Tests | Covers |
+|---|---|---|
+| `themes.test.js` | `js/themes.js` | The style rules: numbers kept in range and rounded, colours, fonts and gradients checked (no `url()`, nothing that ends a CSS declaration); extract / apply / complete; theme files (round trip, what's wrong with a file); the custom theme list; file names; CSS helpers. |
+| `settings.test.js` | `js/background/settings.js` | Defaults; the toolbar setting before and after 0.5.0; upgrades of the original Quick Dial's data (versions 1 to 4); the first start of a new profile; obsolete settings saved once, then nothing written; batched saving without transient fields; the custom theme list. |
+| `gridnodes.test.js` | `js/background/gridnodes.js` | Sync with the bookmarks folder (order, gaps kept and filled, the end trimmed, pictures dropped, a sync asked for during a sync, a missing or absolute root folder); finding nodes; swapping cells; new bookmarks and folders; deleting. |
+| `background.test.js` | `js/common.js`, `js/background/backup.js`, `images.js`, `bookmarks.js` | Unique command numbers; backup copies and default merging; linking imported tiles to bookmarks (by id, address, folder name, or new); picture values, storage and cache; which bookmark events count; listening again after our own changes. |
+
+`unit/load.js` loads scripts from `src/js` into a sandbox, the way a page shares its globals, with a small fake of the API: storage in memory and a bookmark tree, plus a log of the calls that change something.
+
+## Test data
+
+Most integration suites start from `freshProfile` (`lib/fixtures.js`): the background page started on these bookmarks.
 
 ```
-node test/test-storage.js
+Bookmarks Menu
+├─ Quick Dial (qd)       the dial's folder
+│  ├─ Site 1 … Site 6    b1 … b6, https://site1.example/ …
+│  └─ Folder (f1)
+│     └─ Site 7          b7
+└─ Other (other)         not the dial's: changes here must be ignored
 ```
 
-(or `npm test` in this folder).
+So the dial starts with 7 tiles: b1–b6, then the folder. Checks name tiles by these bookmark ids (`'-'` is an empty cell). Some suites add pictures to every tile first (`makeVersion4`, data as the original Quick Dial stored it).
 
-The script prints a `PASS`/`FAIL` line per check. It ends with `ALL PASS` (exit code 0) or `SOME FAILED` (exit code 1).
+No test reaches the internet: an address other than the test server gets a stub page titled with its host, so a tile that fetches its site (Refresh) is named `site1.example` and so on. `sitePage()` serves a local page where the page's content matters. Chromium can't draw a page into a picture the way Firefox's `drawWindow` does; suites that need tile pictures from pages use `stubDrawWindow`.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `test-storage.js` | The test runner. Copies `src/` to a temporary folder and serves it over a local HTTP server. Loads `bg.html` (the background page) and the dial and settings pages into frames of `index.html`, then works through phases A–Q (below). Deletes the temporary folder when done. |
-| `mock.js` | A simulated Firefox WebExtension API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the top window: storage contents, bookmark tree, listeners and a log of storage writes and removals, so the tests can check exactly what was written. It mirrors Firefox's real behaviour where it matters, e.g. `bookmarks.create` returns a new folder without `children`. |
-| `package.json` | The tests' only dependency, Playwright. `npm test` runs the tests, `npm run bench` the [extension benchmark](bench/README.md) and `npm run screenshots` the [screenshot maker](screenshots/README.md). |
-| `index.html` | The host page. Loads `mock.js` and provides `loadFrame()`, which opens an extension page (background, dial, settings) in an iframe. Reloading a frame removes its old listeners, which simulates a restart. |
+| `run.js` | Runs the integration suites: copies `src/` to a temporary folder, serves it over a local HTTP server, starts the browser, and gives each suite a fresh page. |
+| `integration/*.js` | One suite per area: `module.exports = { title, run(t) }`. |
+| `lib/harness.js` | What suites use through `t` (each method is described there): `check`, `same`, `log`; `J` (run code in the host page), `waitFor` (wait for a condition there); `loadBg`, `idle`, `loadDial`, `loadSettings`; `frame`, `inFrame`, `inDial`, `dial` (a page's frame); `answer` (a dialog), `download`. Also used by the screenshot maker. |
+| `lib/fixtures.js` | Shared test data and stand-ins: the bookmarks, original Quick Dial data, pictures, settings changes, a recording tabs API, a stand-in for Firefox's `drawWindow`, local web pages. |
+| `lib/coverage.js` | Coverage for `--coverage` (V8's, from the browser and from Node). |
+| `mock.js` | The simulated Firefox API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the host page as `S`: storage, the bookmark tree, listeners, logs of storage writes and removals, and the menu items. It mirrors Firefox where it matters: e.g. a new folder comes without `children`, and a missing bookmark id rejects. |
+| `index.html` | The host page: loads `mock.js` and provides `loadFrame()` (opens an extension page in a frame; replacing a frame removes its listeners, which simulates a restart), `bg()`, `win()` and `bgIdle()`. |
+| `unit/*.test.js` | The unit tests; `unit/load.js` loads scripts from `src/js` into a sandbox with a minimal fake of the API. |
 
-## Test phases in `test-storage.js`
+## Writing tests
 
-| Phase | Checks |
-|---|---|
-| A | A fresh install creates default settings. |
-| B | Data from the original Quick Dial (version 4, screenshots stored inline as PNG) is migrated: pictures move to their own `img_<id>` keys as WebP, and the stored size shrinks. |
-| C | A restart with nothing changed writes nothing to storage. |
-| D | Bookmark changes outside the Quick Dial folder are ignored; changes inside it trigger a sync. |
-| E | The dial page shows pictures for the visible tiles. |
-| F | Export, then import into a fresh profile, restores tiles and pictures. |
-| G | Deleting a tile removes its picture; changing a tile's URL drops the old picture. |
-| H | Removing a whole folder removes the pictures of everything inside it. |
-| I | Importing an original Quick Dial export whose bookmark IDs don't exist here rebuilds the bookmarks and keeps cell positions. |
-| J | Importing the same export again creates nothing new. |
-| K | The import entry points in the UI exist and work. |
-| L | The dial shows an updated picture after a refresh or capture. |
-| M | A brand-new profile without a Quick Dial folder creates it and keeps syncing. |
-| N | The background colour is remembered for the dial page and updated when settings change. While the background page is still loading, the dial shows that colour and waits; it draws once the background page is ready, with no duplicate retry. |
-| O | The old start page timer setting (`startpageTimeout`, before 0.3.5) is removed from stored settings on the next start, saved once, and the start after that writes nothing. Imports drop it too (phase I). |
-| P | Themes: style settings added in 0.4.0 start at their Classic values; custom themes are cleaned (built-in names, duplicates, broken entries), saved and reloaded; theme files round-trip, and unsafe or invalid values (`url()` in gradients, CSS in font names, out-of-range numbers) are replaced; backups carry themes and their import cleans style values. In Settings › Themes, **Use** fills the form without touching the dial, **Apply** puts Anori on the dial (gradient, glass, shadow, title over the picture) and keeps rows, columns, tile shape and picture; Classic brings the original look back. |
-| Q | Refresh draws the downloaded page in a sandboxed frame (`sandbox="allow-same-origin"`, no scripts): the page's title is read and its picture drawn (a stand-in replaces Firefox's `drawWindow`), its scripts and `onload` never run, the `<base>` address is escaped and the frame is removed afterwards. Addresses other than `http`/`https` are not downloaded. |
-| R | Settings in its own tab (0.5.0): new installs open Settings from the toolbar button, existing installs (and older backups) keep the dial in a new or the current tab, saved once; a click on the button opens what the setting says; its right-click menu has the dial and Settings; an open Settings tab is brought forward and switched to the asked section instead of opening another; the dial's Settings items open the tab. On the page: `?tab=` opens a section, an edit enables **Apply** and **Discard changes**, Discard brings back the dial's settings, **Ctrl+S** applies, and changes applied elsewhere show up while nothing is pending. |
+Logic that needs no page belongs in a unit test; what needs the pages, their events or the browser goes in the integration suite for its area. A new area gets a new file in `integration/`; `run.js` finds it by itself. Start from this:
+
+```js
+// <What it covers> (<source files>): <one or two lines>.
+//
+// Starts from: <freshProfile, or what else, and the stand-ins used>.
+// The steps build on each other: <what each step leaves for the next one>.
+// Related: <the suites or unit tests that cover the rest>.
+'use strict';
+const { freshProfile } = require('../lib/fixtures');
+
+module.exports = {
+	title: '<shown in the report and by --list>',
+	async run(t) {
+		await freshProfile(t);
+
+		// ----- <a group of steps> -----
+		await t.J(() => bg().browser.bookmarks.update('b1', { title: 'Renamed' }));
+		await t.idle();
+		const st = await t.J(() => S.storage.node.children[0].title);
+		t.check('a renamed bookmark renames its tile', st === 'Renamed', st);
+	}
+};
+```
+
+- Name a check by what should be true, as a statement ("a renamed bookmark renames its tile"); pass what you got as the third argument, so a failure shows it.
+- Code passed to `t.J`, `t.waitFor` and `t.inDial` runs in the browser, not in Node: it can't use the suite's variables; pass what it needs as the argument.
+- Wait for what you expect, not for a fixed time: `await t.idle()` after a change in the background page, `await t.waitFor('what', () => condition)` for anything else. A fixed pause is only right where the check is that something does *not* happen within a time.
+- When a step changes what later steps see, say so in the file's comment.
+- Run `npm run check` at the top of the repository: ESLint checks the test code too.

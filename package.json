@@ -6,7 +6,8 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc -p jsconfig.json",
-    "check": "eslint && tsc -p jsconfig.json"
+    "check": "eslint && tsc -p jsconfig.json",
+    "test:unit": "node --test \"test/unit/*.test.js\""
   },
   "devDependencies": {
     "@types/firefox-webext-browser": "^143.0.1",
