@@ -90,6 +90,8 @@ module.exports = {
 		st = await menu(t, C.refresh, 'News page');
 		await t.waitFor('the new title', () => [...win('dial').document.querySelectorAll('table.Grid a')].some(a => a.lastChild.innerText === 'News, updated'));
 		t.check('Refresh shows the loading picture, then the new title', st === 'BookmarkLoading', st);
+		const spinner = await t.inDial(() => dial.styles.grid.linkBookmarkLoading.backgroundImage);
+		t.check('the loading picture is the built-in spinner', spinner.includes('/img/loading.svg'), spinner);
 
 		// ----- Capture page and Properties: the dial asks the background page / opens the popup for the tile under the mouse -----
 		await t.J(() => { const g = bg().app.GridNodes; bg().qdCaptured = []; g.capturePage = (node, cb) => { bg().qdCaptured.push(node.id); if (cb) cb(); }; });

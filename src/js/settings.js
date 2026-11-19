@@ -221,8 +221,8 @@ app.init = function(){
 	function edit(fn){ return function(){ fn(); app.updatePreviews(); app.changes.mark(); }; }
 	BackgroundImageClear.onclick = edit(() => { BackgroundImage = null; });
 	BackgroundGradientClear.onclick = edit(() => { BackgroundGradient = null; });
-	GridBackImageReset.onclick = edit(() => { GridBackImage = 'url(/img/back.png)'; });
-	GridFolderImageReset.onclick = edit(() => { GridFolderImage = 'url(/img/folder.png)'; });
+	GridBackImageReset.onclick = edit(() => { GridBackImage = 'url(/img/back.svg)'; });
+	GridFolderImageReset.onclick = edit(() => { GridFolderImage = 'url(/img/folder.svg)'; });
 
 	// ----- Themes -----
 	BtnThemeSave.onclick = app.Themes.saveCurrent;

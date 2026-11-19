@@ -7,7 +7,8 @@ var app = {};
 // eslint-disable-next-line no-var
 var dial = {
 	page: 1, // shown page of the folder, 1-based
-	maxpage: 1
+	maxpage: 1,
+	LOADING_ICON: 'url(/img/loading.svg)' // Spinner on a tile while its picture is made
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -225,7 +226,7 @@ dial.initStyles = function(){
 	dial.styles.grid.linkFolder = rule('.Grid td>a.Folder :first-child { background-image: ' + s.grid.folderIcon + '; background-size: 100% 100%; }');
 	applyImageMode(s.grid.folderIconMode, dial.styles.grid.linkFolder);
 	dial.styles.grid.linkBookmark = rule('.Grid td>a.Bookmark :first-child { background-size: 100% 100%; }');
-	dial.styles.grid.linkBookmarkLoading = rule('.Grid td>a.BookmarkLoading :first-child { background-image: url("' + c.loadingIcon + '"); background-position: center; }');
+	dial.styles.grid.linkBookmarkLoading = rule('.Grid td>a.BookmarkLoading :first-child { background-image: ' + dial.LOADING_ICON + '; background-size: auto; background-position: center; }');
 	dial.applyAccent();
 	if(oldStyle) document.head.removeChild(oldStyle);
 };
@@ -474,7 +475,7 @@ dial.deleteNode = function(){
 dial._showLoading = function(link){ // until the background page sends the new picture
 	link.className = 'BookmarkLoading';
 	link._imageSrc = null; // Show the result even if the picture comes back unchanged
-	link.firstChild.style.backgroundImage = app.settings.grid.loadingIcon;
+	link.firstChild.style.backgroundImage = dial.LOADING_ICON;
 };
 dial.refreshNode = function(link){ // Refresh: download the page for its title and picture
 	dial._showLoading(link);

@@ -32,6 +32,22 @@ test('migrateToolbar: the old new-tab switch becomes toolbarAction', () => {
 	assert.equal(w.app.Settings.migrateToolbar(null), false);
 });
 
+test('migrateIcons: the old loading picture setting goes (the spinner is built in)', () => {
+	const w = loadBackground(), s = { grid: { backIcon: 'url(/img/back.svg)', loadingIcon: 'url(/img/throbber.gif)' } };
+	assert.equal(w.app.Settings.migrateIcons(s), true);
+	assert.deepEqual(plain(s.grid), { backIcon: 'url(/img/back.svg)' });
+	assert.equal('loadingIcon' in w.app.Settings.defaults().grid, false);
+});
+
+test('migrateIcons: the old PNG folder and Back defaults become the SVG ones, own pictures stay', () => {
+	const w = loadBackground(), m = grid => { const s = { grid }; return [w.app.Settings.migrateIcons(s), s.grid.backIcon, s.grid.folderIcon]; };
+	assert.deepEqual(m({ backIcon: 'url(/img/back.png)', folderIcon: 'url(/img/folder.png)' }), [true, 'url(/img/back.svg)', 'url(/img/folder.svg)']);
+	assert.deepEqual(m({ backIcon: 'url(data:image/png;base64,AA==)', folderIcon: 'url(/img/folder.png)' }), [true, 'url(data:image/png;base64,AA==)', 'url(/img/folder.svg)']);
+	assert.deepEqual(m({ backIcon: 'url(/img/back.svg)', folderIcon: 'url(/img/folder.svg)' }), [false, 'url(/img/back.svg)', 'url(/img/folder.svg)']);
+	assert.equal(w.app.Settings.migrateIcons(null), false);
+	assert.equal(w.app.Settings.migrateIcons({}), false);
+});
+
 test('_upgrade: version 1 data (settings at the top, tiles inside them) reaches version 4', () => {
 	const w = loadBackground();
 	const v1 = { backgroundColor: '#000000', grid: { rows: 2, columns: 3, node: { children: [{ id: 'a', type: 2 }] },
@@ -42,7 +58,7 @@ test('_upgrade: version 1 data (settings at the top, tiles inside them) reaches 
 	assert.equal(d.settings.grid.node, undefined);
 	assert.equal(d.settings.version, undefined);
 	const g = d.settings.grid, c = g.cells;
-	assert.deepEqual([g.backNode, g.backIcon, g.backIconMode, g.folderIconMode, g.ratioX, g.ratioY, c.snapshotDelay], [true, 'url(/img/back.png)', 3, 0, 4, 3, 2000]);
+	assert.deepEqual([g.backNode, g.backIcon, g.backIconMode, g.folderIconMode, g.ratioX, g.ratioY, c.snapshotDelay], [true, 'url(/img/back.svg)', 3, 0, 4, 3, 2000]);
 	assert.deepEqual([c.titleHover, c.titleHeightHover, c.titleFontSizeHover, c.opacity, c.borderSize], [true, 20, 11, 1, 1]);
 	assert.ok(!('backIcon' in c) && !('backPanel' in c), 'icons moved from cells to grid');
 	assert.deepEqual([d.settings.menuShowAdd, d.settings.openQuickDialInNewPage, g.openBookmarkMethod], [true, true, 0]);

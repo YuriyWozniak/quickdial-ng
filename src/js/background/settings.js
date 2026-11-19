@@ -14,11 +14,10 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 			ratioX: 4,
 			ratioY: 3,
 			backNode: true,
-			backIcon: 'url(/img/back.png)',
+			backIcon: 'url(/img/back.svg)',
 			backIconMode: 3,
-			folderIcon: 'url(/img/folder.png)',
+			folderIcon: 'url(/img/folder.svg)',
 			folderIconMode: 0,
-			loadingIcon: 'url(/img/throbber.gif)',
 			openBookmarkMethod: 0,
 			openFolderMethod: 0,
 			cells: {
@@ -44,6 +43,7 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		let obsolete = ('startpageTimeout' in app.settings); // Start page timer, replaced by the home page override (0.3.5)
 		delete app.settings.startpageTimeout;
 		if(app.Settings.migrateToolbar(app.settings)) obsolete = true;
+		if(app.Settings.migrateIcons(app.settings)) obsolete = true;
 		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
 			app.Images.extractFromTree(app.node).then(() => app.Settings.save(callback));
@@ -61,9 +61,8 @@ app.Settings._upgrade = function(data){
 	if(!data.version){ // Version 1: settings at the top level
 		data.version = 2;
 		data.grid.backNode = true;
-		data.grid.backIcon = 'url(/img/back.png)';
-		data.grid.folderIcon = 'url(/img/folder.png)';
-		data.grid.loadingIcon = 'url(/img/throbber.gif)';
+		data.grid.backIcon = 'url(/img/back.svg)';
+		data.grid.folderIcon = 'url(/img/folder.svg)';
 		data.grid.cells.backgroundColor = null;
 		data.grid.cells.backgroundColorHover = null;
 		data.grid.cells.titleBackgroundColor = null;
@@ -133,6 +132,23 @@ app.Settings.migrateToolbar = function(settings){
 	else if(!old) return false;
 	delete settings.openQuickDialInNewPage;
 	return true;
+};
+
+// The default folder and Back pictures were redrawn as SVG (0.5.1): settings that still
+// point at the old PNG defaults move to the new ones; the user's own pictures stay.
+// The loading picture is no longer a setting (the dial always shows its SVG spinner).
+// Returns true when `settings` changed.
+app.Settings.ICONS = { 'url(/img/back.png)': 'url(/img/back.svg)', 'url(/img/folder.png)': 'url(/img/folder.svg)' };
+app.Settings.migrateIcons = function(settings){
+	const grid = settings && settings.grid;
+	if(!grid) return false;
+	let changed = false;
+	for(const key of ['backIcon', 'folderIcon']){
+		const next = app.Settings.ICONS[grid[key]];
+		if(next){ grid[key] = next; changed = true; }
+	}
+	if('loadingIcon' in grid){ delete grid.loadingIcon; changed = true; }
+	return changed;
 };
 
 app.Settings.update = function(settings, callback){ // Save new settings
