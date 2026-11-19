@@ -1,4 +1,12 @@
-// Smaller parts of the background page: backup helpers, pictures, bookmark listeners, shared constants.
+// Smaller parts of the background page and what all pages share:
+//   QDCommon (js/common.js)                       message command numbers and node types
+//   app.Backup (js/background/backup.js)          copying without transient fields, merging defaults,
+//                                                 linking imported tiles to bookmarks
+//   app.Images (js/background/images.js)          picture values, storage and cache
+//   app.Bookmarks (js/background/bookmarks.js)    which events count, listening around our own changes
+//
+// Loaded into a sandbox with a fake browser API (./load.js). Picture re-encoding (canvas) needs a
+// browser: integration/startup.js and backup.js cover it. A whole import is integration/backup.js.
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');

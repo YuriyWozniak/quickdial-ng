@@ -1,7 +1,21 @@
-// The Settings page (its own tab since 0.5.0): sections, Apply / Discard, and the Backup and Themes buttons.
+// The Settings page (html/settings.html, js/settings.js; its own tab since 0.5.0): sections, Apply /
+// Discard / Ctrl+S, the background picture, and the buttons of the Backup and Themes sections.
+// It is used as the user would: clicks, typing, files chosen (setInputFiles), dialogs answered (t.answer),
+// downloads caught (t.download). The page is opened in the "dial" frame (t.loadSettings).
+//
+// Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), Classic look, no themes.
+// The steps build on each other:
+//   1. the form: rows end up at 3 and the toolbar button back at "settings"
+//   2. a background picture applied, then cleared
+//   3. Backup: export; wrong files refused; the export imported (with rows changed to 2), first
+//      cancelled, then done; the export snippet copied
+//   4. Themes: "Saved one" saved (and replaced), exports, "Classic (imported)" imported then deleted
+// Related: what the import itself does is in backup.js; Use / Apply of a theme is in themes.js.
 'use strict';
 const { freshProfile, changeSettings, pictures } = require('../lib/fixtures');
 
+// A file for setInputFiles; the text of a status line (empty while hidden); the theme card names;
+// the card of a theme whose name starts with `name` (a regular expression)
 const json = (name, data) => ({ name, mimeType: 'application/json', buffer: Buffer.from(typeof data == 'string' ? data : JSON.stringify(data)) });
 const status = (t, id) => t.inDial(id => { const el = document.getElementById(id); return el.hidden ? '' : el.textContent; }, id);
 const themeNames = t => t.inDial(() => [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(h => h.firstChild.textContent));

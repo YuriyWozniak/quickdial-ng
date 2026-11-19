@@ -1,14 +1,25 @@
-// The toolbar button and the context menus (web pages, the dial page, its tiles, the toolbar button).
+// The toolbar button and the context menus (js/background/app.js, menus.js): what a click opens, the
+// Settings tab brought forward instead of opened twice, and every context menu item (web pages, the
+// dial page, its tiles, the toolbar button).
+//
+// Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js). The tabs API is replaced by
+// one that records the calls (spyTabs), so "what opens" is a list like [['create', { url }]].
+// The mock keeps every menu item Firefox would show (S.menuItems, with its onclick), so a click is a call
+// of that onclick. Items meant for the dial page only send it a command: what the dial does with them is
+// in dial-edit.js.
+// The steps build on each other: "Add to Quick Dial" adds a tile at the end; the last step turns
+// that item off.
 'use strict';
 const { freshProfile, spyTabs } = require('../lib/fixtures');
 
-// Clicks the menu item with this title (and parent menu, if given), as Firefox would
+// Clicks the menu item with this title (and parent menu, if given), as Firefox would; the tabs record starts empty
 const click = (t, title, parentId, info, tab) => t.J(([title, parentId, info, tab]) => {
 	const item = (S.menuItems || []).find(m => m.title === title && (!parentId || m.parentId === parentId));
 	if (!item) throw new Error('no menu item ' + title + (parentId ? ' in ' + parentId : ''));
 	bg().qdTabs = [];
 	item.onclick(info || {}, tab || { id: 3 });
 }, [title, parentId || null, info || null, tab || null]);
+// What the background page asked the tabs API for since then
 const tabs = t => t.J(() => bg().qdTabs);
 
 module.exports = {
@@ -32,7 +43,7 @@ module.exports = {
 		t.check('a section name that isn\'t one is ignored', t.same(st, [['update', 9, { active: true }]]), st);
 		await t.J(() => { bg().qdOpen = []; });
 
-		// ----- the menus -----
+		// ----- the menus: every item there, and what each one does -----
 		st = await t.J(() => S.menus);
 		t.check('the menus are all there', ['menuAddToQuickDial', 'menuNewBookmark', 'menuNewFolder', 'menuSettings', 'menuImportQuickDial', 'menuProperties', 'menuRefreshItem', 'menuCapturePage', 'menuDeleteItem', 'menuOpenDial'].every(m => st.includes(m)), st);
 		await click(t, 'menuAddToQuickDial', null, { menuItemId: 'AddToQuickDial', pageUrl: 'https://added.example/page' }, { id: 4, title: 'Added page' });
@@ -55,7 +66,7 @@ module.exports = {
 		st = st.concat(await tabs(t));
 		t.check('Settings, Import from Quick Dial and Open the dial open their tabs', t.same(st, [['create', { url: 'html/settings.html' }], ['create', { url: 'html/settings.html?tab=backup' }], ['create', { url: 'html/settings.html' }], ['create', { url: '/dial.html' }]]), st);
 
-		// Settings change: menus are built again, without "Add to Quick Dial" when it is turned off
+		// ----- a settings change builds the menus again: without "Add to Quick Dial" when it is turned off -----
 		await t.J(() => { const s = JSON.parse(JSON.stringify(bg().app.settings)); s.menuShowAdd = false; fire('rt.onMessage.bg', { cmd: 1, settings: s }, {}, () => {}); });
 		await t.idle();
 		st = await t.J(() => S.menus);

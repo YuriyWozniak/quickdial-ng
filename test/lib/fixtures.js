@@ -1,4 +1,13 @@
-// Test data and stand-ins shared by the suites. Each function takes the suite's TestPage (t).
+// Test data and stand-ins shared by the integration suites. Each function takes the suite's TestPage (t).
+//
+// The standard bookmarks (seedBookmarks, freshProfile), which most suites start from:
+//   menu________ (Bookmarks Menu)
+//     qd     "Quick Dial"   the dial's folder: b1-b6 "Site 1"-"Site 6" (https://site1.example/...),
+//                           then f1 "Folder" holding b7 "Site 7"
+//     other  "Other"        unrelated bookmarks: changes there must be ignored
+// So the dial starts with 7 tiles: b1-b6, then the folder f1.
+// Sites other than the test server answer with a stub page titled with their host ("site1.example");
+// sitePage() serves a local page where a page's content matters.
 'use strict';
 
 // Bookmarks: a "Quick Dial" folder with six bookmarks (b1-b6) and a folder (f1, holding b7),

@@ -1,8 +1,18 @@
-// Editing from the dial: the commands of its context menu (new bookmark or folder, delete, refresh,
-// capture, properties) and its Settings items.
+// Editing from the dial (js/dial.js, js/ui.js dialogs): the commands of its context menu (new bookmark
+// or folder, delete, refresh, capture, properties), its dialogs by keyboard, and its Settings items.
+// The menu itself lives in the background page (toolbar-menus.js); here its commands are sent to the
+// dial as the background page does, after a mousedown on the tile, as a right-click would.
+//
+// Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js) and no pictures; drawing
+// pages works (stubDrawWindow), so on opening, the dial fetches every site: the tiles then have pictures
+// and are titled with their host ("site2.example", the test server's stub pages). A local page
+// (/site/news.html) stands for a real site where its title matters.
+// The steps build on each other: "News page" (cell 7) stays and is refreshed later; the other tiles and
+// folders made here are deleted again. Capture is only checked up to the request (siteinfos.js tests it).
 'use strict';
 const { freshProfile, spyTabs, stubDrawWindow, sitePage } = require('../lib/fixtures');
 
+// The titles of the tiles the dial shows
 const shown = t => t.inDial(() => [...document.querySelectorAll('table.Grid a:not(.Empty)')].map(a => a.lastChild.innerText));
 // What the context menu does: the dial remembers the tile under the mouse, the background page sends the command.
 // Returns the tile's class right after the command (e.g. BookmarkLoading).
@@ -24,6 +34,7 @@ module.exports = {
 		await t.waitFor('the tiles to fetch their sites (titled with their host)', () => bg().app.node.children.filter(c => c.image === '1').length === 6);
 		const page = sitePage(t, 'news.html', '<!doctype html><html><head><title>News page</title></head><body><h1>News</h1></body></html>');
 
+		// ----- New bookmark: the address is checked; the new tile fetches its title and picture -----
 		await menu(t, C.createBookmark);
 		let d = await t.answer({ values: ['javascript:alert(1)'] });
 		t.check('New bookmark refuses an address that isn\'t a web page', /web address/.test(d.error), d);
@@ -41,6 +52,7 @@ module.exports = {
 		await t.J(() => bg().browser.bookmarks.removeTree(bg().app.node.children[8].id));
 		await t.idle();
 
+		// ----- New folder, Delete -----
 		await menu(t, C.createFolder);
 		d = await t.answer();
 		await t.waitFor('the new folder', () => bg().app.node.children.some(c => c.title === 'New Folder'));
@@ -59,7 +71,7 @@ module.exports = {
 		st = await t.J(() => S.bm.children[0].children[0].children.some(c => c.title === 'New Folder'));
 		t.check('Delete removes the tile and its bookmark', !st);
 
-		// The dialogs by keyboard: Enter accepts, Escape cancels
+		// ----- the dialogs by keyboard: Enter accepts, Escape cancels -----
 		await menu(t, C.createFolder);
 		await t.dial().locator('.qd-dialog input').fill('Keyboard');
 		await t.dial().locator('.qd-dialog input').press('Enter');
@@ -73,13 +85,13 @@ module.exports = {
 		await t.idle();
 		t.check('dialogs: Enter accepts, Escape cancels; a delete has Cancel focused', (await t.J(() => bg().app.node.children.some(c => c.title === 'Keyboard'))) && st === 'Cancel', st);
 
-		// Refresh: the page is fetched again (here with a new title); the tile shows the loading picture meanwhile
+		// ----- Refresh: the page is fetched again (here with a new title); the tile shows the loading picture meanwhile -----
 		sitePage(t, 'news.html', '<!doctype html><html><head><title>News, updated</title></head><body></body></html>');
 		st = await menu(t, C.refresh, 'News page');
 		await t.waitFor('the new title', () => [...win('dial').document.querySelectorAll('table.Grid a')].some(a => a.lastChild.innerText === 'News, updated'));
 		t.check('Refresh shows the loading picture, then the new title', st === 'BookmarkLoading', st);
 
-		// Capture page and Properties: the dial asks the background page / opens the popup for the tile under the mouse
+		// ----- Capture page and Properties: the dial asks the background page / opens the popup for the tile under the mouse -----
 		await t.J(() => { const g = bg().app.GridNodes; bg().qdCaptured = []; g.capturePage = (node, cb) => { bg().qdCaptured.push(node.id); if (cb) cb(); }; });
 		await menu(t, C.capture, 'site2.example');
 		st = await t.waitFor('the capture request', () => bg().qdCaptured.length && bg().qdCaptured);
@@ -92,7 +104,7 @@ module.exports = {
 		await t.waitFor('the popup to close', () => !win('dial').document.querySelector('.qd-overlay'));
 		t.check('Escape closes the popup', true);
 
-		// The dial's Settings items open the Settings tab (0.5.0)
+		// ----- the dial's Settings items open the Settings tab (0.5.0) -----
 		await spyTabs(t);
 		await t.inDial(() => { dial.editSettings('backup'); dial.editSettings(new MouseEvent('click')); });
 		st = await t.waitFor('the tabs', () => bg().qdTabs.length === 2 && bg().qdTabs);

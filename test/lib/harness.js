@@ -93,12 +93,15 @@ class TestPage {
 		return t;
 	}
 
+	/** Records a check: name says what should be true; info (shown on failure) is what was found. */
 	check(name, cond, info) {
 		if (cond) this.passed++; else this.failed++;
 		this.lines.push((cond ? 'PASS ' : 'FAIL ') + name + (cond || info === undefined ? '' : '\n     got: ' + show(info)));
 		return !!cond;
 	}
+	/** Deep equality of plain data (as JSON). */
 	same(a, b) { return same(a, b); }
+	/** A line of information in the report (not a check). */
 	log(text) { this.lines.push('     ' + text); }
 
 	/** Runs fn(arg) in the host page (index.html) and returns its result. */

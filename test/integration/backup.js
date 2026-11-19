@@ -1,4 +1,15 @@
-// Backups: export and import of settings, tiles, pictures and themes, and imports of the original Quick Dial's data.
+// Backups (js/background/backup.js): export and import of settings, tiles, pictures and themes, and
+// imports of the original Quick Dial's data. Calls app.Backup directly; the Settings page's Export and
+// Import buttons around it are tested in settings-page.js, the importData message in messages.js.
+//
+// Starts from: the standard bookmarks (lib/fixtures.js) with every tile holding a picture (makeVersion4).
+// The steps build on each other:
+//   1. export, empty the storage, import: everything comes back (the bookmarks stay as they were)
+//   2. the folder f1 (with b7) is removed, then an original Quick Dial export from another profile is
+//      imported: its bookmark ids don't exist here, so tiles are matched by address or folder name,
+//      or their bookmarks are created; importing it again creates nothing
+//   3. themes: a backup carries the custom themes, importing one adds or replaces themes by name
+// Related: how tiles are matched to bookmarks is also a unit test (unit/background.test.js).
 'use strict';
 const { freshProfile, makeVersion4, pictures } = require('../lib/fixtures');
 
@@ -9,6 +20,7 @@ module.exports = {
 		await makeVersion4(t);
 		await t.loadBg();
 
+		// ----- export, then import into an empty profile -----
 		const exp = await t.J(() => bg().app.Backup.export());
 		t.check('an export has the 7 pictures', Object.keys(exp.images).length === 7, Object.keys(exp.images));
 		await t.J(() => { S.storage = {}; });
@@ -20,7 +32,7 @@ module.exports = {
 		st = await t.J(() => bg().app.Backup.import({ settings: {} }).then(() => 'imported', e => e.message));
 		t.check('data that is not a backup is refused', st === 'Not a Quick Dial backup', st);
 
-		// An original Quick Dial export from another profile: its bookmark ids don't exist here
+		// ----- an original Quick Dial export from another profile: its bookmark ids don't exist here -----
 		await t.J(() => bg().browser.bookmarks.removeTree('f1'));
 		await t.idle();
 		const settings = await t.J(() => S.storage.settings);
@@ -55,7 +67,7 @@ module.exports = {
 		await t.idle();
 		t.check('importing the same export again matches everything and creates nothing', r.created === 0 && r.matched === 7, r);
 
-		// Themes travel with backups; style values from a backup are cleaned
+		// ----- themes travel with backups; style values from a backup are cleaned -----
 		await t.J(() => bg().app.Themes.save([{ name: 'Mine', style: { backgroundColor: '#112233' } }]));
 		const bk = await t.J(() => bg().app.Backup.export());
 		t.check('a backup carries the custom themes', bk.themes && bk.themes.length === 1 && bk.themes[0].name === 'Mine', bk.themes);

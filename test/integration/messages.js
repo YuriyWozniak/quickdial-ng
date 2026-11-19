@@ -1,4 +1,13 @@
-// The background page's message API, as the dial, Settings and Properties pages use it (js/background/messages.js).
+// The background page's message API (js/background/messages.js), as the dial, Settings and Properties
+// pages use it: every command they send (QDCommon.Commands in js/common.js), with what it answers and
+// what it changes. The pages' own use of these messages is covered by their suites.
+//
+// Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), no pictures, drawing pages
+// works (stubDrawWindow, so a new address takes the stub page's title, its host). No page is open: the
+// messages come from a sender made in the host page (makeBrowser), as from any extension page.
+// The steps build on each other: b1 ends up "Mine" (locked) at https://moved.example/, b2 "two.example";
+// b1 and b2 swap cells; a bookmark is added in the folder (f1); a folder "Sub" is made and deleted;
+// the root folder is switched to "Other" and back.
 'use strict';
 const { freshProfile, spyTabs, stubDrawWindow, pictures } = require('../lib/fixtures');
 
@@ -7,6 +16,7 @@ const ask = (t, msg) => t.J(msg => {
 	window.tester = window.tester || makeBrowser(window, 'tester');
 	return tester.runtime.sendMessage(msg);
 }, msg);
+// The command numbers used here (QDCommon.Commands); a node by id in the background page; a bookmark by id
 const C = { getSettings: 0, setSettings: 1, getNode: 2, getNodeByID: 3, updateNode: 4, setNodeIndex: 5, createBookmark: 6, createFolder: 7, deleteNode: 8,
 	refreshNode: 9, getImages: 11, exportData: 12, importData: 13, getThemes: 14, setThemes: 15, openSettings: 16 };
 const node = (t, id) => t.J(id => bg().app.GridNodes.getNodeById(id), id);
@@ -19,6 +29,7 @@ module.exports = {
 		await stubDrawWindow(t);
 		const [pic] = await pictures(t, 1);
 
+		// ----- reading: settings, folders, tiles -----
 		let st = await ask(t, { cmd: C.getSettings });
 		t.check('getSettings', st.grid.rows === 4 && st.toolbarAction === 'settings', st.grid);
 		st = [await ask(t, { cmd: C.getNode, path: '/' }), await ask(t, { cmd: C.getNode, path: '/Folder/' }), await ask(t, { cmd: C.getNode, path: '/Nope/' })];
@@ -26,7 +37,7 @@ module.exports = {
 		st = await ask(t, { cmd: C.getNodeByID, id: 'b7' });
 		t.check('getNodeByID', st.title === 'Site 7', st);
 
-		// updateNode: what the Properties page sends
+		// ----- updateNode: what the Properties page sends -----
 		await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', titleLocked: true, imageLocked: true, image: pic, imageMode: 3, url: 'https://site1.example/' } });
 		await t.idle();
 		st = { node: await node(t, 'b1'), bookmark: await bookmark(t, 'b1'), stored: await t.J(() => (S.storage.img_b1 || '').slice(0, 15)) };
@@ -44,7 +55,7 @@ module.exports = {
 		st = await node(t, 'b2');
 		t.check('...an unlocked tile takes the new page\'s title and picture', st.title === 'two.example' && st.url === 'https://two.example/', st);
 
-		// Tiles: swap, create, delete, refresh a folder
+		// ----- tiles: swap, create, delete, refresh a folder -----
 		await ask(t, { cmd: C.setNodeIndex, path: '/', index: 0, newIndex: 1 });
 		await t.idle();
 		st = await t.J(() => S.storage.node.children.slice(0, 2).map(c => c.id));
@@ -67,6 +78,7 @@ module.exports = {
 		st = { node: await node(t, 'f1'), key: await t.J(() => 'img_f1' in S.storage) };
 		t.check('refreshNode on a folder clears its picture (back to the folder icon)', !st.node.image && !st.key, st);
 
+		// ----- pictures, backups, themes, the Settings tab -----
 		st = await ask(t, { cmd: C.getImages, ids: ['b1', 'b3'] });
 		t.check('getImages answers the pictures there are', Object.keys(st).join() === 'b1' && st.b1.startsWith('data:image/'), Object.keys(st));
 		const backup = await ask(t, { cmd: C.exportData });
@@ -84,7 +96,7 @@ module.exports = {
 		st = await t.J(() => bg().qdTabs);
 		t.check('openSettings', t.same(st, [['create', { url: 'html/settings.html?tab=themes' }]]), st);
 
-		// setSettings: a new root folder brings its own tiles (pictures of the old ones go), then back
+		// ----- setSettings: a new root folder brings its own tiles (pictures of the old ones go), then back -----
 		const settings = await ask(t, { cmd: C.getSettings });
 		settings.grid.root = 'Other';
 		st = await ask(t, { cmd: C.setSettings, settings });

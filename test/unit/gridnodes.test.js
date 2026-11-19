@@ -1,4 +1,11 @@
-// app.GridNodes (js/background/gridnodes.js): the tile tree, its sync with the bookmarks folder, and edits.
+// app.GridNodes (js/background/gridnodes.js): the tile tree, its sync with the bookmarks folder, and edits
+// (swap, new bookmark or folder, delete).
+//
+// The tile tree mirrors the "Quick Dial" bookmarks folder: a folder's children are its cells in order,
+// with { type: 0 } for a gap; tiles keep their cells while bookmarks come and go. Here the bookmarks are
+// the fake API's tree (browser.bookmarks.tree in ./load.js), changed directly, then sync() is called as
+// the background page does on a bookmark event. ids() shows a folder's cells by bookmark id ('-': a gap).
+// Related: the same through real bookmark events, with pictures, is integration/sync.js.
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');

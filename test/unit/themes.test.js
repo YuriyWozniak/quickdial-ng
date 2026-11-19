@@ -1,4 +1,11 @@
-// QDThemes (js/themes.js): the style rules, theme files and CSS helpers.
+// QDThemes (js/themes.js): the style rules, theme files and CSS helpers, shared by the background page,
+// the dial and Settings.
+//
+// themes.js is loaded on its own into a sandbox (./load.js); it needs nothing else. A style is the part of
+// the settings a theme sets (CLASSIC shows all its keys: colours, page margin, tile and title styles);
+// normalize() is the gate every style passes: valid values are kept, others replaced by Classic's.
+// Values made in the sandbox are compared through plain() (another realm's arrays and objects).
+// Related: storing custom themes and putting one on the dial are integration tests (integration/themes.js).
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');

@@ -1,8 +1,17 @@
-// Themes: custom themes stored by the background page, and putting a theme on the dial from Settings.
-// The theme rules themselves (cleaning values, files) are unit tests: unit/themes.test.js.
+// Themes (app.Themes in js/background/settings.js; the Themes tab of js/settings.js; the dial's styles in
+// js/dial.js): custom themes stored by the background page, and putting a theme on the dial from Settings.
+//
+// Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), Classic look.
+// The steps build on each other:
+//   1. the background page stores a custom theme list (cleaned) and reloads it after a restart
+//   2. with one custom theme ("Mine") and a background picture set, Settings › Themes: Use Anori,
+//      Apply; the dial then draws Anori; finally Classic is put back
+// Related: the theme rules (value checks, theme files) are unit tests (unit/themes.test.js); the
+// Themes tab's Save / Export / Import / Delete buttons are in settings-page.js.
 'use strict';
 const { freshProfile } = require('../lib/fixtures');
 
+// Runs in the Settings page: is the Themes tab shown, the names of the theme cards, and those marked "In use"
 const themeCards = () => ({ tab: !document.getElementById('TabThemes').hidden, cards: [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(h => h.firstChild.textContent),
 	current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(h => h.firstChild.textContent) });
 
@@ -10,6 +19,8 @@ module.exports = {
 	title: 'Custom themes saved and reloaded; Use, Apply and Classic in Settings; the dial draws the theme',
 	async run(t) {
 		await freshProfile(t);
+
+		// ----- custom themes stored by the background page -----
 		await t.J(() => bg().app.Themes.save([{ name: 'Mine', description: 'test', style: { backgroundColor: '#112233', grid: { cells: { borderRadius: 9 } } } },
 			{ name: 'Classic', style: {} }, { name: 'mine', style: {} }, { nameless: true }]));
 		let st = await t.J(() => S.storage.themes);
@@ -21,7 +32,7 @@ module.exports = {
 		t.check('an empty list removes the stored key', !(await t.J(() => 'themes' in S.storage)));
 		await t.J(() => bg().app.Themes.save([{ name: 'Mine', style: { backgroundColor: '#112233' } }]));
 
-		// Settings › Themes: Use Anori, Apply, the dial follows; rows, columns and the background picture are kept
+		// ----- Settings › Themes: Use Anori, Apply, the dial follows; rows, columns and the background picture are kept -----
 		await t.J(() => { const s = bg().app.settings; s.backgroundImage = 'url(/img/back.png)'; });
 		const layout = () => t.J(() => { const s = bg().app.settings; return { rows: s.grid.rows, cols: s.grid.columns, ratio: s.grid.ratioX + ':' + s.grid.ratioY, pic: s.backgroundImage }; });
 		const before = await layout();
@@ -41,6 +52,8 @@ module.exports = {
 		const after = await layout();
 		t.check('Apply puts Anori on; layout and background picture are kept', st.accent === '#00794a' && st.grad && st.anori && t.same(after, before), [st, before, after]);
 
+
+		// ----- the dial draws the theme; Classic brings the original look back -----
 		await t.loadDial();
 		st = await t.inDial(() => { const a = document.querySelector('table.Grid a:not(.Empty)'), cs = getComputedStyle(a), title = getComputedStyle(a.lastChild);
 			return { bg: getComputedStyle(document.body).backgroundImage.slice(0, 40), radius: cs.borderTopLeftRadius, blur: cs.backdropFilter, shadow: cs.boxShadow !== 'none', titlePos: title.position, panelH: a.firstChild.offsetHeight, linkH: a.clientHeight }; });

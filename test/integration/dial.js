@@ -1,9 +1,21 @@
-// The dial page: tiles and pictures, the early background colour, pages, folders and drag and drop.
+// The dial page (dial.html, js/dial.js, js/dialbg.js): how it draws the tiles and their pictures, the
+// background colour it paints before the background page answers, folders and the Back tile, pages,
+// and drag and drop. Editing from the dial (its context menu) is in dial-edit.js.
+//
+// Starts from: the standard bookmarks (lib/fixtures.js) with every tile holding a picture (makeVersion4),
+// so tiles keep their titles ("Site 1"...) and nothing is downloaded.
+// The steps build on each other:
+//   1. tiles and pictures; the colour (changed to #123456, kept from then on)
+//   2. the folder "Folder" (f1, holding Site 7) with and without the Back tile
+//   3. pages: the grid set to 1 row of 3 cells (7 tiles: 3 pages at the top, 1 in the folder)
+//   4. drag and drop: the grid set to 2 rows of 4; tiles swapped at the top and in the folder
+// Drags are synthetic drag events: Playwright's mouse drag doesn't reach into the frame.
 'use strict';
 const { freshProfile, makeVersion4, changeSettings } = require('../lib/fixtures');
 
 // The tiles the dial shows, in cell order: "Bookmark:Site 1", "Folder:Folder", "Back:Back", "-" for an empty cell
 const shown = t => t.inDial(() => [...document.querySelectorAll('table.Grid a')].map(a => a.className === 'Empty' ? '-' : a.className + ':' + a.lastChild.innerText));
+// The top folder's tiles in the background page, by bookmark id ('-' for a gap)
 const ids = t => t.J(() => bg().app.node.children.map(c => c.id || '-'));
 // A drag from one cell to another (or with the given drag data), as synthetic drag events.
 // Returns the drop effect the target cell offers while dragging over it ('move' or 'none'): read

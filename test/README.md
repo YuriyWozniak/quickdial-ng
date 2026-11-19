@@ -33,9 +33,13 @@ Then, in this folder:
 | `node run.js --jobs 1` | one suite at a time (by default up to four run at once) |
 | `npm run coverage` | all of it, then which lines of `src/js` ran, per file, with the functions that never ran |
 
-Each suite prints a `PASS`/`FAIL` line per check (a failure also shows what it got). A suite also fails on a script error in its pages. The run ends with `ALL PASS` (exit code 0) or `SOME FAILED` (exit code 1).
+Each suite prints a `PASS`/`FAIL` line per check (a failure also shows what it got). A suite also fails on a script error in its pages (its last check, `no script errors`). `FAIL suite stopped: …` means a step could not go on, usually `timed out waiting for <what>`: the checks after it in that suite didn't run, and the other suites are unaffected. The run ends with `ALL PASS` (exit code 0) or `SOME FAILED` (exit code 1).
+
+The unit tests print Node's test report; `node --test --test-reporter=spec "unit/*.test.js"` lists every test by name.
 
 ## Integration suites
+
+Each suite file starts with a comment that says what it covers, what it starts from, how its steps build on each other, and which other suite or unit test covers the rest. Its steps are grouped under `// ----- … -----` headings.
 
 | Suite | Covers |
 |---|---|
@@ -51,13 +55,43 @@ Each suite prints a `PASS`/`FAIL` line per check (a failure also shows what it g
 | `messages` | Every message the pages send to the background page: settings, tiles (read, update, swap, create, delete, refresh), pictures, backups, themes, another root folder. |
 | `siteinfos` | Refresh draws the downloaded page in a sandboxed frame (its scripts never run; other addresses aren't downloaded); Capture page in a background tab (title, picture, locked title or picture kept, folders, failures). |
 
+## Unit tests
+
+Each file starts with a comment on what it tests and how; every test's name says what it checks.
+
+| File | Tests | Covers |
+|---|---|---|
+| `themes.test.js` | `js/themes.js` | The style rules: numbers kept in range and rounded, colours, fonts and gradients checked (no `url()`, nothing that ends a CSS declaration); extract / apply / complete; theme files (round trip, what's wrong with a file); the custom theme list; file names; CSS helpers. |
+| `settings.test.js` | `js/background/settings.js` | Defaults; the toolbar setting before and after 0.5.0; upgrades of the original Quick Dial's data (versions 1 to 4); the first start of a new profile; obsolete settings saved once, then nothing written; batched saving without transient fields; the custom theme list. |
+| `gridnodes.test.js` | `js/background/gridnodes.js` | Sync with the bookmarks folder (order, gaps kept and filled, the end trimmed, pictures dropped, a sync asked for during a sync, a missing or absolute root folder); finding nodes; swapping cells; new bookmarks and folders; deleting. |
+| `background.test.js` | `js/common.js`, `js/background/backup.js`, `images.js`, `bookmarks.js` | Unique command numbers; backup copies and default merging; linking imported tiles to bookmarks (by id, address, folder name, or new); picture values, storage and cache; which bookmark events count; listening again after our own changes. |
+
+`unit/load.js` loads scripts from `src/js` into a sandbox, the way a page shares its globals, with a small fake of the API: storage in memory and a bookmark tree, plus a log of the calls that change something.
+
+## Test data
+
+Most integration suites start from `freshProfile` (`lib/fixtures.js`): the background page started on these bookmarks.
+
+```
+Bookmarks Menu
+├─ Quick Dial (qd)       the dial's folder
+│  ├─ Site 1 … Site 6    b1 … b6, https://site1.example/ …
+│  └─ Folder (f1)
+│     └─ Site 7          b7
+└─ Other (other)         not the dial's: changes here must be ignored
+```
+
+So the dial starts with 7 tiles: b1–b6, then the folder. Checks name tiles by these bookmark ids (`'-'` is an empty cell). Some suites add pictures to every tile first (`makeVersion4`, data as the original Quick Dial stored it).
+
+No test reaches the internet: an address other than the test server gets a stub page titled with its host, so a tile that fetches its site (Refresh) is named `site1.example` and so on. `sitePage()` serves a local page where the page's content matters. Chromium can't draw a page into a picture the way Firefox's `drawWindow` does; suites that need tile pictures from pages use `stubDrawWindow`.
+
 ## Files
 
 | File | Purpose |
 |---|---|
 | `run.js` | Runs the integration suites: copies `src/` to a temporary folder, serves it over a local HTTP server, starts the browser, and gives each suite a fresh page. |
 | `integration/*.js` | One suite per area: `module.exports = { title, run(t) }`. |
-| `lib/harness.js` | What suites use through `t`: `check`, `J` (run code in the host page), `waitFor` (wait for a condition there), `loadBg`, `idle`, `loadDial`, `loadSettings`, `inDial`, `answer` (a dialog), `download`. Also used by the screenshot maker. |
+| `lib/harness.js` | What suites use through `t` (each method is described there): `check`, `same`, `log`; `J` (run code in the host page), `waitFor` (wait for a condition there); `loadBg`, `idle`, `loadDial`, `loadSettings`; `frame`, `inFrame`, `inDial`, `dial` (a page's frame); `answer` (a dialog), `download`. Also used by the screenshot maker. |
 | `lib/fixtures.js` | Shared test data and stand-ins: the bookmarks, original Quick Dial data, pictures, settings changes, a recording tabs API, a stand-in for Firefox's `drawWindow`, local web pages. |
 | `lib/coverage.js` | Coverage for `--coverage` (V8's, from the browser and from Node). |
 | `mock.js` | The simulated Firefox API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the host page as `S`: storage, the bookmark tree, listeners, logs of storage writes and removals, and the menu items. It mirrors Firefox where it matters: e.g. a new folder comes without `children`, and a missing bookmark id rejects. |
@@ -66,7 +100,33 @@ Each suite prints a `PASS`/`FAIL` line per check (a failure also shows what it g
 
 ## Writing tests
 
+Logic that needs no page belongs in a unit test; what needs the pages, their events or the browser goes in the integration suite for its area. A new area gets a new file in `integration/`; `run.js` finds it by itself. Start from this:
+
+```js
+// <What it covers> (<source files>): <one or two lines>.
+//
+// Starts from: <freshProfile, or what else, and the stand-ins used>.
+// The steps build on each other: <what each step leaves for the next one>.
+// Related: <the suites or unit tests that cover the rest>.
+'use strict';
+const { freshProfile } = require('../lib/fixtures');
+
+module.exports = {
+	title: '<shown in the report and by --list>',
+	async run(t) {
+		await freshProfile(t);
+
+		// ----- <a group of steps> -----
+		await t.J(() => bg().browser.bookmarks.update('b1', { title: 'Renamed' }));
+		await t.idle();
+		const st = await t.J(() => S.storage.node.children[0].title);
+		t.check('a renamed bookmark renames its tile', st === 'Renamed', st);
+	}
+};
+```
+
+- Name a check by what should be true, as a statement ("a renamed bookmark renames its tile"); pass what you got as the third argument, so a failure shows it.
 - Code passed to `t.J`, `t.waitFor` and `t.inDial` runs in the browser, not in Node: it can't use the suite's variables; pass what it needs as the argument.
 - Wait for what you expect, not for a fixed time: `await t.idle()` after a change in the background page, `await t.waitFor('what', () => condition)` for anything else. A fixed pause is only right where the check is that something does *not* happen within a time.
-- Outside web sites are never contacted: any address other than the test server answers with a stub page titled with its host.
-- Logic that needs no page belongs in a unit test.
+- When a step changes what later steps see, say so in the file's comment.
+- Run `npm run check` at the top of the repository: ESLint checks the test code too.

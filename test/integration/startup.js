@@ -1,10 +1,20 @@
-// Install, upgrade and restart: what the background page stores when it starts.
+// Install, upgrade and restart (js/background/settings.js, images.js): what the background page stores
+// when it starts, and that a start with nothing to change writes nothing.
+//
+// Starts from: an empty profile with the standard bookmarks (lib/fixtures.js). Each "start" is a reload
+// of the background page frame (t.loadBg), which keeps storage and bookmarks, as a browser restart does.
+// The steps build on each other: the stored data is edited in place (S.storage) to look like what an
+// older version left, then the background page is started again and its writes (S.writes) are checked.
+// The last step empties storage and removes the Quick Dial folder (a brand-new profile).
+// Related: the upgrade rules in isolation are unit tests (unit/settings.test.js); imports of older data
+// are in backup.js.
 'use strict';
 const { freshProfile, makeVersion4 } = require('../lib/fixtures');
 
 module.exports = {
 	title: 'Fresh install, upgrades from older versions, restarts that write nothing',
 	async run(t) {
+		// ----- a fresh install -----
 		await freshProfile(t);
 		let st = await t.J(() => ({ keys: Object.keys(S.storage), tiles: S.storage.node.children.length }));
 		t.check('fresh install stores version, settings and tiles', ['version', 'settings', 'node'].every(k => st.keys.includes(k)), st.keys);
@@ -13,7 +23,7 @@ module.exports = {
 		t.check('new installs: the toolbar button opens Settings', st.action === 'settings' && !st.old, st);
 		t.check('style keys added in 0.4.0 start at their Classic values', st.glass === 1 && st.effect === 0 && st.font === 'Arial, Verdana, Sans-serif' && st.accent === null, st);
 
-		// Data of the original Quick Dial: pictures inline in the tile tree, as PNG
+		// ----- data of the original Quick Dial (version 4): pictures inline in the tile tree, as PNG -----
 		const v4size = await makeVersion4(t);
 		await t.loadBg();
 		st = await t.J(() => ({ version: S.storage.version, nodeLen: JSON.stringify(S.storage.node).length, imgKeys: Object.keys(S.storage).filter(k => k.startsWith('img_')).sort(),
@@ -24,12 +34,13 @@ module.exports = {
 		t.check('the tile tree no longer holds pictures', st.nodeLen < 5000, st.nodeLen);
 		t.log(`storage size v4 -> v5: ${v4size} -> ${st.total} (${(v4size / st.total).toFixed(1)}x smaller)`);
 
+		// ----- a restart with nothing to change -----
 		await t.J(() => { S.writes = []; S.removes = []; });
 		await t.loadBg();
 		st = await t.J(() => [...S.writes, ...S.removes]);
 		t.check('a restart with nothing changed writes nothing', st.length === 0, st);
 
-		// The start page timer (before 0.3.5) is dropped from storage once
+		// ----- obsolete settings: the start page timer (before 0.3.5) is dropped from storage once -----
 		await t.J(() => { S.storage.settings.startpageTimeout = 500; S.writes = []; });
 		await t.loadBg();
 		st = await t.J(() => ({ stored: 'startpageTimeout' in S.storage.settings, live: 'startpageTimeout' in bg().app.settings, writes: S.writes.map(w => w.k) }));
@@ -39,7 +50,7 @@ module.exports = {
 		st = await t.J(() => S.writes.map(w => w.k));
 		t.check('the start after that writes nothing again', st.length === 0, st);
 
-		// 0.5.0: the toolbar switch (dial in a new tab or this tab) becomes toolbarAction; existing installs keep what they had
+		// ----- 0.5.0: the toolbar switch (dial in a new tab or this tab) becomes toolbarAction; existing installs keep what they had -----
 		for (const [old, want] of [[true, 'newtab'], [false, 'current']]) {
 			await t.J(old => { const s = S.storage.settings; delete s.toolbarAction; s.openQuickDialInNewPage = old; S.writes = []; }, old);
 			await t.loadBg();
@@ -51,7 +62,7 @@ module.exports = {
 		st = await t.J(() => S.writes.map(w => w.k));
 		t.check('the start after the toolbar change writes nothing', !st.includes('settings'), st);
 
-		// A new profile has no Quick Dial folder: it is created (Firefox returns new folders without children)
+		// ----- a new profile has no Quick Dial folder: it is created (Firefox returns new folders without children) -----
 		await t.J(() => { S.storage = {}; S.bm.children[0].children = S.bm.children[0].children.filter(c => c.id !== 'qd'); });
 		await t.loadBg();
 		await t.J(() => bg().browser.bookmarks.create({ parentId: S.bm.children[0].children.find(c => c.title === 'Quick Dial').id, title: 'Fresh', url: 'https://fresh.example/' }));

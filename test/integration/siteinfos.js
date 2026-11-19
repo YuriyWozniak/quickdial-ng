@@ -1,5 +1,13 @@
-// A tile's title and picture from its site: Refresh downloads the page and draws it in a sandbox,
-// Capture page opens it in a tab and takes a screenshot (js/background/siteinfos.js).
+// A tile's title and picture from its site (js/background/siteinfos.js, gridnodes.js): Refresh downloads
+// the page and draws it in a sandboxed frame; Capture page opens it in a background tab and takes a
+// screenshot. Called on the background page directly; the dial's menu commands for them are in dial-edit.js.
+//
+// Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), no pictures.
+// Stand-ins: Chromium has no drawWindow (Firefox's way to draw a page): stubDrawWindow records what it was
+// asked to draw, and is removed again to test Firefox versions that refuse it. Capture needs tabs: fakeTabs
+// opens a pretend tab (loading once, then complete) and returns a blank screenshot, or fails.
+// The steps build on each other only through the tiles: b1 ends without a picture, b2 and b3 captured
+// (b3 with a locked title, then b2 with a locked picture), f1 captured, b4 a failed capture.
 'use strict';
 const { freshProfile, stubDrawWindow, sitePage, changeSettings } = require('../lib/fixtures');
 
@@ -13,6 +21,7 @@ const fakeTabs = (t, fail) => t.J(fail => {
 	w.browser.tabs.captureVisibleTab = () => { if (fail) return Promise.reject(new Error('no')); const c = w.document.createElement('canvas'); c.width = 1200; c.height = 1600; return Promise.resolve(c.toDataURL('image/png')); };
 	w.browser.tabs.remove = id => { w.qdTabs.push(['remove', id]); return Promise.resolve(); };
 }, !!fail);
+// Capture page / Refresh for a tile by id; both resolve with the site infos (title, picture) or nothing
 const capture = (t, id) => t.J(id => new Promise(r => { const g = bg().app.GridNodes; g.capturePage(g.getNodeById(id), r); }), id);
 const refresh = (t, id) => t.J(id => new Promise(r => { const g = bg().app.GridNodes; g.refreshNode(g.getNodeById(id), r); }), id);
 
@@ -21,7 +30,7 @@ module.exports = {
 	async run(t) {
 		await freshProfile(t);
 
-		// Refresh: the page is drawn in a sandboxed frame; its own scripts never run
+		// ----- Refresh: the page is drawn in a sandboxed frame; its own scripts never run -----
 		const page = sitePage(t, 'page.html', '<!doctype html><html><head><title>Sandboxed page</title>' +
 			'<script>top.qdRan = "script";</script></head><body onload="top.qdRan = \'onload\'"><h1>Hello</h1></body></html>');
 		await stubDrawWindow(t);
@@ -39,7 +48,7 @@ module.exports = {
 		st = await t.J(() => bg().app.GridNodes.getNodeById('b1'));
 		t.check('...and the tile is marked as having no picture', st.image === '0' && !st.__isLoading, st);
 
-		// Capture page: a background tab, shown once loaded, captured after the snapshot delay, then closed
+		// ----- Capture page: a background tab, shown once loaded, captured after the snapshot delay, then closed -----
 		await changeSettings(t, { grid: { cells: { snapshotDelay: 50 } } });
 		await fakeTabs(t);
 		st = await capture(t, 'b2');

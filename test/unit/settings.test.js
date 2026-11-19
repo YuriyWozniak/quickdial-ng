@@ -1,4 +1,11 @@
-// app.Settings (js/background/settings.js): defaults, upgrades of stored data, the toolbar setting, saving.
+// app.Settings and app.Themes (js/background/settings.js): defaults, upgrades of data stored by older
+// versions (the original Quick Dial's versions 1 to 4), the toolbar setting (0.5.0), loading and saving.
+//
+// Each test loads the background scripts into a fresh sandbox (./load.js loadBackground: everything but
+// main.js, so nothing starts by itself) with a fake browser API: browser.store is storage.local, and
+// browser.calls lists the writes, so "writes nothing" is a check of browser.calls. Saving is batched
+// (100 ms): settle() waits for it.
+// Related: the same upgrades through real restarts are integration tests (integration/startup.js).
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
