@@ -18,8 +18,7 @@ app.Messages.init = function(){
 				break;
 			case Commands.setSettings: {
 				const rootChanged = app.settings.grid.root != request.settings.grid.root;
-				app.settings = request.settings;
-				app.Settings.save();
+				app.Settings.update(request.settings);
 				sendResponse(app.settings);
 				app.Messages.broadcast(Commands.settingsChanged);
 				if(rootChanged){

@@ -5,22 +5,30 @@
 // Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), no pictures.
 // Stand-ins: Chromium has no drawWindow (Firefox's way to draw a page): stubDrawWindow records what it was
 // asked to draw, and is removed again to test Firefox versions that refuse it. Capture needs tabs: fakeTabs
-// opens a pretend tab (loading once, then complete) and returns a blank screenshot, or fails.
+// opens a pretend tab (loading once, then complete) and returns a blank screenshot, or fails in one of its ways.
 // The steps build on each other only through the tiles: b1 ends without a picture, b2 and b3 captured
-// (b3 with a locked title, then b2 with a locked picture), f1 captured, b4 a failed capture.
+// (b3 with a locked title, then b2 with a locked picture), f1 captured, b4 failed captures and then one of
+// a page that never finished loading (with shorter waiting times, set back at the end).
 'use strict';
 const { freshProfile, stubDrawWindow, sitePage, changeSettings } = require('../lib/fixtures');
 
-// A tabs API that opens a "tab", reports it loaded and captures a screenshot (or fails to); the calls are kept in bg().qdTabs
-const fakeTabs = (t, fail) => t.J(fail => {
+// A tabs API that opens a "tab", reports it loaded and captures a screenshot; the calls are kept in bg().qdTabs.
+// Options: fail (the screenshot fails), loading (the tab never finishes loading), switched (another tab is
+// shown by the time of the screenshot), noShow (the tab can't be shown).
+const fakeTabs = (t, options) => t.J(o => {
 	const w = bg(); w.qdTabs = [];
-	w.browser.tabs.create = o => { w.qdTabs.push(['create', o.url, o.active]); return Promise.resolve({ id: 7 }); };
-	w.browser.tabs.update = (id, o) => { w.qdTabs.push(['update', Object.keys(o).join()]); return Promise.resolve({ id }); };
-	let polls = 0;
-	w.browser.tabs.get = id => Promise.resolve({ id, status: polls++ ? 'complete' : 'loading', width: 1200, height: 1600, url: 'https://shot.example/', title: 'Captured title', favIconUrl: null });
-	w.browser.tabs.captureVisibleTab = () => { if (fail) return Promise.reject(new Error('no')); const c = w.document.createElement('canvas'); c.width = 1200; c.height = 1600; return Promise.resolve(c.toDataURL('image/png')); };
+	let active = false, polls = 0;
+	w.browser.tabs.create = c => { w.qdTabs.push(['create', c.url, c.active]); return Promise.resolve({ id: 7 }); };
+	w.browser.tabs.update = (id, u) => {
+		w.qdTabs.push(['update', Object.keys(u).join()]);
+		if (u.active && o.noShow) return Promise.reject(new Error('no'));
+		if (u.active) active = !o.switched;
+		return Promise.resolve({ id });
+	};
+	w.browser.tabs.get = id => Promise.resolve({ id, windowId: 1, active, status: polls++ && !o.loading ? 'complete' : 'loading', width: 1200, height: 1600, url: 'https://shot.example/', title: 'Captured title', favIconUrl: null });
+	w.browser.tabs.captureVisibleTab = () => { if (o.fail) return Promise.reject(new Error('no')); const c = w.document.createElement('canvas'); c.width = 1200; c.height = 1600; return Promise.resolve(c.toDataURL('image/png')); };
 	w.browser.tabs.remove = id => { w.qdTabs.push(['remove', id]); return Promise.resolve(); };
-}, !!fail);
+}, options || {});
 // Capture page / Refresh for a tile by id; both resolve with the site infos (title, picture) or nothing
 const capture = (t, id) => t.J(id => new Promise(r => { const g = bg().app.GridNodes; g.capturePage(g.getNodeById(id), r); }), id);
 const refresh = (t, id) => t.J(id => new Promise(r => { const g = bg().app.GridNodes; g.refreshNode(g.getNodeById(id), r); }), id);
@@ -81,11 +89,27 @@ module.exports = {
 		await t.idle();
 		st = await t.J(() => { const url = bg().qdTabs[0][1]; bg().app.GridNodes.getNodeById('f1').title = 'Folder'; return { url, path: new URL(url, 'moz-extension://x/').searchParams.get('path') }; });
 		t.check('...whose path keeps a folder name with & # ? in it', st.path === '/R&D #1?', st);
-		await fakeTabs(t, true);
+		await fakeTabs(t, { fail: true });
 		st = await capture(t, 'b4');
 		await t.idle();
 		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)), node: await t.J(() => bg().app.GridNodes.getNodeById('b4')) };
 		t.check('a failed capture closes the tab and marks the tile as having no picture', st.infos == null && t.same(st.tabs, [['remove', 7]]) && st.node.image === '0', st);
+		await fakeTabs(t, { switched: true });
+		st = await capture(t, 'b4');
+		await t.idle();
+		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)), node: await t.J(() => bg().app.GridNodes.getNodeById('b4')) };
+		t.check('when another tab is shown at the moment of the screenshot, nothing is captured and the tab is closed', st.infos == null && t.same(st.tabs, [['remove', 7]]) && st.node.image === '0' && !st.node.__isLoading, st);
+		await fakeTabs(t, { noShow: true });
+		st = await capture(t, 'b4');
+		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)) };
+		t.check('a tab that can\'t be shown is closed too', st.infos == null && t.same(st.tabs, [['remove', 7]]), st);
+		await t.J(() => { const s = bg().app.SiteInfos; s.LOAD_POLL = 20; s.LOAD_TIMEOUT = 200; });
+		await fakeTabs(t, { loading: true });
+		st = await capture(t, 'b4');
+		await t.idle();
+		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)), node: await t.J(() => bg().app.GridNodes.getNodeById('b4')) };
+		t.check('a page that never finishes loading is captured once the waiting time is over', st.infos && st.infos.title === 'Captured title' && t.same(st.tabs, [['remove', 7]]) && st.node.image === '1', st);
+		await t.J(() => { const s = bg().app.SiteInfos; s.LOAD_POLL = 300; s.LOAD_TIMEOUT = 30000; });
 		st = await t.J(() => { const g = bg().app.GridNodes, n = g.getNodeById('b5'); n.__isLoading = true; let called = false; g.capturePage(n, () => { called = true; }); g.refreshNode(n, () => { called = true; }); return called; });
 		t.check('a tile already loading is not loaded twice', st === false);
 	}

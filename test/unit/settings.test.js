@@ -137,6 +137,57 @@ test('save is batched, skipped when nothing changed, and leaves out "__" fields'
 	assert.equal(w.localStorage.getItem('dialBackgroundColor'), null, 'no colour: nothing remembered');
 });
 
+// The sandbox's console, without the expected error messages of the tests below
+const quiet = w => { w.console = { log() {}, warn() {}, error() {} }; };
+
+test('init: a read of the stored data that fails is tried again', async () => {
+	const w = loadBackground(), get = w.browser.storage.local.get;
+	quiet(w);
+	w.app.Settings.LOAD_RETRY_DELAY = 0;
+	Object.assign(w.browser.store, { version: 5, settings: Object.assign(w.app.Settings.defaults(), { backgroundColor: '#123456' }), node: { children: [{ id: 'a', type: 2 }] } });
+	let reads = 0;
+	w.browser.storage.local.get = keys => ++reads == 1 ? Promise.reject(new Error('busy')) : get(keys);
+	await init(w);
+	assert.equal(reads, 2);
+	assert.equal(w.app.settings.backgroundColor, '#123456');
+	assert.deepEqual(plain(w.app.node), { children: [{ id: 'a', type: 2 }] });
+});
+
+test('init: stored data that can\'t be read at all: the defaults are used and nothing is saved over it until the user saves', async () => {
+	const w = loadBackground();
+	quiet(w);
+	w.app.Settings.LOAD_RETRY_DELAY = 0;
+	let reads = 0;
+	w.browser.storage.local.get = () => { reads++; return Promise.reject(new Error('corrupt')); };
+	await init(w); // calls back: the dial pages waiting on app.ready don't hang
+	assert.equal(reads, 1 + w.app.Settings.LOAD_RETRIES);
+	assert.equal(w.app.settings.toolbarAction, 'settings');
+	assert.deepEqual(plain(w.app.node), { children: [] });
+	w.app.node.children.push({ id: 'x', type: 2 }); // e.g. synced from the bookmarks
+	const error = await new Promise(r => w.app.Settings.save(r));
+	assert.ok(error && error.message, 'the callback gets the reason');
+	assert.equal(w.browser.calls.filter(c => c[0] === 'set').length, 0, 'nothing written');
+	assert.equal(w.localStorage.getItem('dialBackgroundColor'), null, 'the default colour is not remembered as the user\'s');
+	const saved = await new Promise(r => w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundColor: '#000000' }), r));
+	assert.equal(saved, undefined);
+	assert.equal(w.browser.store.settings.backgroundColor, '#000000', 'settings the user saves are written');
+});
+
+test('save: a failed write still calls back, with the error, and is written on the next save', async () => {
+	const w = loadBackground();
+	quiet(w);
+	await init(w);
+	await settle();
+	const set = w.browser.storage.local.set;
+	w.browser.storage.local.set = () => Promise.reject(new Error('disk full'));
+	w.app.node.children.push({ id: 'x', type: 2 });
+	const error = await new Promise(r => w.app.Settings.save(r));
+	assert.equal(error && error.message, 'disk full');
+	w.browser.storage.local.set = set;
+	assert.equal(await new Promise(r => w.app.Settings.save(r)), undefined);
+	assert.deepEqual(plain(w.browser.store.node.children), [{ id: 'x', type: 2 }]);
+});
+
 test('Themes.save keeps a clean list; an empty list removes the key', async () => {
 	const w = loadBackground();
 	const saved = await w.app.Themes.save([{ name: 'A', style: { grid: { cells: { blur: 100 } } } }, { name: 'a', style: {} }]);

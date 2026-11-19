@@ -108,7 +108,8 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 		app.node = node;
 		await app.Images.extractFromTree(app.node, images);
 		stats.images = app.Images.idsInTree(app.node).length;
-		await new Promise(resolve => app.Settings.save(resolve));
+		delete app.Settings._loadFailed; // The user replaces the data: saved even after a failed load (see Settings.init)
+		await /** @type {Promise<void>} */ (new Promise((resolve, reject) => app.Settings.save(e => e ? reject(e) : resolve())));
 		if(Array.isArray(data.themes) && data.themes.length){ // Themes from the backup are added; a theme with the same name is replaced
 			const names = data.themes.map(t => String(t && t.name).trim().toLowerCase());
 			await app.Themes.save(data.themes.concat(app.Themes.list.filter(t => !names.includes(t.name.toLowerCase()))));
