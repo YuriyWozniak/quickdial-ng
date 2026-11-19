@@ -25,7 +25,20 @@
   ],
 
   "background": {
-    "scripts": ["js/themes.js", "js/background.js"]
+    "scripts": [
+      "js/common.js",
+      "js/themes.js",
+      "js/background/app.js",
+      "js/background/messages.js",
+      "js/background/settings.js",
+      "js/background/images.js",
+      "js/background/backup.js",
+      "js/background/menus.js",
+      "js/background/bookmarks.js",
+      "js/background/siteinfos.js",
+      "js/background/gridnodes.js",
+      "js/background/main.js"
+    ]
   },
   
   "browser_action": {
