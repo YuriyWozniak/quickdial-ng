@@ -141,9 +141,11 @@ const scrollTo = (frame, selector, offset = 16) => frame.evaluate(([sel, off]) =
 }, [selector, offset]);
 
 // Playwright's own Chromium, or else Edge / Chrome if it isn't downloaded (as in test-storage.js)
-async function launch() {
+async function launch(port) {
 	const errors = [];
-	for (const opts of [{}, { channel: 'msedge' }, { channel: 'chrome' }]) {
+	// The server port is picked by the system; Chromium refuses some ports (e.g. 6566) unless allowed
+	const args = ['--explicitly-allowed-ports=' + port];
+	for (const opts of [{ args }, { channel: 'msedge', args }, { channel: 'chrome', args }]) {
 		try { return await chromium.launch(opts); } catch (e) { errors.push(e.message.split('\n')[0]); }
 	}
 	throw new Error('No browser could be started. Run "npx playwright install chromium" in the test folder.\n  ' + errors.join('\n  '));
@@ -154,7 +156,7 @@ async function main() {
 	fs.mkdirSync(OUT, { recursive: true });
 	await new Promise(r => server.listen(0, '127.0.0.1', r));
 	const port = server.address().port;
-	const browser = await launch();
+	const browser = await launch(port);
 	const errors = [];
 	const pictures = await renderPictures(browser);
 

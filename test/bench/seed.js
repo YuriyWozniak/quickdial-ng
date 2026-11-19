@@ -1,7 +1,7 @@
 // Quick Dial NG benchmark: background side. Seeds a realistic profile on first run,
 // then times startup, storage, save, sync and new-tab rendering. Results are logged to the
 // console and saved as files in qdbench/ under Firefox's download folder, which run.js reads.
-/* global BENCH_FORMAT */
+/* global BENCH_FORMAT, BENCH_DEFAULTS, BENCH_SCRIPTS */
 (function(){
 	var T0 = performance.now();
 	var logN = 0;
@@ -82,10 +82,14 @@
 	});
 	function measure(){
 		T0 = performance.now();
-		console.log('QDBENCH-progress loading background.js at ' + performance.now().toFixed(0));
+		console.log('QDBENCH-progress loading the background scripts at ' + performance.now().toFixed(0));
 		setInterval(function(){ console.log('QDBENCH-progress ' + performance.now().toFixed(0) + ' stage=' + (results.stage || 'startup') + ' settings=' + !!(window.app && app.settings) + ' node=' + !!(window.app && app.node) + ' syncing=' + !!(window.app && app.GridNodes && app.GridNodes._syncing) + ' dialRuns=' + dialRuns.length); }, 5000);
-		var s = document.createElement('script'); s.src = '/js/background.js';
-		document.head.appendChild(s);
+		(function load(i){ // the extension's background scripts, in manifest order
+			if(i >= BENCH_SCRIPTS.length) return;
+			var s = document.createElement('script'); s.src = '/' + BENCH_SCRIPTS[i];
+			s.onload = s.onerror = function(){ load(i + 1); };
+			document.head.appendChild(s);
+		})(0);
 		var watchdog = setTimeout(function(){ results.timedOutAt = results.stage || 'startup'; results.partialDial = dialRuns.length; log(results); log({ done: true }); }, 90000);
 		waitFor(function(){ return window.app && app.settings && app.node; }, function(){
 			results.bgScriptToReadyMs = +(performance.now() - T0).toFixed(1);

@@ -1,23 +1,26 @@
+// The Properties popup of a tile (in a frame on the dial). Form elements are reached by their id (window.Title...).
+/* exported app */
+// eslint-disable-next-line no-var -- a window property, like on the other pages
 var app = {};
 
-var Image = null; // The picture being edited: a CSS "url(...)" value, a data URL, or null
+let picture = null; // The picture being edited: a CSS "url(...)" value, a data URL, or null
 
-document.addEventListener("DOMContentLoaded", function(event) {
+document.addEventListener("DOMContentLoaded", event => {
 	app.init();
 });
 
 app.init = function(){
-	document.addEventListener('keydown', function(e){
+	document.addEventListener('keydown', e => {
 		if(e.key == 'Escape') QDUI.closePopup();
 		else if(e.key == 'Enter' && (e.target === Title || e.target === Url)){ e.preventDefault(); BtnOk.onclick(); }
 	});
 	app.changes = QDUI.changes(BtnApply, Status);
-	app.Messages.getSettings(function(settings){
+	app.Messages.getSettings(settings => {
 		app.settings = settings;
 		QDUI.setAccent(settings.accentColor);
 		app.sizePreview();
-		app.Messages.getNodeByID(new URL(window.location).searchParams.get('id'), function(node){
-			app.Messages.getImages([node.id], function(images){ // Images are stored separately: get this one
+		app.Messages.getNodeByID(new URL(window.location).searchParams.get('id'), node => {
+			app.Messages.getImages([node.id], images => { // Images are stored separately: get this one
 				if(node.image == '1') node.image = images[node.id] || null;
 				app.initNode(node);
 				app.changes.start();
@@ -29,8 +32,8 @@ app.init = function(){
 
 // Preview box in the same proportions as the tiles on the dial
 app.sizePreview = function(){
-	var rx = +app.settings.grid.ratioX || 4, ry = +app.settings.grid.ratioY || 3;
-	var w = 240, h = w * ry / rx;
+	const rx = +app.settings.grid.ratioX || 4, ry = +app.settings.grid.ratioY || 3;
+	let w = 240, h = w * ry / rx;
 	if(h > 190){ h = 190; w = h * rx / ry; }
 	ImageZone.style.width = Math.round(w) + 'px';
 	ImageZone.style.height = Math.round(h) + 'px';
@@ -43,20 +46,20 @@ app.cssUrl = function(img){ // node images are data URLs; folder defaults are al
 };
 
 app.showImage = function(){
-	var isFolder = app.node.type == app.GridNodes.GridNodeType.folder;
-	var css = app.cssUrl(Image);
+	const isFolder = app.node.type == app.GridNodes.GridNodeType.folder;
+	let css = app.cssUrl(picture);
 	if(!css && isFolder) css = app.settings.grid.folderIcon;
 	ImagePreview.style.backgroundImage = css || 'none';
 	ImageEmpty.hidden = !!css;
-	var mode = +ImageMode.value;
+	let mode = +ImageMode.value;
 	if(mode == -1) mode = isFolder ? app.settings.grid.folderIconMode : 0; // what "Default" means on the dial
 	QDUI.applyMode(ImagePreview, mode);
-	ImageDefault.disabled = isFolder && !Image;
+	ImageDefault.disabled = isFolder && !picture;
 };
 
 app.initNode = function(node){
 	app.node = node;
-	var isFolder = node.type == app.GridNodes.GridNodeType.folder;
+	const isFolder = node.type == app.GridNodes.GridNodeType.folder;
 	Title.value = node.title;
 	ImageMode.value = (node.imageMode || node.imageMode == 0) ? node.imageMode : -1;
 	IconBookmark.toggleAttribute('hidden', isFolder); // SVG elements have no .hidden property
@@ -68,7 +71,7 @@ app.initNode = function(node){
 		ImageLockRow.hidden = true;
 		UrlRow.hidden = true;
 	} else {
-		var host = '';
+		let host = '';
 		try { host = new URL(node.url).host; } catch(e) {}
 		HeaderSubtitle.textContent = host || node.url || '';
 		HeaderSubtitle.title = node.url || '';
@@ -77,10 +80,10 @@ app.initNode = function(node){
 		ImageDefault.hidden = true;
 		Url.value = node.url;
 	}
-	Image = (node.image && node.image != '0') ? node.image : null;
+	picture = (node.image && node.image != '0') ? node.image : null;
 	app.showImage();
 	if(window.frameElement && window.frameElement.popup && window.frameElement.popup.fit) window.frameElement.popup.fit();
-	setTimeout(function(){ Title.focus(); Title.select(); }, 0);
+	setTimeout(() => { Title.focus(); Title.select(); }, 0);
 };
 
 app.initButtons = function(){
@@ -90,13 +93,13 @@ app.initButtons = function(){
 	};
 	BtnApply.onclick = function(){
 		if(!app.node) return false;
-		var isFolder = app.node.type == app.GridNodes.GridNodeType.folder;
+		const isFolder = app.node.type == app.GridNodes.GridNodeType.folder;
 		if(!isFolder && !Url.value.trim()){
 			Url.classList.add('is-invalid');
 			Url.focus();
 			return false;
 		}
-		var image = Image; // Stored as a plain data URL: the dial adds url("...") itself
+		let image = picture; // Stored as a plain data URL: the dial adds url("...") itself
 		if(image && /^url\(/.test(image)) image = image.replace(/^url\(\s*["']?/, '').replace(/["']?\s*\)$/, '');
 		if(isFolder){
 			app.Messages.updateNode(app.node.id, { title: Title.value, image: image, imageMode: +(ImageMode.value) });
@@ -106,28 +109,28 @@ app.initButtons = function(){
 		app.changes.saved();
 	};
 	BtnCancel.onclick = BtnClose.onclick = function(){ QDUI.closePopup(); };
-	Url.addEventListener('input', function(){ Url.classList.remove('is-invalid'); });
+	Url.addEventListener('input', () => { Url.classList.remove('is-invalid'); });
 
 	ImageMode.onchange = function(){ app.showImage(); };
 	ImageReset.onclick = function(){ // Back to the picture the tile had when this window opened
-		Image = (app.node.image && app.node.image != '0') ? app.node.image : null;
+		picture = (app.node.image && app.node.image != '0') ? app.node.image : null;
 		app.showImage();
 		app.changes.mark();
 	};
 	ImageDefault.onclick = function(){ // Folders only: use the folder picture from the settings
-		Image = null;
+		picture = null;
 		app.showImage();
 		app.changes.mark();
 	};
 	ImageChoose.onkeydown = function(e){ if(e.key == 'Enter' || e.key == ' '){ e.preventDefault(); ImageFile.click(); } };
 	ImageFile.onclick = function(){ this.value = null; };
 	ImageFile.onchange = function(){
-		var file = ImageFile.files[0];
+		const file = ImageFile.files[0];
 		if(!file) return;
-		var fileReader = new FileReader();
+		const fileReader = new FileReader();
 		fileReader.onload = function(e){
-			app.toWebp(e.target.result, function(webp){ // Store uploads as compact WebP
-				Image = webp;
+			app.toWebp(e.target.result, webp => { // Store uploads as compact WebP
+				picture = webp;
 				ImageFile.value = null;
 				app.showImage();
 				app.changes.mark();
@@ -139,22 +142,7 @@ app.initButtons = function(){
 };
 
 app.Messages = {};
-app.Messages.Commands = {
-	getSettings: 0,
-	setSettings: 1,
-	getNode: 2,
-	getNodeByID: 3,
-	updateNode: 4,
-	setNodeIndex: 5,
-	createBookmark: 6,
-	createFolder: 7,
-	deleteNode: 8,
-	refreshNode: 9,
-	capturePage: 10,
-	getImages: 11,
-	settingsChanged: 100,
-	gridNodesLoaded: 101
-};
+app.Messages.Commands = QDCommon.Commands;
 app.Messages.getSettings = function(callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback);
 };
@@ -162,29 +150,25 @@ app.Messages.getNodeByID = function(id, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getNodeByID, id: id }).then(callback);
 };
 app.Messages.getImages = function(ids, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, function(){ callback({}); });
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, () => { callback({}); });
 };
 app.Messages.updateNode = function(id, value, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.updateNode, id: id, value: value }).then(callback);
 };
 
 app.GridNodes = {};
-app.GridNodes.GridNodeType = { // GridNodeType
-	back: -1,
-	empty: 0,
-	folder: 1,
-	bookmark: 2
-}
+app.GridNodes.GridNodeType = QDCommon.NodeType;
 
 app.toWebp = function(dataUrl, callback){ // Re-encode an image to WebP (longest side max 1200 px)
-	var img = document.createElement('img'); // (the global "Image" is reused by this page)
+	const img = new Image();
 	img.onload = function(){
-		var w = img.naturalWidth || 300, h = img.naturalHeight || 150, max = 1200;
-		if(Math.max(w, h) > max){ var r = max / Math.max(w, h); w = Math.round(w * r); h = Math.round(h * r); }
-		var canvas = document.createElement('canvas');
+		const max = 1200;
+		let w = img.naturalWidth || 300, h = img.naturalHeight || 150;
+		if(Math.max(w, h) > max){ const r = max / Math.max(w, h); w = Math.round(w * r); h = Math.round(h * r); }
+		const canvas = document.createElement('canvas');
 		canvas.width = w; canvas.height = h;
 		canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-		var webp = canvas.toDataURL('image/webp', 0.85);
+		const webp = canvas.toDataURL('image/webp', 0.85);
 		callback(webp.startsWith('data:image/webp') && webp.length < dataUrl.length ? webp : dataUrl);
 	};
 	img.onerror = function(){ callback(dataUrl); };

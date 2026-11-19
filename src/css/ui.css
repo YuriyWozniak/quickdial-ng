@@ -104,7 +104,7 @@
 		--qd-accent-hover: color-mix(in srgb, var(--qd-user-accent) 40%, white);
 		--qd-accent-active: color-mix(in srgb, var(--qd-user-accent) 28%, white);
 		--qd-accent-text: #15141a;
-		--qd-accent-soft: color-mix(in srgb, var(--qd-user-accent) 30%, #1c1b22);
+		--qd-accent-soft: color-mix(in srgb, var(--qd-user-accent) 30%, var(--qd-bg));
 		--qd-focus: var(--qd-accent);
 	}
 }
@@ -317,8 +317,7 @@
 .qd-cols.is-aside { grid-template-columns: minmax(0, 1fr) 300px; }
 .qd-aside { order: 2; position: sticky; top: 0; }
 .qd-aside .qd-tile-stage { flex-direction: column; align-items: center; gap: 18px; padding: 22px var(--qd-gap); }
-.qd-settings .qd-card { padding: 16px 18px; }
-.qd-settings .qd-card.is-table { padding: 0 6px 6px; }
+.qd-settings .qd-card:not(.is-table) { padding: 16px 18px; }
 .qd-settings .qd-preview.is-screen { width: 260px; }
 .qd-settings .qd-footer .qd-btn { min-width: 96px; }
 

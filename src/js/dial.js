@@ -1,68 +1,45 @@
-var utils = {};
+/* exported app, dial */
+// The dial page. `app` talks to the background page, `dial` draws the grid; both are window
+// properties because the tests, the benchmark probe and the screenshot maker reach them.
+const utils = {};
+// eslint-disable-next-line no-var
 var app = {};
+// eslint-disable-next-line no-var
 var dial = {
-	page: 1,
-	maxpage: 1,
-	capture: 0
+	page: 1, // shown page of the folder, 1-based
+	maxpage: 1
 };
 
-document.addEventListener("DOMContentLoaded", function(event) {
-  document.body.style.backgroundColor = utils.getBackgroundColor();
+document.addEventListener('DOMContentLoaded', () => {
+	document.body.style.backgroundColor = utils.getBackgroundColor();
 	app.init();
 	dial.init();
-  window.setTimeout(function(){ // Safety net for when the background page could not be reached and no broadcast arrived
-    if(! app.settings && ! app._waitingForBackground) app.init();
-  }, 500);
+	setTimeout(() => { // Safety net for when the background page could not be reached and no broadcast arrived
+		if(!app.settings && !app._waitingForBackground) app.init();
+	}, 500);
 });
 
-window.addEventListener('resize', function(){
-	if(app && app.settings) dial.updateGridLayout();
+window.addEventListener('resize', () => {
+	if(app.settings) dial.updateGridLayout();
 });
-window.addEventListener('wheel', function(e){
-	if(app && app.settings){
-		if(e.deltaY > 0){
-			if(dial.page < dial.maxpage){
-				dial.page += 1;
-				dial.populateGrid();
-			}
-		} else if(e.deltaY < 0){
-			if(dial.page > 1){
-				dial.page -= 1;
-				dial.populateGrid();
-			}
-		}
-	}
+window.addEventListener('wheel', e => {
+	if(app.settings && e.deltaY) dial.turnPage(e.deltaY > 0 ? 1 : -1);
 });
-window.addEventListener('keyup', function(e){
-	switch(e.key){
-		case 'PageDown':
-			if(dial.page < dial.maxpage){
-				dial.page += 1;
-				dial.populateGrid();
-			}
-			break;
-		case 'PageUp':
-			if(dial.page > 1){
-				dial.page -= 1;
-				dial.populateGrid();
-			}
-			break;
-	}
+window.addEventListener('keyup', e => {
+	if(e.key == 'PageDown') dial.turnPage(1);
+	else if(e.key == 'PageUp') dial.turnPage(-1);
 });
-
-
-
 utils.getBackgroundColor = function(){
 	return new URL(window.location).searchParams.get('bg');
 };
 utils.getPath = function(){
-	var path = new URL(window.location).searchParams.get('path');
+	const path = new URL(window.location).searchParams.get('path');
 	if(path) return path + '/';
 	else return '/';
 };
 
 app.init = function(){
-	app.Messages.getSettings(function(settings){
+	app.Messages.getSettings(settings => {
 		if(settings && settings.grid) app.Settings._changed(settings);
 		dial.path = utils.getPath();
 		app.Messages.getNode(dial.path, app.GridNodes._changed);
@@ -71,33 +48,11 @@ app.init = function(){
 };
 
 app.Messages = {};
-app.Messages.Commands = {
-	getSettings: 0,
-	setSettings: 1,
-	getNode: 2,
-	getNodeByID: 3,
-	updateNode: 4,
-	setNodeIndex: 5,
-	createBookmark: 6,
-	createFolder: 7,
-	deleteNode: 8,
-	refreshNode: 9,
-	capturePage: 10,
-	getImages: 11,
-	openSettings: 16,
-	settingsChanged: 100,
-	gridNodesLoaded: 101,
-	menuCreateBookmark: 200,
-	menuCreateFolder: 201,
-	menuEditProperties: 203,
-	menuRefreshNode: 204,
-	menuCapturePage: 206,
-	menuDeleteNode: 207
-};
+app.Messages.Commands = QDCommon.Commands;
 app.Messages.init = function(){
 	if(app.Messages._listening) return; // app.init can run more than once; register the listener only once
 	app.Messages._listening = true;
-	browser.runtime.onMessage.addListener(function(request, sender, sendResponse){
+	browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		switch(request.cmd){
 			case app.Messages.Commands.settingsChanged:
 				app.Messages.getSettings(app.Settings._changed);
@@ -128,10 +83,10 @@ app.Messages.init = function(){
 };
 app.Messages.getSettings = function(callback){
 	app._waitingForBackground = true;
-	browser.runtime.getBackgroundPage().then(function(page){
+	browser.runtime.getBackgroundPage().then(page => {
 		app.bg = (page && page.app) ? page.app : null; // Same-process background page: read its data directly instead of copying it through messages
 		if(app.bg){
-			Promise.resolve(app.bg.ready).then(function(){ // At browser start the background page may still be loading its settings
+			Promise.resolve(app.bg.ready).then(() => { // At browser start the background page may still be loading its settings
 				app._waitingForBackground = false;
 				if(callback) callback(app.bg.settings);
 			});
@@ -139,15 +94,15 @@ app.Messages.getSettings = function(callback){
 			app._waitingForBackground = false;
 			browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback, callback);
 		}
-	}, function(e){
+	}, e => {
 		app._waitingForBackground = false;
 		if(callback) callback(e);
 	});
 };
 app.Messages.getNode = function(path, callback){
-	browser.runtime.getBackgroundPage().then(function(page){
+	browser.runtime.getBackgroundPage().then(page => {
 		if(page && page.app){
-			Promise.resolve(page.app.ready).then(function(){
+			Promise.resolve(page.app.ready).then(() => {
 				if(callback) callback(page.app.GridNodes.getNode(page.app.node, dial.path.substr(1)));
 			});
 		} else {
@@ -175,10 +130,10 @@ app.Messages.refreshNode = function(id, callback){
 }
 app.Messages.getImages = function(ids, callback){
 	if(app.bg && app.bg.Images){
-		app.bg.Images.get(ids).then(callback, function(){ callback({}); });
+		app.bg.Images.get(ids).then(callback, () => { callback({}); });
 		return;
 	}
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, function(){ callback({}); });
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, () => { callback({}); });
 }
 app.Messages.capturePage = function(id, callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.capturePage, path: dial.path, id: id }).then(callback);
@@ -194,149 +149,53 @@ app.Settings._changed = function(settings){
 };
 
 app.GridNodes = {};
-app.GridNodes.GridNodeType = { // GridNodeType
-	back: -1,
-	empty: 0,
-	folder: 1,
-	bookmark: 2
-}
+app.GridNodes.GridNodeType = QDCommon.NodeType;
 app.GridNodes._changed = function(node){
 	app.node = node;
 	dial.Title.innerText = app.node.title;
 	dial.populateGrid();
 };
 
-
-
-
 dial.init = function(){
-	//dial.initMenus();
 	dial.Title = document.createElement('title');
 	document.head.appendChild(dial.Title);
 };
-/*
-dial.initMenus = function(){
-	document.body.setAttribute('contextmenu', 'page');
-	dial.PageMenu = document.createElement('menu');
-	dial.PageMenu.type = 'context';
-	dial.PageMenu.id = 'page'
-	dial.PageMenuNew = document.createElement('menu');
-	dial.PageMenuNew.label = browser.i18n.getMessage("menuNew");
-	dial.PageMenuCreateBookmark = document.createElement('menuitem');
-	dial.PageMenuCreateBookmark.label = browser.i18n.getMessage("menuNewBookmark");
-	dial.PageMenuCreateBookmark.onclick = dial.createBookmark;
-	dial.PageMenuCreateFolder = document.createElement('menuitem');
-	dial.PageMenuCreateFolder.label = browser.i18n.getMessage("menuNewFolder");
-	dial.PageMenuCreateFolder.onclick = dial.createFolder;
-	dial.PageMenuSettings = document.createElement('menuitem');
-	dial.PageMenuSettings.label = browser.i18n.getMessage("menuSettings");
-	dial.PageMenuSettings.onclick = dial.editSettings;
-	
-	dial.PageMenu.appendChild(dial.PageMenuNew);
-	dial.PageMenuNew.appendChild(dial.PageMenuCreateBookmark);
-	dial.PageMenuNew.appendChild(dial.PageMenuCreateFolder);
-	dial.PageMenu.appendChild(document.createElement('hr'));
-	dial.PageMenu.appendChild(dial.PageMenuSettings);
-	document.body.appendChild(dial.PageMenu);
-
-	dial.ItemMenu = document.createElement('menu');
-	dial.ItemMenu.type = 'context';
-	dial.ItemMenu.id = 'item'
-
-	dial.ItemMenuNew = document.createElement('menu');
-	dial.ItemMenuNew.label = browser.i18n.getMessage("menuNew");
-	
-	dial.ItemMenuCreateBookmark = document.createElement('menuitem');
-	dial.ItemMenuCreateBookmark.label = browser.i18n.getMessage("menuNewBookmark");
-	dial.ItemMenuCreateBookmark.onclick = dial.createBookmark;
-	dial.ItemMenuCreateFolder = document.createElement('menuitem');
-	dial.ItemMenuCreateFolder.label = browser.i18n.getMessage("menuNewFolder");
-	dial.ItemMenuCreateFolder.onclick = dial.createFolder;
-	
-	dial.ItemMenuProperties = document.createElement('menuitem');
-	dial.ItemMenuProperties.label = browser.i18n.getMessage("menuProperties");
-	dial.ItemMenuProperties.onclick = function(){
-		dial.editProperties(dial._selectedItem);
+dial.turnPage = function(step){ // Mouse wheel, PageDown / PageUp
+	if(!app.settings || !app.node) return;
+	const page = dial.page + step;
+	if(page < 1 || page > dial.maxpage) return;
+	dial.page = page;
+	dial.populateGrid();
+};
+// How a picture fills its box (style: a CSS rule's or an element's style). -1: back to the rule's own values
+dial.applyImageMode = function(imageMode, style){
+	const modes = {
+		'-1': ['', '', ''],
+		0: ['no-repeat', '100% 100%', ''], // stretched
+		1: ['no-repeat', 'cover', 'center'],
+		2: ['no-repeat', 'contain', 'center'],
+		3: ['no-repeat', 'auto auto', 'center'] // original size
 	};
-	
-	dial.ItemMenuRefresh = document.createElement('menuitem');
-	dial.ItemMenuRefresh.label = browser.i18n.getMessage("menuRefreshItem");
-	dial.ItemMenuRefresh.onclick = function(){
-		dial.refreshNode(dial._selectedItem);
-	};
-
-	dial.ItemMenuCaptureHere = document.createElement('menuitem');
-	dial.ItemMenuCaptureHere.label = browser.i18n.getMessage("menuCaptureHere");
-	dial.ItemMenuCaptureHere.onclick = function(){
-		dial.captureHere(dial._selectedItem);
-	};
-	
-	dial.ItemMenuCapture = document.createElement('menuitem');
-	dial.ItemMenuCapture.label = browser.i18n.getMessage("menuCapturePage");
-	dial.ItemMenuCapture.onclick = function(){
-		dial.capturePage(dial._selectedItem);
-	};
-	
-	dial.ItemMenuDelete = document.createElement('menuitem');
-	dial.ItemMenuDelete.label = browser.i18n.getMessage("menuDeleteItem");
-	dial.ItemMenuDelete.onclick = dial.deleteNode;
-
-	dial.ItemMenuSettings = document.createElement('menuitem');
-	dial.ItemMenuSettings.label = browser.i18n.getMessage("menuSettings");
-	dial.ItemMenuSettings.onclick = dial.editSettings;
-	
-	dial.ItemMenu.appendChild(dial.ItemMenuNew);
-	dial.ItemMenuNew.appendChild(dial.ItemMenuCreateBookmark);
-	dial.ItemMenuNew.appendChild(dial.ItemMenuCreateFolder);
-	dial.ItemMenu.appendChild(document.createElement('hr'));
-	dial.ItemMenu.appendChild(dial.ItemMenuProperties);
-	dial.ItemMenu.appendChild(dial.ItemMenuRefresh);
-	dial.ItemMenu.appendChild(dial.ItemMenuCaptureHere);
-	dial.ItemMenu.appendChild(dial.ItemMenuCapture);
-	dial.ItemMenu.appendChild(dial.ItemMenuDelete);
-	dial.ItemMenu.appendChild(document.createElement('hr'));
-	dial.ItemMenu.appendChild(dial.ItemMenuSettings);
-	document.body.appendChild(dial.ItemMenu);
-}
-*/
+	const m = modes[imageMode];
+	if(!m) return;
+	[style.backgroundRepeat, style.backgroundSize, style.backgroundPosition] = m;
+};
 dial.initStyles = function(){
-	function applyImageMode(imageMode, target){
-		switch(imageMode){
-			case 0:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundSize = '100% 100%';
-				break;
-			case 1:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundSize = 'cover';
-				target.backgroundPosition = 'center';
-				break;
-			case 2:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundSize = 'contain';
-				target.backgroundPosition = 'center';
-				break;
-			case 3:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundPosition = 'center';
-				break;
-		}
-	}
-
-	var oldStyle = dial.Style;
-	dial.Style = document.createElement('style'), StyleSheet;
+	const applyImageMode = dial.applyImageMode;
+	const oldStyle = dial.Style;
+	dial.Style = document.createElement('style');
 	document.head.appendChild(dial.Style);
 	dial.styles = {};
-	var s = app.settings, c = s.grid.cells, T = QDThemes;
-	function rule(text){ var sheet = dial.Style.sheet; return sheet.cssRules[sheet.insertRule(text, sheet.cssRules.length)].style; }
-	var motion = +c.hoverEffect || 0; // 0 none, 1 smooth, 2 lift, 3 zoom
-	var overlay = c.titlePosition == 1; // title over the bottom of the picture
+	const s = app.settings, c = s.grid.cells, T = QDThemes;
+	function rule(text){ const sheet = dial.Style.sheet; return sheet.cssRules[sheet.insertRule(text, sheet.cssRules.length)].style; }
+	const motion = +c.hoverEffect || 0; // 0 none, 1 smooth, 2 lift, 3 zoom
+	const overlay = c.titlePosition == 1; // title over the bottom of the picture
 	dial.styles.html = rule('html { height: 100%; }');
-	dial.styles.body = rule('body { user-select: none; -moz-user-select: none; display: flex; width: 100%; height: 100%; margin: 0px; padding: 0px; background-color: ' + s.backgroundColor + '; background-image: ' + T.background(s.backgroundImage, s.backgroundGradient) + '; }');
+	dial.styles.body = rule('body { user-select: none; display: flex; width: 100%; height: 100%; margin: 0; padding: 0; background-color: ' + s.backgroundColor + '; background-image: ' + T.background(s.backgroundImage, s.backgroundGradient) + '; }');
 	applyImageMode(s.backgroundMode, dial.styles.body);
 	dial.styles.grid = {};
 	dial.styles.grid.grid = rule('.Grid { border-collapse: collapse; margin: auto; }');
-	dial.styles.grid.cell = rule('.Grid td { margin: 0px; padding: 0px; }');
+	dial.styles.grid.cell = rule('.Grid td { margin: 0; padding: 0; }');
 	dial.styles.grid.cellHover = rule('.Grid td:hover {}');
 	dial.styles.grid.link = rule('.Grid td>a { display: block; position: relative; z-index: 0; outline: none; overflow: hidden; text-decoration: none;'
 		+ ' margin: ' + c.margin + 'px; opacity: ' + c.opacity + '; border: ' + c.borderSize + 'px solid ' + c.borderColor + '; border-radius: ' + c.borderRadius + 'px;'
@@ -362,189 +221,108 @@ dial.initStyles = function(){
 	dial.styles.grid.linkEmpty = rule('.Grid td>a.Empty { display: none; }');
 	dial.styles.grid.linkBack = rule('.Grid td>a.Back :first-child { background-image: ' + s.grid.backIcon + '; }');
 	applyImageMode(s.grid.backIconMode, dial.styles.grid.linkBack);
-	dial.styles.grid.linkFolder = rule('.Grid td>a.Folder :first-child { background-image: ' + s.grid.folderIcon + '; background-repeat: no-repeat; background-size: 100% 100%; }');
+	// Folder and bookmark pictures are stretched unless a mode says otherwise (no-repeat comes from linkPanel)
+	dial.styles.grid.linkFolder = rule('.Grid td>a.Folder :first-child { background-image: ' + s.grid.folderIcon + '; background-size: 100% 100%; }');
 	applyImageMode(s.grid.folderIconMode, dial.styles.grid.linkFolder);
-	dial.styles.grid.linkBookmark = rule('.Grid td>a.Bookmark :first-child { background-repeat: no-repeat; background-size: 100% 100%; }');
-	dial.styles.grid.linkBookmarkLoading = rule('.Grid td>a.BookmarkLoading :first-child { background-image: url("' + c.loadingIcon + '"); background-repeat: no-repeat; background-position: center center; }');
+	dial.styles.grid.linkBookmark = rule('.Grid td>a.Bookmark :first-child { background-size: 100% 100%; }');
+	dial.styles.grid.linkBookmarkLoading = rule('.Grid td>a.BookmarkLoading :first-child { background-image: url("' + c.loadingIcon + '"); background-position: center; }');
 	dial.applyAccent();
 	if(oldStyle) document.head.removeChild(oldStyle);
 };
 dial.initGrid = function(){
-	var oldGrid = dial.Grid;
+	const oldGrid = dial.Grid;
+	const { rows, columns } = app.settings.grid;
 	dial.Grid = document.createElement('table');
-	var grid = document.createElement('table');
 	dial.Grid.className = 'Grid';
-	dial.Grid.getLink = function(index){
-		var num_columns = dial.Grid.rows[0].cells.length;
-		return dial.Grid.rows[Math.floor(index/num_columns)].cells[index % num_columns].childNodes[0];
-	}
-	for(var i=0; i<app.settings.grid.rows; i++){
-		var row = dial.Grid.insertRow();
-		for(var j=0; j<app.settings.grid.columns; j++){
-			var cell = row.insertCell();
-			var link = document.createElement('a');
-			cell.setAttribute('gridindex', (i * app.settings.grid.columns + j));
-			cell.appendChild(link);
+	dial.Grid.getLink = index => dial.Grid.rows[Math.floor(index / columns)].cells[index % columns].firstChild;
+	for(let i = 0; i < rows; i++){
+		const row = dial.Grid.insertRow();
+		for(let j = 0; j < columns; j++){
+			const cell = row.insertCell();
+			cell.setAttribute('gridindex', i * columns + j);
+			const link = document.createElement('a');
 			link.className = 'Empty';
-			link.appendChild(document.createElement('div'));
-			link.appendChild(document.createElement('div'));
-			link.onmousedown = function(){
-				dial._selectedItem = this;
-				/*
-				if(dial._selectedItem.Node){
-					switch(dial._selectedItem.Node.type){
-						case app.GridNodes.GridNodeType.folder:
-							dial.ItemMenuCaptureHere.hidden = true;
-							break;
-						case app.GridNodes.GridNodeType.bookmark:
-							//dial.ItemMenuCaptureHere.hidden = false;
-							dial.ItemMenuCaptureHere.hidden = true;
-							break;
-					}
-				}
-				*/
-			};
-			
-			function dragstart_handler(ev) {
-				if(!ev.target.Node){
-					ev.preventDefault();
-					return;
-				}
-				if(dial.page == 0) dial.page = 1;
-				var index = (dial.page - 1) * (app.settings.grid.rows * app.settings.grid.columns) + +(ev.target.parentElement.getAttribute('gridindex'));
-				if(app.settings.grid.backNode && dial.path != '/') index -= dial.page;
-				ev.dataTransfer.setData("text/plain", JSON.stringify({parentId: app.node.id, index: index}));
-			}
-			function dragover_handler(ev) {
-				ev.preventDefault();
-				var data = ev.dataTransfer.getData("text");
-				try {
-					data = JSON.parse(data);
-				} catch(e) {
-					data = null;
-				}
-				if(!data){
-					ev.dataTransfer.dropEffect = "none";
-					return;
-				} else if(data.parentId != app.node.id){
-					ev.dataTransfer.dropEffect = "none";
-					return;
-				}
-				if(app.settings.grid.backNode && dial.path != '/'){
-					var gridIndex = 0;
-					if(ev.target.tagName == 'DIV') gridIndex = +(ev.target.parentElement.parentElement.getAttribute('gridindex'));
-					else gridIndex = +(ev.target.getAttribute('gridindex'));
-					if(gridIndex==0) ev.dataTransfer.dropEffect = "none";
-					else ev.dataTransfer.dropEffect = "move";
-				} else {
-					ev.dataTransfer.dropEffect = "move";
-				}
-			}
-			function drop_handler(ev) {
-				ev.preventDefault();
-				if(ev.buttons == 1) return;
-				var data = ev.dataTransfer.getData("text");
-				try {
-					data = JSON.parse(data);
-				} catch(e) {
-					data = null;
-				}
-				if(!data) return;
-				else if(data.parentId != app.node.id) return;
-				var StartIndex = data.index;
-				var EndIndex = 0;
-				if(ev.target.tagName == 'DIV'){
-					EndIndex = (dial.page - 1) * (app.settings.grid.rows * app.settings.grid.columns) + +(ev.target.parentElement.parentElement.getAttribute('gridindex'));
-				} else{
-					EndIndex = (dial.page - 1) * (app.settings.grid.rows * app.settings.grid.columns) + +(ev.target.getAttribute('gridindex'));
-				}
-				if(app.settings.grid.backNode && dial.path != '/') EndIndex -= dial.page;
-				if(StartIndex != EndIndex) app.Messages.setNodeIndex(StartIndex, EndIndex);
-			}
+			link.appendChild(document.createElement('div')); // picture
+			link.appendChild(document.createElement('div')); // title
+			link.onmousedown = dial._onMouseDown;
 			link.draggable = true;
-			link.ondragstart = dragstart_handler;
-			cell.ondragover = dragover_handler;
-			cell.ondrop = drop_handler;
+			link.ondragstart = dial._onDragStart;
+			cell.appendChild(link);
+			cell.ondragover = dial._onDragOver;
+			cell.ondrop = dial._onDrop;
 		}
 	}
 	document.body.appendChild(dial.Grid);
 	dial.updateGridLayout();
-	if(oldGrid) document.body.removeChild(oldGrid);
+	if(oldGrid) oldGrid.remove();
 	return dial.Grid;
 };
-dial.updateGridLayout = function(){
-	var parentWidth = dial.Grid.parentElement.offsetWidth;
-	var parentHeight = dial.Grid.parentElement.offsetHeight;
-	
-	function calc(gridMargin, cellsMargin, borderSize, titleBorderSize){
-		var fullWidth = parentWidth - 2 * gridMargin;
-		var fullHeight = parentHeight - 2 * gridMargin;
-		var cellWidth = fullWidth / app.settings.grid.columns;
-		var cellHeight = fullHeight / app.settings.grid.rows;
-		var linkWidth = 0;
-		var linkHeight = 0;
-		if(cellWidth <= cellHeight * app.settings.grid.ratioX / app.settings.grid.ratioY) cellHeight = cellWidth / app.settings.grid.ratioX * app.settings.grid.ratioY;
-		else cellWidth = cellHeight / app.settings.grid.ratioY * app.settings.grid.ratioX;
-		linkWidth = cellWidth - 2 * (cellsMargin + 1) - 2 * borderSize;
-		linkHeight = cellHeight - 2 * (cellsMargin + 1) - 2 * borderSize - titleBorderSize;
-		return {
-			cellWidth: cellWidth,
-			cellHeight: cellHeight,
-			linkWidth: linkWidth,
-			linkHeight: linkHeight
-		};
-	}
 
-	var c = app.settings.grid.cells;
-	var below = c.titlePosition != 1; // a title over the picture takes no room of its own
-	var values = calc(app.settings.grid.margin, c.margin, c.borderSize, below ? c.titleBorderSize : 0);
-	dial.styles.grid.cell.width = values.cellWidth.toString() + 'px';
-	dial.styles.grid.cell.height = values.cellHeight.toString() + 'px';
-	dial.styles.grid.link.width = values.linkWidth.toString() + 'px';
-	dial.styles.grid.link.height = values.linkHeight.toString() + 'px';
-	if(below && c.title) dial.styles.grid.linkPanel.height = (values.linkHeight - c.titleHeight - 1 - c.titleBorderSize).toString() + 'px';
-	else dial.styles.grid.linkPanel.height = values.linkHeight.toString() + 'px';
-
-	values = calc(app.settings.grid.margin, c.marginHover, c.borderSizeHover, below ? c.titleBorderSizeHover : 0);
-	dial.styles.grid.cellHover.width = values.cellWidth.toString() + 'px';
-	dial.styles.grid.cellHover.height = values.cellHeight.toString() + 'px';
-	dial.styles.grid.linkHover.width = values.linkWidth.toString() + 'px';
-	dial.styles.grid.linkHover.height = values.linkHeight.toString() + 'px';
-	if(below && c.titleHover) dial.styles.grid.linkPanelHover.height = (values.linkHeight - c.titleHeightHover - 1 - c.titleBorderSizeHover).toString() + 'px';
-	else dial.styles.grid.linkPanelHover.height = values.linkHeight.toString() + 'px';
-};dial.populateGrid = function(){
-	function applyImageMode(imageMode, target){
-		switch(imageMode){
-			case -1:
-				target.backgroundRepeat = '';
-				target.backgroundSize = '';
-				target.backgroundPosition = '';
-				break;
-			case 0:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundSize = '100% 100%';
-				target.backgroundPosition = '';
-				break;
-			case 1:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundSize = 'cover';
-				target.backgroundPosition = 'center';
-				break;
-			case 2:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundSize = 'contain';
-				target.backgroundPosition = 'center';
-				break;
-			case 3:
-				target.backgroundRepeat = 'no-repeat';
-				target.backgroundSize = 'auto auto';
-				target.backgroundPosition = 'center';
-				break;
-		}
+// ----- Drag and drop: a tile dropped on another cell of the same folder swaps places with it -----
+dial._onMouseDown = function(){ dial._selectedItem = this; }; // the tile the dial's context menu acts on
+dial._cellIndex = target => +target.closest('td').getAttribute('gridindex'); // cell number on this page
+dial._backShown = () => app.settings.grid.backNode && dial.path != '/';
+dial._nodeIndex = function(cellIndex){ // position in the folder of the cell shown at cellIndex
+	const g = app.settings.grid;
+	if(dial.page == 0) dial.page = 1;
+	return (dial.page - 1) * g.rows * g.columns + cellIndex - (dial._backShown() ? dial.page : 0);
+};
+dial._dragData = function(ev){ // what _onDragStart set, if it came from this folder
+	try {
+		const data = JSON.parse(ev.dataTransfer.getData('text'));
+		return data && data.parentId == app.node.id ? data : null;
+	} catch(e){
+		return null;
 	}
-	var pendingImages = [];
-	function applyImage(link, node){ // Returns false when the node has no image yet
-		var style = link.childNodes[0].style;
+};
+dial._onDragStart = function(ev){
+	if(!ev.target.Node){
+		ev.preventDefault();
+		return;
+	}
+	ev.dataTransfer.setData('text/plain', JSON.stringify({ parentId: app.node.id, index: dial._nodeIndex(dial._cellIndex(ev.target)) }));
+};
+dial._onDragOver = function(ev){
+	ev.preventDefault();
+	const onBack = dial._backShown() && dial._cellIndex(ev.target) == 0; // the Back cell takes no drop
+	ev.dataTransfer.dropEffect = dial._dragData(ev) && !onBack ? 'move' : 'none';
+};
+dial._onDrop = function(ev){
+	ev.preventDefault();
+	if(ev.buttons == 1) return;
+	const data = dial._dragData(ev);
+	if(!data) return;
+	const newIndex = dial._nodeIndex(dial._cellIndex(ev.target));
+	if(data.index != newIndex) app.Messages.setNodeIndex(data.index, newIndex);
+};
+dial.updateGridLayout = function(){ // Cell and tile sizes for this window (normal and hover)
+	const g = app.settings.grid, c = g.cells, st = dial.styles.grid;
+	const below = c.titlePosition != 1; // a title over the picture takes no room of its own
+	const parentWidth = dial.Grid.parentElement.offsetWidth;
+	const parentHeight = dial.Grid.parentElement.offsetHeight;
+	const px = v => v + 'px';
+	const layout = (h, cell, link, panel) => { // h: '' or 'Hover'
+		const margin = c['margin' + h], border = c['borderSize' + h], titleBorder = below ? c['titleBorderSize' + h] : 0;
+		let cellWidth = (parentWidth - 2 * g.margin) / g.columns;
+		let cellHeight = (parentHeight - 2 * g.margin) / g.rows;
+		if(cellWidth <= cellHeight * g.ratioX / g.ratioY) cellHeight = cellWidth / g.ratioX * g.ratioY;
+		else cellWidth = cellHeight / g.ratioY * g.ratioX;
+		const linkWidth = cellWidth - 2 * (margin + 1) - 2 * border;
+		const linkHeight = cellHeight - 2 * (margin + 1) - 2 * border - titleBorder;
+		cell.width = px(cellWidth);
+		cell.height = px(cellHeight);
+		link.width = px(linkWidth);
+		link.height = px(linkHeight);
+		panel.height = px(below && c['title' + h] ? linkHeight - c['titleHeight' + h] - 1 - c['titleBorderSize' + h] : linkHeight);
+	};
+	layout('', st.cell, st.link, st.linkPanel);
+	layout('Hover', st.cellHover, st.linkHover, st.linkPanelHover);
+};
+dial.populateGrid = function(){ // Fills the cells of the current page from app.node
+	const T = app.GridNodes.GridNodeType, g = app.settings.grid;
+	const pendingImages = [];
+	const applyImage = (link, node) => { // Returns false when the node has no image yet
+		const style = link.firstChild.style;
 		if(!node.image || node.image == '0'){
 			link._imageId = null;
 			link._imageSrc = null;
@@ -552,7 +330,7 @@ dial.updateGridLayout = function(){
 			return node.image == '0';
 		}
 		if(node.image == '1'){ // Stored separately, loaded on demand
-			var cached = app.bg && app.bg.Images && app.bg.Images._cache.get(node.id);
+			const cached = app.bg && app.bg.Images && app.bg.Images._cache.get(node.id);
 			if(cached){ // Already in memory: show it in this same frame (no message, no copy)
 				if(link._imageSrc != cached) style.backgroundImage = 'url("' + cached + '")';
 				link._imageId = node.id;
@@ -560,121 +338,86 @@ dial.updateGridLayout = function(){
 				return true;
 			}
 			if(link._imageId != node.id) style.backgroundImage = '';
-			pendingImages.push({ link: link, node: node });
+			pendingImages.push({ link, node });
 			return true;
 		}
 		link._imageId = null;
 		link._imageSrc = null;
-		if(node.image.indexOf('url(')>=0) style.backgroundImage = node.image;
-		else style.backgroundImage = 'url(' + node.image + ')';
+		style.backgroundImage = node.image.includes('url(') ? node.image : 'url(' + node.image + ')';
 		return true;
-	}
-	populateEmpty = function(link){
-		link.Node = null;
-		link._imageId = null;
-		link._imageSrc = null;
-		link.className = 'Empty';
-		link.childNodes[0].style.backgroundImage = '';
-		if(link.target) delete link.target;
-		link.href = null;
-		link.onclick = null;
-		link.removeAttribute('contextmenu');
-	}
-	populateBack = function(link){
-		link.Node = null;
-		link._imageId = null;
-		link._imageSrc = null;
-		link.className = 'Back';
-		link.childNodes[0].style.backgroundImage = '';
-		link.childNodes[1].innerText = 'Back';
-		if(link.target) delete link.target;
-		link.href = '#';
-		link.onclick = function(){ window.history.back(); }
-		link.removeAttribute('contextmenu');
-	}
-	populateFolder = function(link, node){
+	};
+	const reset = (link, node, className) => {
 		link.Node = node;
-		link.className = 'Folder';
-		if(node.imageMode || node.imageMode == 0) applyImageMode(node.imageMode, link.childNodes[0].style);
-		else applyImageMode(-1, link.childNodes[0].style);
-		applyImage(link, node);
-		link.childNodes[1].innerText = node.title;
-		switch(app.settings.grid.openFolderMethod){
-			case 0:
-				if(link.target) delete link.target;
-				break;
-			case 1:
-				link.target = '_blank';
-				break;
+		link.className = className;
+		link.onclick = null;
+		const mode = node && (node.imageMode || node.imageMode == 0) ? node.imageMode : -1;
+		dial.applyImageMode(mode, link.firstChild.style);
+		if(!node){
+			link._imageId = null;
+			link._imageSrc = null;
+			link.firstChild.style.backgroundImage = '';
 		}
-		if(dial.path) link.href = '?' + 'bg=' + encodeURIComponent(app.settings.backgroundColor) + '&path=' + encodeURIComponent(dial.path + node.title);
-		else link.href = '?' + 'bg=' + encodeURIComponent(app.settings.backgroundColor) + '&path=' + encodeURIComponent(node.title);
-		link.onclick = null;
-		link.setAttribute('contextmenu', 'item');
-	}
-	populateBookmark = function(link, node){
-		link.Node = node;
-		if(node.imageMode || node.imageMode == 0) applyImageMode(node.imageMode, link.childNodes[0].style);
-		else applyImageMode(-1, link.childNodes[0].style);
-		if(applyImage(link, node)){
-			link.className = 'Bookmark';
-		} else {
+	};
+	const openIn = (link, method) => { // 0: this tab, 1: a new tab
+		if(method == 1) link.target = '_blank';
+		else link.removeAttribute('target');
+	};
+	const populateEmpty = link => {
+		reset(link, null, 'Empty');
+		openIn(link, 0);
+		link.removeAttribute('href');
+	};
+	const populateBack = link => {
+		reset(link, null, 'Back');
+		link.lastChild.innerText = 'Back';
+		openIn(link, 0);
+		link.href = '#';
+		link.onclick = () => { window.history.back(); };
+	};
+	const populateFolder = (link, node) => {
+		reset(link, node, 'Folder');
+		applyImage(link, node);
+		link.lastChild.innerText = node.title;
+		openIn(link, g.openFolderMethod);
+		link.href = '?bg=' + encodeURIComponent(app.settings.backgroundColor) + '&path=' + encodeURIComponent((dial.path || '') + node.title);
+	};
+	const populateBookmark = (link, node) => {
+		reset(link, node, 'Bookmark');
+		if(!applyImage(link, node)){ // No picture yet: make one
 			link.className = 'BookmarkLoading';
 			dial.refreshNode(link);
 		}
-		link.childNodes[1].innerText = node.title;
-		switch(app.settings.grid.openBookmarkMethod){
-			case 0:
-				if(link.target) delete link.target;
-				break;
-			case 1:
-				link.target = '_blank';
-				break;
-		}
+		link.lastChild.innerText = node.title;
+		openIn(link, g.openBookmarkMethod);
 		link.href = node.url;
-		link.onclick = null;
-		link.setAttribute('contextmenu', 'item');
-	}
+	};
 
-	var iBase = 0;
-	var linkItem = 0;
-	var allCells = app.settings.grid.rows * app.settings.grid.columns;
-	var maxCells = allCells;
-	if(app.settings.grid.backNode && dial.path != '/'){
-		populateBack(dial.Grid.getLink(linkItem));
-		linkItem++;
+	const allCells = g.rows * g.columns;
+	let maxCells = allCells, linkItem = 0;
+	if(dial._backShown()){
+		populateBack(dial.Grid.getLink(linkItem++));
 		maxCells -= 1;
 	}
-	dial.maxpage = Math.floor(app.node.children.length / maxCells);
-	if(dial.maxpage != app.node.children.length / maxCells) dial.maxpage += 1;
+	const children = app.node.children;
+	dial.maxpage = Math.ceil(children.length / maxCells);
 	if(dial.page > dial.maxpage) dial.page = dial.maxpage;
-	if(dial.page > 1) iBase = (dial.page -1) * maxCells;
-	for(var i = iBase; i<app.node.children.length && i<maxCells + iBase; i++) {
-		switch(app.node.children[i].type){
-			case app.GridNodes.GridNodeType.empty:
-				populateEmpty(dial.Grid.getLink(linkItem));
-				break;
-			case app.GridNodes.GridNodeType.folder:
-				populateFolder(dial.Grid.getLink(linkItem), app.node.children[i]);
-				break;
-			case app.GridNodes.GridNodeType.bookmark:
-				populateBookmark(dial.Grid.getLink(linkItem), app.node.children[i]);
-				break;
+	const first = dial.page > 1 ? (dial.page - 1) * maxCells : 0;
+	for(const node of children.slice(first, first + maxCells)){
+		const link = dial.Grid.getLink(linkItem++);
+		switch(node.type){
+			case T.folder: populateFolder(link, node); break;
+			case T.bookmark: populateBookmark(link, node); break;
+			default: populateEmpty(link);
 		}
-		linkItem++;
 	}
-	while(linkItem<allCells){
-		populateEmpty(dial.Grid.getLink(linkItem));
-		linkItem++;
-	}
+	while(linkItem < allCells) populateEmpty(dial.Grid.getLink(linkItem++));
 	if(pendingImages.length > 0){
-		var requests = pendingImages;
-		app.Messages.getImages(requests.map(function(r){ return r.node.id; }), function(images){
-			for(var r of requests){
+		app.Messages.getImages(pendingImages.map(r => r.node.id), images => {
+			for(const r of pendingImages){
 				if(r.link.Node != r.node || !images || !images[r.node.id]) continue;
 				r.link._imageId = r.node.id;
 				r.link._imageSrc = images[r.node.id];
-				r.link.childNodes[0].style.backgroundImage = 'url("' + images[r.node.id] + '")';
+				r.link.firstChild.style.backgroundImage = 'url("' + images[r.node.id] + '")';
 			}
 		});
 	}
@@ -685,12 +428,13 @@ dial.applyAccent = function(){ // The theme's accent colour for the dialogs and 
 	if(window.QDUI && app.settings) QDUI.setAccent(app.settings.accentColor);
 };
 dial.loadUI = function(){
-	if(!dial._ui) dial._ui = new Promise(function(resolve){
-		var pending = 2, done = function(){ if(--pending == 0){ dial.applyAccent(); resolve(window.QDUI); } };
-		var css = document.createElement('link');
+	if(!dial._ui) dial._ui = new Promise(resolve => {
+		let pending = 2;
+		const done = () => { if(--pending == 0){ dial.applyAccent(); resolve(window.QDUI); } };
+		const css = document.createElement('link');
 		css.rel = 'stylesheet'; css.href = '/css/ui.css';
 		css.onload = css.onerror = done;
-		var js = document.createElement('script');
+		const js = document.createElement('script');
 		js.src = '/js/ui.js';
 		js.onload = js.onerror = done;
 		document.head.appendChild(css);
@@ -699,49 +443,47 @@ dial.loadUI = function(){
 	return dial._ui;
 };
 dial.createBookmark = function(){
-	dial.loadUI().then(function(ui){
+	dial.loadUI().then(ui => {
 		return ui.dialog({
 			title: browser.i18n.getMessage("dialogNewBookmark"),
 			message: browser.i18n.getMessage("AddBookmarkPrompt"),
 			value: 'https://', placeholder: 'https://example.com', okText: 'Add',
 			validate: function(v){
-				var u = /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v;
-				try { var p = new URL(u); if(!/^https?:$/.test(p.protocol) || p.hostname) return ''; } catch(e) {}
+				const u = /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v;
+				try { const p = new URL(u); if(!/^https?:$/.test(p.protocol) || p.hostname) return ''; } catch(e) {}
 				return 'Enter a web address, e.g. https://example.com';
 			},
 			transform: function(v){ return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v; }
 		});
-	}).then(function(url){ if(url) app.Messages.createBookmark(url); });
+	}).then(url => { if(url) app.Messages.createBookmark(url); });
 };
 dial.createFolder = function(){
-	dial.loadUI().then(function(ui){
+	dial.loadUI().then(ui => {
 		return ui.dialog({ title: browser.i18n.getMessage("dialogNewFolder"), message: browser.i18n.getMessage("AddFolderPrompt"), value: 'New Folder', okText: 'Create' });
-	}).then(function(name){ if(name) app.Messages.createFolder(name); });
+	}).then(name => { if(name) app.Messages.createFolder(name); });
 };
 dial.deleteNode = function(){
-	var node = dial._selectedItem.Node;
-	dial.loadUI().then(function(ui){
+	const node = dial._selectedItem.Node;
+	dial.loadUI().then(ui => {
 		return ui.dialog({ title: browser.i18n.getMessage("deleteItemConfimation", node.title), message: node.url || '', okText: browser.i18n.getMessage("menuDeleteItem"), danger: true });
-	}).then(function(ok){ if(ok) app.Messages.deleteNode(node.id); });
+	}).then(ok => { if(ok) app.Messages.deleteNode(node.id); });
 }
-dial.refreshNode = function(selectedItem){
-	selectedItem.className = 'BookmarkLoading';
-	selectedItem._imageSrc = null; // Show the result even if the picture comes back unchanged
-	selectedItem.childNodes[0].style.backgroundImage = app.settings.grid.loadingIcon;
-	app.Messages.refreshNode(selectedItem.Node.id);
-}
-dial.capturePage = function(selectedItem){
-	selectedItem.className = 'BookmarkLoading';
-	selectedItem._imageSrc = null; // Show the result even if the picture comes back unchanged
-	selectedItem.childNodes[0].style.backgroundImage = app.settings.grid.loadingIcon;
-	app.Messages.capturePage(selectedItem.Node.id);
-}
-
-
-
+dial._showLoading = function(link){ // until the background page sends the new picture
+	link.className = 'BookmarkLoading';
+	link._imageSrc = null; // Show the result even if the picture comes back unchanged
+	link.firstChild.style.backgroundImage = app.settings.grid.loadingIcon;
+};
+dial.refreshNode = function(link){ // Refresh: download the page for its title and picture
+	dial._showLoading(link);
+	app.Messages.refreshNode(link.Node.id);
+};
+dial.capturePage = function(link){ // Capture page: open it in a tab and take a picture
+	dial._showLoading(link);
+	app.Messages.capturePage(link.Node.id);
+};
 
 dial.PopupPanel = function(width, height){ // Modal frame for the Settings and Properties pages
-	var self = this;
+	const self = this;
 	this.overlay = document.createElement('div');
 	this.overlay.className = 'qd qd-overlay';
 	this.panel = document.createElement('div');
@@ -752,8 +494,8 @@ dial.PopupPanel = function(width, height){ // Modal frame for the Settings and P
 	this.frame = this.panel;
 	this._contextMenuHandler = function(e){ e.preventDefault(); };
 	this._keyHandler = function(e){ if(e.key == 'Escape') self.close(); }; // when focus is outside the frame
-	this.overlay.addEventListener('mousedown', function(e){ // keep focus in the frame
-		if(e.target === self.overlay){ e.preventDefault(); var f = self.panel.querySelector('iframe'); if(f) f.focus(); }
+	this.overlay.addEventListener('mousedown', e => { // keep focus in the frame
+		if(e.target === self.overlay){ e.preventDefault(); const f = self.panel.querySelector('iframe'); if(f) f.focus(); }
 	});
 	this.popup = function(){
 		if(dial._popup) dial._popup.close(true);
@@ -763,11 +505,12 @@ dial.PopupPanel = function(width, height){ // Modal frame for the Settings and P
 		document.body.appendChild(self.overlay);
 	};
 	this.fit = function(){ // Called by the page inside: shrink the frame to its content (never above the requested height)
-		var f = self.panel.querySelector('iframe'), d = f && f.contentDocument;
+		const f = self.panel.querySelector('iframe'), d = f && f.contentDocument;
 		if(!d) return;
-		var needed = 2, content = d.querySelector('.qd-content');
+		const content = d.querySelector('.qd-content');
+		let needed = 2;
 		if(content) content.style.flex = '0 0 auto'; // natural height instead of "fill the frame"
-		for(var el of d.body.children) needed += el.offsetHeight;
+		for(const el of d.body.children) needed += el.offsetHeight;
 		if(content) content.style.flex = '';
 		self.panel.style.height = Math.min(height, Math.ceil(needed)) + 'px';
 	};
@@ -778,14 +521,14 @@ dial.PopupPanel = function(width, height){ // Modal frame for the Settings and P
 		window.removeEventListener('contextmenu', self._contextMenuHandler, false);
 		window.removeEventListener('keydown', self._keyHandler, false);
 		if(immediate) self.overlay.remove();
-		else { self.overlay.classList.add('is-closing'); setTimeout(function(){ self.overlay.remove(); }, 120); }
+		else { self.overlay.classList.add('is-closing'); setTimeout(() => { self.overlay.remove(); }, 120); }
 	};
 }
 
 dial.openPopup = function(src, width, height){
-	dial.loadUI().then(function(){
-		var popup = new dial.PopupPanel(width, height);
-		var iframe = document.createElement('iframe');
+	dial.loadUI().then(() => {
+		const popup = new dial.PopupPanel(width, height);
+		const iframe = document.createElement('iframe');
 		iframe.src = src;
 		iframe.popup = popup;
 		popup.frame.appendChild(iframe);
@@ -795,7 +538,7 @@ dial.openPopup = function(src, width, height){
 }
 
 dial.editSettings = function(tab){ // Settings opens in its own tab; tab: optional section ('backup')
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.openSettings, tab: typeof tab == 'string' ? tab : null }).catch(function(){});
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.openSettings, tab: typeof tab == 'string' ? tab : null }).catch(() => {});
 }
 
 dial.editProperties = function(selectedItem){

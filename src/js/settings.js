@@ -1,19 +1,22 @@
+// The Settings page (its own tab). Form elements are reached by their id (window.BtnApply...).
+/* exported app */
+// eslint-disable-next-line no-var -- a window property, like on the other pages
 var app = {};
 
 // Pictures and the theme gradient have no form field of their own
-var BackgroundImage = null;
-var BackgroundGradient = null;
-var GridBackImage = null;
-var GridFolderImage = null;
+let BackgroundImage = null;
+let BackgroundGradient = null;
+let GridBackImage = null;
+let GridFolderImage = null;
 
-document.addEventListener("DOMContentLoaded", function(event) {
+document.addEventListener("DOMContentLoaded", event => {
 	app.init();
 });
 
 // Form fields and the setting each one edits: [element id, settings path, kind, "None"/"Default" checkbox id, colour shown when null]
 // Kinds: num, pct (0..1 shown as %), bool, color, color? (null = the checkbox), text
 app.Fields = (function(){
-	var f = [
+	const f = [
 		['MenuShowAdd', 'menuShowAdd', 'bool'],
 		['ToolbarAction', 'toolbarAction', 'text'],
 		['BackgroundColor', 'backgroundColor', 'color'],
@@ -44,8 +47,8 @@ app.Fields = (function(){
 		['Title', 'title', 'bool'], ['TitleHeight', 'titleHeight', 'num'], ['TitleFontSize', 'titleFontSize', 'num'],
 		['TitleBorderSize', 'titleBorderSize', 'num'], ['TitleColor', 'titleColor', 'color'],
 		['TitleBackgroundColor', 'titleBackgroundColor', 'color?', 'TitleBackgroundTransparent'], ['TitleBackgroundOpacity', 'titleBackgroundOpacity', 'pct']
-	].forEach(function(p){
-		['', 'Hover'].forEach(function(h){
+	].forEach(p => {
+		['', 'Hover'].forEach(h => {
 			f.push(['GridCells' + p[0] + h, 'grid.cells.' + p[1] + h, p[2], p[3] ? 'GridCells' + p[3] + h : null, '#ffffff']);
 		});
 	});
@@ -53,24 +56,24 @@ app.Fields = (function(){
 })();
 
 app.path = {
-	get: function(obj, path){ return path.split('.').reduce(function(o, k){ return o == null ? undefined : o[k]; }, obj); },
+	get: function(obj, path){ return path.split('.').reduce((o, k) => { return o == null ? undefined : o[k]; }, obj); },
 	set: function(obj, path, value){
-		var keys = path.split('.'), last = keys.pop();
-		keys.reduce(function(o, k){ return o[k] || (o[k] = {}); }, obj)[last] = value;
+		const keys = path.split('.'), last = keys.pop();
+		keys.reduce((o, k) => { return o[k] || (o[k] = {}); }, obj)[last] = value;
 	}
 };
 app.clone = function(v){ return JSON.parse(JSON.stringify(v)); };
 
 // settings -> form
 app.fillForm = function(settings){
-	app.Fields.forEach(function(f){
-		var el = document.getElementById(f[0]), v = app.path.get(settings, f[1]);
+	app.Fields.forEach(f => {
+		const el = document.getElementById(f[0]), v = app.path.get(settings, f[1]);
 		switch(f[2]){
 			case 'bool': el.checked = !!v; break;
 			case 'pct': el.value = Math.round((v == null ? 1 : v) * 100); break;
 			case 'color?': document.getElementById(f[3]).checked = (v == null); el.value = v || f[4]; break;
 			case 'text':
-				if(el.tagName == 'SELECT' && v && !Array.prototype.some.call(el.options, function(o){ return o.value == v; })){
+				if(el.tagName == 'SELECT' && v && !Array.prototype.some.call(el.options, o => { return o.value == v; })){
 					el.add(new Option('Custom (' + v.split(',')[0].replace(/["']/g, '') + ')', v)); // a font from an imported theme
 				}
 				el.value = v == null ? '' : v;
@@ -85,8 +88,9 @@ app.fillForm = function(settings){
 };
 // form -> settings (written into `settings`, which is returned)
 app.readForm = function(settings){
-	app.Fields.forEach(function(f){
-		var el = document.getElementById(f[0]), v;
+	app.Fields.forEach(f => {
+		const el = document.getElementById(f[0]);
+		let v;
 		switch(f[2]){
 			case 'bool': v = el.checked; break;
 			case 'num': v = el.value === '' || isNaN(+el.value) ? app.path.get(settings, f[1]) : +el.value; break;
@@ -108,13 +112,13 @@ app.current = function(){ return app.readForm(app.clone(app.settings)); };
 app.init = function(){
 	// Settings has its own tab (opened from the toolbar button, the dial's menu or Firefox's Add-ons page)
 	try { Version.textContent = 'Version ' + browser.runtime.getManifest().version; } catch(e) { Version.textContent = ''; }
-	app.tabs = QDUI.tabs(Tabs, function(btn){
+	app.tabs = QDUI.tabs(Tabs, btn => {
 		Content.scrollTop = 0;
 		PanelTitle.textContent = btn.textContent.trim();
 		history.replaceState(null, '', '?tab=' + btn.id.replace(/^Tab|Button$/g, '').toLowerCase()); // a reload stays on this section
 	});
 	app.changes = QDUI.changes(BtnApply, Status, BtnDiscard);
-	QDThemes.FONTS.forEach(function(f){ GridCellsTitleFont.add(new Option(f.label, f.value)); });
+	QDThemes.FONTS.forEach(f => { GridCellsTitleFont.add(new Option(f.label, f.value)); });
 
 	app.load();
 	app.Messages.init();
@@ -134,16 +138,16 @@ app.init = function(){
 	BtnOpenDial.onclick = function(){
 		browser.tabs.create({ url: '/dial.html' });
 	}
-	document.addEventListener('keydown', function(e){
+	document.addEventListener('keydown', e => {
 		if((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() == 's'){ e.preventDefault(); BtnApply.onclick(); }
 	});
-	window.addEventListener('beforeunload', function(e){ // closing the tab with changes not applied
+	window.addEventListener('beforeunload', e => { // closing the tab with changes not applied
 		if(app.changes.isDirty()){ e.preventDefault(); e.returnValue = ''; }
 	});
 
 	// ----- Backup -----
 	BtnExport.onclick = function(){
-		browser.runtime.sendMessage({ cmd: app.Messages.Commands.exportData }).then(function(data){
+		browser.runtime.sendMessage({ cmd: app.Messages.Commands.exportData }).then(data => {
 			app.download(data, 'quickdial-ng-backup-' + new Date().toISOString().substr(0, 10) + '.json');
 		});
 	}
@@ -152,33 +156,33 @@ app.init = function(){
 		ImportFile.click();
 	}
 	BtnCopySnippet.onclick = function(){
-		navigator.clipboard.writeText(app.Backup.exportSnippet).then(function(){
+		navigator.clipboard.writeText(app.Backup.exportSnippet).then(() => {
 			BtnCopySnippet.textContent = 'Copied ✓';
-			setTimeout(function(){ BtnCopySnippet.textContent = 'Copy export snippet'; }, 2000);
-		}, function(){ prompt('Copy this snippet:', app.Backup.exportSnippet); });
+			setTimeout(() => { BtnCopySnippet.textContent = 'Copy export snippet'; }, 2000);
+		}, () => { prompt('Copy this snippet:', app.Backup.exportSnippet); });
 	}
 	ImportFile.onchange = function(){
 		if(!ImportFile.files[0]) return;
-		app.readJSON(ImportFile.files[0], function(data){
+		app.readJSON(ImportFile.files[0], data => {
 			if(!data || !data.settings || !data.node || !data.settings.grid){
 				app.showStatus(ImportStatus, data && data.format == 'quickdial-ng-theme' ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
 				return;
 			}
-			var source = data.format == 'quickdial-ng' ? 'Quick Dial NG backup' : 'Quick Dial export';
+			const source = data.format == 'quickdial-ng' ? 'Quick Dial NG backup' : 'Quick Dial export';
 			QDUI.dialog({
 				title: 'Import this ' + source + '?',
 				message: 'Your current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.',
 				okText: 'Import',
 				danger: true
-			}).then(function(ok){
+			}).then(ok => {
 				if(!ok) return;
 				BtnImport.disabled = true;
 				app.showStatus(ImportStatus, 'Importing…', false, true);
-				browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(function(r){
-					var text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
+				browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(r => {
+					const text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
 						+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
 					location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
-				}, function(err){
+				}, err => {
 					BtnImport.disabled = false;
 					app.showStatus(ImportStatus, 'Import failed: ' + err.message, true);
 				});
@@ -186,7 +190,7 @@ app.init = function(){
 		});
 	}
 
-	var params = new URLSearchParams(location.search);
+	const params = new URLSearchParams(location.search);
 	app.showSection(params.get('tab'));
 	if(params.get('result')) app.showStatus(ImportStatus, params.get('result'));
 
@@ -195,9 +199,9 @@ app.init = function(){
 		if(choose) choose.onkeydown = function(e){ if(e.key == 'Enter' || e.key == ' '){ e.preventDefault(); input.click(); } };
 		input.onclick = function(){ this.value = null; };
 		input.onchange = function(){
-			var file = input.files[0];
+			const file = input.files[0];
 			if(!file) return;
-			var fileReader = new FileReader();
+			const fileReader = new FileReader();
 			fileReader.onload = function(e){
 				input.value = null;
 				apply('url(' + e.target.result + ')');
@@ -207,18 +211,18 @@ app.init = function(){
 			fileReader.readAsDataURL(file);
 		};
 	}
-	picker(BackgroundImageFile, BackgroundImageChoose, function(v){ BackgroundImage = v; });
-	picker(GridBackImageFile, GridBackImageFile.previousElementSibling, function(v){ GridBackImage = v; });
-	picker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, function(v){ GridFolderImage = v; });
+	picker(BackgroundImageFile, BackgroundImageChoose, v => { BackgroundImage = v; });
+	picker(GridBackImageFile, GridBackImageFile.previousElementSibling, v => { GridBackImage = v; });
+	picker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, v => { GridFolderImage = v; });
 	QDUI.imageDrop(BackgroundZone, BackgroundImageFile);
 	QDUI.imageDrop(GridBackZone, GridBackImageFile);
 	QDUI.imageDrop(GridFolderZone, GridFolderImageFile);
 
 	function edit(fn){ return function(){ fn(); app.updatePreviews(); app.changes.mark(); }; }
-	BackgroundImageClear.onclick = edit(function(){ BackgroundImage = null; });
-	BackgroundGradientClear.onclick = edit(function(){ BackgroundGradient = null; });
-	GridBackImageReset.onclick = edit(function(){ GridBackImage = 'url(/img/back.png)'; });
-	GridFolderImageReset.onclick = edit(function(){ GridFolderImage = 'url(/img/folder.png)'; });
+	BackgroundImageClear.onclick = edit(() => { BackgroundImage = null; });
+	BackgroundGradientClear.onclick = edit(() => { BackgroundGradient = null; });
+	GridBackImageReset.onclick = edit(() => { GridBackImage = 'url(/img/back.png)'; });
+	GridFolderImageReset.onclick = edit(() => { GridFolderImage = 'url(/img/folder.png)'; });
 
 	// ----- Themes -----
 	BtnThemeSave.onclick = app.Themes.saveCurrent;
@@ -238,13 +242,13 @@ app.init = function(){
 
 // Reads the settings and themes the dial uses now into the form
 app.load = function(){
-	app.Messages.getSettings(function(settings){
+	app.Messages.getSettings(settings => {
 		app.settings = settings;
 		QDThemes.complete(app.settings);
 		app.fillForm(app.settings);
 		app.updatePreviews();
 		app.changes.start();
-		app.Messages.getThemes(function(list){
+		app.Messages.getThemes(list => {
 			app.Themes.list = list || [];
 			app.Themes.render();
 		});
@@ -252,23 +256,23 @@ app.load = function(){
 };
 // ?tab=page|grid|tiles|themes|backup
 app.showSection = function(name){
-	var btn = name && document.getElementById('Tab' + name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() + 'Button');
+	const btn = name && document.getElementById('Tab' + name.charAt(0).toUpperCase() + name.slice(1).toLowerCase() + 'Button');
 	app.tabs.select(btn && btn.getAttribute('role') == 'tab' ? btn : 'TabPageButton');
 };
 
 app.download = function(data, name){
-	var blob = new Blob([JSON.stringify(data, null, data.format == 'quickdial-ng-theme' ? '\t' : undefined)], { type: 'application/json' });
-	var link = document.createElement('a');
+	const blob = new Blob([JSON.stringify(data, null, data.format == 'quickdial-ng-theme' ? '\t' : undefined)], { type: 'application/json' });
+	const link = document.createElement('a');
 	link.href = URL.createObjectURL(blob);
 	link.download = name;
 	document.body.appendChild(link);
 	link.click();
-	setTimeout(function(){ URL.revokeObjectURL(link.href); link.remove(); }, 1000);
+	setTimeout(() => { URL.revokeObjectURL(link.href); link.remove(); }, 1000);
 };
 app.readJSON = function(file, callback){ // callback(parsed object, or null when it isn't JSON)
-	var fileReader = new FileReader();
+	const fileReader = new FileReader();
 	fileReader.onload = function(e){
-		var data = null;
+		let data = null;
 		try { data = JSON.parse(e.target.result); } catch(err) {}
 		callback(data);
 	};
@@ -283,7 +287,7 @@ app.showStatus = function(el, text, isError, isBusy){
 // ---------- previews ----------
 app.updatePreviews = function(){
 	if(!app.settings) return;
-	var s = app.current();
+	const s = app.current();
 	BackgroundPreview.style.backgroundColor = s.backgroundColor;
 	BackgroundPreview.style.backgroundImage = QDThemes.background(BackgroundImage, BackgroundGradient);
 	QDUI.applyMode(BackgroundPreview, s.backgroundMode);
@@ -296,11 +300,11 @@ app.updatePreviews = function(){
 	QDUI.setAccent(s.accentColor); // this window shows the accent right away
 
 	// "None" / "Default" switch off the colour next to them
-	app.Fields.forEach(function(f){ if(f[3]) document.getElementById(f[0]).disabled = document.getElementById(f[3]).checked; });
+	app.Fields.forEach(f => { if(f[3]) document.getElementById(f[0]).disabled = document.getElementById(f[3]).checked; });
 
 	TileStage.style.backgroundColor = s.backgroundColor;
 	TileStage.style.backgroundImage = QDThemes.background(BackgroundImage, BackgroundGradient);
-	var ratio = (+s.grid.ratioY || 3) / (+s.grid.ratioX || 4);
+	const ratio = (+s.grid.ratioY || 3) / (+s.grid.ratioX || 4);
 	app.paintTile(TileNormal, s.grid.cells, false, ratio);
 	app.paintTile(TileHover, s.grid.cells, true, ratio);
 	app.Themes.markCurrent(s);
@@ -308,14 +312,14 @@ app.updatePreviews = function(){
 
 // Draws a sample tile (.qd-tile in a .qd-tile-slot, 152 px wide) the way the dial would
 app.paintTile = function(tile, c, hover, ratio){
-	var h = hover ? 'Hover' : '';
-	var n = function(name){ return Math.max(0, +c[name + h] || 0); };
-	var margin = n('margin'), border = n('borderSize'), showTitle = !!c['title' + h], titleHeight = n('titleHeight');
-	var overlay = c.titlePosition == 1, effect = +c.hoverEffect || 0;
-	var height = Math.round((152 - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !overlay ? titleHeight : 0);
+	const h = hover ? 'Hover' : '';
+	const n = function(name){ return Math.max(0, +c[name + h] || 0); };
+	const margin = n('margin'), border = n('borderSize'), showTitle = !!c['title' + h], titleHeight = n('titleHeight');
+	const overlay = c.titlePosition == 1, effect = +c.hoverEffect || 0;
+	const height = Math.round((152 - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !overlay ? titleHeight : 0);
 	tile.parentNode.style.height = (Math.min(height, 200) + 2 * margin) + 'px';
 	tile.classList.toggle('is-overlay', overlay);
-	var s = tile.style;
+	const s = tile.style;
 	s.margin = margin + 'px';
 	s.opacity = Math.min(1, n('opacity'));
 	s.border = border + 'px solid ' + c['borderColor' + h];
@@ -324,7 +328,7 @@ app.paintTile = function(tile, c, hover, ratio){
 	s.boxShadow = QDThemes.shadow(c['shadow' + h]);
 	s.backdropFilter = n('blur') ? 'blur(' + n('blur') + 'px)' : 'none';
 	s.transform = hover && effect == 2 ? 'translateY(-4px)' : hover && effect == 3 ? 'scale(1.04)' : 'none';
-	var title = tile.lastElementChild.style;
+	const title = tile.lastElementChild.style;
 	title.display = showTitle ? '' : 'none';
 	title.height = titleHeight + 'px';
 	title.lineHeight = titleHeight + 'px';
@@ -341,10 +345,10 @@ app.Themes = { list: [], cards: [] };
 app.Themes.all = function(){ return QDThemes.BUILTIN.concat(app.Themes.list); };
 app.Themes.find = function(name){
 	name = String(name).trim().toLowerCase();
-	return app.Themes.list.filter(function(t){ return t.name.toLowerCase() == name; })[0] || null;
+	return app.Themes.list.filter(t => { return t.name.toLowerCase() == name; })[0] || null;
 };
 app.Themes.store = function(list, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.setThemes, themes: list }).then(function(saved){
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.setThemes, themes: list }).then(saved => {
 		app.Themes.list = saved || [];
 		app.Themes.render();
 		if(callback) callback();
@@ -352,16 +356,16 @@ app.Themes.store = function(list, callback){
 };
 app.Themes.render = function(){
 	ThemeList.replaceChildren();
-	app.Themes.cards = app.Themes.all().map(function(theme){
-		function el(tag, cls, text){ var e = document.createElement(tag); if(cls) e.className = cls; if(text) e.textContent = text; return e; }
-		function button(text, title, onclick, cls){ var b = el('button', 'qd-btn is-small' + (cls ? ' ' + cls : ''), text); b.type = 'button'; b.title = title; b.onclick = onclick; return b; }
-		var card = el('article', 'qd-theme');
-		var preview = el('div', 'qd-theme-preview');
+	app.Themes.cards = app.Themes.all().map(theme => {
+		function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text) e.textContent = text; return e; }
+		function button(text, title, onclick, cls){ const b = el('button', 'qd-btn is-small' + (cls ? ' ' + cls : ''), text); b.type = 'button'; b.title = title; b.onclick = onclick; return b; }
+		const card = el('article', 'qd-theme');
+		const preview = el('div', 'qd-theme-preview');
 		preview.style.backgroundColor = theme.style.backgroundColor;
 		preview.style.backgroundImage = QDThemes.background(null, theme.style.backgroundGradient);
-		var ratio = (+app.settings.grid.ratioY || 3) / (+app.settings.grid.ratioX || 4);
-		[false, true].forEach(function(hover){
-			var slot = el('div', 'qd-tile-slot'), tile = el('div', 'qd-tile');
+		const ratio = (+app.settings.grid.ratioY || 3) / (+app.settings.grid.ratioX || 4);
+		[false, true].forEach(hover => {
+			const slot = el('div', 'qd-tile-slot'), tile = el('div', 'qd-tile');
 			tile.appendChild(el('div', 'qd-tile-img'));
 			tile.appendChild(el('div', 'qd-tile-title', hover ? 'Hover' : 'Example'));
 			slot.appendChild(tile);
@@ -369,18 +373,18 @@ app.Themes.render = function(){
 			app.paintTile(tile, theme.style.grid.cells, hover, ratio);
 		});
 		card.appendChild(preview);
-		var body = el('div', 'qd-theme-body');
-		var name = el('h3', 'qd-theme-name', theme.name);
+		const body = el('div', 'qd-theme-body');
+		const name = el('h3', 'qd-theme-name', theme.name);
 		if(theme.builtin) name.appendChild(el('span', 'qd-badge', 'Built-in'));
-		var current = el('span', 'qd-badge is-accent', 'In use');
+		const current = el('span', 'qd-badge is-accent', 'In use');
 		name.appendChild(current);
 		body.appendChild(name);
 		body.appendChild(el('p', 'qd-theme-desc', theme.description || ''));
-		var actions = el('div', 'qd-theme-actions');
-		var use = button('Use', 'Show this theme here; Apply or OK keeps it', function(){ app.Themes.use(theme); }, 'is-primary');
+		const actions = el('div', 'qd-theme-actions');
+		const use = button('Use', 'Show this theme here; Apply or OK keeps it', () => { app.Themes.use(theme); }, 'is-primary');
 		actions.appendChild(use);
-		actions.appendChild(button('Export…', 'Save this theme as a .json file', function(){ app.download(QDThemes.toFile(theme), QDThemes.fileName(theme.name)); }));
-		if(!theme.builtin) actions.appendChild(button('Delete', 'Remove this theme from the list', function(){ app.Themes.remove(theme); }));
+		actions.appendChild(button('Export…', 'Save this theme as a .json file', () => { app.download(QDThemes.toFile(theme), QDThemes.fileName(theme.name)); }));
+		if(!theme.builtin) actions.appendChild(button('Delete', 'Remove this theme from the list', () => { app.Themes.remove(theme); }));
 		body.appendChild(actions);
 		card.appendChild(body);
 		ThemeList.appendChild(card);
@@ -389,16 +393,16 @@ app.Themes.render = function(){
 	app.Themes.markCurrent(app.current());
 };
 app.Themes.markCurrent = function(settings){ // highlights the theme the form currently matches
-	var style = QDThemes.extract(settings);
-	app.Themes.cards.forEach(function(c){
-		var on = QDThemes.equal(style, c.theme.style);
+	const style = QDThemes.extract(settings);
+	app.Themes.cards.forEach(c => {
+		const on = QDThemes.equal(style, c.theme.style);
 		c.card.classList.toggle('is-current', on);
 		c.badge.hidden = !on;
 		c.use.disabled = on;
 	});
 };
 app.Themes.use = function(theme){
-	var s = QDThemes.apply(app.current(), theme.style);
+	const s = QDThemes.apply(app.current(), theme.style);
 	app.fillForm(s);
 	app.updatePreviews();
 	app.changes.mark();
@@ -406,8 +410,8 @@ app.Themes.use = function(theme){
 };
 // Asks for a name and description: resolves to { name, description } or null
 app.Themes.ask = function(title, okText, forSaving){
-	var style = QDThemes.extract(app.current());
-	var match = app.Themes.all().filter(function(t){ return QDThemes.equal(style, t.style); })[0];
+	const style = QDThemes.extract(app.current());
+	const match = app.Themes.all().filter(t => { return QDThemes.equal(style, t.style); })[0];
 	return QDUI.dialog({
 		title: title,
 		message: 'From the current settings: background color, page margin, tile and title styles and the accent color.',
@@ -426,63 +430,42 @@ app.Themes.ask = function(title, okText, forSaving){
 };
 // Adds a theme to the list; a theme with the same name is replaced after confirmation
 app.Themes.add = function(theme, done){
-	var existing = app.Themes.find(theme.name);
-	(existing ? QDUI.dialog({ title: 'Replace "' + existing.name + '"?', message: 'You already have a theme with this name.', okText: 'Replace', danger: true }) : Promise.resolve(true)).then(function(ok){
+	const existing = app.Themes.find(theme.name);
+	(existing ? QDUI.dialog({ title: 'Replace "' + existing.name + '"?', message: 'You already have a theme with this name.', okText: 'Replace', danger: true }) : Promise.resolve(true)).then(ok => {
 		if(!ok) return;
-		app.Themes.store([theme].concat(app.Themes.list.filter(function(t){ return t !== existing; })), done);
+		app.Themes.store([theme].concat(app.Themes.list.filter(t => { return t !== existing; })), done);
 	});
 };
 app.Themes.saveCurrent = function(){
-	app.Themes.ask('Save current as theme', 'Save', true).then(function(v){
+	app.Themes.ask('Save current as theme', 'Save', true).then(v => {
 		if(!v) return;
-		var theme = { name: v.name, description: v.description, style: QDThemes.extract(app.current()) };
-		app.Themes.add(theme, function(){ app.showStatus(ThemeStatus, 'Saved "' + theme.name + '" to your themes.'); });
+		const theme = { name: v.name, description: v.description, style: QDThemes.extract(app.current()) };
+		app.Themes.add(theme, () => { app.showStatus(ThemeStatus, 'Saved "' + theme.name + '" to your themes.'); });
 	});
 };
 app.Themes.exportCurrent = function(){
-	app.Themes.ask('Export current as theme', 'Export', false).then(function(v){
+	app.Themes.ask('Export current as theme', 'Export', false).then(v => {
 		if(!v) return;
 		app.download(QDThemes.toFile({ name: v.name, description: v.description, style: QDThemes.extract(app.current()) }), QDThemes.fileName(v.name));
 	});
 };
 app.Themes.importFile = function(data){
-	var theme;
+	let theme;
 	try { theme = QDThemes.fromFile(data); }
 	catch(e){ app.showStatus(ThemeStatus, data ? e.message : 'This file is not a Quick Dial NG theme.', true); return; }
 	if(QDThemes.isBuiltinName(theme.name)) theme.name += ' (imported)';
-	app.Themes.add(theme, function(){ app.showStatus(ThemeStatus, 'Imported "' + theme.name + '". Choose Use to try it.'); });
+	app.Themes.add(theme, () => { app.showStatus(ThemeStatus, 'Imported "' + theme.name + '". Choose Use to try it.'); });
 };
 app.Themes.remove = function(theme){
-	QDUI.dialog({ title: 'Delete "' + theme.name + '"?', message: 'The theme is removed from this list. Your current settings stay as they are.', okText: 'Delete', danger: true }).then(function(ok){
-		if(ok) app.Themes.store(app.Themes.list.filter(function(t){ return t !== theme; }));
+	QDUI.dialog({ title: 'Delete "' + theme.name + '"?', message: 'The theme is removed from this list. Your current settings stay as they are.', okText: 'Delete', danger: true }).then(ok => {
+		if(ok) app.Themes.store(app.Themes.list.filter(t => { return t !== theme; }));
 	});
 };
 
 app.Messages = {};
-app.Messages.Commands = {
-	getSettings: 0,
-	setSettings: 1,
-	getNode: 2,
-	getNodeByID: 3,
-	updateNode: 4,
-	setNodeIndex: 5,
-	createBookmark: 6,
-	createFolder: 7,
-	deleteNode: 8,
-	refreshNode: 9,
-	capturePage: 10,
-	getImages: 11,
-	exportData: 12,
-	importData: 13,
-	getThemes: 14,
-	setThemes: 15,
-	openSettings: 16,
-	settingsChanged: 100,
-	gridNodesLoaded: 101,
-	showSettingsSection: 209
-};
+app.Messages.Commands = QDCommon.Commands;
 app.Messages.init = function(){
-	browser.runtime.onMessage.addListener(function(request){
+	browser.runtime.onMessage.addListener(request => {
 		switch(request.cmd){
 			case app.Messages.Commands.settingsChanged: // applied here or in another window: show it unless there are edits not applied yet
 				if(app.settings && !app.changes.isDirty()) app.load();
@@ -497,7 +480,7 @@ app.Messages.getSettings = function(callback){
 	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback);
 };
 app.Messages.getThemes = function(callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getThemes }).then(callback, function(){ callback([]); });
+	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getThemes }).then(callback, () => { callback([]); });
 };
 app.Backup = {};
 app.Backup.exportSnippet = "(async()=>{const a=(await browser.runtime.getBackgroundPage()).app;const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:4,settings:a.settings,node:a.node})],{type:'application/json'}));l.download='quickdial-export.json';document.body.appendChild(l);l.click();})()";

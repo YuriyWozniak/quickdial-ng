@@ -3,12 +3,14 @@
 // dialogs, the page margin and every tile and title style. It never holds the number of rows and
 // columns, the tile shape, the background picture or any behaviour, so applying one keeps the grid.
 // Loaded by the background page (defaults) and the Settings page (theme gallery, import/export).
+/* exported QDThemes */
+// eslint-disable-next-line no-var -- a window property: the background page, Settings and the tests use it
 var QDThemes = (function(){
 	'use strict';
 
 	// Every style key with its Classic value (the defaults of a new install).
 	// The shape mirrors the settings object, so extract/apply can walk both together.
-	var CLASSIC = {
+	const CLASSIC = {
 		backgroundColor: '#3c4048',
 		backgroundGradient: null,
 		accentColor: null,
@@ -57,7 +59,7 @@ var QDThemes = (function(){
 
 	// What each value may be. Imported themes go through these checks, because the values end up in CSS text.
 	// [min, max, step]: number; 'color' / 'color?': #rrggbb (or null); 'bool'; 'font'; 'gradient'
-	var RULES = {
+	const RULES = {
 		backgroundColor: 'color', backgroundGradient: 'gradient', accentColor: 'color?',
 		'grid.margin': [0, 200, 1],
 		margin: [0, 100, 1], marginHover: [0, 100, 1],
@@ -79,17 +81,17 @@ var QDThemes = (function(){
 		titleBorderSize: [0, 20, 1], titleBorderSizeHover: [0, 20, 1]
 	};
 	function rule(path){ // most specific name first: "grid.cells.backgroundColor" -> "cells.backgroundColor" -> "backgroundColor"
-		var parts = path.split('.');
-		for(var i = 0; i < parts.length; i++){
-			var r = RULES[parts.slice(i).join('.')];
+		const parts = path.split('.');
+		for(let i = 0; i < parts.length; i++){
+			const r = RULES[parts.slice(i).join('.')];
 			if(r !== undefined) return r;
 		}
 		return null;
 	}
 
-	var COLOR = /^#[0-9a-f]{6}$/i;
-	var FONT = /^[\w\s,"'-]{1,200}$/;
-	var GRADIENT = /^\s*(repeating-)?(linear|radial|conic)-gradient\(/i;
+	const COLOR = /^#[0-9a-f]{6}$/i;
+	const FONT = /^[\w\s,"'-]{1,200}$/;
+	const GRADIENT = /^\s*(repeating-)?(linear|radial|conic)-gradient\(/i;
 	function clean(r, v, fallback){ // a valid value, or the fallback
 		if(Array.isArray(r)){
 			v = typeof v == 'string' && v.trim() !== '' ? +v : v;
@@ -111,23 +113,23 @@ var QDThemes = (function(){
 
 	// Calls fn(path, classicValue) for every style key ("grid.cells.margin", 4)
 	function walk(shape, prefix, fn){
-		for(var k in shape){
-			var path = prefix ? prefix + '.' + k : k;
+		for(const k in shape){
+			const path = prefix ? prefix + '.' + k : k;
 			if(shape[k] && typeof shape[k] == 'object') walk(shape[k], path, fn);
 			else fn(path, shape[k]);
 		}
 	}
 	function get(obj, path){
-		var parts = path.split('.');
-		for(var i = 0; i < parts.length; i++){
+		const parts = path.split('.');
+		for(let i = 0; i < parts.length; i++){
 			if(!obj || typeof obj != 'object') return undefined;
 			obj = obj[parts[i]];
 		}
 		return obj;
 	}
 	function set(obj, path, value){
-		var parts = path.split('.');
-		for(var i = 0; i < parts.length - 1; i++){
+		const parts = path.split('.');
+		for(let i = 0; i < parts.length - 1; i++){
 			if(!obj[parts[i]] || typeof obj[parts[i]] != 'object') obj[parts[i]] = {};
 			obj = obj[parts[i]];
 		}
@@ -136,8 +138,8 @@ var QDThemes = (function(){
 
 	// A complete, valid style: values from `style` where they pass the checks, Classic values elsewhere
 	function normalize(style){
-		var out = {};
-		walk(CLASSIC, '', function(path, def){ set(out, path, clean(rule(path), get(style, path), def)); });
+		const out = {};
+		walk(CLASSIC, '', (path, def) => { set(out, path, clean(rule(path), get(style, path), def)); });
 		return out;
 	}
 	// The style part of a settings object
@@ -145,19 +147,19 @@ var QDThemes = (function(){
 	// Writes a style into a settings object (layout and behaviour stay as they are)
 	function apply(settings, style){
 		style = normalize(style);
-		walk(CLASSIC, '', function(path){ set(settings, path, get(style, path)); });
+		walk(CLASSIC, '', path => { set(settings, path, get(style, path)); });
 		return settings;
 	}
 	function equal(a, b){ return JSON.stringify(normalize(a)) === JSON.stringify(normalize(b)); }
 	// Fills in style keys a settings object doesn't have yet (settings from older versions); returns true if any was added
 	function complete(settings){
-		var added = false;
-		walk(CLASSIC, '', function(path, def){ if(get(settings, path) === undefined){ set(settings, path, def); added = true; } });
+		let added = false;
+		walk(CLASSIC, '', (path, def) => { if(get(settings, path) === undefined){ set(settings, path, def); added = true; } });
 		return added;
 	}
 
 	// ---------- built-in themes ----------
-	var BUILTIN = [
+	const BUILTIN = [
 		{ id: 'classic', builtin: true, name: 'Classic',
 			description: 'The original Quick Dial look: dark grey page, thin borders, titles under the pictures.',
 			style: normalize(CLASSIC) },
@@ -193,7 +195,7 @@ var QDThemes = (function(){
 	];
 
 	// Fonts offered for tile titles (any other font stack from an imported theme is kept as "Custom")
-	var FONTS = [
+	const FONTS = [
 		{ label: 'Classic (Arial)', value: 'Arial, Verdana, Sans-serif' },
 		{ label: 'System', value: 'system-ui, "Segoe UI", sans-serif' },
 		{ label: 'Rounded', value: '"Arial Rounded MT Bold", "Varela Round", Nunito, system-ui, sans-serif' },
@@ -202,7 +204,8 @@ var QDThemes = (function(){
 	];
 
 	// ---------- theme files ----------
-	var FORMAT = 'quickdial-ng-theme';
+	const FORMAT = 'quickdial-ng-theme';
+	// eslint-disable-next-line no-control-regex -- control characters are what it removes
 	function cleanText(v, max){ return typeof v == 'string' ? v.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max) : ''; }
 	// { name, description, style } -> the object saved as a .json file
 	function toFile(theme){
@@ -214,35 +217,35 @@ var QDThemes = (function(){
 			throw new Error(data && data.format == 'quickdial-ng' ? 'This is a full Quick Dial NG backup. Import it on the Backup tab.' : 'This file is not a Quick Dial NG theme.');
 		}
 		if(data.version > 1) throw new Error('This theme was made by a newer version of Quick Dial NG. Update the extension to import it.');
-		var name = cleanText(data.name, 60);
+		const name = cleanText(data.name, 60);
 		if(!name) throw new Error('This theme has no name.');
 		return { name: name, description: cleanText(data.description, 300), style: normalize(data.style) };
 	}
 	// Saved custom themes: [{ name, description, style }], invalid entries dropped
 	function cleanList(list){
 		if(!Array.isArray(list)) return [];
-		var out = [], seen = {};
-		list.forEach(function(t){
+		const out = [], seen = {};
+		list.forEach(t => {
 			try { t = fromFile({ format: FORMAT, version: 1, name: t.name, description: t.description, style: t.style }); } catch(e){ return; }
-			var key = t.name.toLowerCase();
+			const key = t.name.toLowerCase();
 			if(seen[key] || isBuiltinName(t.name)) return;
 			seen[key] = true;
 			out.push(t);
 		});
 		return out;
 	}
-	function isBuiltinName(name){ return BUILTIN.some(function(t){ return t.name.toLowerCase() == String(name).trim().toLowerCase(); }); }
+	function isBuiltinName(name){ return BUILTIN.some(t => { return t.name.toLowerCase() == String(name).trim().toLowerCase(); }); }
 	function fileName(name){ return 'quickdial-ng-theme-' + (String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'custom') + '.json'; }
 
 	// ---------- CSS values ----------
 	function rgba(hex, opacity){ // '#rrggbb' + 0..1 -> CSS colour; null -> transparent
 		if(!hex) return 'transparent';
 		if(opacity === undefined || opacity >= 1) return hex;
-		var n = parseInt(hex.slice(1), 16);
+		const n = parseInt(hex.slice(1), 16);
 		return 'rgba(' + (n >> 16 & 255) + ', ' + (n >> 8 & 255) + ', ' + (n & 255) + ', ' + Math.max(0, opacity) + ')';
 	}
 	function background(picture, gradient){ // the picture lies on top of the theme's gradient
-		var layers = [picture, gradient].filter(function(v){ return v; });
+		const layers = [picture, gradient].filter(v => { return v; });
 		return layers.length ? layers.join(', ') : 'none';
 	}
 	function shadow(level){

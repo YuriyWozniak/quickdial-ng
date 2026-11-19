@@ -89,8 +89,8 @@ the plain src/ folder, no build step, no minified or third-party code. No data i
 Permissions:
 - bookmarks: tiles are the bookmarks of one folder ("Quick Dial"), kept in sync both ways.
 - <all_urls>: "Capture in a new tab" takes tabs.captureVisibleTab of the site in a muted
-  background tab; "Refresh" downloads the page (XMLHttpRequest, background.js
-  app.SiteInfos.fromFrame) to read its title. That page is placed in an iframe with
+  background tab; "Refresh" downloads the page (XMLHttpRequest,
+  js/background/siteinfos.js, app.SiteInfos.fromFrame) to read its title. That page is placed in an iframe with
   sandbox="allow-same-origin" (no allow-scripts) via srcdoc, so none of its scripts run; only
   http/https addresses are fetched.
 - tabs: create, activate and close that capture tab; open the dial or the Settings tab from the

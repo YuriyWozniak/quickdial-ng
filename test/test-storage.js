@@ -42,9 +42,11 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 // Playwright's own Chromium, or else Edge / Chrome if it isn't downloaded.
-async function launch() {
+async function launch(port) {
 	const errors = [];
-	for (const opts of [{}, { channel: 'msedge' }, { channel: 'chrome' }]) {
+	// The server port is picked by the system; Chromium refuses some ports (e.g. 6566) unless allowed
+	const args = ['--explicitly-allowed-ports=' + port];
+	for (const opts of [{ args }, { channel: 'msedge', args }, { channel: 'chrome', args }]) {
 		try { return await chromium.launch(opts); } catch (e) { errors.push(e.message.split('\n')[0]); }
 	}
 	throw new Error('No browser could be started. Run "npx playwright install chromium" in the test folder.\n  ' + errors.join('\n  '));
@@ -53,7 +55,7 @@ async function launch() {
 async function main() {
 	await new Promise(r => server.listen(0, '127.0.0.1', r));
 	const port = server.address().port;
-	const b = await launch(), pg = await b.newPage();
+	const b = await launch(port), pg = await b.newPage();
 	const errs = [];
 	pg.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
 	pg.on('pageerror', e => errs.push(String(e)));
