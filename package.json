@@ -1,0 +1,13 @@
+{
+  "name": "quickdial-ng-dev",
+  "private": true,
+  "description": "Development tools for Quick Dial NG (the extension itself is src/, with no build step). Tests: see test/README.md.",
+  "scripts": {
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.0",
+    "globals": "^16.5.0"
+  }
+}
