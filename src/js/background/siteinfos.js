@@ -23,45 +23,55 @@ app.SiteInfos._canvas = function(size){ // A canvas at half the preview size, sc
 	return { canvas, ctx };
 };
 
+app.SiteInfos.LOAD_POLL = 300; // How often Capture page checks whether its tab has finished loading (ms)
+app.SiteInfos.LOAD_TIMEOUT = 30000; // A page still loading after this long is captured as it is (endless loaders)
+
 // Opens the page in a background tab, then shows it for a moment to capture it ("Capture page").
-// The capture sees the page as the user does, logged in.
+// The capture sees the page as the user does, logged in. The tab is closed again whatever happens.
 app.SiteInfos.fromNewTab = function(url, callback){
-	const fail = () => { if(callback) callback(); };
-	browser.tabs.create({ url, active: false }).then(tab => {
-		browser.tabs.update(tab.id, { muted: true });
-		const waitLoaded = () => {
-			browser.tabs.get(tab.id).then(tab => {
-				if(tab.status == 'loading'){
-					setTimeout(waitLoaded, 300);
-					return;
-				}
-				browser.tabs.update(tab.id, { active: true }).then(() => {
-					setTimeout(() => {
-						browser.tabs.captureVisibleTab().then(img => {
-							browser.tabs.remove(tab.id);
-							const imgObj = new Image();
-							imgObj.src = img;
-							const size = app.SiteInfos._previewSize();
-							const { canvas, ctx } = app.SiteInfos._canvas(size);
-							setTimeout(() => {
-								if(tab.height * size.width / size.height >= tab.width){ // Cut the bottom of the page
-									ctx.drawImage(imgObj, 0, 0, tab.width, tab.width / size.width * size.height, 0, 0, size.width, size.height);
-								} else { // Wider than the tile: stretched
-									ctx.drawImage(imgObj, 0, 0, tab.width, tab.height, 0, 0, size.width, size.height);
-								}
-								ctx.restore();
-								if(callback) callback({ url: tab.url, title: tab.title, icon: tab.favIconUrl, screenshot: canvas.toDataURL('image/webp', app.Images.quality) });
-							}, 100);
-						}, () => {
-							browser.tabs.remove(tab.id);
-							fail();
-						});
-					}, app.settings.grid.cells.snapshotDelay);
-				}, fail);
-			}, fail);
-		};
-		setTimeout(waitLoaded, 300);
-	}, fail);
+	const SiteInfos = app.SiteInfos;
+	const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+	let tabId = null;
+	const screenshot = async () => { // Resolves with { tab, image }: the tab as it was captured and its screenshot
+		tabId = (await browser.tabs.create({ url, active: false })).id;
+		browser.tabs.update(tabId, { muted: true }).catch(() => {});
+		const deadline = Date.now() + SiteInfos.LOAD_TIMEOUT;
+		let tab;
+		do {
+			await wait(SiteInfos.LOAD_POLL);
+			tab = await browser.tabs.get(tabId);
+		} while(tab.status == 'loading' && Date.now() < deadline);
+		await browser.tabs.update(tabId, { active: true });
+		await wait(app.settings.grid.cells.snapshotDelay);
+		tab = await browser.tabs.get(tabId);
+		if(!tab.active) throw new Error('the tab was no longer shown'); // The user switched tabs: the picture would show another page
+		return { tab, image: await browser.tabs.captureVisibleTab(tab.windowId) };
+	};
+	screenshot().then(
+		shot => {
+			browser.tabs.remove(tabId).catch(() => {});
+			return SiteInfos._fromScreenshot(shot.tab, shot.image);
+		},
+		e => {
+			if(tabId != null) browser.tabs.remove(tabId).catch(() => {});
+			console.warn('Quick Dial NG: Capture page failed for ' + url, e);
+		}
+	).then(infos => { if(callback) callback(infos); }, () => { if(callback) callback(); });
+};
+// The site infos from a screenshot of its tab: the picture is cut (or stretched) to the tile proportions
+app.SiteInfos._fromScreenshot = async function(tab, image){
+	const img = new Image();
+	img.src = image;
+	await img.decode(); // Drawn only once it is decoded: drawing it earlier gives a blank picture
+	const size = app.SiteInfos._previewSize();
+	const { canvas, ctx } = app.SiteInfos._canvas(size);
+	if(tab.height * size.width / size.height >= tab.width){ // Cut the bottom of the page
+		ctx.drawImage(img, 0, 0, tab.width, tab.width / size.width * size.height, 0, 0, size.width, size.height);
+	} else { // Wider than the tile: stretched
+		ctx.drawImage(img, 0, 0, tab.width, tab.height, 0, 0, size.width, size.height);
+	}
+	ctx.restore();
+	return { url: tab.url, title: tab.title, icon: tab.favIconUrl, screenshot: canvas.toDataURL('image/webp', app.Images.quality) };
 };
 
 // Downloads the page and draws it in a hidden frame ("Refresh"). Only http and https pages.

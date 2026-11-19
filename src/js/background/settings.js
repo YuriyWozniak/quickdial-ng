@@ -28,8 +28,28 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 	}, QDThemes.CLASSIC);
 };
 
-app.Settings.init = function(callback){ // Load settings and nodes
-	browser.storage.local.get(['version', 'settings', 'node', 'themes']).then(data => { // Images are stored under their own keys and loaded on demand (see app.Images)
+app.Settings.LOAD_RETRIES = 2; // More attempts when the stored data can't be read, LOAD_RETRY_DELAY ms apart
+app.Settings.LOAD_RETRY_DELAY = 1000;
+
+// Loads settings and nodes, then calls back; it always does, so the dial pages waiting on app.ready never hang.
+// When the stored data can't be read even after a few attempts, the defaults are used, and nothing is saved
+// automatically (that would replace the user's data) until the user saves settings or imports a backup.
+app.Settings.init = function(callback){
+	app.Settings._load(app.Settings.LOAD_RETRIES).then(() => { if(callback) callback(); });
+};
+app.Settings._load = function(retries){ // Promise: resolves once app.settings and app.node are set
+	return app.Settings._read().catch(e => {
+		if(retries > 0){
+			return new Promise(resolve => setTimeout(resolve, app.Settings.LOAD_RETRY_DELAY)).then(() => app.Settings._load(retries - 1));
+		}
+		console.error('Quick Dial NG: the stored settings could not be loaded; the defaults are used and not saved', e);
+		app.Settings._loadFailed = true;
+		app.settings = app.Settings.defaults();
+		app.node = { children: [] };
+	});
+};
+app.Settings._read = function(){
+	return browser.storage.local.get(['version', 'settings', 'node', 'themes']).then(data => { // Images are stored under their own keys and loaded on demand (see app.Images)
 		app.Themes.list = QDThemes.cleanList(data.themes);
 		delete data.themes;
 		if(Object.keys(data).length == 0 || !data.settings){
@@ -43,13 +63,13 @@ app.Settings.init = function(callback){ // Load settings and nodes
 		if(app.Settings.migrateIcons(app.settings)) migrated = true;
 		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
-			app.Images.extractFromTree(app.node).then(() => app.Settings.save(callback));
-			return;
+			return app.Images.extractFromTree(app.node)
+				.catch(e => console.error('Quick Dial NG: moving the pictures out of the tile tree failed', e))
+				.then(() => new Promise(resolve => app.Settings.save(resolve)));
 		}
 		app.Settings._lastSaved = app.Settings._serialize();
 		if(migrated){ app.Settings._lastSaved = null; app.Settings.save(); } // Drop the old field from storage once
-		if(callback) callback();
-	}, () => console.log('Error loading data'));
+	});
 };
 
 // Brings data stored by the original Quick Dial (versions 1 to 4) up to version 4; returns the data.
@@ -162,14 +182,16 @@ app.Settings.dropObsolete = function(settings){
 	return changed;
 };
 
-app.Settings.update = function(settings, callback){ // Save new settings
+app.Settings.update = function(settings, callback){ // Save new settings: the user's own, so saved even after a failed load
 	app.settings = settings;
+	delete app.Settings._loadFailed;
 	app.Settings.save(callback);
 };
 app.Settings._serialize = function(){ // Settings and node tree only (no images, no transient "__" fields)
 	return JSON.stringify({ version: 5, settings: app.settings, node: app.node }, (key, value) => key.startsWith('__') ? undefined : value);
 };
 app.Settings.rememberBackground = function(){ // Keep the background colour where dial pages can read it before settings load (see dialbg.js)
+	if(app.Settings._loadFailed) return; // The defaults in use are not the user's colour
 	try {
 		const color = app.settings && app.settings.backgroundColor;
 		if(!color) localStorage.removeItem('dialBackgroundColor');
@@ -177,7 +199,9 @@ app.Settings.rememberBackground = function(){ // Keep the background colour wher
 	} catch(e){}
 };
 app.Settings._saveCallbacks = [];
-app.Settings.save = function(callback){ // Save settings (batched, and skipped when nothing changed)
+// Save settings (batched, and skipped when nothing changed). callback(error) runs in every case: error is
+// undefined once saved, an Error when it could not be (it is tried again on the next save).
+app.Settings.save = function(callback){
 	if(!app.settings) return;
 	app.Settings.rememberBackground(); // Every settings change (settings page, import, migration) passes through here
 	if(callback) app.Settings._saveCallbacks.push(callback);
@@ -186,7 +210,11 @@ app.Settings.save = function(callback){ // Save settings (batched, and skipped w
 		delete app.Settings._saveTimer;
 		const callbacks = app.Settings._saveCallbacks;
 		app.Settings._saveCallbacks = [];
-		const done = () => { for(const cb of callbacks) cb(); };
+		const done = error => { for(const cb of callbacks) cb(error); };
+		if(app.Settings._loadFailed){ // Keep what is stored (see Settings.init)
+			done(new Error('The stored settings could not be loaded, so nothing is saved over them.'));
+			return;
+		}
 		const json = app.Settings._serialize();
 		if(json == app.Settings._lastSaved){
 			done();
@@ -195,7 +223,10 @@ app.Settings.save = function(callback){ // Save settings (batched, and skipped w
 		browser.storage.local.set(JSON.parse(json)).then(() => {
 			app.Settings._lastSaved = json;
 			done();
-		}, () => console.log('Error saving settings'));
+		}, e => {
+			console.error('Quick Dial NG: saving the settings failed', e);
+			done(e || new Error('Saving the settings failed'));
+		});
 	}, 100);
 };
 
