@@ -1,5 +1,6 @@
 // Quick Dial NG — background page: stored settings and node tree, their upgrades from older
-// versions, and the user's own themes. Storage keys: version, settings, node, themes (pictures: images.js).
+// versions, and the user's own themes. Storage keys: version, settings, node, themes, the pictures picked in
+// Settings (picture_*, see Settings.PICTURES); tile pictures: images.js.
 app.Settings = {};
 
 app.Settings.defaults = function(){ // Default settings of a new install: layout and behaviour here, the look from the Classic theme
@@ -49,16 +50,30 @@ app.Settings._load = function(retries){ // Promise: resolves once app.settings a
 	});
 };
 app.Settings._read = function(){
-	return browser.storage.local.get(['version', 'settings', 'node', 'themes']).then(data => { // Images are stored under their own keys and loaded on demand (see app.Images)
+	const pictureKeys = Object.keys(app.Settings.PICTURES); // Read with the settings: the dial needs them for its first paint
+	return browser.storage.local.get(['version', 'settings', 'node', 'themes'].concat(pictureKeys)).then(data => { // Tile pictures are stored under their own keys and loaded on demand (see app.Images)
 		app.Themes.list = QDThemes.cleanList(data.themes);
 		delete data.themes;
+		const stored = {};
+		for(const key of pictureKeys){
+			if(key in data) stored[key] = data[key];
+			delete data[key];
+		}
 		if(Object.keys(data).length == 0 || !data.settings){
 			data = { version: 3, settings: app.Settings.defaults(), node: { children: [] } };
 		}
 		data = app.Settings._upgrade(data);
 		app.settings = data.settings;
 		app.node = data.node;
-		let migrated = app.Settings.dropObsolete(app.settings);
+		const { resolved, missing } = app.Settings.resolvePictures(app.settings, stored);
+		app.Settings._savedPictures = {}; // What storage holds, so the next save writes or removes only what differs
+		for(const key in stored) app.Settings._savedPictures[key] = resolved.includes(key) ? stored[key] : null;
+		const inline = app.Settings._pictures(app.settings);
+		let migrated = Object.keys(inline).some(key => !resolved.includes(key)) // Pictures still inside the stored settings (before 0.5.1) move to their own keys,
+			|| Object.keys(stored).some(key => !resolved.includes(key)) // a stored picture nothing points at is removed,
+			|| missing.length > 0; // and the default replaces a picture that is gone
+		if(missing.length) console.warn('Quick Dial NG: pictures missing from storage, the defaults are used: ' + missing.join(', '));
+		if(app.Settings.dropObsolete(app.settings)) migrated = true;
 		if(app.Settings.migrateToolbar(app.settings)) migrated = true;
 		if(app.Settings.migrateIcons(app.settings)) migrated = true;
 		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
@@ -68,7 +83,7 @@ app.Settings._read = function(){
 				.then(() => new Promise(resolve => app.Settings.save(resolve)));
 		}
 		app.Settings._lastSaved = app.Settings._serialize();
-		if(migrated){ app.Settings._lastSaved = null; app.Settings.save(); } // Drop the old field from storage once
+		if(migrated){ app.Settings._lastSaved = null; app.Settings.save(); } // Store the migrated data once
 	});
 };
 
@@ -187,8 +202,58 @@ app.Settings.update = function(settings, callback){ // Save new settings: the us
 	delete app.Settings._loadFailed;
 	app.Settings.save(callback);
 };
-app.Settings._serialize = function(){ // Settings and node tree only (no images, no transient "__" fields)
-	return JSON.stringify({ version: 5, settings: app.settings, node: app.node }, (key, value) => key.startsWith('__') ? undefined : value);
+// Pictures the user picks in Settings (the background, the Back and folder icons) are data URLs of up to
+// several megabytes. In app.settings they stay CSS values like the built-in ones, so the pages use them as
+// before; in storage each has its own key and the stored settings hold STORED_PICTURE in its place. Saving
+// a tile change then writes a few kilobytes, not the pictures again. { storage key: path in the settings }
+app.Settings.PICTURES = { 'picture_background': ['backgroundImage'], 'picture_backIcon': ['grid', 'backIcon'], 'picture_folderIcon': ['grid', 'folderIcon'] };
+app.Settings.STORED_PICTURE = '1';
+app.Settings._savedPictures = {}; // { storage key: value } as stored, to write only the pictures that changed
+app.Settings.isPicture = value => typeof value == 'string' && value.includes('data:'); // The user's own picture, not a built-in one
+app.Settings._field = function(settings, path, value){ // Reads a field at `path`, or sets it when `value` is given
+	const owner = path.length == 1 ? settings : settings && settings[path[0]];
+	if(!owner) return undefined;
+	const name = path[path.length - 1];
+	if(arguments.length > 2) owner[name] = value;
+	return owner[name];
+};
+app.Settings._pictures = function(settings){ // { storage key: data URL } of the user's own pictures in `settings`
+	const result = {};
+	for(const key in app.Settings.PICTURES){
+		const value = app.Settings._field(settings, app.Settings.PICTURES[key]);
+		if(app.Settings.isPicture(value)) result[key] = value;
+	}
+	return result;
+};
+// Puts the stored pictures (`stored`: { storage key: data URL }) back in place of STORED_PICTURE. A picture
+// that is missing falls back to the default (no background, the built-in icons). Returns { resolved, missing }:
+// the keys of the pictures put back and of those replaced by the default.
+app.Settings.resolvePictures = function(settings, stored){
+	const resolved = [], missing = [];
+	let defaults = null;
+	for(const key in app.Settings.PICTURES){
+		const path = app.Settings.PICTURES[key];
+		if(app.Settings._field(settings, path) != app.Settings.STORED_PICTURE) continue;
+		if(stored && app.Settings.isPicture(stored[key])){
+			app.Settings._field(settings, path, stored[key]);
+			resolved.push(key);
+		} else {
+			if(!defaults) defaults = app.Settings.defaults();
+			app.Settings._field(settings, path, app.Settings._field(defaults, path));
+			missing.push(key);
+		}
+	}
+	return { resolved, missing };
+};
+app.Settings._serialize = function(){ // Settings and node tree only: no pictures (STORED_PICTURE in their place), no transient "__" fields
+	let settings = app.settings;
+	const pictures = app.Settings._pictures(settings);
+	if(Object.keys(pictures).length){ // A copy of the levels that hold them; app.settings keeps its pictures
+		settings = Object.assign({}, settings);
+		if(settings.grid) settings.grid = Object.assign({}, settings.grid);
+		for(const key in pictures) app.Settings._field(settings, app.Settings.PICTURES[key], app.Settings.STORED_PICTURE);
+	}
+	return JSON.stringify({ version: 5, settings, node: app.node }, (key, value) => key.startsWith('__') ? undefined : value);
 };
 app.Settings.rememberBackground = function(){ // Keep the background colour where dial pages can read it before settings load (see dialbg.js)
 	if(app.Settings._loadFailed) return; // The defaults in use are not the user's colour
@@ -216,12 +281,21 @@ app.Settings.save = function(callback){
 			return;
 		}
 		const json = app.Settings._serialize();
-		if(json == app.Settings._lastSaved){
+		const pictures = app.Settings._pictures(app.settings), saved = app.Settings._savedPictures;
+		const changed = {}, removed = [];
+		for(const key in app.Settings.PICTURES){
+			if(key in pictures){ if(pictures[key] !== saved[key]) changed[key] = pictures[key]; }
+			else if(key in saved) removed.push(key);
+		}
+		if(json == app.Settings._lastSaved && !Object.keys(changed).length && !removed.length){
 			done();
 			return;
 		}
-		browser.storage.local.set(JSON.parse(json)).then(() => {
+		// The pictures are written together with the settings that point at them; one no longer used is removed after
+		const data = Object.assign(json == app.Settings._lastSaved ? {} : JSON.parse(json), changed);
+		(Object.keys(data).length ? browser.storage.local.set(data) : Promise.resolve()).then(() => removed.length ? browser.storage.local.remove(removed) : undefined).then(() => {
 			app.Settings._lastSaved = json;
+			app.Settings._savedPictures = pictures;
 			done();
 		}, e => {
 			console.error('Quick Dial NG: saving the settings failed', e);

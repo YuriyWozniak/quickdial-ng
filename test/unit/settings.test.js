@@ -188,6 +188,88 @@ test('save: a failed write still calls back, with the error, and is written on t
 	assert.deepEqual(plain(w.browser.store.node.children), [{ id: 'x', type: 2 }]);
 });
 
+// ----- pictures picked in Settings: their own storage keys -----
+const BG = 'url(data:image/png;base64,QkFDSw==)', ICON = 'url(data:image/png;base64,SUNPTg==)', BG2 = 'url(data:image/png;base64,TkVX)';
+const writes = w => w.browser.calls.filter(c => c[0] === 'set' || c[0] === 'remove');
+
+test('pictures: stored under their own keys, "1" in the stored settings; a tile change doesn\'t write them again', async () => {
+	const w = loadBackground();
+	await init(w);
+	await settle();
+	const s = plain(w.app.settings);
+	s.backgroundImage = BG;
+	s.grid.folderIcon = ICON;
+	await new Promise(r => w.app.Settings.update(s, r));
+	const st = w.browser.store;
+	assert.equal(st.picture_background, BG);
+	assert.equal(st.picture_folderIcon, ICON);
+	assert.ok(!('picture_backIcon' in st), 'the built-in Back icon stays in the settings');
+	assert.deepEqual([st.settings.backgroundImage, st.settings.grid.folderIcon, st.settings.grid.backIcon], ['1', '1', 'url(/img/back.svg)']);
+	assert.equal(w.app.settings.backgroundImage, BG, 'the pages still get the picture itself');
+	w.browser.calls.length = 0;
+	w.app.node.children.push({ id: 'x', type: 2 });
+	await new Promise(r => w.app.Settings.save(r));
+	assert.deepEqual(plain(writes(w)), [['set', ['version', 'settings', 'node']]], 'only settings and tiles are written');
+	const w2 = loadBackground();
+	Object.assign(w2.browser.store, plain(st));
+	await init(w2);
+	await settle();
+	assert.deepEqual([w2.app.settings.backgroundImage, w2.app.settings.grid.folderIcon], [BG, ICON], 'the next start puts them back');
+	assert.equal(w2.browser.calls.length, 0, 'and writes nothing');
+});
+
+test('pictures: a changed one is written alone; a cleared one is removed', async () => {
+	const w = loadBackground();
+	await init(w);
+	await settle();
+	await new Promise(r => w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundImage: BG }), r));
+	const s = plain(w.app.settings);
+	s.grid.backIcon = ICON;
+	w.browser.calls.length = 0;
+	await new Promise(r => w.app.Settings.update(s, r));
+	assert.deepEqual(plain(writes(w)), [['set', ['version', 'settings', 'node', 'picture_backIcon']]], 'the unchanged background is not written again');
+	w.browser.calls.length = 0;
+	await new Promise(r => w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundImage: BG2 }), r));
+	assert.deepEqual(plain(writes(w)), [['set', ['picture_background']]], 'a new picture alone: the settings still say "1"');
+	w.browser.calls.length = 0;
+	const cleared = plain(w.app.settings);
+	cleared.backgroundImage = null;
+	cleared.grid.backIcon = 'url(/img/back.svg)';
+	await new Promise(r => w.app.Settings.update(cleared, r));
+	assert.deepEqual(plain(writes(w)), [['set', ['version', 'settings', 'node']], ['remove', ['picture_background', 'picture_backIcon']]]);
+	assert.ok(!Object.keys(w.browser.store).some(k => k.startsWith('picture_')));
+});
+
+test('pictures: inline in the stored settings (older versions) move to their own keys once', async () => {
+	const w = loadBackground();
+	const settings = Object.assign(w.app.Settings.defaults(), { backgroundImage: BG });
+	settings.grid.backIcon = ICON;
+	Object.assign(w.browser.store, { version: 5, settings, node: { children: [] } });
+	await init(w);
+	await settle();
+	const st = w.browser.store;
+	assert.deepEqual([st.settings.backgroundImage, st.settings.grid.backIcon, st.picture_background, st.picture_backIcon], ['1', '1', BG, ICON]);
+	assert.deepEqual([w.app.settings.backgroundImage, w.app.settings.grid.backIcon], [BG, ICON]);
+	const w2 = loadBackground();
+	Object.assign(w2.browser.store, plain(st));
+	await init(w2);
+	await settle();
+	assert.equal(w2.browser.calls.length, 0, 'the next start writes nothing');
+});
+
+test('pictures: a missing one falls back to the default; one nothing points at is removed', async () => {
+	const w = loadBackground();
+	quiet(w);
+	const settings = Object.assign(w.app.Settings.defaults(), { backgroundImage: '1' });
+	settings.grid.folderIcon = '1';
+	Object.assign(w.browser.store, { version: 5, settings, node: { children: [] }, picture_backIcon: ICON });
+	await init(w);
+	await settle();
+	assert.deepEqual([w.app.settings.backgroundImage, w.app.settings.grid.folderIcon, w.app.settings.grid.backIcon], [null, 'url(/img/folder.svg)', 'url(/img/back.svg)']);
+	assert.ok(!('picture_backIcon' in w.browser.store), 'the stray picture is removed');
+	assert.equal(w.browser.store.settings.grid.folderIcon, 'url(/img/folder.svg)');
+});
+
 test('Themes.save keeps a clean list; an empty list removes the key', async () => {
 	const w = loadBackground();
 	const saved = await w.app.Themes.save([{ name: 'A', style: { grid: { cells: { blur: 100 } } } }, { name: 'a', style: {} }]);

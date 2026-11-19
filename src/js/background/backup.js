@@ -88,6 +88,7 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 	app.Settings.migrateIcons(imported); // and the old PNG folder and Back pictures become the SVG ones
 	const settings = app.Backup._mergeDefaults(app.Settings.defaults(), imported);
 	app.Settings.dropObsolete(settings); // found in older exports and backups
+	app.Settings.resolvePictures(settings, null); // Backups carry the pictures inline; a stored-picture mark without one becomes the default
 	QDThemes.apply(settings, QDThemes.extract(settings)); // Style values end up in CSS text: keep only valid ones
 	const node = app.Backup._clean(data.node);
 	const stats = { tiles: 0, folders: 0, matched: 0, created: 0, images: 0 };
