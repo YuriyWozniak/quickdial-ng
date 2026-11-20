@@ -1,0 +1,143 @@
+# Release: submits a new version to addons.mozilla.org (AMO) for review.
+# Run it from the Actions tab (Release > Run workflow, branch develop) once the version bump is merged.
+# When Mozilla approves the version, the Publish workflow puts the same signed file on GitHub.
+#
+#   check  ->  CI (all tests)  ->  AMO package  ->  submit to AMO (waits for your approval)
+#
+# Values from the form (inputs) reach the scripts through env variables, never pasted into the script text:
+# that way a strange input can't turn into a shell command.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to submit (the one in src/manifest.json on develop, e.g. 0.6.0)
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run: test, lint and build the package; submit nothing'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# One release at a time; a second one waits instead of cancelling the first
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 26
+  VERSION: ${{ inputs.version }}
+
+jobs:
+  check:
+    name: check the version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      commit: ${{ steps.check.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # full history and tags
+      - id: check
+        run: |
+          [ "$GITHUB_REF" = refs/heads/develop ] || { echo "::error::Run the Release workflow on develop"; exit 1; }
+          [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]] || { echo "::error::\"$VERSION\" is not a valid add-on version"; exit 1; }
+          # The last commit that changed src/, as release.js picks it
+          commit=$(git log -1 --format=%H -- src)
+          found=$(git show "$commit:src/manifest.json" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')
+          [ "$found" = "$VERSION" ] || { echo "::error::src/manifest.json on develop is at $found, not $VERSION"; exit 1; }
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" > /dev/null; then
+            echo "::error::v$VERSION already exists: this version was submitted before (AMO takes each version once)"; exit 1
+          fi
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "Submitting $VERSION from ${commit:0:7}: $(git log -1 --format=%s "$commit")" | tee -a "$GITHUB_STEP_SUMMARY"
+
+  # The whole CI workflow (lint, unit, integration, package, release notes), on this very commit
+  ci:
+    needs: check
+    uses: ./.github/workflows/ci.yml
+
+  package:
+    name: AMO package
+    needs: [check, ci]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      COMMIT: ${{ needs.check.outputs.commit }}
+      QDNG_OUT_DIR: ${{ runner.temp }}/amo
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: release/package.json
+      - run: npm install --no-audit --no-fund
+        working-directory: release
+      # The source without update_url, linted with the listed rules, as quickdial-ng-<version>-amo.zip
+      - run: node release/release.js "$VERSION" --amo --commit "$COMMIT"
+      # Release notes (amo-listing.md) and Notes to Reviewer (release/README.md) for the AMO version page
+      - run: node release/notes.js "$VERSION" --amo-metadata "$QDNG_OUT_DIR/amo-metadata.json"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: amo-${{ inputs.version }}
+          path: ${{ runner.temp }}/amo/
+          retention-days: 30
+
+  submit:
+    name: submit to AMO
+    needs: [check, package]
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The amo environment holds the API key and waits for your approval (Review deployments) before it starts
+    environment:
+      name: amo
+      url: https://addons.mozilla.org/developers/addon/quick-dial-ng/versions
+    permissions:
+      contents: write # to push the tag
+    env:
+      COMMIT: ${{ needs.check.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: release/package.json
+      - run: npm install --no-audit --no-fund
+        working-directory: release
+      - uses: actions/download-artifact@v8
+        with:
+          name: amo-${{ inputs.version }}
+          path: ${{ runner.temp }}/amo
+      # Uploads the package, waits for the automatic validation and creates the version with its notes.
+      # Mozilla's review takes hours to days, so it doesn't wait for the approval (--approval-timeout 0).
+      - name: Upload and submit for review
+        working-directory: ${{ runner.temp }}/amo
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          unzip -q "quickdial-ng-$VERSION-amo.zip" -d src
+          "$GITHUB_WORKSPACE/release/node_modules/.bin/web-ext" sign --source-dir src --artifacts-dir out \
+            --channel listed --amo-metadata amo-metadata.json --approval-timeout 0
+      # The tag marks what was submitted; Publish releases exactly this commit after the approval
+      - name: Tag the submitted commit
+        run: |
+          git tag "v$VERSION" "$COMMIT"
+          git push origin "refs/tags/v$VERSION"
+          {
+            echo "### $VERSION submitted to addons.mozilla.org"
+            echo "Tagged v$VERSION at ${COMMIT:0:7}. When Mozilla approves it, the Publish workflow (every 3 hours)"
+            echo "creates the GitHub release with the signed file; or run Publish by hand."
+          } >> "$GITHUB_STEP_SUMMARY"

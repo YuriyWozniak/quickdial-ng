@@ -8,14 +8,16 @@ on:
   pull_request:
     branches: [develop] # also pull requests from forks
   workflow_dispatch: # the "Run workflow" button on the Actions tab
+  workflow_call: # the Release workflow runs all of CI first
 
 # The jobs only read the repository
 permissions:
   contents: read
 
 # A new push to the same branch cancels the run that is still going for the old one
+# (github.workflow is the caller's name when Release runs CI, so the two never cancel each other)
 concurrency:
-  group: ci-${{ github.event_name }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:

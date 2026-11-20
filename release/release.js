@@ -334,8 +334,15 @@ async function main() {
 		log(`Uploaded ${xpiName} (${up.data.size} bytes)`);
 	}
 
-	// 5. updates.json
-	if (!flags['no-updates-json']) {
+	// 5. updates.json, only for self-hosted builds. A file signed through AMO (listed) has no update_url: copies
+	// installed from it update from AMO, and older GitHub copies reach AMO through the entries already listed.
+	// (develop is protected against direct pushes: for a self-hosted build, use --no-updates-json and add the
+	// entry to updates.json through a pull request.)
+	const listed = fs.existsSync(xpiPath) &&
+		!JSON.parse(readZip(fs.readFileSync(xpiPath)).get('manifest.json').toString('utf8'))
+			.browser_specific_settings?.gecko?.update_url;
+	if (listed && !flags['no-updates-json']) log('updates.json: not needed, the file is from addons.mozilla.org (no update_url)');
+	else if (!flags['no-updates-json']) {
 		const ujPath = path.join(ROOT, 'updates.json');
 		const branch = git(['rev-parse', '--abbrev-ref', 'HEAD']);
 		if (branch !== 'develop') fail(`updates.json is committed on develop, but ${branch} is checked out`);
