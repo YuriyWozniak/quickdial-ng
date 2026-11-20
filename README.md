@@ -24,9 +24,11 @@ More in [screenshots](screenshots/): settings in dark mode, the Page and Grid ta
 **Images are stored separately and loaded on demand.**
 The original keeps every tile picture inside one big storage record (data URLs inside the node tree). Firefox reads that whole record at every start, and the bookmark sync that runs ~0.5 s after start writes it all back. With 73 tiles that was 21 MB read and rewritten on every launch.
 Now each picture has its own storage key (`img_<bookmarkId>`). The startup record holds only settings and the tile tree, a few KB. The new tab page asks only for the pictures on the page you're looking at.
+The pictures chosen in Settings (background, Back and folder) have their own keys too, so saving after a tile change or a refresh doesn't write a large background picture again; each is written only when it changes.
 
 **Pictures are WebP.**
-Captures and uploaded images are saved as WebP (quality 0.85) instead of PNG. Uploads are also limited to 1200 px on the longest side. On a real profile that took 10.5 MB of PNGs down to about 1.5 MB, with no visible difference at tile size.
+Captures and uploaded images are saved as WebP (quality 0.85) instead of PNG. Uploads are also limited to 1200 px on the longest side (2560 px for the background picture, which fills the screen). On a real profile that took 10.5 MB of PNGs down to about 1.5 MB, with no visible difference at tile size.
+The built-in folder, Back and loading pictures are SVG, so they stay sharp at any tile size and read on light and dark tiles.
 
 **Saves only when something changed.**
 Saves are batched (100 ms) and skipped when settings and tiles are unchanged, so a normal startup writes nothing.
@@ -56,9 +58,10 @@ Settings opens as a full page in its own tab, like the dashboards of other add-o
 Settings → **Themes** switches the whole look of the dial at once: background color, page margin, tile and title styles and the accent color of Quick Dial NG's windows. A theme never changes your background picture, rows and columns, tile shape or tiles. **Use** shows a theme in the settings first; **Apply** puts it on the dial. Two themes are built in: **Classic** (the original look) and **Anori**, inspired by the [Anori](https://anori.app/) browser extension. Save your current look as a theme, export any theme to a `.json` file and import theme files from others. Backups include your themes.
 New style settings came with it: background opacity and glass blur for tiles, shadows, smooth hover effects (lift or grow), title font, bold titles and titles over the picture.
 
-**Refresh no longer hangs.**
+**Refresh and Capture no longer hang.**
 The automatic "Refresh" capture uses `drawWindow`, which recent Firefox no longer allows extensions to call. Instead of leaving a spinner forever, the tile now ends without a picture. Use **Capture in a new tab** to set one.
-The page that Refresh downloads is only drawn, never run: it goes into a sandboxed frame, so none of its scripts, forms or pop-ups run inside the extension. Only web addresses (`http`, `https`) are downloaded.
+The page that Refresh downloads is only drawn, never run: it goes into a sandboxed frame, so none of its scripts, forms or pop-ups run inside the extension. Only web addresses (`http`, `https`) are downloaded, and **New bookmark** refuses `javascript:` and `data:` addresses.
+**Capture in a new tab** takes a page that never finishes loading after 30 seconds, always closes its tab, and captures nothing if another tab is in front by then. If Firefox can't read the stored data at startup, Quick Dial NG tries again and then starts with the defaults, without saving them over your data.
 
 ## Permissions and privacy
 
@@ -113,7 +116,7 @@ How the import links tiles to bookmarks: each tile is matched to a bookmark in t
   - Unit tests: `npm run test:unit`. They run in plain Node and need nothing installed. They cover the logic: themes, settings upgrades, the tile tree, backups and pictures.
   - Integration tests: `npm install` in `test/`, then `npm test` there (unit tests too) or `npm test -- dial sync` for some areas. They run the extension pages in Chromium (Playwright) against a simulated Firefox API (`test/mock.js`), one suite per area, each from a fresh profile. `npm run coverage` in `test/` shows which code the tests run.
 - Screenshots: `npm run screenshots` in `test/` remakes the pictures in [`screenshots/`](screenshots/) from the current code, with invented sites (see [test/screenshots/README.md](test/screenshots/README.md)).
-- Release: `node release/release.js <version> --notes <file>` signs `src/` on addons.mozilla.org (unlisted), publishes a GitHub release with the signed `.xpi` and adds it to `updates.json`, so installed copies update themselves. With `--amo` it builds the package for a listed version on addons.mozilla.org instead. From 0.4.1 on, each version is published on addons.mozilla.org first (`--amo`, upload, review), then the signed file from there goes to GitHub with `--xpi`. See [release/README.md](release/README.md) for setup and options.
+- Release: bump `version` in `src/manifest.json` and add its notes to [release/amo-listing.md](release/amo-listing.md) in a pull request; once it is merged, the **Release** workflow (Actions tab) tests the commit, builds the package and, after your approval, submits it to addons.mozilla.org and tags it. When Mozilla approves the version, the **Publish** workflow puts the same signed `.xpi` on GitHub Releases. `node release/release.js` is the manual way from a PC. See [release/README.md](release/README.md) for setup and options.
 
 ## License
 
