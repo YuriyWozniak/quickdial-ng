@@ -8,16 +8,18 @@ Website: **[qdng.srv.if.ua](https://qdng.srv.if.ua)**: features, install and mig
 
 It is a fork of [Quick Dial](https://github.com/MatMoul/quickdial-webext) by MatMoul ([on addons.mozilla.org](https://addons.mozilla.org/firefox/addon/quick-dial/)). It works the same way, but its storage has been reworked so Firefox starts faster and uses less disk and memory, and it adds themes and redesigned settings.
 
-![The dial with the built-in Anori theme](screenshots/dial-anori.png)
+![The dial as desktop icons on a wallpaper](screenshots/dial-desktop.png)
 
 | | |
 |---|---|
-| ![Classic theme, the original look](screenshots/dial-classic.png) | ![A custom glass theme over a background picture](screenshots/dial-picture.png) |
-| Classic theme | Your own theme over a background picture |
-| ![Settings, Themes tab](screenshots/settings-themes.png) | ![Settings, Tiles tab with the live preview](screenshots/settings-tiles.png) |
-| Settings › Themes | Settings › Tiles with the live preview |
+| ![A large grid with the sites grouped in its corners](screenshots/dial-zones.png) | ![Groups of sites with folders for the rest](screenshots/dial-categories.png) |
+| A large grid, sites grouped in the corners | Categories, with folders for the rest |
+| ![A folder opened, with the Back tile](screenshots/dial-folder.png) | ![The usual speed dial in the Anori theme](screenshots/dial-anori.png) |
+| A folder opened | The usual speed dial, Anori theme |
+| ![Settings, Themes section, light and dark](screenshots/settings.png) | ![Bookmark properties](screenshots/properties.png) |
+| Settings follow Firefox's light or dark mode | Bookmark properties |
 
-More in [screenshots](screenshots/): settings in dark mode, the Page and Grid tabs, tile properties. The sites on the tiles are made up for the pictures.
+More in [screenshots/website](screenshots/website/): the same dials in other themes, a daytime desktop, and every section of Settings. The sites and most icons are made up for the pictures; the retro icons come from open icon sets (see [Credits](#credits)).
 
 ## What is different from Quick Dial 0.1.24
 
@@ -55,7 +57,7 @@ Settings and tile properties have a new layout that follows Firefox's light or d
 Settings opens as a full page in its own tab, like the dashboards of other add-ons: from the toolbar button, the dial's right-click menu, or Firefox's Add-ons page (**Options**). Wide windows get a sidebar and the settings in two columns; the tile style table keeps its live preview beside it. If Settings is already open, that tab comes forward. **Ctrl+S** applies, **Discard changes** goes back to what the dial uses, and Firefox asks before closing the tab with changes not applied. Settings › Page › **Toolbar button** chooses what a click on the button opens: Settings (the default for new installs), the dial in a new tab, or the dial in the current tab (existing installs keep what they had). The button's right-click menu has both.
 
 **Themes.**
-Settings → **Themes** switches the whole look of the dial at once: background color, page margin, tile and title styles and the accent color of Quick Dial NG's windows. A theme never changes your background picture, rows and columns, tile shape or tiles. **Use** shows a theme in the settings first; **Apply** puts it on the dial. Two themes are built in: **Classic** (the original look) and **Anori**, inspired by the [Anori](https://anori.app/) browser extension. Save your current look as a theme, export any theme to a `.json` file and import theme files from others. Backups include your themes.
+Settings → **Themes** switches the whole look of the dial at once: background color, page margin, tile and title styles and the accent color of Quick Dial NG's windows. A theme never changes your background picture, rows and columns, tile shape or tiles. **Use** shows a theme in the settings first; **Apply** puts it on the dial. Seven themes are built in: **Classic** (the original look); **Anori**, inspired by the [Anori](https://anori.app/) browser extension; **Plum**, for a large grid with groups of sites; **Dusk**, glass tiles over a sunset; and three icon looks for square tiles with icon pictures: **Desktop**, **Retro PC** (a late-1990s PC desktop) and **Retro Mono** (an early black-and-white desktop). Save your current look as a theme, export any theme to a `.json` file and import theme files from others. Backups include your themes.
 New style settings came with it: background opacity and glass blur for tiles, shadows, smooth hover effects (lift or grow), title font, bold titles and titles over the picture.
 
 **Refresh and Capture no longer hang.**
@@ -121,3 +123,11 @@ How the import links tiles to bookmarks: each tile is matched to a bookmark in t
 ## License
 
 [Mozilla Public License 2.0](LICENSE), the same as the original Quick Dial.
+
+## Credits
+
+- [Quick Dial](https://github.com/MatMoul/quickdial-webext) by MatMoul, which Quick Dial NG is a fork of.
+- Icons in the retro screenshots (they are not part of the extension):
+  - Retro PC: icons from [SerenityOS](https://github.com/SerenityOS/serenity), © the SerenityOS developers, [BSD 2-Clause License](test/screenshots/retro-icons/LICENSE).
+  - Retro Mono: [Pixelarticons](https://pixelarticons.com) by Gerrit Halfmann, [MIT License](https://github.com/halfmage/pixelarticons/blob/master/LICENSE).
+- All other pictures in the screenshots (sites, icons, wallpapers) are made up for them by the screenshot maker.

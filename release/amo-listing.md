@@ -32,7 +32,7 @@ Quick Dial NG turns your new tab and home page into a grid of tiles. Each tile i
 **Themes**
 
 - Switch the whole look at once: background, tile and title styles, and the accent colour of the settings.
-- Built in: Classic (the original Quick Dial look) and Anori, inspired by the [Anori](https://anori.app/) extension.
+- Built in: Classic (the original Quick Dial look); Anori, inspired by the [Anori](https://anori.app/) extension; Plum, for a large grid with groups of sites; Dusk, glass tiles over a sunset; and Desktop, Retro PC and Retro Mono, which turn square tiles with icon pictures into a computer desktop.
 - Glass tiles with blur, shadows, smooth hover effects, title fonts, and titles over the picture.
 - Save your own themes, and export or import them as .json files.
 
@@ -78,20 +78,17 @@ Open source (MPL 2.0): [github.com/YuriyWozniak/quickdial-ng](https://github.com
 
 ## Screenshots
 
-All ten from [`screenshots/`](../screenshots/), in alphabetical order (the first one is the main picture of the listing). When a screenshot is added or renamed, keep the order and add its caption here.
+The seven main pictures from [`screenshots/`](../screenshots/), in this order (the first one is the main picture of the listing). The [`screenshots/website/`](../screenshots/website/) ones are for the website only. When a screenshot is added or renamed, add its caption here.
 
 | # | File | Caption |
 |---|---|---|
-| 1 | [`dial-anori.png`](../screenshots/dial-anori.png) | The dial with the built-in Anori theme: glass tiles and titles over the pictures. |
-| 2 | [`dial-classic.png`](../screenshots/dial-classic.png) | The Classic theme, the original Quick Dial look. |
-| 3 | [`dial-picture.png`](../screenshots/dial-picture.png) | Your own background picture behind the tiles. |
-| 4 | [`properties.png`](../screenshots/properties.png) | Bookmark properties: title, address and picture. Choose, drop or paste an image, or keep it from being replaced. |
-| 5 | [`settings-grid.png`](../screenshots/settings-grid.png) | Settings › Grid: rows and columns, tile shape, page margin, the bookmarks folder, and where bookmarks and folders open. |
-| 6 | [`settings-page.png`](../screenshots/settings-page.png) | Settings › Page: background colour, picture or gradient, and the accent colour of Quick Dial NG's windows. |
-| 7 | [`settings-themes.png`](../screenshots/settings-themes.png) | Settings › Themes: preview a theme, then apply it, or save, export and import your own. |
-| 8 | [`settings-themes-dark.png`](../screenshots/settings-themes-dark.png) | Settings follow Firefox's dark mode. |
-| 9 | [`settings-tiles.png`](../screenshots/settings-tiles.png) | Settings › Tiles: a live preview of the normal and hover look, with size, spacing, borders and colours. |
-| 10 | [`settings-tiles-glass.png`](../screenshots/settings-tiles-glass.png) | Tile styles: glass blur, background opacity, shadows, hover effects and title settings. |
+| 1 | [`dial-desktop.png`](../screenshots/dial-desktop.png) | Your dial as a desktop: icons with their names on your wallpaper, in columns at the edges, with folders. |
+| 2 | [`dial-zones.png`](../screenshots/dial-zones.png) | A large grid with your sites grouped in its corners and room between the groups. |
+| 3 | [`dial-categories.png`](../screenshots/dial-categories.png) | Sorted by category: each group keeps its favourites as tiles and the rest in folders. |
+| 4 | [`dial-folder.png`](../screenshots/dial-folder.png) | A folder opened on the dial, with the Back tile. |
+| 5 | [`dial-anori.png`](../screenshots/dial-anori.png) | The usual speed dial in the built-in Anori theme: glass tiles and titles over the pictures. |
+| 6 | [`settings.png`](../screenshots/settings.png) | Settings › Themes: preview a theme, apply it, or save, export and import your own. Settings follow Firefox's light or dark mode. |
+| 7 | [`properties.png`](../screenshots/properties.png) | Bookmark properties: title, address and picture. Choose, drop or paste an image, or keep it from being replaced. |
 
 ## Release notes
 

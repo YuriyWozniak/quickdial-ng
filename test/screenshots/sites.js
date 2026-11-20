@@ -203,4 +203,4 @@ const WALLPAPER = (() => {
 		${ridge('#6d4a7a', 640, 90, 0)}${ridge('#4b3466', 760, 120, 1)}${ridge('#2e2350', 880, 150, 2)}${ridge('#1b1638', 1000, 170, 3)}</svg></body></html>`;
 })();
 
-module.exports = { SITES, WALLPAPER };
+module.exports = { SITES, WALLPAPER, photo, page, repeat };
