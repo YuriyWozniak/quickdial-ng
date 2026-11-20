@@ -9,7 +9,7 @@
 // Related: the theme rules (value checks, theme files) are unit tests (unit/themes.test.js); the
 // Themes tab's Save / Export / Import / Delete buttons are in settings-page.js.
 'use strict';
-const { freshProfile } = require('../lib/fixtures');
+const { BUILTIN_THEMES, freshProfile } = require('../lib/fixtures');
 
 // Runs in the Settings page: is the Themes tab shown, the names of the theme cards, and those marked "In use"
 const themeCards = () => ({ tab: !document.getElementById('TabThemes').hidden, cards: [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(h => h.firstChild.textContent),
@@ -38,7 +38,7 @@ module.exports = {
 		const before = await layout();
 		await t.loadSettings('themes');
 		st = await t.inDial(themeCards);
-		t.check('the Themes tab lists the built-in and custom themes, Classic in use', st.tab && t.same(st.cards, ['Classic', 'Anori', 'Mine']) && t.same(st.current, ['Classic']), st);
+		t.check('the Themes tab lists the built-in and custom themes, Classic in use', st.tab && t.same(st.cards, [...BUILTIN_THEMES, 'Mine']) && t.same(st.current, ['Classic']), st);
 		await t.dial().locator('.qd-theme').nth(1).locator('button', { hasText: 'Use' }).click();
 		st = await t.inDial(() => ({ accent: AccentColor.value, pos: GridCellsTitlePosition.value, glass: GridCellsBackgroundOpacity.value, dirty: !BtnApply.disabled,
 			current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(h => h.firstChild.textContent),
