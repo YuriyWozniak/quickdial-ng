@@ -205,7 +205,7 @@ var QDThemes = (function(){
 		return normalize(out);
 	}
 	// Icon looks: no tile background or border, the name under the picture. They suit square tiles
-	// (Settings › Grid › Tile shape 1 : 1) and icon pictures shown with the "Fit inside" picture mode.
+	// (Settings › Grid › Tile shape 1 : 1) and icon pictures shown with the "Contain" picture mode (Properties › Fit).
 	const ICON_CELLS = {
 		margin: 4, marginHover: 4, backgroundColor: null, backgroundColorHover: null, backgroundOpacity: 0, backgroundOpacityHover: 0,
 		borderSize: 0, borderSizeHover: 0, borderRadius: 0, borderRadiusHover: 0, titlePosition: 0, titleBorderSize: 0, titleBorderSizeHover: 0

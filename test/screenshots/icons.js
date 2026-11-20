@@ -2,7 +2,7 @@
 //
 // Each icon is a 256×256 page with a transparent background: a rounded square in two colours with a
 // white line drawing on it, and empty space around it, so the tile shows it at icon size with the
-// "Fit inside" picture mode. All drawings are made here; none copies a real app's icon.
+// "Contain" picture mode (Properties › Fit). All drawings are made here; none copies a real app's icon.
 //
 // Exports
 //   ICONS              { key: html }  the icons, keyed like the sites they stand for
