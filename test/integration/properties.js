@@ -18,7 +18,7 @@ const { freshProfile, stubDrawWindow, pictures } = require('../lib/fixtures');
 // Opens Properties for a tile, as its context menu item does, and waits until the form is filled in.
 // Returns a locator for the popup's frame.
 async function open(t, id) {
-	await t.inDial(id => dial.editProperties({ gridNode: { id } }), id);
+	await t.inDial(id => app.editProperties({ gridNode: { id } }), id);
 	await t.waitFor('Properties to load', () => { const f = win('dial').document.querySelector('.qd-frame iframe'); return f && f.contentWindow.app && f.contentWindow.app.node && f.contentWindow.document.getElementById('Title').value; });
 	return t.dial().frameLocator('.qd-frame iframe');
 }
@@ -139,7 +139,7 @@ module.exports = {
 		t.check('a tile deleted while its Properties are open: the window says so, nothing to save', isDeletedState(st), st);
 		await p.locator('#BtnCancel').click();
 		await closed(t);
-		await t.inDial(() => dial.editProperties({ gridNode: { id: 'b3' } }));
+		await t.inDial(() => app.editProperties({ gridNode: { id: 'b3' } }));
 		await t.waitFor('the window to open', () => { const w = (win('dial').document.querySelector('.qd-frame iframe') || {}).contentWindow; return w && w.app && w.app.deleted; });
 		st = await deletedState();
 		t.check('Properties of a tile already gone open in the same state', isDeletedState(st), st);

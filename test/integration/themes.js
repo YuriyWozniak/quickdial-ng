@@ -1,5 +1,5 @@
 // Themes (app.Themes in js/background/settings.js; the Themes tab of js/settings.js; the dial's styles in
-// js/dial.js): custom themes stored by the background page, and putting a theme on the dial from Settings.
+// js/grid.js): custom themes stored by the background page, and putting a theme on the dial from Settings.
 //
 // Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), Classic look.
 // The steps build on each other:

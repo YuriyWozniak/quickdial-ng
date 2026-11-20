@@ -44,6 +44,9 @@ export default [
 	{ files: ['src/js/common.js'], languageOptions: { globals: { QDCommon: 'off', QDClient: 'off' } } },
 	{ files: ['src/js/themes.js'], languageOptions: { globals: { QDThemes: 'off' } } },
 	{ files: ['src/js/ui.js'], languageOptions: { globals: { QDUI: 'off' } } },
+	// The dial page: js/grid.js draws (dial), js/dial.js controls (app); each uses the other's global
+	{ files: ['src/js/grid.js'], languageOptions: { globals: { app: 'readonly' } } },
+	{ files: ['src/js/dial.js'], languageOptions: { globals: { dial: 'readonly' } } },
 	{ files: ['src/js/background/*.js'], ignores: ['src/js/background/app.js'], languageOptions: { globals: { app: 'writable' } } },
 	{ files: ['src/js/settings.js'], languageOptions: { globals: idsOf('./src/html/settings.html') } },
 	{ files: ['src/js/properties.js'], languageOptions: { globals: idsOf('./src/html/properties.html') } },

@@ -7,7 +7,59 @@ var QDUI = (function(){
 	'use strict';
 
 	// ---------- popup frame ----------
-	// A page shown in the dial's popup frame (dial.PopupPanel) reaches it through window.frameElement.popup
+	// The dial shows the Properties page in a modal frame (openPopup); the page inside reaches its frame through
+	// window.frameElement.popup (closePopup, fitPopup).
+	let shownPopup = null;
+	function PopupPanel(width, height){
+		const self = this;
+		this.overlay = document.createElement('div');
+		this.overlay.className = 'qd qd-overlay';
+		this.panel = document.createElement('div');
+		this.panel.className = 'qd-frame';
+		this.panel.style.width = width + 'px';
+		this.panel.style.height = height + 'px';
+		this.overlay.appendChild(this.panel);
+		this._onContextMenu = function(e){ e.preventDefault(); };
+		this._onKeyDown = function(e){ if(e.key == 'Escape') self.close(); }; // when focus is outside the frame
+		this.overlay.addEventListener('mousedown', e => { // keep focus in the frame
+			if(e.target === self.overlay){ e.preventDefault(); const f = self.panel.querySelector('iframe'); if(f) f.focus(); }
+		});
+		this.popup = function(){
+			if(shownPopup) shownPopup.close(true);
+			shownPopup = self;
+			window.addEventListener('contextmenu', self._onContextMenu, false);
+			window.addEventListener('keydown', self._onKeyDown, false);
+			document.body.appendChild(self.overlay);
+		};
+		this.fit = function(){ // Called by the page inside: shrink the frame to its content (never above the requested height)
+			const f = self.panel.querySelector('iframe'), d = f && f.contentDocument;
+			if(!d) return;
+			const content = d.querySelector('.qd-content');
+			let needed = 2;
+			if(content) content.style.flex = '0 0 auto'; // natural height instead of "fill the frame"
+			for(const el of d.body.children) needed += el.offsetHeight;
+			if(content) content.style.flex = '';
+			self.panel.style.height = Math.min(height, Math.ceil(needed)) + 'px';
+		};
+		this.close = function(immediate){
+			if(self._closed) return;
+			self._closed = true;
+			if(shownPopup === self) shownPopup = null;
+			window.removeEventListener('contextmenu', self._onContextMenu, false);
+			window.removeEventListener('keydown', self._onKeyDown, false);
+			if(immediate) self.overlay.remove();
+			else { self.overlay.classList.add('is-closing'); setTimeout(() => { self.overlay.remove(); }, 120); }
+		};
+	}
+	function openPopup(src, width, height){ // A page (src) in a modal frame; one at a time
+		const popup = new PopupPanel(width, height);
+		const iframe = document.createElement('iframe');
+		iframe.src = src;
+		iframe.popup = popup;
+		popup.panel.appendChild(iframe);
+		popup.popup();
+		iframe.focus();
+	}
 	function closePopup(){
 		if(window.frameElement && window.frameElement.popup) window.frameElement.popup.close();
 		else window.close();
@@ -244,5 +296,5 @@ var QDUI = (function(){
 		});
 	}
 
-	return { closePopup, fitPopup, initTabs, trackChanges, readFile, imagePicker, imageDrop, setAccent, dialog };
+	return { openPopup, closePopup, fitPopup, initTabs, trackChanges, readFile, imagePicker, imageDrop, setAccent, dialog };
 })();

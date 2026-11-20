@@ -1,4 +1,4 @@
-// The dial page (dial.html, js/dial.js, js/dialbg.js): how it draws the tiles and their pictures, the
+// The dial page (dial.html, js/dial.js, js/grid.js, js/dialbg.js): how it draws the tiles and their pictures, the
 // background colour it paints before the background page answers, folders and the Back tile, pages,
 // and drag and drop. Editing from the dial (its context menu) is in dial-edit.js.
 //
@@ -25,7 +25,7 @@ const drag = (t, from, to, data) => t.inDial(([from, to, data]) => {
 	if (data) dt.setData('text/plain', JSON.stringify(data));
 	else cells[from].firstChild.dispatchEvent(new DragEvent('dragstart', { dataTransfer: dt, bubbles: true, cancelable: true }));
 	const probe = { getData: k => dt.getData(k), dropEffect: '' };
-	dial._onDragOver({ target: cells[to].firstChild, dataTransfer: probe, preventDefault() {} });
+	app._onDragOver({ target: cells[to].firstChild, dataTransfer: probe, preventDefault() {} });
 	cells[to].firstChild.dispatchEvent(new DragEvent('dragover', { dataTransfer: dt, bubbles: true, cancelable: true }));
 	cells[to].firstChild.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
 	return probe.dropEffect;

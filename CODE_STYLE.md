@@ -15,19 +15,20 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
 | --- | --- | --- |
 | Parts of `app`, page globals | PascalCase; page globals start with `QD` | `app.GridNodes`, `app.Settings`, `QDCommon`, `QDClient`, `QDThemes`, `QDUI` |
 | Frozen lookup objects (enums) | PascalCase, members camelCase | `QDCommon.Commands.getNodeById`, `QDCommon.NodeType.folder` |
-| Constructors | PascalCase | `dial.PopupPanel` |
+| Constructors | PascalCase | `PopupPanel` (js/ui.js) |
 | Functions and methods | camelCase, starting with a verb | `getNodeById`, `refreshNode`, `readJsonFile`, `toCssUrl` |
 | Event handlers | `on` + event | `_onDrop`, `_onKeyDown` |
 | Variables and properties | camelCase | `cellsPerPage`, `backIcon`, `dial.titleElement` |
 | True/false values | say what is true | `isFolder`, `hasLegacySwitch`, `titleBelow`, `urlChanged` |
 | Constants | UPPER_SNAKE | `LOADING_ICON`, `TOOLBAR_ACTIONS`, `LEGACY_ICONS`, `FIELDS` |
-| Internal to a part | leading `_` | `app.Settings._serialize`, `dial._selectedLink` |
+| Internal to a part | leading `_` | `app.Settings._serialize`, `app._selectedLink` |
 | Kept on a node only while the extension runs | leading `__` (never saved: `Settings._serialize` drops them) | `node.__isLoading` |
 | Our properties on DOM elements | camelCase, `_` when internal | `link.gridNode`, `link._imageId` |
 | Files | lowercase, named after the part they hold | `js/background/gridnodes.js` holds `app.GridNodes` |
 
 - **Abbreviations are words:** `Id`, `Url`, `Json`, `Css`, `Webp`: `getNodeById`, `dataUrl`, `readJsonFile`, `toWebp`. Names that come from the platform stay as they are (`JSON.parse`, `toDataURL`), and so does the `QD` prefix.
 - **One job, one name, one copy:** code that several pages need is written once: in `QDCommon` (`js/common.js`) when the background page needs it too, otherwise in `QDUI` (`js/ui.js`). A part that keeps its own name for it points at the shared copy (`app.Images.toWebp = QDCommon.toWebp`). Code that must stay in two places has the same name and argument order in both.
+- **Drawing apart from the rest:** on the dial, `js/grid.js` (`dial`) only draws, from what `js/dial.js` (`app`) holds; it sends no messages and handles no input, and returns what it couldn't finish (pictures to load or make) for `app` to do. On the Settings page, each tab is set up by its own function (`app.setupGrid`, `app.Themes.setup`...), called from `app.init`.
 - **Short names** only for loop indexes (`i`, `j`), events (`e`), short arrow functions (`t => t.name`) and the usual aliases in style code: `s` (settings), `g` (`settings.grid`), `c` (`settings.grid.cells`). Write longer aliases out: `const NodeType = QDCommon.NodeType`, `const Commands = QDCommon.Commands`. Never use one short name for two different things in the same file.
 - **Messages** between the pages and the background page: the `QDCommon.Commands` key is a camelCase verb phrase; the number is what gets sent, so a number is never reused for another command. The pages send them only through `QDClient` (`js/common.js`), one method per command.
 
