@@ -1,0 +1,21 @@
+# Dependabot opens a pull request (against develop) when an action or an npm tool has a new version.
+# Each one runs through CI like any other change; merge it when it's green.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directories: ['/', '/test', '/release']
+    target-branch: develop
+    schedule:
+      interval: weekly
+    groups:
+      dev-tools:
+        patterns: ['*']

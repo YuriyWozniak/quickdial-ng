@@ -36,8 +36,8 @@ Environment variables override the config file.
 
 ## Usage
 
-1. Bump `version` in `src/manifest.json`, commit and push to `develop`.
-2. Write the release notes to a file (Markdown).
+1. Bump `version` in `src/manifest.json` and add its release notes to [amo-listing.md](amo-listing.md) (`### <version>` under "Release notes") in the same change; CI fails on an unreleased version without notes. Commit and push to `develop`.
+2. Write the notes to a file: `node release/notes.js 0.3.5 --out notes.md`.
 3. Check what would happen, then run it:
    ```
    node release/release.js 0.3.5 --notes notes.md --dry-run
