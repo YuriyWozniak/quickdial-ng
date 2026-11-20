@@ -3,21 +3,40 @@
 // user.js and may disable add-ons. See README.md in this folder.
 'use strict';
 const net = require('net'), fs = require('fs'), path = require('path'), { spawn, spawnSync } = require('child_process');
-const { WIN, fail, sleep, parseArgs } = require('./lib');
+const { IS_WINDOWS, FIREFOX_PROCESS, ARG, fail, sleep, parseArgs, readExtensionId } = require('./lib');
 
-const NG = 'quickdial-ng@yuriywozniak';
-const PORT = 2829; // Marionette
+const EXTENSION_ID = readExtensionId();
 const DEFAULTS = { idle: 8000, newtabs: 1, settle: 500 };
-const CONNECT_TIMEOUT_MS = 90000; // Firefox starts and Marionette answers
+
+// Marionette: Firefox's remote control, over a local socket
+const MARIONETTE_HOST = '127.0.0.1', MARIONETTE_PORT = 2829;
+const MESSAGE_LENGTH_SEPARATOR = ':'; // each message is "<length>:<json>"
+const COMMAND_TYPE = 0; // [0, id, name, parameters]
+const CONNECT_TIMEOUT_MS = 90000, CONNECT_RETRY_MS = 50; // Firefox starts and Marionette answers
 const SCRIPT_TIMEOUT_MS = 180000; // longest script run through Marionette
-const EXIT_TIMEOUT_MS = 60000; // Firefox quits after a launch
-const EXIT_POLL_MS = 250, CONNECT_RETRY_MS = 50;
-const NEWTAB_MAX_MS = 6000; // longest wait for a new tab's pictures
+const ERROR_TEXT_MAX = { marionette: 2000, launch: 1000, newTab: 500, startTab: 300 }; // characters kept of an error
+
+// Firefox processes and files
+const EXIT_TIMEOUT_MS = 60000, EXIT_POLL_MS = 250; // Firefox quits after a launch
+const PROFILE_LOCK = 'parent.lock', USER_JS = 'user.js', RESULTS_LOG_SUFFIX = '.log';
+const FIREFOX_ARGS = ['-no-remote', '-marionette'], HEADLESS_ARG = '-headless';
+const USER_PREFS = { // written to the profile copy's user.js
+	'marionette.port': MARIONETTE_PORT, 'browser.shell.checkDefaultBrowser': false, 'app.update.auto': false, 'app.update.checkInstallTime': false,
+	'datareporting.policy.dataSubmissionEnabled': false, 'toolkit.telemetry.reportingpolicy.firstRun': false
+};
+const HOMEPAGE_PREF = 'browser.startup.homepage';
+const ENV = { MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1' }; // lets Marionette run scripts in Firefox's own (chrome) context
 const PROFILER_ENV = { // --gecko-profile: what the Firefox Profiler records from the start
 	MOZ_PROFILER_STARTUP: '1', MOZ_PROFILER_STARTUP_ENTRIES: '33554432', MOZ_PROFILER_STARTUP_INTERVAL: '1',
 	MOZ_PROFILER_STARTUP_FEATURES: 'js,stackwalk,markers,cpu,processcpu,ipcmessages',
 	MOZ_PROFILER_STARTUP_FILTERS: 'GeckoMain,Compositor,Renderer,IndexedDB,DOM Worker,StyleThread,BgIOThreadPool,StreamTrans,Timer'
 };
+
+// Waits inside Firefox
+const SESSION_RESTORE_TRIES = 600, SESSION_RESTORE_POLL_MS = 100; // up to a minute for the session to be restored
+const IDLE_DISPATCH_TIMEOUT_MS = 1000, SETTLE_POLL_MS = 100;
+const NEWTAB_MAX_MS = 6000; // longest wait for a new tab's pictures
+const TIME_OF_DAY = [11, 19]; // hh:mm:ss in an ISO date, for the log
 
 const USAGE = `Usage: node startup.js <firefox.exe> <profileCopyDir> <runs> <label> <results.jsonl> [options]
   runs                    measured launches; one extra warm-up launch runs first
@@ -31,155 +50,221 @@ const USAGE = `Usage: node startup.js <firefox.exe> <profileCopyDir> <runs> <lab
   --headful               show the Firefox window
   --discover              dump everything Firefox exposes about startup and extensions (for development)`;
 
-const args = parseArgs(process.argv.slice(2), {
-	newtabs: 'int', idle: 'int', settle: 'int', homepage: 'string', 'gecko-profile': 'string', 'disable-ng': 'bool', headful: 'bool', discover: 'bool'
+const parsedArgs = parseArgs(process.argv.slice(2), {
+	newtabs: ARG.int, idle: ARG.int, settle: ARG.int, homepage: ARG.string, 'gecko-profile': ARG.string,
+	'disable-ng': ARG.bool, headful: ARG.bool, discover: ARG.bool
 }, USAGE);
-const [ffPath, profile, runsArg, label, outFile] = args.positional;
-if (!outFile) fail('missing arguments\n\n' + USAGE);
-const opt = Object.assign({}, DEFAULTS, args);
-const GECKO_PROFILE = opt.geckoProfile ? path.resolve(opt.geckoProfile) : null;
+const [firefoxPath, profileDir, runsArg, label, resultsPath] = parsedArgs.positional;
+if (!resultsPath) fail('missing arguments\n\n' + USAGE);
+const options = Object.assign({}, DEFAULTS, parsedArgs);
+const geckoProfilePath = options.geckoProfile ? path.resolve(options.geckoProfile) : null;
 
-const log = (...a) => { const s = new Date().toISOString().slice(11, 19) + ' ' + a.join(' '); console.log(s); fs.appendFileSync(outFile + '.log', s + '\n'); };
-const out = obj => fs.appendFileSync(outFile, JSON.stringify(obj) + '\n');
+function log(...parts) {
+	const line = new Date().toISOString().slice(...TIME_OF_DAY) + ' ' + parts.join(' ');
+	console.log(line);
+	fs.appendFileSync(resultsPath + RESULTS_LOG_SUFFIX, line + '\n');
+}
+const writeResult = result => fs.appendFileSync(resultsPath, JSON.stringify(result) + '\n');
 
 function writeUserJs() {
-	fs.writeFileSync(path.join(profile, 'user.js'), [
-		`user_pref("marionette.port", ${PORT});`,
-		'user_pref("browser.shell.checkDefaultBrowser", false);',
-		'user_pref("app.update.auto", false);',
-		'user_pref("app.update.checkInstallTime", false);',
-		'user_pref("datareporting.policy.dataSubmissionEnabled", false);',
-		'user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);',
-		opt.homepage ? `user_pref("browser.startup.homepage", ${JSON.stringify(opt.homepage)});` : '',
-		''].join('\n'));
+	const prefs = Object.assign({}, USER_PREFS, options.homepage ? { [HOMEPAGE_PREF]: options.homepage } : {});
+	const lines = Object.entries(prefs).map(([name, value]) => `user_pref(${JSON.stringify(name)}, ${JSON.stringify(value)});`);
+	fs.writeFileSync(path.join(profileDir, USER_JS), lines.join('\n') + '\n');
 }
 
 // ---- minimal Marionette client ----
 class Marionette {
-	constructor(sock) {
-		this.sock = sock; this.buf = Buffer.alloc(0); this.id = 0; this.pending = new Map(); this.closed = false;
-		this.greeting = new Promise(r => { this._greet = r; });
-		sock.on('data', d => { this.buf = Buffer.concat([this.buf, d]); this._parse(); });
-		sock.on('close', () => { this.closed = true; for (const p of this.pending.values()) p.rej(new Error('connection closed')); this.pending.clear(); });
-		sock.on('error', () => {});
+	constructor(socket) {
+		this.socket = socket;
+		this.buffer = Buffer.alloc(0);
+		this.lastId = 0;
+		this.pending = new Map();
+		this.isClosed = false;
+		this.greeting = new Promise(resolve => { this._resolveGreeting = resolve; });
+		socket.on('data', data => {
+			this.buffer = Buffer.concat([this.buffer, data]);
+			this._readMessages();
+		});
+		socket.on('close', () => {
+			this.isClosed = true;
+			for (const call of this.pending.values()) call.reject(new Error('connection closed'));
+			this.pending.clear();
+		});
+		socket.on('error', () => {});
 	}
-	_parse() {
+	_readMessages() {
+		const separator = MESSAGE_LENGTH_SEPARATOR.charCodeAt(0);
 		for (;;) {
-			const i = this.buf.indexOf(0x3a); if (i < 0) return;
-			const n = parseInt(this.buf.slice(0, i).toString(), 10);
-			if (this.buf.length < i + 1 + n) return;
-			const msg = JSON.parse(this.buf.slice(i + 1, i + 1 + n).toString('utf8'));
-			this.buf = this.buf.slice(i + 1 + n);
-			if (!Array.isArray(msg)) { this._greet(msg); continue; }
-			const [, id, err, res] = msg, p = this.pending.get(id);
-			if (p) { this.pending.delete(id); err ? p.rej(new Error(JSON.stringify(err).slice(0, 2000))) : p.res(res); }
+			const separatorIndex = this.buffer.indexOf(separator);
+			if (separatorIndex < 0) return;
+			const length = parseInt(this.buffer.slice(0, separatorIndex).toString(), 10);
+			const start = separatorIndex + 1;
+			if (this.buffer.length < start + length) return;
+			const message = JSON.parse(this.buffer.slice(start, start + length).toString('utf8'));
+			this.buffer = this.buffer.slice(start + length);
+			if (!Array.isArray(message)) {
+				this._resolveGreeting(message);
+				continue;
+			}
+			const [, id, error, result] = message, call = this.pending.get(id);
+			if (!call) continue;
+			this.pending.delete(id);
+			if (error) call.reject(new Error(JSON.stringify(error).slice(0, ERROR_TEXT_MAX.marionette)));
+			else call.resolve(result);
 		}
 	}
 	send(name, params) {
-		const id = ++this.id, s = Buffer.from(JSON.stringify([0, id, name, params || {}]), 'utf8');
-		this.sock.write(s.length + ':'); this.sock.write(s);
-		return new Promise((res, rej) => this.pending.set(id, { res, rej }));
+		const id = ++this.lastId;
+		const body = Buffer.from(JSON.stringify([COMMAND_TYPE, id, name, params || {}]), 'utf8');
+		this.socket.write(body.length + MESSAGE_LENGTH_SEPARATOR);
+		this.socket.write(body);
+		return new Promise((resolve, reject) => this.pending.set(id, { resolve, reject }));
 	}
-	async exec(script, args, async) {
-		const r = await this.send(async ? 'WebDriver:ExecuteAsyncScript' : 'WebDriver:ExecuteScript', { script, args: args || [] });
-		return r && 'value' in r ? r.value : r;
+	async runScript(script, scriptArgs, isAsync) {
+		const result = await this.send(isAsync ? 'WebDriver:ExecuteAsyncScript' : 'WebDriver:ExecuteScript', { script, args: scriptArgs || [] });
+		return result && 'value' in result ? result.value : result;
+	}
+	setContext(context) {
+		return this.send('Marionette:SetContext', { value: context });
 	}
 }
-async function connect(timeoutMs) {
+async function connectMarionette(timeoutMs) {
 	const end = Date.now() + timeoutMs;
 	while (Date.now() < end) {
 		try {
-			const sock = await new Promise((res, rej) => { const s = net.connect(PORT, '127.0.0.1'); s.once('connect', () => res(s)); s.once('error', rej); });
-			const m = new Marionette(sock); await m.greeting; return m;
-		} catch (e) { await sleep(CONNECT_RETRY_MS); }
+			const socket = await new Promise((resolve, reject) => {
+				const connection = net.connect(MARIONETTE_PORT, MARIONETTE_HOST);
+				connection.once('connect', () => resolve(connection));
+				connection.once('error', reject);
+			});
+			const marionette = new Marionette(socket);
+			await marionette.greeting;
+			return marionette;
+		} catch (e) {
+			await sleep(CONNECT_RETRY_MS);
+		}
 	}
 	throw new Error('Marionette did not answer');
 }
 // Waits until no Firefox process uses the profile any more (its lock can be removed, and on Windows no firefox.exe
 // names it), so the next launch starts clean. Firefox's launcher exits at once, so the spawned process says little.
-async function waitExit(timeoutMs) {
-	const lock = path.join(profile, 'parent.lock'), end = Date.now() + timeoutMs;
-	const running = () => {
-		if (!WIN) return false;
-		const r = spawnSync('powershell', ['-NoProfile', '-Command',
-			`@(Get-CimInstance Win32_Process -Filter "Name='firefox.exe'" | Where-Object { $_.CommandLine -like '*${path.basename(profile).replace(/'/g, "''")}*' }).Count`], { encoding: 'utf8' });
-		return parseInt(r.stdout, 10) > 0;
+async function waitForExit(timeoutMs) {
+	const lockPath = path.join(profileDir, PROFILE_LOCK), end = Date.now() + timeoutMs;
+	const isFirefoxRunning = () => {
+		if (!IS_WINDOWS) return false;
+		const profileName = path.basename(profileDir).replace(/'/g, "''");
+		const result = spawnSync('powershell', ['-NoProfile', '-Command',
+			`@(Get-CimInstance Win32_Process -Filter "Name='${FIREFOX_PROCESS}'" | Where-Object { $_.CommandLine -like '*${profileName}*' }).Count`], { encoding: 'utf8' });
+		return parseInt(result.stdout, 10) > 0;
 	};
 	while (Date.now() < end) {
 		try {
-			if (fs.existsSync(lock)) fs.unlinkSync(lock);
-			if (!running()) return true;
+			if (fs.existsSync(lockPath)) fs.unlinkSync(lockPath);
+			if (!isFirefoxRunning()) return true;
 		} catch (e) { /* still locked */ }
 		await sleep(EXIT_POLL_MS);
 	}
 	return false;
 }
 
-// ---- chrome-context scripts ----
+// ---- scripts run inside Firefox (chrome context: Firefox's own code; content context: the tab's page) ----
 const CHROME_STARTUP = `
-const [ngId, idleMaxMs, discover, done] = arguments;
+const [extensionId, idleMaxMs, discover, done] = arguments;
 (async () => {
-	const wait = ms => new Promise(r => setTimeout(r, ms));
-	const ok = d => d && d.getTime && d.getTime() > 0;
-	for (let i = 0; i < 600 && !ok(Services.startup.getStartupInfo().sessionRestored); i++) await wait(100);
+	const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+	const isSet = date => date && date.getTime && date.getTime() > 0;
+	for (let i = 0; i < ${SESSION_RESTORE_TRIES} && !isSet(Services.startup.getStartupInfo().sessionRestored); i++) await wait(${SESSION_RESTORE_POLL_MS});
 	// Settled: no extension's background page is still starting, and the main thread has gone idle (at most idleMaxMs)
-	const idleStart = Date.now();
-	const starting = () => WebExtensionPolicy.getActiveExtensions().filter(p => p.extension && p.extension.backgroundState === 'starting').length;
-	while (Date.now() - idleStart < idleMaxMs) {
-		await new Promise(r => ChromeUtils.idleDispatch(r, { timeout: 1000 }));
-		if (!starting()) break;
-		await wait(100);
+	const settleStart = Date.now();
+	const countStarting = () => WebExtensionPolicy.getActiveExtensions().filter(policy => policy.extension && policy.extension.backgroundState === 'starting').length;
+	while (Date.now() - settleStart < idleMaxMs) {
+		await new Promise(resolve => ChromeUtils.idleDispatch(resolve, { timeout: ${IDLE_DISPATCH_TIMEOUT_MS} }));
+		if (!countStarting()) break;
+		await wait(${SETTLE_POLL_MS});
 	}
-	const settledMs = Date.now() - idleStart;
-	const s = Services.startup.getStartupInfo(), p = s.process.getTime(), startup = {};
-	for (const k in s) if (ok(s[k])) startup[k] = s[k].getTime() - p;
-	const r = { startup, processStartEpoch: p, nowSinceProcess: Date.now() - p, settledMs, extensions: {} };
-	for (const pol of WebExtensionPolicy.getActiveExtensions()) r.extensions[pol.id] = { name: pol.name, bg: pol.extension && pol.extension.backgroundState };
+	const settledMs = Date.now() - settleStart;
+	const startupInfo = Services.startup.getStartupInfo(), processStart = startupInfo.process.getTime(), startup = {};
+	for (const key in startupInfo) if (isSet(startupInfo[key])) startup[key] = startupInfo[key].getTime() - processStart;
+	const result = { startup, processStartEpoch: processStart, nowSinceProcess: Date.now() - processStart, settledMs, extensions: {} };
+	for (const policy of WebExtensionPolicy.getActiveExtensions()) {
+		result.extensions[policy.id] = { name: policy.name, backgroundState: policy.extension && policy.extension.backgroundState };
+	}
 	try {
 		const { AddonManager } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
-		const a = await AddonManager.getAddonByID(ngId); r.ng = a ? { version: a.version, isActive: a.isActive } : null;
-	} catch (e) { r.ngErr = String(e); }
-	// per-extension timings Firefox keeps: [total ms, count], cumulative across launches of this profile
-	const ext = {}, g = Glean.extensionsTiming;
-	for (const [metric, key] of [['extensionStartupByAddonid', 'startup'], ['backgroundPageLoadByAddonid', 'bgLoad'], ['storageLocalGetIdbByAddonid', 'idbGet']])
-		for (const id of Object.keys(r.extensions)) {
-			try { const v = g[metric][id].testGetValue(); if (v && v.count) (ext[id] = ext[id] || {})[key] = [+(v.sum / 1e6).toFixed(1), v.count]; } catch (e) {}
+		const addon = await AddonManager.getAddonByID(extensionId);
+		result.quickDialNg = addon ? { version: addon.version, isActive: addon.isActive } : null;
+	} catch (e) { result.quickDialNgError = String(e); }
+	// Per-extension timings Firefox keeps: [total ms, count], cumulative across launches of this profile
+	const timings = {}, gleanTiming = Glean.extensionsTiming, NS_PER_MS = 1e6;
+	const metrics = [['extensionStartupByAddonid', 'startup'], ['backgroundPageLoadByAddonid', 'backgroundLoad'], ['storageLocalGetIdbByAddonid', 'storageRead']];
+	for (const [metric, key] of metrics) {
+		for (const id of Object.keys(result.extensions)) {
+			try {
+				const value = gleanTiming[metric][id].testGetValue();
+				if (value && value.count) (timings[id] = timings[id] || {})[key] = [+(value.sum / NS_PER_MS).toFixed(1), value.count];
+			} catch (e) {}
 		}
-	r.extTimings = ext;
-	// the start tab: what it loaded before, and when its page painted
-	r.tabs = [...gBrowser.tabs].map(t => {
-		const b = t.linkedBrowser, sh = b.browsingContext && b.browsingContext.sessionHistory, hist = [];
-		if (sh) for (let i = 0; i < sh.count; i++) hist.push(sh.getEntryAtIndex(i).URI.spec);
-		return { url: b.currentURI.spec, history: hist };
+	}
+	result.extensionTimings = timings;
+	// The open tabs: what each loaded before (the start tab's history)
+	result.tabs = [...gBrowser.tabs].map(tab => {
+		const browser = tab.linkedBrowser, history = browser.browsingContext && browser.browsingContext.sessionHistory, urls = [];
+		if (history) for (let i = 0; i < history.count; i++) urls.push(history.getEntryAtIndex(i).URI.spec);
+		return { url: browser.currentURI.spec, history: urls };
 	});
 	if (discover) {
-		const d = r.discover = {};
-		try { const h = Services.telemetry.getSnapshotForHistograms('main', false); for (const proc in h) for (const k in h[proc]) if (/WEBEXT|EXTENSION|STARTUP|STORAGE/.test(k)) (d.hist = d.hist || {})[proc + ':' + k] = h[proc][k].sum + '/' + Object.values(h[proc][k].values || {}).reduce((x, y) => x + y, 0); } catch (e) { d.histErr = String(e); }
-		try { const h = Services.telemetry.getSnapshotForKeyedHistograms('main', false); for (const proc in h) for (const k in h[proc]) if (/WEBEXT|EXTENSION/.test(k)) for (const key in h[proc][k]) (d.khist = d.khist || {})[proc + ':' + k + ':' + key] = h[proc][k][key].sum; } catch (e) { d.khistErr = String(e); }
-		try { const sc = Services.telemetry.getSnapshotForScalars('main', false); d.scalars = {}; for (const proc in sc) for (const k in sc[proc]) if (/exten|startup|webext/i.test(k)) d.scalars[proc + ':' + k] = sc[proc][k]; } catch (e) { d.scErr = String(e); }
+		const found = result.discover = {};
 		try {
-			d.glean = {};
-			const g = Glean.extensionsTiming; for (const k of ['backgroundPageLoad', 'extensionStartup', 'storageLocalGetIdb', 'storageLocalSetIdb', 'browserActionPopupOpen', 'pageActionPopupOpen', 'contentScriptInjection', 'eventPageRunningTime'])
-				try { const v = g[k].testGetValue(); d.glean[k] = v && (v.values ? { sum: v.sum, count: v.count } : v); } catch (e) { d.glean[k] = 'ERR ' + e; }
-			try { const v = Glean.extensionsTiming.backgroundPageLoad; d.gleanLabels = Object.keys(v); } catch (e) {}
-		} catch (e) { d.gleanErr = String(e); }
+			const histograms = Services.telemetry.getSnapshotForHistograms('main', false);
+			for (const processName in histograms) for (const name in histograms[processName]) {
+				if (!/WEBEXT|EXTENSION|STARTUP|STORAGE/.test(name)) continue;
+				const histogram = histograms[processName][name];
+				(found.histograms = found.histograms || {})[processName + ':' + name] = histogram.sum + '/' + Object.values(histogram.values || {}).reduce((x, y) => x + y, 0);
+			}
+		} catch (e) { found.histogramsError = String(e); }
+		try {
+			const keyed = Services.telemetry.getSnapshotForKeyedHistograms('main', false);
+			for (const processName in keyed) for (const name in keyed[processName]) {
+				if (!/WEBEXT|EXTENSION/.test(name)) continue;
+				for (const key in keyed[processName][name]) (found.keyedHistograms = found.keyedHistograms || {})[processName + ':' + name + ':' + key] = keyed[processName][name][key].sum;
+			}
+		} catch (e) { found.keyedHistogramsError = String(e); }
+		try {
+			const scalars = Services.telemetry.getSnapshotForScalars('main', false);
+			found.scalars = {};
+			for (const processName in scalars) for (const name in scalars[processName]) if (/exten|startup|webext/i.test(name)) found.scalars[processName + ':' + name] = scalars[processName][name];
+		} catch (e) { found.scalarsError = String(e); }
+		try {
+			found.glean = {};
+			for (const name of ['backgroundPageLoad', 'extensionStartup', 'storageLocalGetIdb', 'storageLocalSetIdb', 'browserActionPopupOpen', 'pageActionPopupOpen', 'contentScriptInjection', 'eventPageRunningTime']) {
+				try {
+					const value = gleanTiming[name].testGetValue();
+					found.glean[name] = value && (value.values ? { sum: value.sum, count: value.count } : value);
+				} catch (e) { found.glean[name] = 'ERR ' + e; }
+			}
+			try { found.gleanLabels = Object.keys(gleanTiming.backgroundPageLoad); } catch (e) {}
+		} catch (e) { found.gleanError = String(e); }
 		try {
 			const { ExtensionParent } = ChromeUtils.importESModule('resource://gre/modules/ExtensionParent.sys.mjs');
-			const ext = ExtensionParent.GlobalManager.getExtension(ngId);
-			d.extKeys = ext ? Object.keys(ext).filter(k => { const v = ext[k]; return v === null || ['number', 'string', 'boolean'].includes(typeof v); }).map(k => k + '=' + String(ext[k]).slice(0, 60)) : 'none';
-		} catch (e) { d.extErr = String(e); }
-		try { const { AddonManagerPrivate } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs'); d.amTelemetry = AddonManagerPrivate.getTelemetryDetails ? AddonManagerPrivate.getTelemetryDetails() : 'n/a'; } catch (e) { d.amErr = String(e); }
+			const extension = ExtensionParent.GlobalManager.getExtension(extensionId);
+			const isSimple = value => value === null || ['number', 'string', 'boolean'].includes(typeof value);
+			found.extensionKeys = extension ? Object.keys(extension).filter(key => isSimple(extension[key])).map(key => key + '=' + String(extension[key]).slice(0, 60)) : 'none';
+		} catch (e) { found.extensionError = String(e); }
+		try {
+			const { AddonManagerPrivate } = ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs');
+			found.addonManagerTelemetry = AddonManagerPrivate.getTelemetryDetails ? AddonManagerPrivate.getTelemetryDetails() : 'n/a';
+		} catch (e) { found.addonManagerError = String(e); }
 	}
-	done(r);
+	done(result);
 })().catch(e => done({ error: String(e) + ' ' + e.stack }));
 `;
 
 const CHROME_OPEN_TAB = `
 const done = arguments[arguments.length - 1];
-const t = Date.now();
+const openEpoch = Date.now();
 if (window.BrowserCommands && BrowserCommands.openTab) BrowserCommands.openTab(); else BrowserOpenTab();
-const b = gBrowser.selectedBrowser;
-done({ openEpoch: t, uri: b.currentURI && b.currentURI.spec });
+const browser = gBrowser.selectedBrowser;
+done({ openEpoch, uri: browser.currentURI && browser.currentURI.spec });
 `;
 
 // Content context, in a new tab: when its pictures are set (times are ms since the tab's time origin). The page is
@@ -187,127 +272,158 @@ done({ openEpoch: t, uri: b.currentURI && b.currentURI.spec });
 const CONTENT_NEWTAB = `
 const [settleMs, maxMs, done] = arguments;
 const start = performance.now();
-const count = () => { let n = 0; for (const a of document.querySelectorAll('a')) { const c = a.firstElementChild || a; if (((c.style && c.style.backgroundImage) || '').indexOf('data:image') >= 0) n++; } return n; };
-let last = count(), lastChange = performance.now();
-const observer = new MutationObserver(() => { const n = count(); if (n !== last) { last = n; lastChange = performance.now(); } });
+const countPictures = () => {
+	let count = 0;
+	for (const link of document.querySelectorAll('a')) {
+		const panel = link.firstElementChild || link;
+		if (((panel.style && panel.style.backgroundImage) || '').indexOf('data:image') >= 0) count++;
+	}
+	return count;
+};
+let pictures = countPictures(), lastChange = performance.now();
+const observer = new MutationObserver(() => {
+	const count = countPictures();
+	if (count !== pictures) { pictures = count; lastChange = performance.now(); }
+});
 observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['style'] });
 (function check() { // done when the pictures haven't changed for settleMs, or after maxMs
-	const t = performance.now();
-	if ((last > 0 && t - lastChange >= settleMs) || t - start >= maxMs) finish();
-	else setTimeout(check, last > 0 ? settleMs - (t - lastChange) : settleMs);
+	const now = performance.now();
+	if ((pictures > 0 && now - lastChange >= settleMs) || now - start >= maxMs) finish();
+	else setTimeout(check, pictures > 0 ? settleMs - (now - lastChange) : settleMs);
 })();
 function finish() {
 	observer.disconnect();
 	requestAnimationFrame(() => requestAnimationFrame(() => {
-		const nav = performance.getEntriesByType('navigation')[0] || {};
-		const paint = {}; for (const p of performance.getEntriesByType('paint')) paint[p.name] = +p.startTime.toFixed(1);
-		done({ url: location.href, timeOrigin: performance.timeOrigin, images: last, links: document.querySelectorAll('a').length,
-			domContentLoaded: +(nav.domContentLoadedEventEnd || 0).toFixed(1), load: +(nav.loadEventEnd || 0).toFixed(1),
-			imagesSet: last > 0 ? +lastChange.toFixed(1) : null, paint });
+		const navigation = performance.getEntriesByType('navigation')[0] || {};
+		const paint = {};
+		for (const entry of performance.getEntriesByType('paint')) paint[entry.name] = +entry.startTime.toFixed(1);
+		done({ url: location.href, timeOrigin: performance.timeOrigin, images: pictures, links: document.querySelectorAll('a').length,
+			domContentLoaded: +(navigation.domContentLoadedEventEnd || 0).toFixed(1), load: +(navigation.loadEventEnd || 0).toFixed(1),
+			imagesSet: pictures > 0 ? +lastChange.toFixed(1) : null, paint });
 	}));
 }
 `;
 
 const CONTENT_STARTTAB = `
 const done = arguments[arguments.length - 1];
-const nav = performance.getEntriesByType('navigation')[0] || {};
-let fcp = null; for (const p of performance.getEntriesByType('paint')) if (p.name === 'first-contentful-paint') fcp = +p.startTime.toFixed(1);
-let images = 0; for (const a of document.querySelectorAll('a')) { const c = a.firstElementChild || a; if (((c.style && c.style.backgroundImage) || '').indexOf('data:image') >= 0) images++; }
-done({ url: location.href, timeOrigin: performance.timeOrigin, fcp, domContentLoaded: +(nav.domContentLoadedEventEnd || 0).toFixed(1), images });
+const navigation = performance.getEntriesByType('navigation')[0] || {};
+let fcp = null;
+for (const entry of performance.getEntriesByType('paint')) if (entry.name === 'first-contentful-paint') fcp = +entry.startTime.toFixed(1);
+let images = 0;
+for (const link of document.querySelectorAll('a')) {
+	const panel = link.firstElementChild || link;
+	if (((panel.style && panel.style.backgroundImage) || '').indexOf('data:image') >= 0) images++;
+}
+done({ url: location.href, timeOrigin: performance.timeOrigin, fcp, domContentLoaded: +(navigation.domContentLoadedEventEnd || 0).toFixed(1), images });
 `;
 
-const CHROME_DISABLE_NG = `
-const [ngId, done] = arguments;
-ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs').AddonManager.getAddonByID(ngId)
-	.then(a => a.disable()).then(() => done('disabled'), e => done('ERR ' + e));
+const CHROME_DISABLE_EXTENSION = `
+const [extensionId, done] = arguments;
+ChromeUtils.importESModule('resource://gre/modules/AddonManager.sys.mjs').AddonManager.getAddonByID(extensionId)
+	.then(addon => addon.disable()).then(() => done('disabled'), e => done('ERR ' + e));
 `;
 
-// Chrome context: closes the selected tab once the browser is idle again
+// Closes the selected tab, once the browser is idle again
 const CHROME_CLOSE_TAB = `
 const done = arguments[arguments.length - 1];
 gBrowser.removeTab(gBrowser.selectedTab);
-ChromeUtils.idleDispatch(() => done(true), { timeout: 1000 });
+ChromeUtils.idleDispatch(() => done(true), { timeout: ${IDLE_DISPATCH_TIMEOUT_MS} });
+`;
+
+const CHROME_SAVE_PROFILE = `
+const [filePath, done] = arguments;
+Services.profiler.dumpProfileToFileAsync(filePath).then(() => done('saved ' + filePath), e => done('ERR ' + e));
 `;
 
 // Opens a new tab the way Ctrl+T does and times it until its pictures are set; closes it again
-async function measureNewTab(m) {
-	await m.send('Marionette:SetContext', { value: 'chrome' });
-	const o = await m.exec(CHROME_OPEN_TAB, [], true);
-	await m.send('Marionette:SetContext', { value: 'content' });
-	const handles = await m.send('WebDriver:GetWindowHandles');
-	const list = handles.value || handles;
-	await m.send('WebDriver:SwitchToWindow', { handle: list[list.length - 1], focus: true });
-	const t = await m.exec(CONTENT_NEWTAB, [opt.settle, NEWTAB_MAX_MS], true);
-	t.openToTimeOriginMs = +(t.timeOrigin - o.openEpoch).toFixed(1);
-	await m.send('Marionette:SetContext', { value: 'chrome' });
-	await m.exec(CHROME_CLOSE_TAB, [], true);
-	return t;
+async function measureNewTab(marionette) {
+	await marionette.setContext('chrome');
+	const opened = await marionette.runScript(CHROME_OPEN_TAB, [], true);
+	await marionette.setContext('content');
+	const handles = await marionette.send('WebDriver:GetWindowHandles');
+	const handleList = handles.value || handles;
+	await marionette.send('WebDriver:SwitchToWindow', { handle: handleList[handleList.length - 1], focus: true });
+	const timings = await marionette.runScript(CONTENT_NEWTAB, [options.settle, NEWTAB_MAX_MS], true);
+	timings.openToTimeOriginMs = +(timings.timeOrigin - opened.openEpoch).toFixed(1);
+	await marionette.setContext('chrome');
+	await marionette.runScript(CHROME_CLOSE_TAB, [], true);
+	return timings;
 }
 
-async function launch(n, opts) {
-	const ffArgs = ['-profile', profile, '-no-remote', '-marionette'];
-	if (!opt.headful) ffArgs.push('-headless');
-	const t0 = Date.now();
-	const env = Object.assign({}, process.env, { MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1' }, opts.profileTo ? PROFILER_ENV : {});
-	const ff = spawn(ffPath, ffArgs, { stdio: 'ignore', detached: false, env });
-	ff.on('error', e => log('spawn error', e));
-	const m = await connect(CONNECT_TIMEOUT_MS);
-	const tConnected = Date.now() - t0;
-	await m.send('WebDriver:NewSession', { capabilities: { alwaysMatch: { 'moz:webdriverClick': false } } });
-	const tSession = Date.now() - t0;
-	await m.send('WebDriver:SetTimeouts', { script: SCRIPT_TIMEOUT_MS });
-	await m.send('Marionette:SetContext', { value: 'chrome' });
-	const res = { run: n, label, spawnToMarionetteMs: tConnected, spawnToSessionMs: tSession };
+async function launch(runNumber, launchOptions) {
+	const firefoxArgs = ['-profile', profileDir, ...FIREFOX_ARGS];
+	if (!options.headful) firefoxArgs.push(HEADLESS_ARG);
+	const spawnedAt = Date.now();
+	const env = Object.assign({}, process.env, ENV, launchOptions.profilePath ? PROFILER_ENV : {});
+	const firefox = spawn(firefoxPath, firefoxArgs, { stdio: 'ignore', detached: false, env });
+	firefox.on('error', e => log('spawn error', e));
+	const marionette = await connectMarionette(CONNECT_TIMEOUT_MS);
+	const connectedMs = Date.now() - spawnedAt;
+	await marionette.send('WebDriver:NewSession', { capabilities: { alwaysMatch: { 'moz:webdriverClick': false } } });
+	const sessionMs = Date.now() - spawnedAt;
+	await marionette.send('WebDriver:SetTimeouts', { script: SCRIPT_TIMEOUT_MS });
+	await marionette.setContext('chrome');
+	const result = { run: runNumber, label, spawnToMarionetteMs: connectedMs, spawnToSessionMs: sessionMs };
 	try {
-		Object.assign(res, await m.exec(CHROME_STARTUP, [NG, opt.idle, !!opt.discover], true));
-		res.spawnLagMs = res.processStartEpoch - t0;
-		await m.send('Marionette:SetContext', { value: 'content' });
-		const h = await m.send('WebDriver:GetWindowHandle');
-		await m.send('WebDriver:SwitchToWindow', { handle: h.value || h, focus: true });
+		Object.assign(result, await marionette.runScript(CHROME_STARTUP, [EXTENSION_ID, options.idle, !!options.discover], true));
+		result.spawnLagMs = result.processStartEpoch - spawnedAt;
+		await marionette.setContext('content');
+		const handle = await marionette.send('WebDriver:GetWindowHandle');
+		await marionette.send('WebDriver:SwitchToWindow', { handle: handle.value || handle, focus: true });
 		try {
-			const st = await m.exec(CONTENT_STARTTAB, [], true);
-			st.timeOriginSinceProcess = +(st.timeOrigin - res.processStartEpoch).toFixed(1);
-			if (st.fcp != null) st.paintedSinceProcess = +(st.timeOriginSinceProcess + st.fcp).toFixed(1);
-			res.startTab = st;
-		} catch (e) { res.startTabErr = String(e).slice(0, 300); }
-		if (opts.newTabs) {
-			const tabs = [];
+			const startTab = await marionette.runScript(CONTENT_STARTTAB, [], true);
+			startTab.timeOriginSinceProcess = +(startTab.timeOrigin - result.processStartEpoch).toFixed(1);
+			if (startTab.fcp != null) startTab.paintedSinceProcess = +(startTab.timeOriginSinceProcess + startTab.fcp).toFixed(1);
+			result.startTab = startTab;
+		} catch (e) { result.startTabError = String(e).slice(0, ERROR_TEXT_MAX.startTab); }
+		if (launchOptions.newTabs) {
+			const newTabs = [];
 			try {
-				for (let i = 0; i < opts.newTabs; i++) tabs.push(await measureNewTab(m));
-			} catch (e) { res.newTabErr = String(e).slice(0, 500); }
-			if (tabs.length) res.newTab = tabs[0]; // the first new tab of the launch
-			if (tabs.length > 1) res.newTabsLater = tabs.slice(1);
+				for (let i = 0; i < launchOptions.newTabs; i++) newTabs.push(await measureNewTab(marionette));
+			} catch (e) { result.newTabError = String(e).slice(0, ERROR_TEXT_MAX.newTab); }
+			if (newTabs.length) result.newTab = newTabs[0]; // the first new tab of the launch
+			if (newTabs.length > 1) result.newTabsLater = newTabs.slice(1);
 		}
-		if (opts.profileTo) {
-			await m.send('Marionette:SetContext', { value: 'chrome' });
-			res.geckoProfile = await m.exec("const [f, done] = arguments; Services.profiler.dumpProfileToFileAsync(f).then(() => done('saved ' + f), e => done('ERR ' + e));", [opts.profileTo], true);
+		if (launchOptions.profilePath) {
+			await marionette.setContext('chrome');
+			result.geckoProfile = await marionette.runScript(CHROME_SAVE_PROFILE, [launchOptions.profilePath], true);
 		}
-		if (opts.disableNg) {
-			await m.send('Marionette:SetContext', { value: 'chrome' });
-			res.disableNg = await m.exec(CHROME_DISABLE_NG, [NG], true);
+		if (launchOptions.disableExtension) {
+			await marionette.setContext('chrome');
+			result.disableExtension = await marionette.runScript(CHROME_DISABLE_EXTENSION, [EXTENSION_ID], true);
 		}
-	} catch (e) { res.error = String(e).slice(0, 1000); }
-	try { await m.send('Marionette:Quit', { flags: ['eAttemptQuit'] }); } catch (e) { /* already closing */ }
-	res.exited = await waitExit(EXIT_TIMEOUT_MS);
-	return res;
+	} catch (e) { result.error = String(e).slice(0, ERROR_TEXT_MAX.launch); }
+	try { await marionette.send('Marionette:Quit', { flags: ['eAttemptQuit'] }); } catch (e) { /* already closing */ }
+	result.exited = await waitForExit(EXIT_TIMEOUT_MS);
+	return result;
 }
 
 (async () => {
 	writeUserJs();
 	const runs = parseInt(runsArg, 10) || 1;
-	log(`start label=${label} runs=${runs} newtabs=${opt.newtabs} discover=${!!opt.discover} disableNg=${!!opt.disableNg}`);
-	if (opt.disableNg) { const r = await launch(0, { disableNg: true }); log('disable launch:', r.disableNg || r.error); }
-	for (let n = 0; n <= runs; n++) {
-		const r = await launch(n, { newTabs: opt.newtabs, profileTo: GECKO_PROFILE && n === runs ? GECKO_PROFILE : null });
-		r.warmup = n === 0;
-		out(r);
-		log(`run ${n}${n === 0 ? ' (warm-up)' : ''}: sessionRestored=${r.startup && r.startup.sessionRestored} firstPaint=${r.startup && (r.startup.firstPaint2 || r.startup.firstPaint)} startTab=${JSON.stringify(r.startTab || r.startTabErr)} tabs=${JSON.stringify(r.tabs)} newTab=${r.newTab ? JSON.stringify(r.newTab) : r.newTabErr || r.error}`);
+	log(`start label=${label} runs=${runs} newtabs=${options.newtabs} discover=${!!options.discover} disableNg=${!!options.disableNg}`);
+	if (options.disableNg) {
+		const result = await launch(0, { disableExtension: true });
+		log('disable launch:', result.disableExtension || result.error);
 	}
-	out({ done: true, label });
+	for (let runNumber = 0; runNumber <= runs; runNumber++) {
+		const result = await launch(runNumber, { newTabs: options.newtabs, profilePath: geckoProfilePath && runNumber === runs ? geckoProfilePath : null });
+		result.warmup = runNumber === 0;
+		writeResult(result);
+		const firstPaint = result.startup && (result.startup.firstPaint2 || result.startup.firstPaint);
+		log(`run ${runNumber}${result.warmup ? ' (warm-up)' : ''}: sessionRestored=${result.startup && result.startup.sessionRestored} firstPaint=${firstPaint}`
+			+ ` startTab=${JSON.stringify(result.startTab || result.startTabError)} tabs=${JSON.stringify(result.tabs)}`
+			+ ` newTab=${result.newTab ? JSON.stringify(result.newTab) : result.newTabError || result.error}`);
+	}
+	writeResult({ done: true, label });
 	log('done');
 })().catch(e => {
-	log('FATAL', e.stack); out({ done: true, fatal: String(e) });
-	// close the Firefox this harness started (only the one using the profile copy)
-	try { require('child_process').execSync(`powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \\"name='firefox.exe'\\" | Where-Object { $_.CommandLine -like '*${path.basename(profile)}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"`); } catch (x) { /* nothing left to close */ }
+	log('FATAL', e.stack);
+	writeResult({ done: true, fatal: String(e) });
+	// Close the Firefox this harness started (only the one using the profile copy)
+	try {
+		spawnSync('powershell', ['-NoProfile', '-Command',
+			`Get-CimInstance Win32_Process -Filter "Name='${FIREFOX_PROCESS}'" | Where-Object { $_.CommandLine -like '*${path.basename(profileDir)}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`]);
+	} catch (closeError) { /* nothing left to close */ }
 	process.exit(1);
 });

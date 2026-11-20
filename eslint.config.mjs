@@ -59,7 +59,13 @@ export default [
 		rules: {
 			'no-var': 'error',
 			'prefer-const': ['error', { destructuring: 'all' }],
-			'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }]
+			'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }],
+			// CODE_STYLE.md holds for the tests too: camelCase names, single quotes, semicolons, Node spacing (if (x) {)
+			camelcase: ['error', { properties: 'always' }],
+			quotes: ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
+			semi: 'error',
+			'keyword-spacing': 'error',
+			'space-before-blocks': 'error'
 		}
 	},
 	{
@@ -83,7 +89,8 @@ export default [
 			sourceType: 'script',
 			globals: {
 				...globals.browser, ...globals.webextensions,
-				BENCH_FORMAT: 'readonly', BENCH_DEFAULTS: 'readonly', BENCH_SCRIPTS: 'readonly', BENCH_OPTIONS: 'readonly' // bench/config.js
+				BENCH_FORMAT: 'readonly', BENCH_DEFAULTS: 'readonly', BENCH_SCRIPTS: 'readonly', BENCH_OPTIONS: 'readonly', // bench/config.js
+				BENCH_SHARED: 'readonly' // bench/shared.js
 			}
 		}
 	}
