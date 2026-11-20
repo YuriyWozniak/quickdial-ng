@@ -154,7 +154,7 @@ async function main() {
 	await settings.click('#TabPageButton'); await s.shot('settings-page');
 	await settings.click('#TabGridButton'); await s.shot('settings-grid');
 	dial = await s.dial();
-	await dial.evaluate(() => dial.editProperties([...document.querySelectorAll('.qd-grid a')].find(a => a.gridNode && a.gridNode.title === 'Weather')));
+	await dial.evaluate(() => app.editProperties([...document.querySelectorAll('.qd-grid a')].find(a => a.gridNode && a.gridNode.title === 'Weather')));
 	await wait(1300); await s.shot('properties');
 	await s.ctx.close();
 

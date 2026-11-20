@@ -1,4 +1,4 @@
-// Editing from the dial (js/dial.js, js/ui.js dialogs): the commands of its context menu (new bookmark
+// Editing from the dial (js/dial.js, js/ui.js dialogs and popup frame): the commands of its context menu (new bookmark
 // or folder, delete, refresh, capture, properties), its dialogs by keyboard, and its Settings items.
 // The menu itself lives in the background page (toolbar-menus.js); here its commands are sent to the
 // dial as the background page does, after a mousedown on the tile, as a right-click would.
@@ -108,7 +108,7 @@ module.exports = {
 
 		// ----- the dial's Settings items open the Settings tab (0.5.0) -----
 		await spyTabs(t);
-		await t.inDial(() => { dial.editSettings('backup'); dial.editSettings(new MouseEvent('click')); });
+		await t.inDial(() => { app.editSettings('backup'); app.editSettings(new MouseEvent('click')); });
 		st = await t.waitFor('the tabs', () => bg().qdTabs.length === 2 && bg().qdTabs);
 		t.check('the dial\'s Settings items open the Settings tab', t.same(st, [['create', { url: 'html/settings.html?tab=backup' }], ['create', { url: 'html/settings.html' }]]), st);
 

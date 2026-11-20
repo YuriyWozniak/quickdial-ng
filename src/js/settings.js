@@ -1,4 +1,6 @@
 // The Settings page (its own tab). Form elements are reached by their id (window.BtnApply...).
+// app.init sets up each tab with its own function (setupPage, setupGrid, setupTiles, Themes.setup, Backup.setup);
+// the form fields themselves are listed once, in FIELDS, and copied to and from the settings by fillForm and readForm.
 /* exported app */
 // eslint-disable-next-line no-var -- a window property, like on the other pages
 var app = {};
@@ -120,11 +122,23 @@ app.init = function(){
 		history.replaceState(null, '', '?tab=' + btn.id.replace(/^Tab|Button$/g, '').toLowerCase()); // a reload stays on this section
 	});
 	app.changes = QDUI.trackChanges(BtnApply, Status, BtnDiscard);
-	QDThemes.FONTS.forEach(f => { GridCellsTitleFont.add(new Option(f.label, f.value)); });
+	app.setupActions();
+	app.setupPage();
+	app.setupGrid();
+	app.setupTiles();
+	app.Themes.setup();
+	app.Backup.setup();
+	// Live previews follow every edit
+	document.addEventListener('input', app.updatePreviews);
+	document.addEventListener('change', app.updatePreviews);
 
 	app.load();
 	app.listen();
+	app.showSection(new URLSearchParams(location.search).get('tab'));
+};
 
+// The buttons below every tab: Apply (also Ctrl+S), Discard changes, Open the dial; closing the tab with changes not applied asks first
+app.setupActions = function(){
 	BtnApply.onclick = function(){
 		if(!app.settings || !app.changes.isDirty()) return;
 		app.readForm(app.settings);
@@ -143,88 +157,32 @@ app.init = function(){
 	document.addEventListener('keydown', e => {
 		if((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() == 's'){ e.preventDefault(); BtnApply.onclick(); }
 	});
-	window.addEventListener('beforeunload', e => { // closing the tab with changes not applied
+	window.addEventListener('beforeunload', e => {
 		if(app.changes.isDirty()){ e.preventDefault(); e.returnValue = ''; }
 	});
-
-	// ----- Backup -----
-	BtnExport.onclick = function(){
-		QDClient.exportData().then(data => {
-			app.download(data, 'quickdial-ng-backup-' + new Date().toISOString().substr(0, 10) + '.json');
-		});
-	};
-	BtnImport.onclick = function(){
-		ImportFile.value = null;
-		ImportFile.click();
-	};
-	BtnCopySnippet.onclick = function(){
-		navigator.clipboard.writeText(app.Backup.exportSnippet).then(() => {
-			BtnCopySnippet.textContent = 'Copied ✓';
-			setTimeout(() => { BtnCopySnippet.textContent = 'Copy export snippet'; }, 2000);
-		}, () => { prompt('Copy this snippet:', app.Backup.exportSnippet); });
-	};
-	ImportFile.onchange = function(){
-		if(!ImportFile.files[0]) return;
-		app.readJsonFile(ImportFile.files[0]).then(data => {
-			if(!data || !data.settings || !data.node || !data.settings.grid){
-				app.showStatus(ImportStatus, data && data.format == 'quickdial-ng-theme' ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
-				return;
-			}
-			const source = data.format == 'quickdial-ng' ? 'Quick Dial NG backup' : 'Quick Dial export';
-			QDUI.dialog({
-				title: 'Import this ' + source + '?',
-				message: 'Your current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.',
-				okText: 'Import',
-				danger: true
-			}).then(ok => {
-				if(!ok) return;
-				BtnImport.disabled = true;
-				app.showStatus(ImportStatus, 'Importing…', false, true);
-				QDClient.importData(data).then(r => {
-					const text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
-						+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
-					location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
-				}, err => {
-					BtnImport.disabled = false;
-					app.showStatus(ImportStatus, 'Import failed: ' + err.message, true);
-				});
-			});
-		});
-	};
-
-	const params = new URLSearchParams(location.search);
-	app.showSection(params.get('tab'));
-	if(params.get('result')) app.showStatus(ImportStatus, params.get('result'));
-
-	// ----- Pictures -----
-	const edit = fn => value => { fn(value); app.updatePreviews(); app.changes.mark(); };
-	// The settings hold pictures as url("...") values
-	QDUI.imagePicker(BackgroundImageFile, BackgroundImageChoose, edit(dataUrl => { backgroundImage = QDCommon.toCssUrl(dataUrl); }));
-	QDUI.imagePicker(GridBackImageFile, GridBackImageFile.previousElementSibling, edit(dataUrl => { backIcon = QDCommon.toCssUrl(dataUrl); }));
-	QDUI.imagePicker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, edit(dataUrl => { folderIcon = QDCommon.toCssUrl(dataUrl); }));
+};
+// A picture picked, dropped or cleared: fn(value) stores it, then the previews and the Apply button follow.
+// The settings hold pictures as url("...") values.
+app.pictureEdit = fn => value => { fn(value); app.updatePreviews(); app.changes.mark(); };
+// Tab Page: the background picture (the rest of the tab is plain form fields, FIELDS)
+app.setupPage = function(){
+	QDUI.imagePicker(BackgroundImageFile, BackgroundImageChoose, app.pictureEdit(dataUrl => { backgroundImage = QDCommon.toCssUrl(dataUrl); }));
 	QDUI.imageDrop(BackgroundZone, BackgroundImageFile);
+	BackgroundImageClear.onclick = app.pictureEdit(() => { backgroundImage = null; });
+	BackgroundGradientClear.onclick = app.pictureEdit(() => { backgroundGradient = null; });
+};
+// Tab Grid: the Back and folder pictures
+app.setupGrid = function(){
+	QDUI.imagePicker(GridBackImageFile, GridBackImageFile.previousElementSibling, app.pictureEdit(dataUrl => { backIcon = QDCommon.toCssUrl(dataUrl); }));
+	QDUI.imagePicker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, app.pictureEdit(dataUrl => { folderIcon = QDCommon.toCssUrl(dataUrl); }));
 	QDUI.imageDrop(GridBackZone, GridBackImageFile);
 	QDUI.imageDrop(GridFolderZone, GridFolderImageFile);
-
-	BackgroundImageClear.onclick = edit(() => { backgroundImage = null; });
-	BackgroundGradientClear.onclick = edit(() => { backgroundGradient = null; });
-	GridBackImageReset.onclick = edit(() => { backIcon = 'url(/img/back.svg)'; });
-	GridFolderImageReset.onclick = edit(() => { folderIcon = 'url(/img/folder.svg)'; });
-
-	// ----- Themes -----
-	BtnThemeSave.onclick = app.Themes.saveCurrent;
-	BtnThemeExport.onclick = app.Themes.exportCurrent;
-	BtnThemeImport.onclick = function(){
-		ThemeFile.value = null;
-		ThemeFile.click();
-	};
-	ThemeFile.onchange = function(){
-		if(ThemeFile.files[0]) app.readJsonFile(ThemeFile.files[0]).then(app.Themes.importFile);
-	};
-
-	// Live previews follow every edit
-	document.addEventListener('input', app.updatePreviews);
-	document.addEventListener('change', app.updatePreviews);
+	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = 'url(/img/back.svg)'; });
+	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = 'url(/img/folder.svg)'; });
+};
+// Tab Tiles: the title fonts (an imported theme's font is added when the form is filled, fillForm)
+app.setupTiles = function(){
+	QDThemes.FONTS.forEach(f => { GridCellsTitleFont.add(new Option(f.label, f.value)); });
 };
 
 // Reads the settings and themes the dial uses now into the form
@@ -337,6 +295,18 @@ app.paintTile = function(tile, cells, hover, ratio){
 
 // ---------- themes ----------
 app.Themes = { list: [], cards: [] };
+// Tab Themes: the cards are drawn when the list arrives (app.load)
+app.Themes.setup = function(){
+	BtnThemeSave.onclick = app.Themes.saveCurrent;
+	BtnThemeExport.onclick = app.Themes.exportCurrent;
+	BtnThemeImport.onclick = function(){
+		ThemeFile.value = null;
+		ThemeFile.click();
+	};
+	ThemeFile.onchange = function(){
+		if(ThemeFile.files[0]) app.readJsonFile(ThemeFile.files[0]).then(app.Themes.importFile);
+	};
+};
 app.Themes.all = function(){ return QDThemes.BUILTIN.concat(app.Themes.list); };
 app.Themes.find = function(name){
 	name = String(name).trim().toLowerCase();
@@ -457,5 +427,55 @@ app.Themes.remove = function(theme){
 	});
 };
 
+// ---------- backup ----------
 app.Backup = {};
+// Tab Backup: export, import (the page reloads after an import and shows what it did: ?result=)
+app.Backup.setup = function(){
+	BtnExport.onclick = function(){
+		QDClient.exportData().then(data => {
+			app.download(data, 'quickdial-ng-backup-' + new Date().toISOString().substr(0, 10) + '.json');
+		});
+	};
+	BtnImport.onclick = function(){
+		ImportFile.value = null;
+		ImportFile.click();
+	};
+	ImportFile.onchange = function(){
+		if(ImportFile.files[0]) app.readJsonFile(ImportFile.files[0]).then(app.Backup.importFile);
+	};
+	BtnCopySnippet.onclick = function(){
+		navigator.clipboard.writeText(app.Backup.exportSnippet).then(() => {
+			BtnCopySnippet.textContent = 'Copied ✓';
+			setTimeout(() => { BtnCopySnippet.textContent = 'Copy export snippet'; }, 2000);
+		}, () => { prompt('Copy this snippet:', app.Backup.exportSnippet); });
+	};
+	const result = new URLSearchParams(location.search).get('result');
+	if(result) app.showStatus(ImportStatus, result);
+};
+// A Quick Dial NG backup or an original Quick Dial export (data: the file's content, null when it isn't JSON)
+app.Backup.importFile = function(data){
+	if(!data || !data.settings || !data.node || !data.settings.grid){
+		app.showStatus(ImportStatus, data && data.format == 'quickdial-ng-theme' ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
+		return;
+	}
+	const source = data.format == 'quickdial-ng' ? 'Quick Dial NG backup' : 'Quick Dial export';
+	QDUI.dialog({
+		title: 'Import this ' + source + '?',
+		message: 'Your current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.',
+		okText: 'Import',
+		danger: true
+	}).then(ok => {
+		if(!ok) return;
+		BtnImport.disabled = true;
+		app.showStatus(ImportStatus, 'Importing…', false, true);
+		QDClient.importData(data).then(r => {
+			const text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
+				+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
+			location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
+		}, err => {
+			BtnImport.disabled = false;
+			app.showStatus(ImportStatus, 'Import failed: ' + err.message, true);
+		});
+	});
+};
 app.Backup.exportSnippet = "(async()=>{const a=(await browser.runtime.getBackgroundPage()).app;const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:4,settings:a.settings,node:a.node})],{type:'application/json'}));l.download='quickdial-export.json';document.body.appendChild(l);l.click();})()";
