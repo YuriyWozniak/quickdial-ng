@@ -11,7 +11,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadBackground, plain, settle } = require('./load');
 
-const init = w => new Promise(r => w.app.Settings.init(r));
+const init = w => w.app.Settings.init();
 
 test('defaults: layout of a new install with the Classic look', () => {
 	const w = loadBackground(), d = w.app.Settings.defaults();
@@ -123,8 +123,8 @@ test('save is batched, skipped when nothing changed, and leaves out "__" fields'
 	w.browser.calls.length = 0;
 	w.app.node.children.push({ id: 'x', type: 2, __isLoading: true });
 	let done = 0;
-	w.app.Settings.save(() => done++);
-	w.app.Settings.save(() => done++);
+	w.app.Settings.save().then(() => done++);
+	w.app.Settings.save().then(() => done++);
 	await settle();
 	assert.equal(done, 2);
 	assert.equal(w.browser.calls.length, 1, 'one write for both');
@@ -159,21 +159,20 @@ test('init: stored data that can\'t be read at all: the defaults are used and no
 	w.app.Settings.LOAD_RETRY_DELAY = 0;
 	let reads = 0;
 	w.browser.storage.local.get = () => { reads++; return Promise.reject(new Error('corrupt')); };
-	await init(w); // calls back: the dial pages waiting on app.ready don't hang
+	await init(w); // resolves: the dial pages waiting on app.ready don't hang
 	assert.equal(reads, 1 + w.app.Settings.LOAD_RETRIES);
 	assert.equal(w.app.settings.toolbarAction, 'settings');
 	assert.deepEqual(plain(w.app.node), { children: [] });
 	w.app.node.children.push({ id: 'x', type: 2 }); // e.g. synced from the bookmarks
-	const error = await new Promise(r => w.app.Settings.save(r));
-	assert.ok(error && error.message, 'the callback gets the reason');
+	const error = await w.app.Settings.save().then(() => null, e => e);
+	assert.ok(error && error.message, 'the promise rejects with the reason');
 	assert.equal(w.browser.calls.filter(c => c[0] === 'set').length, 0, 'nothing written');
 	assert.equal(w.localStorage.getItem('dialBackgroundColor'), null, 'the default colour is not remembered as the user\'s');
-	const saved = await new Promise(r => w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundColor: '#000000' }), r));
-	assert.equal(saved, undefined);
+	await w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundColor: '#000000' }));
 	assert.equal(w.browser.store.settings.backgroundColor, '#000000', 'settings the user saves are written');
 });
 
-test('save: a failed write still calls back, with the error, and is written on the next save', async () => {
+test('save: a failed write rejects with the error, and is written on the next save', async () => {
 	const w = loadBackground();
 	quiet(w);
 	await init(w);
@@ -181,10 +180,10 @@ test('save: a failed write still calls back, with the error, and is written on t
 	const set = w.browser.storage.local.set;
 	w.browser.storage.local.set = () => Promise.reject(new Error('disk full'));
 	w.app.node.children.push({ id: 'x', type: 2 });
-	const error = await new Promise(r => w.app.Settings.save(r));
+	const error = await w.app.Settings.save().then(() => null, e => e);
 	assert.equal(error && error.message, 'disk full');
 	w.browser.storage.local.set = set;
-	assert.equal(await new Promise(r => w.app.Settings.save(r)), undefined);
+	await w.app.Settings.save();
 	assert.deepEqual(plain(w.browser.store.node.children), [{ id: 'x', type: 2 }]);
 });
 
@@ -199,7 +198,7 @@ test('pictures: stored under their own keys, "1" in the stored settings; a tile 
 	const s = plain(w.app.settings);
 	s.backgroundImage = BG;
 	s.grid.folderIcon = ICON;
-	await new Promise(r => w.app.Settings.update(s, r));
+	await w.app.Settings.update(s);
 	const st = w.browser.store;
 	assert.equal(st.picture_background, BG);
 	assert.equal(st.picture_folderIcon, ICON);
@@ -208,7 +207,7 @@ test('pictures: stored under their own keys, "1" in the stored settings; a tile 
 	assert.equal(w.app.settings.backgroundImage, BG, 'the pages still get the picture itself');
 	w.browser.calls.length = 0;
 	w.app.node.children.push({ id: 'x', type: 2 });
-	await new Promise(r => w.app.Settings.save(r));
+	await w.app.Settings.save();
 	assert.deepEqual(plain(writes(w)), [['set', ['version', 'settings', 'node']]], 'only settings and tiles are written');
 	const w2 = loadBackground();
 	Object.assign(w2.browser.store, plain(st));
@@ -222,20 +221,20 @@ test('pictures: a changed one is written alone; a cleared one is removed', async
 	const w = loadBackground();
 	await init(w);
 	await settle();
-	await new Promise(r => w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundImage: BG }), r));
+	await w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundImage: BG }));
 	const s = plain(w.app.settings);
 	s.grid.backIcon = ICON;
 	w.browser.calls.length = 0;
-	await new Promise(r => w.app.Settings.update(s, r));
+	await w.app.Settings.update(s);
 	assert.deepEqual(plain(writes(w)), [['set', ['version', 'settings', 'node', 'picture_backIcon']]], 'the unchanged background is not written again');
 	w.browser.calls.length = 0;
-	await new Promise(r => w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundImage: BG2 }), r));
+	await w.app.Settings.update(Object.assign(plain(w.app.settings), { backgroundImage: BG2 }));
 	assert.deepEqual(plain(writes(w)), [['set', ['picture_background']]], 'a new picture alone: the settings still say "1"');
 	w.browser.calls.length = 0;
 	const cleared = plain(w.app.settings);
 	cleared.backgroundImage = null;
 	cleared.grid.backIcon = 'url(/img/back.svg)';
-	await new Promise(r => w.app.Settings.update(cleared, r));
+	await w.app.Settings.update(cleared);
 	assert.deepEqual(plain(writes(w)), [['set', ['version', 'settings', 'node']], ['remove', ['picture_background', 'picture_backIcon']]]);
 	assert.ok(!Object.keys(w.browser.store).some(k => k.startsWith('picture_')));
 });

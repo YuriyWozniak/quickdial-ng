@@ -2,8 +2,8 @@
 app.ContextMenus = {};
 
 app.ContextMenus.menuItemClicked = function(info, tab){
-	if(info.menuItemId == 'AddToQuickDial') app.GridNodes.createBookmark(app.node, info.pageUrl, tab.title, () => {
-		app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
+	if(info.menuItemId == 'AddToQuickDial') app.GridNodes.createBookmark(app.node, info.pageUrl, tab.title).then(created => {
+		if(created) app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 	});
 };
 

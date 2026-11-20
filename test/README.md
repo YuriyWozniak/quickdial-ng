@@ -53,7 +53,7 @@ Each suite file starts with a comment that says what it covers, what it starts f
 | `properties` | The Properties popup: title, address (required), locks, fit, a picture from a file, by drop or paste, Revert, a folder's "Use default"; OK, Apply, Cancel, Enter and Escape. |
 | `toolbar-menus` | The toolbar button (Settings, the dial in a new tab or this tab); bringing an open Settings tab forward; every context menu item; "Add to Quick Dial" turned off. |
 | `messages` | Every message the pages send to the background page: settings, tiles (read, update, swap, create, delete, refresh), pictures, backups, themes, another root folder. |
-| `siteinfos` | Refresh draws the downloaded page in a sandboxed frame (its scripts never run; other addresses aren't downloaded); Capture page in a background tab (title, picture, locked title or picture kept, folders, failures). |
+| `siteinfos` | Refresh draws the downloaded page in a sandboxed frame (its scripts never run; other addresses aren't downloaded); Capture page in a background tab (title, picture, locked title or picture kept, folders, failures, a tile already loading). |
 
 ## Unit tests
 
@@ -63,7 +63,7 @@ Each file starts with a comment on what it tests and how; every test's name says
 |---|---|---|
 | `themes.test.js` | `js/themes.js` | The style rules: numbers kept in range and rounded, colours, fonts and gradients checked (no `url()`, nothing that ends a CSS declaration); extract / apply / complete; theme files (round trip, what's wrong with a file); the custom theme list; file names; CSS helpers. |
 | `settings.test.js` | `js/background/settings.js` | Defaults; the toolbar setting before and after 0.5.0; upgrades of the original Quick Dial's data (versions 1 to 4); the first start of a new profile; obsolete settings saved once, then nothing written; batched saving without transient fields; reads and writes that fail (tried again; stored data never replaced by the defaults); pictures picked in Settings under their own keys (written only when changed, moved out of older settings once, a missing one replaced by the default); the custom theme list. |
-| `gridnodes.test.js` | `js/background/gridnodes.js` | Sync with the bookmarks folder (order, gaps kept and filled, the end trimmed, pictures dropped, a sync asked for during a sync, a missing or absolute root folder); finding nodes; swapping cells; new bookmarks and folders; deleting. |
+| `gridnodes.test.js` | `js/background/gridnodes.js` | Sync with the bookmarks folder (order, gaps kept and filled, the end trimmed, pictures dropped, a sync asked for during a sync, bookmarks that can't be read, a missing or absolute root folder); finding nodes; swapping cells; new bookmarks and folders; deleting; Refresh and Capture page one at a time per tile; a new address in Properties refreshed before its bookmark is updated. |
 | `background.test.js` | `js/common.js`, `js/background/backup.js`, `images.js`, `bookmarks.js` | Unique command numbers; backup copies and default merging; linking imported tiles to bookmarks (by id, address, folder name, or new); picture values, storage and cache; which bookmark events count; listening again after our own changes. |
 
 `unit/load.js` loads scripts from `src/js` into a sandbox, the way a page shares its globals, with a small fake of the API: storage in memory and a bookmark tree, plus a log of the calls that change something.

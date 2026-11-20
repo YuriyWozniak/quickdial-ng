@@ -20,13 +20,10 @@ app.Backup._mergeDefaults = function(defaults, value){ // Imported values win; a
 	for(const k in value) if(!(k in defaults)) result[k] = value[k];
 	return result;
 };
-app.Backup._loadRoot = function(rootPath){ // Promise<bookmark subtree of the Quick Dial root folder> (created if missing)
-	return new Promise((resolve, reject) => {
-		app.Bookmarks.load(rootPath, item => {
-			if(!item) return reject(new Error('Cannot open the bookmarks folder "' + rootPath + '"'));
-			browser.bookmarks.getSubTree(item.id).then(items => resolve(items[0]), reject);
-		});
-	});
+app.Backup._loadRoot = async function(rootPath){ // Promise<bookmark subtree of the Quick Dial root folder> (created if missing)
+	const item = await app.Bookmarks.load(rootPath);
+	if(!item) throw new Error('Cannot open the bookmarks folder "' + rootPath + '"');
+	return (await browser.bookmarks.getSubTree(item.id))[0];
 };
 // Links each tile to a bookmark (by id, then URL / folder name), creating missing ones; cell positions are kept
 app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){
@@ -110,7 +107,7 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 		await app.Images.extractFromTree(app.node, images);
 		stats.images = app.Images.idsInTree(app.node).length;
 		delete app.Settings._loadFailed; // The user replaces the data: saved even after a failed load (see Settings.init)
-		await /** @type {Promise<void>} */ (new Promise((resolve, reject) => app.Settings.save(e => e ? reject(e) : resolve())));
+		await app.Settings.save();
 		if(Array.isArray(data.themes) && data.themes.length){ // Themes from the backup are added; a theme with the same name is replaced
 			const names = data.themes.map(t => String(t && t.name).trim().toLowerCase());
 			await app.Themes.save(data.themes.concat(app.Themes.list.filter(t => !names.includes(t.name.toLowerCase()))));
@@ -120,7 +117,7 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 	}
 	app.Messages.broadcast(app.Messages.Commands.settingsChanged);
 	app.ContextMenus.updateMenu();
-	await new Promise(resolve => app.GridNodes.sync(app.node, app.settings.grid.root, resolve));
+	await app.GridNodes.sync(app.node, app.settings.grid.root);
 	app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 	return Object.assign({ ok: true }, stats);
 };

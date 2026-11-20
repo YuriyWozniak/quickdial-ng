@@ -66,11 +66,10 @@ function changeSettings(t, patch) {
 		const a = bg().app, s = JSON.parse(JSON.stringify(a.settings));
 		const merge = (o, p) => { for (const k in p) if (p[k] && typeof p[k] == 'object' && !Array.isArray(p[k])) merge(o[k] = o[k] || {}, p[k]); else o[k] = p[k]; };
 		merge(s, patch);
-		return new Promise(r => a.Settings.update(s, () => {
+		return a.Settings.update(s).then(() => {
 			a.Messages.broadcast(a.Messages.Commands.settingsChanged);
 			a.Messages.broadcast(a.Messages.Commands.gridNodesLoaded);
-			r();
-		}));
+		});
 	}, patch);
 }
 

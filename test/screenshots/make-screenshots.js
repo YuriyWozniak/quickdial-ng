@@ -88,7 +88,7 @@ async function openDial(browser, port, scheme, pictures, errors) {
 		ctx, pg,
 		/** Changes the settings in the background page: fn(settings, QDThemes) edits them in place. */
 		settings: async (fn, arg) => pg.evaluate(`(() => { const bg = ${BG}; const s = JSON.parse(JSON.stringify(bg.app.settings));
-			(${fn})(s, bg.QDThemes, ${JSON.stringify(arg === undefined ? null : arg)}); return new Promise(r => bg.app.Settings.update(s, r)); })()`),
+			(${fn})(s, bg.QDThemes, ${JSON.stringify(arg === undefined ? null : arg)}); return bg.app.Settings.update(s); })()`),
 		/** Saves the user's own themes list. */
 		themes: async list => pg.evaluate(`${BG}.app.Themes.save(${JSON.stringify(list)})`),
 		/** The style part of the current settings. */

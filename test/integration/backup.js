@@ -23,7 +23,7 @@ module.exports = {
 
 		// ----- export, then import into an empty profile -----
 		const background = 'url(' + (await pictures(t, 1))[0] + ')'; // a picture picked in Settings: stored under its own key
-		await t.J(p => new Promise(r => bg().app.Settings.update(Object.assign(JSON.parse(JSON.stringify(bg().app.settings)), { backgroundImage: p }), r)), background);
+		await t.J(p => bg().app.Settings.update(Object.assign(JSON.parse(JSON.stringify(bg().app.settings)), { backgroundImage: p })), background);
 		const exp = await t.J(() => bg().app.Backup.export());
 		t.check('an export has the 7 pictures', Object.keys(exp.images).length === 7, Object.keys(exp.images));
 		t.check('and the background picture inline in its settings', exp.settings.backgroundImage === background);
