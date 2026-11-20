@@ -142,3 +142,11 @@ jobs:
             echo "Tagged v$VERSION at ${COMMIT:0:7}. When Mozilla approves it, the Publish workflow (every 3 hours)"
             echo "creates the GitHub release with the signed file; or run Publish by hand."
           } >> "$GITHUB_STEP_SUMMARY"
+      # AMO adds Firefox for Android because the manifest has gecko_android (the linter needs it), but Android
+      # can't replace the new tab page. If this fails, the version is still submitted: untick Android on its page.
+      - name: Firefox (desktop) only
+        continue-on-error: true
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: node release/amo.js compat "$VERSION"
