@@ -36,7 +36,14 @@ const PROFILER_ENV = { // --gecko-profile: what the Firefox Profiler records fro
 const SESSION_RESTORE_TRIES = 600, SESSION_RESTORE_POLL_MS = 100; // up to a minute for the session to be restored
 const IDLE_DISPATCH_TIMEOUT_MS = 1000, SETTLE_POLL_MS = 100;
 const NEWTAB_MAX_MS = 6000; // longest wait for a new tab's pictures
+const NEWTAB_NO_PICTURES_MS = 1500; // a new tab with no pictures yet this long after its load event has none to show
+// The script that times a new tab can start in the tab's first, blank page; when the dial replaces that page, the
+// script ends without a result and runs again in the dial. Its times are the page's own, so only imagesSet can come
+// out late, when the pictures were already there; such a result has attempts set.
+const NEWTAB_SCRIPT_TRIES = 2;
 const TIME_OF_DAY = [11, 19]; // hh:mm:ss in an ISO date, for the log
+const NO_PICTURES_WARNING = 'warning: no new tab showed a tile picture. Is the profile copy complete? Without places.sqlite'
+	+ ' the dial loses its pictures on the first start (see README.md).';
 
 const USAGE = `Usage: node startup.js <firefox.exe> <profileCopyDir> <runs> <label> <results.jsonl> [options]
   runs                    measured launches; one extra warm-up launch runs first
@@ -54,10 +61,18 @@ const parsedArgs = parseArgs(process.argv.slice(2), {
 	newtabs: ARG.int, idle: ARG.int, settle: ARG.int, homepage: ARG.string, 'gecko-profile': ARG.string,
 	'disable-ng': ARG.bool, headful: ARG.bool, discover: ARG.bool
 }, USAGE);
-const [firefoxPath, profileDir, runsArg, label, resultsPath] = parsedArgs.positional;
+const [firefoxPath, profileDirArg, runsArg, label, resultsPath] = parsedArgs.positional;
 if (!resultsPath) fail('missing arguments\n\n' + USAGE);
+const profileDir = path.resolve(profileDirArg); // in full: it is how this harness tells its own Firefox from any other
 const options = Object.assign({}, DEFAULTS, parsedArgs);
 const geckoProfilePath = options.geckoProfile ? path.resolve(options.geckoProfile) : null;
+
+// PowerShell that lists the firefox.exe processes started with this profile copy (Windows only)
+function findOwnFirefoxCommand() {
+	const quotedProfileDir = profileDir.replace(/'/g, "''");
+	return `Get-CimInstance Win32_Process -Filter "Name='${FIREFOX_PROCESS}'" | Where-Object { $_.CommandLine -and `
+		+ `$_.CommandLine.IndexOf('${quotedProfileDir}', [StringComparison]::OrdinalIgnoreCase) -ge 0 }`;
+}
 
 function log(...parts) {
 	const line = new Date().toISOString().slice(...TIME_OF_DAY) + ' ' + parts.join(' ');
@@ -152,9 +167,7 @@ async function waitForExit(timeoutMs) {
 	const lockPath = path.join(profileDir, PROFILE_LOCK), end = Date.now() + timeoutMs;
 	const isFirefoxRunning = () => {
 		if (!IS_WINDOWS) return false;
-		const profileName = path.basename(profileDir).replace(/'/g, "''");
-		const result = spawnSync('powershell', ['-NoProfile', '-Command',
-			`@(Get-CimInstance Win32_Process -Filter "Name='${FIREFOX_PROCESS}'" | Where-Object { $_.CommandLine -like '*${profileName}*' }).Count`], { encoding: 'utf8' });
+		const result = spawnSync('powershell', ['-NoProfile', '-Command', `@(${findOwnFirefoxCommand()}).Count`], { encoding: 'utf8' });
 		return parseInt(result.stdout, 10) > 0;
 	};
 	while (Date.now() < end) {
@@ -270,8 +283,9 @@ done({ openEpoch, uri: browser.currentURI && browser.currentURI.spec });
 // Content context, in a new tab: when its pictures are set (times are ms since the tab's time origin). The page is
 // followed with a MutationObserver: a busy poll here would hold up the page being measured.
 const CONTENT_NEWTAB = `
-const [settleMs, maxMs, done] = arguments;
+const [settleMs, maxMs, noPicturesMs, done] = arguments;
 const start = performance.now();
+const loadEnd = () => (performance.getEntriesByType('navigation')[0] || {}).loadEventEnd || 0;
 const countPictures = () => {
 	let count = 0;
 	for (const link of document.querySelectorAll('a')) {
@@ -286,9 +300,10 @@ const observer = new MutationObserver(() => {
 	if (count !== pictures) { pictures = count; lastChange = performance.now(); }
 });
 observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['style'] });
-(function check() { // done when the pictures haven't changed for settleMs, or after maxMs
-	const now = performance.now();
-	if ((pictures > 0 && now - lastChange >= settleMs) || now - start >= maxMs) finish();
+(function check() { // done when the pictures haven't changed for settleMs, when none came noPicturesMs after the load event, or after maxMs
+	const now = performance.now(), loadedAt = loadEnd();
+	const noPictures = pictures === 0 && loadedAt > 0 && now - loadedAt >= noPicturesMs;
+	if ((pictures > 0 && now - lastChange >= settleMs) || noPictures || now - start >= maxMs) finish();
 	else setTimeout(check, pictures > 0 ? settleMs - (now - lastChange) : settleMs);
 })();
 function finish() {
@@ -343,7 +358,12 @@ async function measureNewTab(marionette) {
 	const handles = await marionette.send('WebDriver:GetWindowHandles');
 	const handleList = handles.value || handles;
 	await marionette.send('WebDriver:SwitchToWindow', { handle: handleList[handleList.length - 1], focus: true });
-	const timings = await marionette.runScript(CONTENT_NEWTAB, [options.settle, NEWTAB_MAX_MS], true);
+	let timings = null;
+	for (let attempt = 1; !timings && attempt <= NEWTAB_SCRIPT_TRIES; attempt++) {
+		timings = await marionette.runScript(CONTENT_NEWTAB, [options.settle, NEWTAB_MAX_MS, NEWTAB_NO_PICTURES_MS], true);
+		if (timings && attempt > 1) timings.attempts = attempt;
+	}
+	if (!timings) throw new Error(`no result from the new tab after ${NEWTAB_SCRIPT_TRIES} tries`);
 	timings.openToTimeOriginMs = +(timings.timeOrigin - opened.openEpoch).toFixed(1);
 	await marionette.setContext('chrome');
 	await marionette.runScript(CHROME_CLOSE_TAB, [], true);
@@ -414,6 +434,8 @@ async function launch(runNumber, launchOptions) {
 		log(`run ${runNumber}${result.warmup ? ' (warm-up)' : ''}: sessionRestored=${result.startup && result.startup.sessionRestored} firstPaint=${firstPaint}`
 			+ ` startTab=${JSON.stringify(result.startTab || result.startTabError)} tabs=${JSON.stringify(result.tabs)}`
 			+ ` newTab=${result.newTab ? JSON.stringify(result.newTab) : result.newTabError || result.error}`);
+		const newTabs = [result.newTab, ...(result.newTabsLater || [])].filter(Boolean);
+		if (newTabs.length && newTabs.every(tab => tab.images === 0)) log(NO_PICTURES_WARNING);
 	}
 	writeResult({ done: true, label });
 	log('done');
@@ -423,7 +445,7 @@ async function launch(runNumber, launchOptions) {
 	// Close the Firefox this harness started (only the one using the profile copy)
 	try {
 		spawnSync('powershell', ['-NoProfile', '-Command',
-			`Get-CimInstance Win32_Process -Filter "Name='${FIREFOX_PROCESS}'" | Where-Object { $_.CommandLine -like '*${path.basename(profileDir)}*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`]);
+			`${findOwnFirefoxCommand()} | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`]);
 	} catch (closeError) { /* nothing left to close */ }
 	process.exit(1);
 });
