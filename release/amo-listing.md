@@ -1,6 +1,6 @@
 # addons.mozilla.org listing
 
-The texts of Quick Dial NG's page on addons.mozilla.org (AMO), kept here so the listing and the GitHub documentation stay the same. When a feature changes, update this file together with the [README](../README.md), then paste the changed parts into the AMO Developer Hub (Edit Product Page).
+The texts of Quick Dial NG's page on addons.mozilla.org (AMO), kept here so the listing and the GitHub documentation stay the same. When a feature changes, update this file together with the [README](../README.md), then bring the AMO page up to date with [`amo.js`](amo.js): `node release/amo.js info` shows what differs, `listing` updates the summary and description, `previews <png>...` replaces screenshots and `icon` the icon. The release notes reach AMO with each version through the Release workflow.
 
 The description uses AMO's limited Markdown: `**bold**`, `_italic_`, `[links](https://…)`, `` `code` ``, `>` quotes and `-`/`1.` lists. HTML tags and `#` headings are not supported (AMO shows HTML as plain text), so section titles are bold lines. Keep a blank line between paragraphs and before each list.
 
