@@ -97,6 +97,19 @@ All ten from [`screenshots/`](../screenshots/), in alphabetical order (the first
 
 The "Release notes" field of each version on AMO; the same text goes to the GitHub release (`--notes`). Newest first.
 
+### 0.6.0
+
+```
+- The background, Back and folder pictures from Settings are stored as WebP in their own entries, so a tile change no longer rewrites them: far less writing with a large background picture. A background picture is kept up to 2560 px.
+- New folder, Back and loading pictures: sharp at any size, on light and dark tiles. The loading spinner shows again on tiles that start without a picture.
+- Capture in a new tab: a page that never finishes loading is captured after 30 seconds, the tab is always closed, and nothing is captured if another tab is in front by then.
+- Properties of a tile deleted meanwhile says "This tile no longer exists" instead of failing.
+- New bookmark refuses javascript: and data: addresses.
+- Startup never hangs: if Firefox can't read the stored data, Quick Dial NG tries again, then starts with the defaults without overwriting your data.
+- Fixes: the tile menu on a folder's Back tile; Capture in folders whose names contain & # ? or %; dropping a tile on itself; folder pictures set to original size were stretched; an import during a bookmark sync could wait forever; an empty folder showed page 0 of 0.
+- For Firefox on the desktop only: Firefox for Android doesn't let extensions replace the new tab page.
+```
+
 ### 0.5.0
 
 ```
