@@ -1,5 +1,7 @@
 # Quick Dial NG
 
+[![CI](https://github.com/YuriyWozniak/quickdial-ng/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/YuriyWozniak/quickdial-ng/actions/workflows/ci.yml)
+
 Quick Dial NG is a speed dial new tab page for Firefox. Its tiles come from a bookmarks folder ("Quick Dial" by default).
 
 Website: **[qdng.srv.if.ua](https://qdng.srv.if.ua)**: features, install and migration guide, privacy and changelog.
