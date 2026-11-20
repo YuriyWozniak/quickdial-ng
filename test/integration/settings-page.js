@@ -6,7 +6,7 @@
 // Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), Classic look, no themes.
 // The steps build on each other:
 //   1. the form: rows end up at 3 and the toolbar button back at "settings"
-//   2. a background picture applied, then cleared
+//   2. a background picture applied (as a smaller WebP), then cleared; a folder picture applied, then reset
 //   3. Backup: export; wrong files refused; the export imported (with rows changed to 2), first
 //      cancelled, then done; the export snippet copied
 //   4. Themes: "Saved one" saved (and replaced), exports, "Classic (imported)" imported then deleted
@@ -53,17 +53,42 @@ module.exports = {
 		t.check('an open Settings page switches to the section asked for', st.themes && st.title === 'Themes' && st.url === '?tab=themes', st);
 		await changeSettings(t, { toolbarAction: 'settings' });
 
-		// ----- the background picture: from a file, then cleared -----
+		// ----- the background picture: from a file (made WebP and smaller), then cleared; a folder picture -----
 		await t.loadSettings('page');
-		const [png] = await pictures(t, 1);
-		await t.dial().locator('#BackgroundImageFile').setInputFiles({ name: 'bg.png', mimeType: 'image/png', buffer: Buffer.from(png.split(',')[1], 'base64') });
+		const pngFile = (name, png) => ({ name, mimeType: 'image/png', buffer: Buffer.from(png.split(',')[1], 'base64') });
+		// The size of a picture in a settings value (url("data:...")), as [width, height]
+		const size = css => t.J(css => new Promise(resolve => {
+			const img = new Image();
+			img.onload = () => resolve([img.naturalWidth, img.naturalHeight]);
+			img.onerror = () => resolve(null);
+			img.src = css.replace(/^url\("?|"?\)$/g, '');
+		}), css);
+		const big = await t.J(() => { // 3200x1600, larger than the background limit (2560)
+			const c = document.createElement('canvas'); c.width = 3200; c.height = 1600; const x = c.getContext('2d');
+			const g = x.createLinearGradient(0, 0, 3200, 1600); g.addColorStop(0, '#246'); g.addColorStop(1, '#c84'); x.fillStyle = g; x.fillRect(0, 0, 3200, 1600);
+			return c.toDataURL('image/png');
+		});
+		await t.dial().locator('#BackgroundImageFile').setInputFiles(pngFile('bg.png', big));
 		await t.waitFor('the picture to be read', () => !win('dial').BtnApply.disabled);
 		await t.dial().locator('#BtnApply').click();
-		await t.waitFor('the picture to be applied', () => /^url\("?data:image\/png/.test(bg().app.settings.backgroundImage || ''));
+		await t.waitFor('the picture to be applied', () => /^url\("?data:/.test(bg().app.settings.backgroundImage || ''));
+		let stored = await t.J(() => bg().app.settings.backgroundImage);
+		t.check('a background picture from a file is stored as WebP, at most 2560 pixels wide', stored.startsWith('url("data:image/webp') && t.same(await size(stored), [2560, 1280]), [stored.slice(0, 30), await size(stored)]);
 		await t.dial().locator('#BackgroundImageClear').click();
 		await t.dial().locator('#BtnApply').click();
 		await t.waitFor('the picture to be cleared', () => bg().app.settings.backgroundImage === null);
-		t.check('a background picture from a file is applied; Clear removes it', true);
+		t.check('Clear removes the background picture', true);
+		await t.loadSettings('grid');
+		const [png] = await pictures(t, 1);
+		await t.dial().locator('#GridFolderImageFile').setInputFiles(pngFile('folder.png', png));
+		await t.waitFor('the picture to be read', () => !win('dial').BtnApply.disabled);
+		await t.dial().locator('#BtnApply').click();
+		await t.waitFor('the picture to be applied', () => /^url\("?data:/.test(bg().app.settings.grid.folderIcon || ''));
+		stored = await t.J(() => bg().app.settings.grid.folderIcon);
+		t.check('a folder picture from a file is stored as WebP', stored.startsWith('url("data:image/webp') && t.same(await size(stored), [320, 240]), [stored.slice(0, 30), await size(stored)]);
+		await t.dial().locator('#GridFolderImageReset').click();
+		await t.dial().locator('#BtnApply').click();
+		await t.waitFor('the built-in folder picture', () => bg().app.settings.grid.folderIcon === 'url(/img/folder.svg)');
 
 		// ----- Backup -----
 		await t.loadSettings('backup');
