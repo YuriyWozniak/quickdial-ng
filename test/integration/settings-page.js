@@ -12,7 +12,7 @@
 //   4. Themes: "Saved one" saved (and replaced), exports, "Classic (imported)" imported then deleted
 // Related: what the import itself does is in backup.js; Use / Apply of a theme is in themes.js.
 'use strict';
-const { freshProfile, changeSettings, pictures } = require('../lib/fixtures');
+const { BUILTIN_THEMES, freshProfile, changeSettings, pictures } = require('../lib/fixtures');
 
 // A file for setInputFiles; the text of a status line (empty while hidden); the theme card names;
 // the card of a theme whose name starts with `name` (a regular expression)
@@ -130,7 +130,7 @@ module.exports = {
 		await t.dial().locator('#BtnThemeSave').click();
 		await t.answer({ values: ['Saved one', 'my look'] });
 		await t.waitFor('the theme to be saved', () => (bg().app.Themes.list || []).some(x => x.name === 'Saved one'));
-		t.check('Save current as theme adds it, in use', t.same(await themeNames(t), ['Classic', 'Anori', 'Saved one']) && /Saved "Saved one"/.test(await status(t, 'ThemeStatus')), await themeNames(t));
+		t.check('Save current as theme adds it, in use', t.same(await themeNames(t), [...BUILTIN_THEMES, 'Saved one']) && /Saved "Saved one"/.test(await status(t, 'ThemeStatus')), await themeNames(t));
 		await t.dial().locator('#BtnThemeSave').click();
 		d = await t.answer({ values: ['Saved one'] }); // the form matches Classic, so the name field starts at "My theme"
 		const replace = await t.answer();
@@ -151,6 +151,6 @@ module.exports = {
 		await card(t, 'Classic \\(imported\\)').locator('button', { hasText: 'Delete' }).click();
 		await t.answer();
 		await t.waitFor('the theme to be deleted', () => !bg().app.Themes.list.some(x => x.name === 'Classic (imported)'));
-		t.check('Delete removes the theme after asking', t.same(await themeNames(t), ['Classic', 'Anori', 'Saved one']), await themeNames(t));
+		t.check('Delete removes the theme after asking', t.same(await themeNames(t), [...BUILTIN_THEMES, 'Saved one']), await themeNames(t));
 	}
 };

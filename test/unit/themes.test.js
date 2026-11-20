@@ -10,12 +10,15 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { load, plain } = require('./load');
+const { BUILTIN_THEMES } = require('../lib/fixtures');
 
 const { QDThemes: T } = load('js/themes.js');
 const cells = style => plain(T.normalize(style)).grid.cells;
 
-test('Classic and Anori are the built-in themes; Classic is the normalized CLASSIC style', () => {
-	assert.deepEqual(plain(T.BUILTIN.map(t => t.name)), ['Classic', 'Anori']);
+test('the built-in themes: Classic first, as the normalized CLASSIC style; each valid and with its own id', () => {
+	assert.deepEqual(plain(T.BUILTIN.map(t => t.name)), BUILTIN_THEMES);
+	assert.equal(new Set(T.BUILTIN.map(t => t.id)).size, T.BUILTIN.length);
+	for (const theme of T.BUILTIN) assert.deepEqual(plain(T.normalize(theme.style)), plain(theme.style), theme.name);
 	assert.deepEqual(plain(T.BUILTIN[0].style), plain(T.normalize(T.CLASSIC)));
 	assert.ok(T.equal(T.CLASSIC, {}), 'an empty style is Classic');
 });

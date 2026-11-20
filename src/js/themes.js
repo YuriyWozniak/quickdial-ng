@@ -193,6 +193,74 @@ var QDThemes = (function(){
 				}
 			}) }
 	];
+	// A style that changes some values of another one (deep, without touching it)
+	function derive(base, changes){
+		const out = JSON.parse(JSON.stringify(base));
+		(function merge(target, values){
+			for(const k in values){
+				if(values[k] && typeof values[k] == 'object') merge(target[k] || (target[k] = {}), values[k]);
+				else target[k] = values[k];
+			}
+		})(out, changes);
+		return normalize(out);
+	}
+	// Icon looks: no tile background or border, the name under the picture. They suit square tiles
+	// (Settings › Grid › Tile shape 1 : 1) and icon pictures shown with the "Fit inside" picture mode.
+	const ICON_CELLS = {
+		margin: 4, marginHover: 4, backgroundColor: null, backgroundColorHover: null, backgroundOpacity: 0, backgroundOpacityHover: 0,
+		borderSize: 0, borderSizeHover: 0, borderRadius: 0, borderRadiusHover: 0, titlePosition: 0, titleBorderSize: 0, titleBorderSizeHover: 0
+	};
+	BUILTIN.push(
+		{ id: 'plum', builtin: true, name: 'Plum',
+			description: 'A dark plum page with light grey rounded borders and titles under the pictures. Made for a large grid with groups of sites and room between them.',
+			style: derive(CLASSIC, {
+				backgroundColor: '#251721',
+				grid: { margin: 10, cells: {
+					margin: 8, marginHover: 8, borderColor: '#a9a9a9', borderColorHover: '#ffffff', borderSize: 2, borderSizeHover: 2,
+					borderRadius: 6, borderRadiusHover: 6, titleHeight: 18, titleHeightHover: 18, titleColor: '#ffffff', titleColorHover: '#33ccff',
+					titleBackgroundColor: null, titleBackgroundColorHover: null, titleBorderSize: 2, titleBorderSizeHover: 2 } }
+			}) },
+		{ id: 'desktop', builtin: true, name: 'Desktop',
+			description: 'Icons with their names under them on a night-blue page or your wallpaper, like a computer desktop, with a soft highlight under the pointer. For square tiles and icon pictures.',
+			style: derive(CLASSIC, {
+				backgroundColor: '#0f1b30',
+				backgroundGradient: 'radial-gradient(ellipse at 55% 45%, #2c4f7a 0%, #172a4a 55%, #0b1426 100%)',
+				accentColor: '#3a72c8',
+				grid: { margin: 12, cells: Object.assign({}, ICON_CELLS, {
+					backgroundColor: '#ffffff', backgroundColorHover: '#ffffff', backgroundOpacityHover: .16, borderRadius: 8, borderRadiusHover: 8, hoverEffect: 1,
+					titleHeight: 30, titleHeightHover: 30, titleFontSize: 9.5, titleFontSizeHover: 9.5, titleFont: 'system-ui, "Segoe UI", sans-serif',
+					titleColor: '#ffffff', titleColorHover: '#ffffff', titleBackgroundColor: null, titleBackgroundColorHover: '#ffffff', titleBackgroundOpacityHover: .16 }) }
+			}) },
+		{ id: 'dusk', builtin: true, name: 'Dusk',
+			description: 'Violet glass tiles that grow on hover, over a sunset sky.',
+			style: derive(BUILTIN[1].style, {
+				backgroundColor: '#2a2350',
+				backgroundGradient: 'linear-gradient(180deg, #1a2a6c 0%, #6d4a7a 40%, #b46a8f 62%, #fdbb6d 85%, #fdd9a0 100%)',
+				accentColor: '#7e57c2',
+				grid: { cells: { borderColor: '#ffffff', borderColorHover: '#ffffff', backgroundOpacity: .12, hoverEffect: 3,
+					titleBackgroundColor: '#1b1638', titleBackgroundColorHover: '#7e57c2', titleBackgroundOpacity: .55 } }
+			}) },
+		{ id: 'retro-pc', builtin: true, name: 'Retro PC',
+			description: 'A late-1990s PC desktop: a teal page, icons with white names, and a navy highlight on the name under the pointer. For square tiles and icon pictures.',
+			style: derive(CLASSIC, {
+				backgroundColor: '#008080',
+				accentColor: '#000080',
+				grid: { margin: 12, cells: Object.assign({}, ICON_CELLS, {
+					titleHeight: 20, titleHeightHover: 20, titleFontSize: 8, titleFontSizeHover: 8, titleFont: 'Tahoma, Verdana, sans-serif',
+					titleColor: '#ffffff', titleColorHover: '#ffffff', titleBackgroundColor: null, titleBackgroundColorHover: '#000080', titleBackgroundOpacityHover: 1 }) }
+			}) },
+		{ id: 'retro-mono', builtin: true, name: 'Retro Mono',
+			description: 'An early black-and-white desktop: a fine grey pattern, black names on white labels, inverted under the pointer. For square tiles and black-and-white icon pictures.',
+			style: derive(CLASSIC, {
+				backgroundColor: '#ffffff',
+				backgroundGradient: 'repeating-linear-gradient(45deg, rgba(0, 0, 0, .3) 0px, rgba(0, 0, 0, .3) 1px, transparent 1px, transparent 4px), repeating-linear-gradient(-45deg, rgba(0, 0, 0, .3) 0px, rgba(0, 0, 0, .3) 1px, transparent 1px, transparent 4px)',
+				accentColor: '#000000',
+				grid: { margin: 12, cells: Object.assign({}, ICON_CELLS, {
+					titleHeight: 20, titleHeightHover: 20, titleFontSize: 8, titleFontSizeHover: 8, titleFont: 'Verdana, Geneva, sans-serif',
+					titleColor: '#000000', titleColorHover: '#ffffff', titleBackgroundColor: '#ffffff', titleBackgroundColorHover: '#000000',
+					titleBackgroundOpacity: 1, titleBackgroundOpacityHover: 1 }) }
+			}) }
+	);
 
 	// Fonts offered for tile titles (any other font stack from an imported theme is kept as "Custom")
 	const FONTS = [
@@ -200,6 +268,8 @@ var QDThemes = (function(){
 		{ label: 'System', value: 'system-ui, "Segoe UI", sans-serif' },
 		{ label: 'Rounded', value: '"Arial Rounded MT Bold", "Varela Round", Nunito, system-ui, sans-serif' },
 		{ label: 'Serif', value: 'Georgia, Cambria, "Times New Roman", serif' },
+		{ label: 'Tahoma', value: 'Tahoma, Verdana, sans-serif' },
+		{ label: 'Verdana', value: 'Verdana, Geneva, sans-serif' },
 		{ label: 'Monospace', value: 'ui-monospace, Consolas, "Cascadia Mono", monospace' }
 	];
 

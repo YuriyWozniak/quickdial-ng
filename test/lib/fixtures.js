@@ -104,4 +104,7 @@ function sitePage(t, name, html) {
 	return t.base + 'site/' + name;
 }
 
-module.exports = { seedBookmarks, freshProfile, makeVersion4, pictures, changeSettings, spyTabs, stubDrawWindow, sitePage };
+// The names of the built-in themes, in the order Settings › Themes lists them (src/js/themes.js)
+const BUILTIN_THEMES = ['Classic', 'Anori', 'Plum', 'Desktop', 'Dusk', 'Retro PC', 'Retro Mono'];
+
+module.exports = { BUILTIN_THEMES, seedBookmarks, freshProfile, makeVersion4, pictures, changeSettings, spyTabs, stubDrawWindow, sitePage };
