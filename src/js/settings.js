@@ -123,12 +123,12 @@ app.init = function(){
 	QDThemes.FONTS.forEach(f => { GridCellsTitleFont.add(new Option(f.label, f.value)); });
 
 	app.load();
-	app.Messages.init();
+	app.listen();
 
 	BtnApply.onclick = function(){
 		if(!app.settings || !app.changes.isDirty()) return;
 		app.readForm(app.settings);
-		browser.runtime.sendMessage( { cmd: app.Messages.Commands.setSettings, settings: app.settings } );
+		QDClient.setSettings(app.settings);
 		app.changes.markSaved('Changes applied to the dial');
 	};
 	BtnDiscard.onclick = function(){
@@ -149,7 +149,7 @@ app.init = function(){
 
 	// ----- Backup -----
 	BtnExport.onclick = function(){
-		browser.runtime.sendMessage({ cmd: app.Messages.Commands.exportData }).then(data => {
+		QDClient.exportData().then(data => {
 			app.download(data, 'quickdial-ng-backup-' + new Date().toISOString().substr(0, 10) + '.json');
 		});
 	};
@@ -165,7 +165,7 @@ app.init = function(){
 	};
 	ImportFile.onchange = function(){
 		if(!ImportFile.files[0]) return;
-		app.readJsonFile(ImportFile.files[0], data => {
+		app.readJsonFile(ImportFile.files[0]).then(data => {
 			if(!data || !data.settings || !data.node || !data.settings.grid){
 				app.showStatus(ImportStatus, data && data.format == 'quickdial-ng-theme' ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
 				return;
@@ -180,7 +180,7 @@ app.init = function(){
 				if(!ok) return;
 				BtnImport.disabled = true;
 				app.showStatus(ImportStatus, 'Importing…', false, true);
-				browser.runtime.sendMessage({ cmd: app.Messages.Commands.importData, data: data }).then(r => {
+				QDClient.importData(data).then(r => {
 					const text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
 						+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
 					location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
@@ -197,30 +197,15 @@ app.init = function(){
 	if(params.get('result')) app.showStatus(ImportStatus, params.get('result'));
 
 	// ----- Pictures -----
-	function picker(input, choose, apply){ // file input -> data URL -> apply(cssValue)
-		if(choose) choose.onkeydown = function(e){ if(e.key == 'Enter' || e.key == ' '){ e.preventDefault(); input.click(); } };
-		input.onclick = function(){ this.value = null; };
-		input.onchange = function(){
-			const file = input.files[0];
-			if(!file) return;
-			const fileReader = new FileReader();
-			fileReader.onload = function(e){
-				input.value = null;
-				apply('url(' + e.target.result + ')');
-				app.updatePreviews();
-				app.changes.mark();
-			};
-			fileReader.readAsDataURL(file);
-		};
-	}
-	picker(BackgroundImageFile, BackgroundImageChoose, v => { backgroundImage = v; });
-	picker(GridBackImageFile, GridBackImageFile.previousElementSibling, v => { backIcon = v; });
-	picker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, v => { folderIcon = v; });
+	const edit = fn => value => { fn(value); app.updatePreviews(); app.changes.mark(); };
+	// The settings hold pictures as url("...") values
+	QDUI.imagePicker(BackgroundImageFile, BackgroundImageChoose, edit(dataUrl => { backgroundImage = QDCommon.toCssUrl(dataUrl); }));
+	QDUI.imagePicker(GridBackImageFile, GridBackImageFile.previousElementSibling, edit(dataUrl => { backIcon = QDCommon.toCssUrl(dataUrl); }));
+	QDUI.imagePicker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, edit(dataUrl => { folderIcon = QDCommon.toCssUrl(dataUrl); }));
 	QDUI.imageDrop(BackgroundZone, BackgroundImageFile);
 	QDUI.imageDrop(GridBackZone, GridBackImageFile);
 	QDUI.imageDrop(GridFolderZone, GridFolderImageFile);
 
-	function edit(fn){ return function(){ fn(); app.updatePreviews(); app.changes.mark(); }; }
 	BackgroundImageClear.onclick = edit(() => { backgroundImage = null; });
 	BackgroundGradientClear.onclick = edit(() => { backgroundGradient = null; });
 	GridBackImageReset.onclick = edit(() => { backIcon = 'url(/img/back.svg)'; });
@@ -234,7 +219,7 @@ app.init = function(){
 		ThemeFile.click();
 	};
 	ThemeFile.onchange = function(){
-		if(ThemeFile.files[0]) app.readJsonFile(ThemeFile.files[0], app.Themes.importFile);
+		if(ThemeFile.files[0]) app.readJsonFile(ThemeFile.files[0]).then(app.Themes.importFile);
 	};
 
 	// Live previews follow every edit
@@ -244,16 +229,28 @@ app.init = function(){
 
 // Reads the settings and themes the dial uses now into the form
 app.load = function(){
-	app.Messages.getSettings(settings => {
+	QDClient.getSettings().then(settings => {
 		app.settings = settings;
 		QDThemes.complete(app.settings);
 		app.fillForm(app.settings);
 		app.updatePreviews();
 		app.changes.start();
-		app.Messages.getThemes(list => {
-			app.Themes.list = list || [];
-			app.Themes.render();
-		});
+		return QDClient.getThemes();
+	}).then(list => {
+		app.Themes.list = list;
+		app.Themes.render();
+	});
+};
+// Messages the background page sends to every page
+app.listen = function(){
+	const Commands = QDCommon.Commands;
+	QDClient.listen({
+		[Commands.settingsChanged]: () => { // applied here or in another window: show it unless there are edits not applied yet
+			if(app.settings && !app.changes.isDirty()) app.load();
+		},
+		[Commands.showSettingsSection]: request => { // the Settings tab was already open when the user asked for a section
+			if(request.tab) app.showSection(request.tab);
+		}
 	});
 };
 // ?tab=page|grid|tiles|themes|backup
@@ -271,14 +268,10 @@ app.download = function(data, name){
 	link.click();
 	setTimeout(() => { URL.revokeObjectURL(link.href); link.remove(); }, 1000);
 };
-app.readJsonFile = function(file, callback){ // callback(parsed object, or null when it isn't JSON)
-	const fileReader = new FileReader();
-	fileReader.onload = function(e){
-		let data = null;
-		try { data = JSON.parse(e.target.result); } catch(err) {}
-		callback(data);
-	};
-	fileReader.readAsText(file);
+app.readJsonFile = function(file){ // Resolves with the parsed object, or null when it isn't JSON
+	return QDUI.readFile(file, true).then(text => {
+		try { return JSON.parse(text); } catch(e) { return null; }
+	});
 };
 app.showStatus = function(el, text, isError, isBusy){
 	el.textContent = text;
@@ -292,13 +285,13 @@ app.updatePreviews = function(){
 	const s = app.formSettings();
 	BackgroundPreview.style.backgroundColor = s.backgroundColor;
 	BackgroundPreview.style.backgroundImage = QDThemes.background(backgroundImage, backgroundGradient);
-	QDUI.applyImageMode(s.backgroundMode, BackgroundPreview.style);
+	QDCommon.applyImageMode(s.backgroundMode, BackgroundPreview.style);
 	BackgroundImageClear.disabled = !backgroundImage;
 	BackgroundGradientRow.hidden = !backgroundGradient;
 	GridBackPreview.style.backgroundImage = backIcon || 'none';
-	QDUI.applyImageMode(s.grid.backIconMode, GridBackPreview.style);
+	QDCommon.applyImageMode(s.grid.backIconMode, GridBackPreview.style);
 	GridFolderPreview.style.backgroundImage = folderIcon || 'none';
-	QDUI.applyImageMode(s.grid.folderIconMode, GridFolderPreview.style);
+	QDCommon.applyImageMode(s.grid.folderIconMode, GridFolderPreview.style);
 	QDUI.setAccent(s.accentColor); // this window shows the accent right away
 
 	// "None" / "Default" switch off the colour next to them
@@ -350,7 +343,7 @@ app.Themes.find = function(name){
 	return app.Themes.list.filter(t => { return t.name.toLowerCase() == name; })[0] || null;
 };
 app.Themes.store = function(list, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.setThemes, themes: list }).then(saved => {
+	QDClient.setThemes(list).then(saved => {
 		app.Themes.list = saved || [];
 		app.Themes.render();
 		if(callback) callback();
@@ -464,25 +457,5 @@ app.Themes.remove = function(theme){
 	});
 };
 
-app.Messages = {};
-app.Messages.Commands = QDCommon.Commands;
-app.Messages.init = function(){
-	browser.runtime.onMessage.addListener(request => {
-		switch(request.cmd){
-			case app.Messages.Commands.settingsChanged: // applied here or in another window: show it unless there are edits not applied yet
-				if(app.settings && !app.changes.isDirty()) app.load();
-				break;
-			case app.Messages.Commands.showSettingsSection: // the Settings tab was already open when the user asked for a section
-				if(request.tab) app.showSection(request.tab);
-				break;
-		}
-	});
-};
-app.Messages.getSettings = function(callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback);
-};
-app.Messages.getThemes = function(callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getThemes }).then(callback, () => { callback([]); });
-};
 app.Backup = {};
 app.Backup.exportSnippet = "(async()=>{const a=(await browser.runtime.getBackgroundPage()).app;const l=document.createElement('a');l.href=URL.createObjectURL(new Blob([JSON.stringify({version:4,settings:a.settings,node:a.node})],{type:'application/json'}));l.download='quickdial-export.json';document.body.appendChild(l);l.click();})()";

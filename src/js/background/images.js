@@ -3,15 +3,11 @@
 // could be made) or absent.
 app.Images = {};
 app.Images._cache = new Map();
-app.Images.quality = 0.85;
-app.Images.maxSize = 1200; // Longest side in pixels for imported/uploaded images
+app.Images.quality = QDCommon.WEBP_QUALITY; // Screenshots (SiteInfos) too
+app.Images.maxSize = QDCommon.IMAGE_MAX_SIZE; // Longest side in pixels for imported/uploaded images
 app.Images.storageKey = id => 'img_' + id;
 
-app.Images.unwrap = function(image){ // 'url("data:...")' -> 'data:...'
-	if(typeof image != 'string') return image;
-	const m = image.match(/^\s*url\(\s*["']?(.*?)["']?\s*\)\s*$/);
-	return m ? m[1] : image;
-};
+app.Images.unwrap = QDCommon.fromCssUrl; // 'url("data:...")' -> 'data:...'
 app.Images.get = function(ids){ // Promise<{ id: dataUrl }>
 	const result = {};
 	const missing = [];
@@ -65,37 +61,7 @@ app.Images.setNodeImage = function(gridNode, image){ // Set (or clear) the image
 	if(app.Images._cache.get(gridNode.id) == image) return Promise.resolve();
 	return app.Images.set(gridNode.id, image);
 };
-app.Images.toWebp = function(dataUrl, maxSize){ // Re-encode any image to WebP, optionally limiting its longest side
-	return new Promise(resolve => {
-		if(typeof dataUrl != 'string' || !dataUrl.startsWith('data:image/')){
-			resolve(dataUrl);
-			return;
-		}
-		const img = new Image();
-		img.onload = () => {
-			let w = img.naturalWidth || 300;
-			let h = img.naturalHeight || 150;
-			const tooBig = maxSize && Math.max(w, h) > maxSize;
-			if(dataUrl.startsWith('data:image/webp') && !tooBig){ // Already WebP: don't re-encode
-				resolve(dataUrl);
-				return;
-			}
-			if(tooBig){
-				const ratio = maxSize / Math.max(w, h);
-				w = Math.round(w * ratio);
-				h = Math.round(h * ratio);
-			}
-			const canvas = document.createElement('canvas');
-			canvas.width = w;
-			canvas.height = h;
-			canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-			const webp = canvas.toDataURL('image/webp', app.Images.quality);
-			resolve(webp.startsWith('data:image/webp') && webp.length < dataUrl.length ? webp : dataUrl);
-		};
-		img.onerror = () => resolve(dataUrl);
-		img.src = dataUrl;
-	});
-};
+app.Images.toWebp = QDCommon.toWebp; // (dataUrl, maxSize): see js/common.js
 app.Images.extractFromTree = function(gridNode, images){ // Move inline images (old format) or images from a backup into the store
 	const jobs = [];
 	(function walk(node){

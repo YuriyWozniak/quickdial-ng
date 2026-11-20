@@ -13,7 +13,7 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
 
 | What | Style | Examples |
 | --- | --- | --- |
-| Parts of `app`, page globals | PascalCase; page globals start with `QD` | `app.GridNodes`, `app.Settings`, `QDCommon`, `QDThemes`, `QDUI` |
+| Parts of `app`, page globals | PascalCase; page globals start with `QD` | `app.GridNodes`, `app.Settings`, `QDCommon`, `QDClient`, `QDThemes`, `QDUI` |
 | Frozen lookup objects (enums) | PascalCase, members camelCase | `QDCommon.Commands.getNodeById`, `QDCommon.NodeType.folder` |
 | Constructors | PascalCase | `dial.PopupPanel` |
 | Functions and methods | camelCase, starting with a verb | `getNodeById`, `refreshNode`, `readJsonFile`, `toCssUrl` |
@@ -27,9 +27,9 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
 | Files | lowercase, named after the part they hold | `js/background/gridnodes.js` holds `app.GridNodes` |
 
 - **Abbreviations are words:** `Id`, `Url`, `Json`, `Css`, `Webp`: `getNodeById`, `dataUrl`, `readJsonFile`, `toWebp`. Names that come from the platform stay as they are (`JSON.parse`, `toDataURL`), and so does the `QD` prefix.
-- **One job, one name:** code that does the same thing in two places has the same name and the same argument order, e.g. `dial.applyImageMode(mode, style)` and `QDUI.applyImageMode(mode, style)`.
-- **Short names** only for loop indexes (`i`, `j`), events (`e`), short arrow functions (`t => t.name`) and the usual aliases in style code: `s` (settings), `g` (`settings.grid`), `c` (`settings.grid.cells`). Write longer aliases out: `const NodeType = QDCommon.NodeType`, `const Commands = app.Messages.Commands`. Never use one short name for two different things in the same file.
-- **Messages** between the pages and the background page: the `QDCommon.Commands` key is a camelCase verb phrase; the number is what gets sent, so a number is never reused for another command.
+- **One job, one name, one copy:** code that several pages need is written once: in `QDCommon` (`js/common.js`) when the background page needs it too, otherwise in `QDUI` (`js/ui.js`). A part that keeps its own name for it points at the shared copy (`app.Images.toWebp = QDCommon.toWebp`). Code that must stay in two places has the same name and argument order in both.
+- **Short names** only for loop indexes (`i`, `j`), events (`e`), short arrow functions (`t => t.name`) and the usual aliases in style code: `s` (settings), `g` (`settings.grid`), `c` (`settings.grid.cells`). Write longer aliases out: `const NodeType = QDCommon.NodeType`, `const Commands = QDCommon.Commands`. Never use one short name for two different things in the same file.
+- **Messages** between the pages and the background page: the `QDCommon.Commands` key is a camelCase verb phrase; the number is what gets sent, so a number is never reused for another command. The pages send them only through `QDClient` (`js/common.js`), one method per command.
 
 ## HTML and CSS
 

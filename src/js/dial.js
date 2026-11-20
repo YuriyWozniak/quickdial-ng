@@ -40,119 +40,71 @@ utils.getPath = function(){
 };
 
 app.init = function(){
-	app.Messages.getSettings(settings => {
-		if(settings && settings.grid) app.Settings._changed(settings);
-		dial.path = utils.getPath();
-		app.Messages.getNode(dial.path, app.GridNodes._changed);
-		app.Messages.init();
-	});
-};
-
-app.Messages = {};
-app.Messages.Commands = QDCommon.Commands;
-app.Messages.init = function(){
-	if(app.Messages._listening) return; // app.init can run more than once; register the listener only once
-	app.Messages._listening = true;
-	browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-		// The tile menu also opens on the Back tile, which has no node: its items do nothing there
-		const tile = dial._selectedLink && dial._selectedLink.gridNode ? dial._selectedLink : null;
-		switch(request.cmd){
-			case app.Messages.Commands.settingsChanged:
-				app.Messages.getSettings(app.Settings._changed);
-				break;
-			case app.Messages.Commands.gridNodesLoaded:
-				app.Messages.getNode(dial.path, app.GridNodes._changed);
-				break;
-			case app.Messages.Commands.menuCreateBookmark:
-				dial.createBookmark();
-				break;
-			case app.Messages.Commands.menuCreateFolder:
-				dial.createFolder();
-				break;
-			case app.Messages.Commands.menuEditProperties:
-				if(tile) dial.editProperties(tile);
-				break;
-			case app.Messages.Commands.menuRefreshNode:
-				if(tile) dial.refreshNode(tile);
-				break;
-			case app.Messages.Commands.menuCapturePage:
-				if(tile) dial.capturePage(tile);
-				break;
-			case app.Messages.Commands.menuDeleteNode:
-				if(tile) dial.deleteNode(tile);
-				break;
-		}
-	});
-};
-app.Messages.getSettings = function(callback){
 	app._waitingForBackground = true;
-	browser.runtime.getBackgroundPage().then(page => {
-		app.bg = (page && page.app) ? page.app : null; // Same-process background page: read its data directly instead of copying it through messages
-		if(app.bg){
-			Promise.resolve(app.bg.ready).then(() => { // At browser start the background page may still be loading its settings
-				app._waitingForBackground = false;
-				if(callback) callback(app.bg.settings);
-			});
-		} else {
-			app._waitingForBackground = false;
-			browser.runtime.sendMessage({ cmd: app.Messages.Commands.getSettings }).then(callback, callback);
-		}
-	}, e => {
+	app.getSettings().then(settings => {
 		app._waitingForBackground = false;
-		if(callback) callback(e);
+		app.Settings._changed(settings);
+		dial.path = utils.getPath();
+		app.getNode(dial.path).then(app.GridNodes._changed);
+		app.listen();
 	});
-};
-app.Messages.getNode = function(path, callback){
-	browser.runtime.getBackgroundPage().then(page => {
-		if(page && page.app){
-			Promise.resolve(page.app.ready).then(() => {
-				if(callback) callback(page.app.GridNodes.getNode(page.app.node, path.slice(1)));
-			});
-		} else {
-			browser.runtime.sendMessage({ cmd: app.Messages.Commands.getNode, path: path }).then(callback);
-		}
-	});
-};
-app.Messages.updateNode = function(id, value, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.updateNode, id: id, value: value }).then(callback);
-};
-app.Messages.setNodeIndex = function(index, newIndex, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.setNodeIndex, path: dial.path, index: index, newIndex: newIndex }).then(callback);
-};
-app.Messages.createBookmark = function(url, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.createBookmark, path: dial.path, url: url, title: url }).then(callback);
-};
-app.Messages.createFolder = function(name, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.createFolder, path: dial.path, name: name }).then(callback);
-};
-app.Messages.deleteNode = function(id, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.deleteNode, path: dial.path, id: id }).then(callback);
-};
-app.Messages.refreshNode = function(id, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.refreshNode, path: dial.path, id: id }).then(callback);
-};
-app.Messages.getImages = function(ids, callback){
-	if(app.bg && app.bg.Images){
-		app.bg.Images.get(ids).then(callback, () => { callback({}); });
-		return;
-	}
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.getImages, ids: ids }).then(callback, () => { callback({}); });
-};
-app.Messages.capturePage = function(id, callback){
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.capturePage, path: dial.path, id: id }).then(callback);
 };
 
+// The background page: the dial reads from it directly when it runs in the same process (app.bg, its `app`),
+// instead of copying the settings, the tiles and their pictures through messages (QDClient).
+// Never rejects: no settings resolves with null.
+app.getSettings = function(){
+	return browser.runtime.getBackgroundPage().then(page => {
+		app.bg = (page && page.app) ? page.app : null;
+		if(!app.bg) return QDClient.getSettings();
+		return Promise.resolve(app.bg.ready).then(() => app.bg.settings); // At browser start the background page may still be loading its settings
+	}).catch(() => null);
+};
+app.getNode = function(path){ // The folder shown at path ("/", "/Work/")
+	if(!app.bg) return QDClient.getNode(path);
+	return Promise.resolve(app.bg.ready).then(() => app.bg.GridNodes.getNode(app.bg.node, path.slice(1)));
+};
+app.getImages = function(ids){ // { id: data URL }; never rejects
+	if(!app.bg || !app.bg.Images) return QDClient.getImages(ids);
+	return app.bg.Images.get(ids).catch(() => ({}));
+};
+// Messages the background page sends to every page
+app.listen = function(){
+	if(app._listening) return; // app.init can run more than once; register the listener only once
+	app._listening = true;
+	const Commands = QDCommon.Commands;
+	// The tile menu also opens on the Back tile, which has no node: its items do nothing there
+	const onTile = action => () => {
+		const tile = dial._selectedLink && dial._selectedLink.gridNode ? dial._selectedLink : null;
+		if(tile) action(tile);
+	};
+	QDClient.listen({
+		[Commands.settingsChanged]: () => { app.getSettings().then(app.Settings._changed); },
+		[Commands.gridNodesLoaded]: () => { app.getNode(dial.path).then(app.GridNodes._changed); },
+		[Commands.menuCreateBookmark]: () => { dial.createBookmark(); },
+		[Commands.menuCreateFolder]: () => { dial.createFolder(); },
+		[Commands.menuEditProperties]: onTile(tile => dial.editProperties(tile)),
+		[Commands.menuRefreshNode]: onTile(tile => dial.refreshNode(tile)),
+		[Commands.menuCapturePage]: onTile(tile => dial.capturePage(tile)),
+		[Commands.menuDeleteNode]: onTile(tile => dial.deleteNode(tile))
+	});
+};
 
 app.Settings = {};
 app.Settings._changed = function(settings){
+	if(!settings || !settings.grid) return; // The background page could not be reached
 	app.settings = settings;
 	document.documentElement.style.backgroundColor = ''; // Drop dialbg.js's early colour: the body's background (colour and image) fills the page from now on
 	dial.initStyles();
 	dial.initGrid();
+	// A new grid is empty: fill it with the tiles already known. The background page also sends gridNodesLoaded
+	// after a settings change, but its answer may arrive before these settings do.
+	if(app.node) dial.populateGrid();
 };
 
 app.GridNodes = {};
 app.GridNodes._changed = function(node){
+	if(!node || !app.settings) return; // The folder is gone (deleted, or renamed in the Library), or there are no settings to draw it with
 	app.node = node;
 	dial.titleElement.innerText = app.node.title;
 	dial.populateGrid();
@@ -169,21 +121,8 @@ dial.turnPage = function(step){ // Mouse wheel, PageDown / PageUp
 	dial.page = page;
 	dial.populateGrid();
 };
-// How a picture fills its box (style: a CSS rule's or an element's style). -1: back to the rule's own values
-dial.applyImageMode = function(imageMode, style){
-	const modes = {
-		'-1': ['', '', ''],
-		0: ['no-repeat', '100% 100%', ''], // stretched
-		1: ['no-repeat', 'cover', 'center'],
-		2: ['no-repeat', 'contain', 'center'],
-		3: ['no-repeat', 'auto auto', 'center'] // original size
-	};
-	const m = modes[imageMode];
-	if(!m) return;
-	[style.backgroundRepeat, style.backgroundSize, style.backgroundPosition] = m;
-};
 dial.initStyles = function(){
-	const applyImageMode = dial.applyImageMode;
+	const applyImageMode = QDCommon.applyImageMode; // on CSS rules here; -1 leaves a rule's own values
 	const oldStyle = dial.styleElement;
 	dial.styleElement = document.createElement('style');
 	document.head.appendChild(dial.styleElement);
@@ -294,7 +233,7 @@ dial._onDrop = function(ev){
 	const data = dial._dragData(ev);
 	if(!data || (dial._backShown() && dial._cellIndex(ev.target) == 0)) return; // the Back cell takes no drop
 	const newIndex = dial._nodeIndex(dial._cellIndex(ev.target));
-	if(data.index != newIndex) app.Messages.setNodeIndex(data.index, newIndex);
+	if(data.index != newIndex) QDClient.setNodeIndex(dial.path, data.index, newIndex);
 };
 dial.updateGridLayout = function(){ // Cell and tile sizes for this window (normal and hover)
 	const g = app.settings.grid, c = g.cells, rules = dial.styles.grid;
@@ -344,7 +283,7 @@ dial.populateGrid = function(){ // Fills the cells of the current page from app.
 		}
 		link._imageId = null;
 		link._imageSrc = null;
-		style.backgroundImage = node.image.includes('url(') ? node.image : 'url(' + node.image + ')';
+		style.backgroundImage = QDCommon.toCssUrl(node.image);
 		return true;
 	};
 	const reset = (link, node, className) => {
@@ -352,7 +291,7 @@ dial.populateGrid = function(){ // Fills the cells of the current page from app.
 		link.className = className;
 		link.onclick = null;
 		const mode = node && (node.imageMode || node.imageMode == 0) ? node.imageMode : -1;
-		dial.applyImageMode(mode, link.firstChild.style);
+		QDCommon.applyImageMode(mode, link.firstChild.style);
 		if(!node){
 			link._imageId = null;
 			link._imageSrc = null;
@@ -413,9 +352,9 @@ dial.populateGrid = function(){ // Fills the cells of the current page from app.
 	}
 	while(linkIndex < cellCount) populateEmpty(dial.grid.getLink(linkIndex++));
 	if(pendingImages.length > 0){
-		app.Messages.getImages(pendingImages.map(r => r.node.id), images => {
+		app.getImages(pendingImages.map(r => r.node.id)).then(images => {
 			for(const r of pendingImages){
-				if(r.link.gridNode != r.node || !images || !images[r.node.id]) continue;
+				if(r.link.gridNode != r.node || !images[r.node.id]) continue;
 				r.link._imageId = r.node.id;
 				r.link._imageSrc = images[r.node.id];
 				r.link.firstChild.style.backgroundImage = 'url("' + images[r.node.id] + '")';
@@ -459,18 +398,18 @@ dial.createBookmark = function(){
 			},
 			transform: function(v){ return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v; }
 		});
-	}).then(url => { if(url) app.Messages.createBookmark(url); });
+	}).then(url => { if(url) QDClient.createBookmark(dial.path, url, url); });
 };
 dial.createFolder = function(){
 	dial.loadUI().then(ui => {
 		return ui.dialog({ title: browser.i18n.getMessage('dialogNewFolder'), message: browser.i18n.getMessage('dialogNewFolderPrompt'), value: 'New Folder', okText: 'Create' });
-	}).then(name => { if(name) app.Messages.createFolder(name); });
+	}).then(name => { if(name) QDClient.createFolder(dial.path, name); });
 };
 dial.deleteNode = function(link){ // Delete: asks first
 	const node = link.gridNode;
 	dial.loadUI().then(ui => {
 		return ui.dialog({ title: browser.i18n.getMessage('dialogDeleteConfirmation', node.title), message: node.url || '', okText: browser.i18n.getMessage('menuDeleteItem'), danger: true });
-	}).then(ok => { if(ok) app.Messages.deleteNode(node.id); });
+	}).then(ok => { if(ok) QDClient.deleteNode(dial.path, node.id); });
 };
 dial._showLoading = function(link){ // until the background page sends the new picture
 	link.className = 'is-loading';
@@ -479,11 +418,11 @@ dial._showLoading = function(link){ // until the background page sends the new p
 };
 dial.refreshNode = function(link){ // Refresh: download the page for its title and picture
 	dial._showLoading(link);
-	app.Messages.refreshNode(link.gridNode.id);
+	QDClient.refreshNode(dial.path, link.gridNode.id);
 };
 dial.capturePage = function(link){ // Capture page: open it in a tab and take a picture
 	dial._showLoading(link);
-	app.Messages.capturePage(link.gridNode.id);
+	QDClient.capturePage(dial.path, link.gridNode.id);
 };
 
 dial.PopupPanel = function(width, height){ // Modal frame for the Settings and Properties pages
@@ -542,7 +481,7 @@ dial.openPopup = function(src, width, height){
 };
 
 dial.editSettings = function(tab){ // Settings opens in its own tab; tab: optional section ('backup')
-	browser.runtime.sendMessage({ cmd: app.Messages.Commands.openSettings, tab: typeof tab == 'string' ? tab : null }).catch(() => {});
+	QDClient.openSettings(tab); // tab is the click event when this is a button's handler: QDClient leaves it out
 };
 
 dial.editProperties = function(link){
