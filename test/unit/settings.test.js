@@ -261,7 +261,7 @@ test('pictures: a missing one falls back to the default; one nothing points at i
 	quiet(w);
 	const settings = Object.assign(w.app.Settings.defaults(), { backgroundImage: '1' });
 	settings.grid.folderIcon = '1';
-	Object.assign(w.browser.store, { version: 5, settings, node: { children: [] }, picture_backIcon: ICON });
+	Object.assign(w.browser.store, { version: 5, settings, node: { children: [] }, 'picture_backIcon': ICON }); // a storage key, named as in Settings.PICTURES
 	await init(w);
 	await settle();
 	assert.deepEqual([w.app.settings.backgroundImage, w.app.settings.grid.folderIcon, w.app.settings.grid.backIcon], [null, 'url(/img/folder.svg)', 'url(/img/back.svg)']);

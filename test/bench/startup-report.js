@@ -1,36 +1,68 @@
-// Summarize startup.js results: medians per label, warm-up launches excluded.
+// Summarizes startup.js results: medians per results file (one label each), warm-up launches excluded.
 // Usage: node startup-report.js <results.jsonl> [more.jsonl ...]
 'use strict';
 const fs = require('fs');
-const med = a => { const v = a.filter(x => typeof x === 'number' && isFinite(x)).sort((x, y) => x - y); if (!v.length) return null; const m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; };
-const fmt = x => x == null ? '-' : Math.round(x) + '';
+const { fail, computeMedian, parseArgs } = require('./lib');
 
-for (const file of process.argv.slice(2)) {
-	const rows = fs.readFileSync(file, 'utf8').split(/\r?\n/).filter(Boolean).map(l => JSON.parse(l)).filter(r => !r.done);
-	if (!rows.length) continue;
-	const label = rows[0].label, runs = rows.filter(r => !r.warmup && !r.error);
-	// per-launch extension timings from cumulative [total, count] pairs
-	const extPerRun = {};
-	for (let i = 1; i < rows.length; i++) {
-		if (rows[i].warmup) continue;
-		const cur = rows[i].extTimings || {}, prev = rows[i - 1].extTimings || {};
-		for (const id in cur) for (const k in cur[id]) {
-			const [s1, c1] = cur[id][k], [s0, c0] = (prev[id] && prev[id][k]) || [0, 0];
-			if (c1 > c0) (((extPerRun[id] = extPerRun[id] || {})[k] = extPerRun[id][k] || [])).push(k === 'idbGet' ? s1 - s0 : (s1 - s0) / (c1 - c0));
+const USAGE = 'Usage: node startup-report.js <results.jsonl> [more.jsonl ...]';
+const LABEL_WIDTH = 32, ID_WIDTH = 38, NUMBER_WIDTH = 5;
+const FIRST_CONTENTFUL_PAINT = 'first-contentful-paint';
+// Firefox's per-extension timings, cumulative across launches of a profile: [total ms, count]. The storage reads are
+// reported as a total per launch, the others per occurrence.
+const EXTENSION_TIMINGS = { startup: 'startup', backgroundLoad: 'background page load', storageRead: 'storage.local reads (total)' };
+const TOTAL_TIMINGS = ['storageRead'];
+
+const resultFiles = parseArgs(process.argv.slice(2), {}, USAGE).positional;
+if (!resultFiles.length) fail(USAGE);
+const formatMs = ms => ms == null ? '-' : String(Math.round(ms));
+const printLine = (label, ms, note) => console.log(label.padEnd(LABEL_WIDTH), formatMs(ms), note || '');
+const tryRead = (read, item) => {
+	try { return read(item); } catch (e) { return null; }
+};
+
+// Per-launch extension timings from the cumulative pairs of consecutive launches
+function computeExtensionTimings(launches) {
+	const perLaunch = {};
+	for (let i = 1; i < launches.length; i++) {
+		if (launches[i].warmup) continue;
+		const current = launches[i].extensionTimings || {}, previous = launches[i - 1].extensionTimings || {};
+		for (const id in current) {
+			for (const key in current[id]) {
+				const [total, count] = current[id][key];
+				const [previousTotal, previousCount] = (previous[id] && previous[id][key]) || [0, 0];
+				if (count <= previousCount) continue;
+				const value = TOTAL_TIMINGS.includes(key) ? total - previousTotal : (total - previousTotal) / (count - previousCount);
+				((perLaunch[id] = perLaunch[id] || {})[key] = perLaunch[id][key] || []).push(value);
+			}
 		}
 	}
-	const pick = f => med(runs.map(r => { try { return f(r); } catch (e) { return null; } }));
-	console.log(`\n== ${label}: ${runs.length} launches (warm-up excluded)`);
-	console.log('Firefox window first paint     ', fmt(pick(r => r.startup.firstPaint2 || r.startup.firstPaint)), 'ms after process start');
-	console.log('Session restored               ', fmt(pick(r => r.startup.sessionRestored)));
-	console.log('Start tab: page load began     ', fmt(pick(r => r.startTab.timeOriginSinceProcess)), ' ', (runs[0].startTab || {}).url || '');
-	console.log('Start tab: page painted        ', fmt(pick(r => r.startTab.paintedSinceProcess)));
-	console.log('New tab: pictures set          ', fmt(pick(r => r.newTab.imagesSet)), 'ms after the tab started loading');
-	console.log('New tab: first contentful paint', fmt(pick(r => r.newTab.paint['first-contentful-paint'])), ' ', (runs[0].newTab || {}).url || '');
-	console.log('Per extension (median per launch, ms): startup | background page load | storage.local reads (total)');
-	const ids = Object.keys(extPerRun).sort((a, b) => (med((extPerRun[b].bgLoad) || []) || 0) - (med((extPerRun[a].bgLoad) || []) || 0));
-	for (const id of ids) {
-		const e = extPerRun[id];
-		console.log('  ' + id.padEnd(38), fmt(med(e.startup || [])).padStart(5), '|', fmt(med(e.bgLoad || [])).padStart(5), '|', fmt(med(e.idbGet || [])).padStart(5));
+	return perLaunch;
+}
+
+for (const resultFile of resultFiles) {
+	const launches = fs.readFileSync(resultFile, 'utf8').split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line)).filter(launch => !launch.done);
+	if (!launches.length) continue;
+	const label = launches[0].label, measured = launches.filter(launch => !launch.warmup && !launch.error);
+	const medianOf = read => computeMedian(measured.map(launch => tryRead(read, launch)));
+	const medianOfLaterTabs = read => computeMedian(measured.flatMap(launch => (launch.newTabsLater || []).map(tab => tryRead(read, tab))));
+	console.log(`\n== ${label}: ${measured.length} launches (warm-up excluded)`);
+	printLine('Firefox window first paint', medianOf(launch => launch.startup.firstPaint2 || launch.startup.firstPaint), 'ms after process start');
+	printLine('Session restored', medianOf(launch => launch.startup.sessionRestored));
+	printLine('Start tab: page load began', medianOf(launch => launch.startTab.timeOriginSinceProcess), (measured[0].startTab || {}).url || '');
+	printLine('Start tab: page painted', medianOf(launch => launch.startTab.paintedSinceProcess));
+	printLine('New tab: open to page load', medianOf(launch => launch.newTab.openToTimeOriginMs), 'ms; the rest is since the page started loading');
+	printLine('New tab: first contentful paint', medianOf(launch => launch.newTab.paint[FIRST_CONTENTFUL_PAINT]), (measured[0].newTab || {}).url || '');
+	printLine('New tab: pictures set', medianOf(launch => launch.newTab.imagesSet));
+	if (measured.some(launch => launch.newTabsLater)) {
+		printLine('Later new tabs: open to load', medianOfLaterTabs(tab => tab.openToTimeOriginMs), 'ms (median of every new tab after the first)');
+		printLine('Later new tabs: first paint', medianOfLaterTabs(tab => tab.paint[FIRST_CONTENTFUL_PAINT]));
+		printLine('Later new tabs: pictures set', medianOfLaterTabs(tab => tab.imagesSet));
+	}
+	const perLaunch = computeExtensionTimings(launches);
+	console.log('Per extension (median per launch, ms): ' + Object.values(EXTENSION_TIMINGS).join(' | '));
+	const byBackgroundLoad = (a, b) => (computeMedian(perLaunch[b].backgroundLoad || []) || 0) - (computeMedian(perLaunch[a].backgroundLoad || []) || 0);
+	for (const id of Object.keys(perLaunch).sort(byBackgroundLoad)) {
+		const columns = Object.keys(EXTENSION_TIMINGS).map(key => formatMs(computeMedian(perLaunch[id][key] || [])).padStart(NUMBER_WIDTH));
+		console.log('  ' + id.padEnd(ID_WIDTH), columns.join(' | '));
 	}
 }
