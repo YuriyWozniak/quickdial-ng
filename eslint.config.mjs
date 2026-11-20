@@ -9,7 +9,7 @@ const idsOf = page => Object.fromEntries([...fs.readFileSync(new URL(page, impor
 
 export default [
 	{ files: ['src/**/*.js', 'test/**/*.js'] },
-	{ ignores: ['*.mjs', 'release/**', 'node_modules/**', 'web-ext-artifacts/**', 'test/node_modules/**', 'test/bench/**', 'test/screenshots/**'] },
+	{ ignores: ['*.mjs', 'release/**', 'node_modules/**', 'web-ext-artifacts/**', 'test/node_modules/**', 'test/screenshots/**'] },
 	js.configs.recommended,
 	{
 		files: ['src/**/*.js'],
@@ -73,5 +73,18 @@ export default [
 			}
 		}
 	},
-	{ files: ['test/mock.js'], languageOptions: { sourceType: 'script', globals: { ...globals.browser, S: 'writable' } } }
+	{ files: ['test/mock.js'], languageOptions: { sourceType: 'script', globals: { ...globals.browser, S: 'writable' } } },
+	// Benchmarks (test/bench): the Node tools may leave a catch empty where a failure only means "not yet" or "already gone"
+	{ files: ['test/bench/*.js'], rules: { 'no-empty': ['error', { allowEmptyCatch: true }] } },
+	// ...and three scripts run inside the benchmark copy of the extension (build.js puts them there)
+	{
+		files: ['test/bench/seed.js', 'test/bench/early.js', 'test/bench/probe.js'],
+		languageOptions: {
+			sourceType: 'script',
+			globals: {
+				...globals.browser, ...globals.webextensions,
+				BENCH_FORMAT: 'readonly', BENCH_DEFAULTS: 'readonly', BENCH_SCRIPTS: 'readonly', BENCH_OPTIONS: 'readonly' // bench/config.js
+			}
+		}
+	}
 ];
