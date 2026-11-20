@@ -1,0 +1,92 @@
+# Publish: once Mozilla has approved a version submitted by the Release workflow, puts the same signed file
+# on GitHub as a release (tag v<version>, release notes from amo-listing.md, the .xpi attached).
+# Runs on its own every 3 hours and does nothing until there's something to publish; or run it by hand.
+name: Publish
+
+on:
+  schedule:
+    - cron: '17 */3 * * *' # every 3 hours at :17 (UTC)
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to publish (empty = the current version on addons.mozilla.org)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 26
+  AMO_API: https://addons.mozilla.org/api/v5/addons/addon/quick-dial-ng
+
+jobs:
+  check:
+    name: anything to publish?
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      url: ${{ steps.check.outputs.url }}
+      hash: ${{ steps.check.outputs.hash }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          # AMO's public API: the version, whether Mozilla approved it, and its signed file
+          if [ -n "$REQUESTED" ]; then v=$(curl -fsS "$AMO_API/versions/$REQUESTED/")
+          else v=$(curl -fsS "$AMO_API/" | jq .current_version); fi
+          version=$(jq -r .version <<< "$v"); status=$(jq -r .file.status <<< "$v")
+          echo "addons.mozilla.org: $version ($status)"
+          if [ "$status" != public ]; then echo "Not approved yet."; exit 0; fi
+          if gh release view "v$version" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "v$version is already on GitHub."; exit 0
+          fi
+          if ! gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v$version" > /dev/null 2>&1; then
+            # Submitted some other way: Release tags what it submits, and only that commit can be checked
+            echo "::warning::$version is approved on AMO but has no tag v$version; publish it with release.js on the PC"
+            exit 0
+          fi
+          { echo "version=$version"; echo "url=$(jq -r .file.url <<< "$v")"; echo "hash=$(jq -r .file.hash <<< "$v")"; } >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: GitHub release
+    needs: check
+    if: needs.check.outputs.version != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # to create the release
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      URL: ${{ needs.check.outputs.url }}
+      HASH: ${{ needs.check.outputs.hash }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: develop
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Download the signed file from AMO
+        run: |
+          xpi="$RUNNER_TEMP/quickdial-ng-$VERSION.xpi"
+          curl -fsSL "$URL" -o "$xpi"
+          [ "sha256:$(sha256sum "$xpi" | cut -d' ' -f1)" = "$HASH" ] || { echo "::error::The download doesn't match AMO's hash"; exit 1; }
+          node release/notes.js "$VERSION" --out "$RUNNER_TEMP/notes.md"
+      # release.js checks the signature, the version and that the file matches the tagged source,
+      # then creates the release and attaches the file (no updates.json: the file is from AMO)
+      - name: Create the release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node release/release.js "$VERSION" --commit "v$VERSION" --xpi "$RUNNER_TEMP/quickdial-ng-$VERSION.xpi" \
+            --notes "$RUNNER_TEMP/notes.md"
+          echo "Published [v$VERSION](https://github.com/$GITHUB_REPOSITORY/releases/tag/v$VERSION)" >> "$GITHUB_STEP_SUMMARY"

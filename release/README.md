@@ -1,5 +1,21 @@
 # Release
 
+## With GitHub Actions (the usual way)
+
+1. Bump `version` in `src/manifest.json` and add its release notes to [amo-listing.md](amo-listing.md) (`### <version>` under "Release notes"), in a pull request into `develop`; merge it once CI is green.
+2. On GitHub: **Actions › Release › Run workflow**, branch `develop`, enter the version. Tick *Dry run* to only test, lint and build the package.
+   - It checks that the version is the one in `src/manifest.json` and wasn't submitted before, runs all of CI, and builds the AMO package (the source without `update_url`, linted with the listed rules).
+   - The *submit to AMO* job then waits for you: open the run and choose **Review deployments › amo › Approve**. It uploads the package to addons.mozilla.org with the release notes and the Notes to Reviewer below, and tags the commit `v<version>`.
+3. Mozilla reviews the version (hours to days). The **Publish** workflow checks addons.mozilla.org every 3 hours; once the version is approved it downloads the signed file, checks it against AMO's hash and the tagged source, and creates the GitHub release with the notes and the `.xpi`. To publish sooner, run Publish by hand.
+
+The package and its metadata stay downloadable from the Release run for 30 days. Untick **Firefox for Android** on the version's page if AMO adds it (see below).
+
+One-time setup (done once per repository): **Settings › Environments › amo** has you as required reviewer and allows only `develop`. Its secrets `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` are the two values of the AMO API key ([Manage API Keys](https://addons.mozilla.org/developers/addon/api/key/)); they are used only by the *submit to AMO* job and never appear in logs.
+
+GitHub turns off scheduled workflows in a repository without activity for 60 days; if Publish stops, enable it again on the Actions tab or run it by hand.
+
+## On the PC
+
 `release.js` takes a version that is already committed in `src/manifest.json` and turns it into a published, auto-updating release:
 
 1. **Commit.** Uses the last commit on `origin/develop` that changed `src/` (or `--commit`). Checks that its `src/manifest.json` has the requested version.
@@ -7,7 +23,7 @@
 3. **Verify.** Checks that the `.xpi` is signed by Mozilla (`META-INF/mozilla.rsa`), has the right version and contains exactly the source files of the commit.
 4. **Tag.** Tags the commit as `v<version>` and pushes the tag. It stops if the tag already exists at another commit.
 5. **GitHub release.** Creates the release *Quick Dial NG &lt;version&gt;* with the notes from `--notes` and attaches the `.xpi`.
-6. **updates.json.** Adds the version to [`updates.json`](../updates.json) with its download link and `sha256` hash, commits and pushes to `develop`. Installed copies (0.3.4 and later) pick it up on Firefox's next add-on update check.
+6. **updates.json.** Only for a self-hosted (unlisted) file: adds the version to [`updates.json`](../updates.json) with its download link and `sha256` hash, commits and pushes to `develop`. Since `develop` is protected, that push is refused: use `--no-updates-json` and add the entry in a pull request. A file signed through AMO has no `update_url`, so this step is skipped: copies installed from GitHub (0.3.4 and later) reach AMO through the entries already in `updates.json` and update from there.
 
 Every step checks whether it was already done and skips it, so after a failure (e.g. a network error) just run the same command again.
 
