@@ -12,6 +12,7 @@ const USAGE = `Usage: ${SCRIPT} info                  the listing, its screensho
        ${SCRIPT} icon                  release/amo-icon.png
        ${SCRIPT} previews [<png>...]   replace screenshots with these files (default: all in amo-listing.md),
                                        in the same place, captions from amo-listing.md
+       ${SCRIPT} previews-set          make the screenshots exactly the ones in amo-listing.md, in its order
        ${SCRIPT} compat <version>      keep only Firefox (desktop) in a version's compatibility`;
 
 // ---------- addons.mozilla.org ----------
@@ -44,6 +45,7 @@ const LISTING_FILE = path.join(__dirname, 'amo-listing.md');
 const ICON_FILE = path.join(__dirname, 'amo-icon.png');
 const DEFAULT_OUT_DIR = path.join(__dirname, 'signed');
 const PREVIEW_STATE_FILE = 'amo-previews.json'; // in the output folder
+const PREVIEW_SET_STATE_FILE = 'amo-previews-set.json'; // in the output folder
 const PNG = 'image/png';
 
 // ---------- amo-listing.md ----------
@@ -192,6 +194,40 @@ const commands = {
 		}
 		if (!Object.keys(state).length) fs.rmSync(stateFile, { force: true });
 		console.log('screenshots done');
+	},
+	// Makes AMO's screenshots exactly the ones in amo-listing.md, in its order: uploads each with its caption and
+	// position, then deletes every other screenshot. For a new set, when previews can't match old captions.
+	// Resumable: amo-previews-set.json in the output folder records what is uploaded, so a rerun after an
+	// interruption (AMO throttles edits) goes on instead of uploading the same picture twice.
+	async 'previews-set'() {
+		const wanted = Object.entries(screenshots()); // [name, { caption, file }], in the order of the table
+		if (!wanted.length) fail(`no screenshots in ${path.basename(LISTING_FILE)}`);
+		for (const [name, { file }] of wanted) if (!fs.existsSync(file)) fail(`${name} not found: ${file}`);
+		fs.mkdirSync(cfg.outDir, { recursive: true });
+		const stateFile = path.join(cfg.outDir, PREVIEW_SET_STATE_FILE);
+		const state = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : { uploaded: {} };
+		const save = () => fs.writeFileSync(stateFile, JSON.stringify(state, null, 1));
+		for (const [index, [name, { caption, file }]] of wanted.entries()) {
+			const position = index + 1;
+			let s = state.uploaded[name];
+			if (!s) {
+				const f = new FormData(); f.append('image', blob(file, PNG), name); f.append('position', String(position));
+				s = state.uploaded[name] = { id: (await api('POST', ADDON + '/previews/', f)).id, captioned: false }; save();
+			}
+			if (!s.captioned) {
+				await api('PATCH', `${ADDON}/previews/${s.id}/`, { caption: localized(caption), position });
+				s.captioned = true; save();
+			}
+			console.log(new Date().toISOString(), 'uploaded', name, '->', s.id, 'pos', position);
+		}
+		const keep = new Set(Object.values(state.uploaded).map(s => s.id));
+		for (const p of (await api('GET', `${ADDON}/?lang=${LOCALE}`)).previews) {
+			if (keep.has(p.id)) continue;
+			await api('DELETE', `${ADDON}/previews/${p.id}/`);
+			console.log(new Date().toISOString(), 'deleted', p.id, JSON.stringify(en(p.caption)));
+		}
+		fs.rmSync(stateFile, { force: true });
+		console.log('screenshots done:', wanted.length);
 	},
 	// AMO adds Firefox for Android when the manifest has gecko_android (needed by the linter): keep only desktop
 	async compat(version) {

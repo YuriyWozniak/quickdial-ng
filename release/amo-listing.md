@@ -1,6 +1,6 @@
 # addons.mozilla.org listing
 
-The texts of Quick Dial NG's page on addons.mozilla.org (AMO), kept here so the listing and the GitHub documentation stay the same. When a feature changes, update this file together with the [README](../README.md), then bring the AMO page up to date with [`amo.js`](amo.js): `node release/amo.js info` shows what differs, `listing` updates the summary and description, `previews <png>...` replaces screenshots and `icon` the icon. The release notes reach AMO with each version through the Release workflow.
+The texts of Quick Dial NG's page on addons.mozilla.org (AMO), kept here so the listing and the GitHub documentation stay the same. When a feature changes, update this file together with the [README](../README.md), then bring the AMO page up to date with [`amo.js`](amo.js): `node release/amo.js info` shows what differs, `listing` updates the summary and description, `previews <png>...` replaces screenshots (each in the place of the one with the same caption), `previews-set` makes them exactly the table below, in its order (for a new set), and `icon` replaces the icon. The release notes reach AMO with each version through the Release workflow.
 
 The description uses AMO's limited Markdown: `**bold**`, `_italic_`, `[links](https://…)`, `` `code` ``, `>` quotes and `-`/`1.` lists. HTML tags and `#` headings are not supported (AMO shows HTML as plain text), so section titles are bold lines. Keep a blank line between paragraphs and before each list.
 
@@ -93,6 +93,13 @@ The seven main pictures from [`screenshots/`](../screenshots/), in this order (t
 ## Release notes
 
 The "Release notes" field of each version on AMO; the same text goes to the GitHub release (`--notes`). Newest first.
+
+### 0.7.0
+
+```
+- Five more built-in themes: Plum, a dark plum page with light grey rounded borders, for a large grid with groups of sites; Dusk, violet glass tiles over a sunset; and Desktop, Retro PC and Retro Mono, which turn square tiles with icon pictures into a computer desktop.
+- Tahoma and Verdana join the title fonts.
+```
 
 ### 0.6.0
 
