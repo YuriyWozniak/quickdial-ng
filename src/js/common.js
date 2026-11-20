@@ -43,8 +43,10 @@ var QDCommon = Object.freeze({
 		bookmark: 2
 	}),
 
-	// Pictures that are uploaded or imported are stored as WebP, longest side at most IMAGE_MAX_SIZE pixels
+	// Pictures that are uploaded or imported are stored as WebP, longest side at most IMAGE_MAX_SIZE pixels.
+	// The page background fills the whole screen, so it may be larger: BACKGROUND_MAX_SIZE.
 	IMAGE_MAX_SIZE: 1200,
+	BACKGROUND_MAX_SIZE: 2560,
 	WEBP_QUALITY: 0.85,
 
 	/**

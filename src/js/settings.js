@@ -164,17 +164,29 @@ app.setupActions = function(){
 // A picture picked, dropped or cleared: fn(value) stores it, then the previews and the Apply button follow.
 // The settings hold pictures as url("...") values.
 app.pictureEdit = fn => value => { fn(value); app.updatePreviews(); app.changes.mark(); };
+// A picture chosen or dropped: re-encoded as compact WebP of at most maxSize pixels (as in Properties, see
+// QDCommon.toWebp), then stored by fn(url("...")). When a second picture is chosen before the first one is
+// ready, only the second is kept.
+app.picturePicked = (fn, maxSize) => {
+	let latest = 0;
+	return dataUrl => {
+		const pick = ++latest;
+		QDCommon.toWebp(dataUrl, maxSize).then(webp => {
+			if(pick == latest) app.pictureEdit(fn)(QDCommon.toCssUrl(webp));
+		});
+	};
+};
 // Tab Page: the background picture (the rest of the tab is plain form fields, FIELDS)
 app.setupPage = function(){
-	QDUI.imagePicker(BackgroundImageFile, BackgroundImageChoose, app.pictureEdit(dataUrl => { backgroundImage = QDCommon.toCssUrl(dataUrl); }));
+	QDUI.imagePicker(BackgroundImageFile, BackgroundImageChoose, app.picturePicked(css => { backgroundImage = css; }, QDCommon.BACKGROUND_MAX_SIZE));
 	QDUI.imageDrop(BackgroundZone, BackgroundImageFile);
 	BackgroundImageClear.onclick = app.pictureEdit(() => { backgroundImage = null; });
 	BackgroundGradientClear.onclick = app.pictureEdit(() => { backgroundGradient = null; });
 };
 // Tab Grid: the Back and folder pictures
 app.setupGrid = function(){
-	QDUI.imagePicker(GridBackImageFile, GridBackImageFile.previousElementSibling, app.pictureEdit(dataUrl => { backIcon = QDCommon.toCssUrl(dataUrl); }));
-	QDUI.imagePicker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, app.pictureEdit(dataUrl => { folderIcon = QDCommon.toCssUrl(dataUrl); }));
+	QDUI.imagePicker(GridBackImageFile, GridBackImageFile.previousElementSibling, app.picturePicked(css => { backIcon = css; }, QDCommon.IMAGE_MAX_SIZE));
+	QDUI.imagePicker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, app.picturePicked(css => { folderIcon = css; }, QDCommon.IMAGE_MAX_SIZE));
 	QDUI.imageDrop(GridBackZone, GridBackImageFile);
 	QDUI.imageDrop(GridFolderZone, GridFolderImageFile);
 	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = 'url(/img/back.svg)'; });
