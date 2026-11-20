@@ -14,99 +14,103 @@
  */
 app.GridNodes = {};
 
-/** Brings the tree under gridNode in line with the bookmarks folder at rootPath, then saves it.
- * @param {GridNode} gridNode @param {string} rootPath @param {() => void} [callback] */
-app.GridNodes.sync = function(gridNode, rootPath, callback){
-	const NodeType = QDCommon.NodeType;
-	if(app.GridNodes._syncing){ // One more sync once this one is done (the latest arguments win); every callback runs
-		const queued = app.GridNodes._queued || { callbacks: [] };
-		queued.gridNode = gridNode;
-		queued.rootPath = rootPath;
-		if(callback) queued.callbacks.push(callback);
-		app.GridNodes._queued = queued;
-		return;
-	}
-	app.GridNodes._syncing = true;
-	app.Bookmarks.load(rootPath, bookmarkItem => {
-		if(!bookmarkItem){ // Bookmarks unavailable: don't stay locked
-			if(!app.GridNodes._runQueued(callback) && callback) callback();
+/** Brings the tree under gridNode in line with the bookmarks folder at rootPath, then saves it. Resolves once done;
+ * when the bookmarks can't be read, the tree is left as it is. A sync asked for while one runs waits for it, then one
+ * more runs with the latest arguments (an import or a new root may have replaced the tree meanwhile), and every
+ * caller's promise resolves after that one, in the order they asked.
+ * @param {GridNode} gridNode @param {string} rootPath @returns {Promise<void>} */
+app.GridNodes.sync = function(gridNode, rootPath){
+	return new Promise(resolve => {
+		if(app.GridNodes._syncing){
+			const queued = app.GridNodes._queued || (app.GridNodes._queued = { waiting: [] });
+			queued.gridNode = gridNode;
+			queued.rootPath = rootPath;
+			queued.waiting.push(resolve);
 			return;
 		}
-		const syncNode = (gridNode, bookmarkItem) => {
-			gridNode.id = bookmarkItem.id;
-			gridNode.title = bookmarkItem.title;
-			switch(bookmarkItem.type){
-				case 'bookmark':
-					gridNode.type = NodeType.bookmark;
-					if(gridNode.url != bookmarkItem.url){
-						gridNode.url = bookmarkItem.url;
-						app.Images.setNodeImage(gridNode, null);
-					}
-					break;
-				case 'folder': {
-					gridNode.type = NodeType.folder;
-					const bookmarks = bookmarkItem.children || []; // A folder just created has no children list
-					const emptyNodes = []; // Gaps, in order: new bookmarks fill them first
-					if(!gridNode.children) gridNode.children = [];
-					const children = gridNode.children;
-					for(let i = children.length - 1; i >= 0; i--){
-						if(!children[i]) children[i] = { type: NodeType.empty };
-						if(children[i].type == NodeType.empty){
-							emptyNodes.unshift(children[i]);
-						} else if(!bookmarks.some(child => child.id == children[i].id)){ // Bookmark gone: its cell becomes a gap
-							app.Images.removeTree(children[i]);
-							if(i < children.length - 1){
-								children[i] = { type: NodeType.empty };
-								emptyNodes.unshift(children[i]);
-							} else {
-								children.pop();
-							}
-						}
-					}
-					for(const child of bookmarks){
-						let childGridNode = app.GridNodes.getChildNode(gridNode, child.id);
-						if(!childGridNode){
-							childGridNode = emptyNodes.shift();
-							if(!childGridNode){
-								childGridNode = {};
-								children.push(childGridNode);
-							}
-						}
-						syncNode(childGridNode, child);
-					}
-					break;
-				}
-				default:
-					gridNode.type = NodeType.empty;
-					break;
+		app.GridNodes._runSync(gridNode, rootPath, [resolve]);
+	});
+};
+app.GridNodes._runSync = function(gridNode, rootPath, waiting){ // waiting: the resolve functions of the callers so far
+	app.GridNodes._syncing = true;
+	app.Bookmarks.load(rootPath).then(bookmarkItem => {
+		if(bookmarkItem){
+			try {
+				app.GridNodes._syncNode(gridNode, bookmarkItem);
+			} catch(e) {
+				console.error('Quick Dial NG: bookmark sync failed', e);
 			}
-		};
-		try {
-			syncNode(gridNode, bookmarkItem);
-		} catch(e) {
-			console.error('Quick Dial NG: bookmark sync failed', e);
 		}
-		if(!app.GridNodes._runQueued(callback)){
-			app.GridNodes.save();
-			if(callback) callback();
+		const next = app.GridNodes._queued;
+		if(next){ // Asked for meanwhile: that one saves, and answers everyone
+			delete app.GridNodes._queued;
+			app.GridNodes._runSync(next.gridNode, next.rootPath, waiting.concat(next.waiting));
+			return;
 		}
+		delete app.GridNodes._syncing;
+		if(bookmarkItem) app.GridNodes.save();
+		for(const resolve of waiting) resolve();
 	});
 };
-// After a sync: runs the one asked for meanwhile, if any, with the latest tree and root path, then calls back
-// the finished sync's caller and every caller that asked meanwhile. Returns false when nothing was queued.
-app.GridNodes._runQueued = function(callback){
-	delete app.GridNodes._syncing;
-	const next = app.GridNodes._queued;
-	if(!next) return false;
-	delete app.GridNodes._queued;
-	app.GridNodes.sync(next.gridNode, next.rootPath, () => {
-		if(callback) callback();
-		for(const cb of next.callbacks) cb();
-	});
-	return true;
+app.GridNodes._syncNode = function(gridNode, bookmarkItem){ // Copies a bookmark (or folder, with its contents) onto its node
+	const NodeType = QDCommon.NodeType;
+	gridNode.id = bookmarkItem.id;
+	gridNode.title = bookmarkItem.title;
+	switch(bookmarkItem.type){
+		case 'bookmark':
+			gridNode.type = NodeType.bookmark;
+			if(gridNode.url != bookmarkItem.url){
+				gridNode.url = bookmarkItem.url;
+				app.Images.setNodeImage(gridNode, null);
+			}
+			break;
+		case 'folder':
+			gridNode.type = NodeType.folder;
+			app.GridNodes._syncChildren(gridNode, bookmarkItem.children || []); // A folder just created has no children list
+			break;
+		default:
+			gridNode.type = NodeType.empty;
+			break;
+	}
 };
-app.GridNodes.save = function(callback){ // The tree is saved with the settings
-	app.Settings.save(callback);
+// A folder's cells after its bookmarks changed: a tile keeps its cell, a bookmark that is gone leaves a gap
+// (none at the end), and new bookmarks fill the gaps first, then go at the end.
+app.GridNodes._syncChildren = function(gridNode, bookmarks){
+	const NodeType = QDCommon.NodeType;
+	const bookmarkIds = new Set(bookmarks.map(child => child.id));
+	const emptyNodes = []; // Gaps, in order
+	if(!gridNode.children) gridNode.children = [];
+	const children = gridNode.children;
+	for(let i = children.length - 1; i >= 0; i--){
+		if(!children[i]) children[i] = { type: NodeType.empty };
+		if(children[i].type == NodeType.empty){
+			emptyNodes.unshift(children[i]);
+		} else if(!bookmarkIds.has(children[i].id)){ // Bookmark gone: its cell becomes a gap
+			app.Images.removeTree(children[i]);
+			if(i < children.length - 1){
+				children[i] = { type: NodeType.empty };
+				emptyNodes.unshift(children[i]);
+			} else {
+				children.pop();
+			}
+		}
+	}
+	const byId = new Map();
+	for(const child of children) if(child.id && !byId.has(child.id)) byId.set(child.id, child);
+	for(const child of bookmarks){
+		let childGridNode = byId.get(child.id);
+		if(!childGridNode){
+			childGridNode = emptyNodes.shift();
+			if(!childGridNode){
+				childGridNode = {};
+				children.push(childGridNode);
+			}
+		}
+		app.GridNodes._syncNode(childGridNode, child);
+	}
+};
+app.GridNodes.save = function(){ // The tree is saved with the settings (see Settings.save)
+	return app.Settings.save();
 };
 
 /** The folder node at a path like "Work/Tools/" below gridNode. @param {GridNode} gridNode @param {string} path @returns {GridNode|null} */
@@ -138,46 +142,46 @@ app.GridNodes.getNodeWithParents = function(id){
 	return find(app.node);
 };
 
-app.GridNodes.updateNode = function(gridNode, value, callback){ // Changes from the Properties page
+/**
+ * @typedef {object} NodeChanges what the Properties page sends; a field left out is kept
+ * @property {string} [title]
+ * @property {string} [url]
+ * @property {string|null} [image] data URL or url(...) of a picture, '0' or none (see Images.setNodeImage)
+ * @property {number} [imageMode] -1: back to the default
+ * @property {boolean} [titleLocked]
+ * @property {boolean} [imageLocked]
+ */
+/** Changes from the Properties page. A new address gets its title and picture first (see refreshNode).
+ * Resolves once the bookmark is updated too. @param {GridNode} gridNode @param {NodeChanges} value @returns {Promise<void>} */
+app.GridNodes.updateNode = async function(gridNode, value){
 	const NodeType = QDCommon.NodeType;
-	if(value){
-		if(value.title) gridNode.title = value.title;
-		if(value.titleLocked != null) gridNode.titleLocked = value.titleLocked;
-		if(value.imageLocked != null){
-			gridNode.imageLocked = value.imageLocked;
-			app.Images.setNodeImage(gridNode, value.image);
-		} else if(gridNode.imageLocked != true){
-			app.Images.setNodeImage(gridNode, value.image);
-		}
-		if(value.imageMode || value.imageMode == 0){
-			if(value.imageMode == -1) delete gridNode.imageMode;
-			else gridNode.imageMode = value.imageMode;
-		}
-		const urlChanged = gridNode.type == NodeType.bookmark && value.url && gridNode.url != value.url;
-		const done = () => {
-			app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
-			app.GridNodes.save();
-			app.Bookmarks.update(gridNode.id, urlChanged ? { title: gridNode.title, url: gridNode.url } : { title: gridNode.title });
-		};
-		if(urlChanged){ // New address: get its title and picture first
-			gridNode.url = value.url;
-			app.GridNodes.refreshNode(gridNode, done);
-		} else {
-			done();
-		}
+	if(!value) return;
+	if(value.title) gridNode.title = value.title;
+	if(value.titleLocked != null) gridNode.titleLocked = value.titleLocked;
+	if(value.imageLocked != null){
+		gridNode.imageLocked = value.imageLocked;
+		app.Images.setNodeImage(gridNode, value.image);
+	} else if(gridNode.imageLocked != true){
+		app.Images.setNodeImage(gridNode, value.image);
 	}
-	if(callback) callback(gridNode);
+	if(value.imageMode || value.imageMode == 0){
+		if(value.imageMode == -1) delete gridNode.imageMode;
+		else gridNode.imageMode = value.imageMode;
+	}
+	const urlChanged = gridNode.type == NodeType.bookmark && value.url && gridNode.url != value.url;
+	if(urlChanged) gridNode.url = value.url;
+	app.GridNodes.save();
+	if(urlChanged) await app.GridNodes.refreshNode(gridNode);
+	await app.Bookmarks.update(gridNode.id, urlChanged ? { title: gridNode.title, url: gridNode.url } : { title: gridNode.title });
 };
-app.GridNodes.setNodeIndex = function(gridNode, index, newIndex, callback){ // Swap two cells (drag and drop). callback(gridNode, node1, node2)
+app.GridNodes.setNodeIndex = function(gridNode, index, newIndex){ // Swap two cells (drag and drop)
 	const children = gridNode.children;
 	while(newIndex >= children.length) children.push({ type: QDCommon.NodeType.empty });
 	const node1 = children[index];
-	const node2 = children[newIndex];
-	children[index] = node2;
+	children[index] = children[newIndex];
 	children[newIndex] = node1;
 	app.GridNodes._trimEmpty(gridNode);
 	app.GridNodes.save();
-	if(callback) callback(gridNode, node1, node2);
 };
 app.GridNodes._trimEmpty = function(gridNode){ // No gaps at the end of a folder
 	const children = gridNode.children;
@@ -190,22 +194,26 @@ app.GridNodes._place = function(gridNode, newGridNode){ // Into the first gap, o
 	else gridNode.children.push(newGridNode);
 	app.GridNodes.save();
 };
-app.GridNodes.createBookmark = function(gridNode, url, title, callback){ // New bookmark in a folder. callback(gridNode, newGridNode)
+/** New bookmark in a folder. Resolves with its node, or null when the bookmark could not be created.
+ * @param {GridNode} gridNode @param {string} url @param {string} title @returns {Promise<GridNode|null>} */
+app.GridNodes.createBookmark = function(gridNode, url, title){
 	const fullUrl = /^[a-z][a-z0-9+.-]*:/i.test(url) ? url : 'http://' + url; // "example.com" gets a scheme; "about:config" keeps its own
-	app.Bookmarks.quietly('onCreated', () => browser.bookmarks.create({ parentId: gridNode.id, title: title || url, url: fullUrl })).then(bookmarkItem => {
+	return app.Bookmarks.quietly('onCreated', () => browser.bookmarks.create({ parentId: gridNode.id, title: title || url, url: fullUrl })).then(bookmarkItem => {
 		const newGridNode = { id: bookmarkItem.id, type: QDCommon.NodeType.bookmark, url: fullUrl, title };
 		app.GridNodes._place(gridNode, newGridNode);
-		if(callback) callback(gridNode, newGridNode);
-	}, () => {});
+		return newGridNode;
+	}, () => null);
 };
-app.GridNodes.createFolder = function(gridNode, name, callback){ // New folder in a folder. callback(gridNode, newGridNode)
-	app.Bookmarks.quietly('onCreated', () => browser.bookmarks.create({ parentId: gridNode.id, title: name })).then(bookmarkItem => {
+/** New folder in a folder. Resolves with its node, or null when the folder could not be created.
+ * @param {GridNode} gridNode @param {string} name @returns {Promise<GridNode|null>} */
+app.GridNodes.createFolder = function(gridNode, name){
+	return app.Bookmarks.quietly('onCreated', () => browser.bookmarks.create({ parentId: gridNode.id, title: name })).then(bookmarkItem => {
 		const newGridNode = { id: bookmarkItem.id, type: QDCommon.NodeType.folder, title: name, children: [] };
 		app.GridNodes._place(gridNode, newGridNode);
-		if(callback) callback(gridNode, newGridNode);
-	}, () => {});
+		return newGridNode;
+	}, () => null);
 };
-app.GridNodes.deleteNode = function(gridNode, id, callback){ // Delete a tile and its bookmark (or folder). callback(gridNode, id)
+app.GridNodes.deleteNode = function(gridNode, id){ // Delete a tile and its bookmark (or folder)
 	const i = gridNode.children.findIndex(child => child.id == id);
 	if(i >= 0){
 		app.Images.removeTree(gridNode.children[i]);
@@ -214,12 +222,29 @@ app.GridNodes.deleteNode = function(gridNode, id, callback){ // Delete a tile an
 	}
 	app.GridNodes._trimEmpty(gridNode);
 	app.Bookmarks.quietly('onRemoved', () => browser.bookmarks.removeTree(id)).catch(() => {});
-	if(callback) callback(gridNode, id);
 };
 
-// Title and picture from a site: Refresh downloads the page, Capture page opens it in a tab.
-// Both call back with the site infos (or nothing when it failed); a folder gets its picture cleared or captured.
-app.GridNodes._applySiteInfos = function(gridNode, infos, callback){
+// Title and picture from a site: Refresh downloads the page, Capture page opens it in a tab. Both resolve with
+// the site infos, or null when it failed; a folder gets its picture cleared or captured, and resolves with its title.
+// One at a time per tile: asked again while one is under way, they answer with that one.
+app.GridNodes._loading = new WeakMap(); // tile -> promise of its Refresh or Capture page under way
+app.GridNodes._loadOnce = function(gridNode, load){
+	const running = app.GridNodes._loading.get(gridNode);
+	if(running) return running;
+	gridNode.__isLoading = true; // Not saved ("__"); tells the tile is loading to whoever reads it meanwhile
+	const finish = infos => {
+		delete gridNode.__isLoading;
+		app.GridNodes._loading.delete(gridNode);
+		return infos;
+	};
+	const promise = Promise.resolve().then(load).then(finish, e => {
+		console.error('Quick Dial NG: loading the tile failed', e);
+		return finish(null);
+	});
+	app.GridNodes._loading.set(gridNode, promise);
+	return promise;
+};
+app.GridNodes._applySiteInfos = function(gridNode, infos){
 	if(gridNode.imageLocked != true){
 		if(infos){
 			if(gridNode.titleLocked != true) gridNode.title = infos.title;
@@ -228,49 +253,43 @@ app.GridNodes._applySiteInfos = function(gridNode, infos, callback){
 			app.Images.setNodeImage(gridNode, '0');
 		}
 	}
-	delete gridNode.__isLoading;
 	app.GridNodes.save();
-	if(callback) callback(infos);
 	app.Bookmarks.update(gridNode.id, { title: gridNode.title, url: gridNode.url });
+	return infos;
 };
-app.GridNodes.refreshNode = function(gridNode, callback){
+/** @param {GridNode} gridNode @returns {Promise<object|null>} */
+app.GridNodes.refreshNode = function(gridNode){
 	const NodeType = QDCommon.NodeType;
-	if(gridNode.__isLoading == true) return;
-	gridNode.__isLoading = true;
-	switch(gridNode.type){
-		case NodeType.folder:
-			app.Images.setNodeImage(gridNode, null);
-			delete gridNode.__isLoading;
-			app.GridNodes.save();
-			if(callback) callback({ title: gridNode.title });
-			break;
-		case NodeType.bookmark:
-			app.SiteInfos.fromFrame(gridNode.url, infos => app.GridNodes._applySiteInfos(gridNode, infos, callback));
-			break;
-	}
-};
-app.GridNodes.capturePage = function(gridNode, callback){
-	const NodeType = QDCommon.NodeType;
-	if(gridNode.__isLoading == true) return;
-	gridNode.__isLoading = true;
-	switch(gridNode.type){
-		case NodeType.folder: { // The folder's own dial page
-			const nodes = app.GridNodes.getNodeWithParents(gridNode.id);
-			if(!nodes){
-				delete gridNode.__isLoading;
-				break;
-			}
-			const path = nodes.slice(1).map(n => '/' + n.title).join('');
-			app.SiteInfos.fromNewTab('/dial.html?path=' + encodeURIComponent(path), infos => { // folder names may hold & # ? or %
-				app.Images.setNodeImage(gridNode, infos ? infos.screenshot : null);
-				delete gridNode.__isLoading;
+	return app.GridNodes._loadOnce(gridNode, () => {
+		switch(gridNode.type){
+			case NodeType.folder: // The dial shows the folder icon again
+				app.Images.setNodeImage(gridNode, null);
 				app.GridNodes.save();
-				if(callback) callback({ title: gridNode.title });
-			});
-			break;
+				return { title: gridNode.title };
+			case NodeType.bookmark:
+				return app.SiteInfos.fromFrame(gridNode.url).then(infos => app.GridNodes._applySiteInfos(gridNode, infos));
 		}
-		case NodeType.bookmark:
-			app.SiteInfos.fromNewTab(gridNode.url, infos => app.GridNodes._applySiteInfos(gridNode, infos, callback));
-			break;
-	}
+		return null;
+	});
+};
+/** @param {GridNode} gridNode @returns {Promise<object|null>} */
+app.GridNodes.capturePage = function(gridNode){
+	const NodeType = QDCommon.NodeType;
+	return app.GridNodes._loadOnce(gridNode, () => {
+		switch(gridNode.type){
+			case NodeType.folder: { // The folder's own dial page
+				const nodes = app.GridNodes.getNodeWithParents(gridNode.id);
+				if(!nodes) return null;
+				const path = nodes.slice(1).map(n => '/' + n.title).join('');
+				return app.SiteInfos.fromNewTab('/dial.html?path=' + encodeURIComponent(path)).then(infos => { // folder names may hold & # ? or %
+					app.Images.setNodeImage(gridNode, infos ? infos.screenshot : null);
+					app.GridNodes.save();
+					return { title: gridNode.title };
+				});
+			}
+			case NodeType.bookmark:
+				return app.SiteInfos.fromNewTab(gridNode.url).then(infos => app.GridNodes._applySiteInfos(gridNode, infos));
+		}
+		return null;
+	});
 };

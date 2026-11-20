@@ -7,7 +7,7 @@ app.Bookmarks._isTracked = function(...ids){ // True if any of the given bookmar
 	return ids.some(id => id && app.GridNodes.getNodeById(id));
 };
 app.Bookmarks._resync = function(){
-	app.GridNodes.sync(app.node, app.settings.grid.root, () => app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded));
+	app.GridNodes.sync(app.node, app.settings.grid.root).then(() => app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded));
 };
 app.Bookmarks._onCreated = function(id, bookmark){ if(app.Bookmarks._isTracked(bookmark && bookmark.parentId)) app.Bookmarks._resync(); };
 app.Bookmarks._onChanged = function(id){ if(app.Bookmarks._isTracked(id)) app.Bookmarks._resync(); };
@@ -40,23 +40,21 @@ app.Bookmarks.update = function(id, changes){ // Rename or re-address a bookmark
 	return app.Bookmarks.quietly('onChanged', () => browser.bookmarks.update(id, changes)).catch(() => {});
 };
 
-app.Bookmarks.load = function(rootPath, callback){ // Find the root folder of the dial (a path like "Quick Dial" or "/toolbar/Dial"), creating it if missing
-	if(!callback) return;
+/** The root folder of the dial (a path like "Quick Dial" or "/toolbar/Dial"), with the folders missing on the way created.
+ * Resolves with its bookmark item (with its children, unless just created), or with null when the bookmarks can't be read or written; never rejects.
+ * @param {string} rootPath @returns {Promise<browser.bookmarks.BookmarkTreeNode|null>} */
+app.Bookmarks.load = async function(rootPath){
 	const absolute = rootPath.startsWith('/');
-	const getChildItem = (bookmarkItem, path) => {
-		if(path.length == 0){
-			callback(bookmarkItem);
-			return;
+	let path = absolute ? rootPath.slice(1) : rootPath;
+	try {
+		let item = (await browser.bookmarks.getSubTree(absolute ? 'root________' : 'menu________'))[0];
+		while(path.length){
+			const child = (item.children || []).find(child => (path + '/').startsWith(child.title + '/')); // A folder just created has no children list
+			item = child || await browser.bookmarks.create({ parentId: item.id, title: path.slice(0, (path + '/').indexOf('/')) });
+			path = path.slice(item.title.length + 1);
 		}
-		for(const child of bookmarkItem.children || []) // A folder just created has no children list
-			if((path + '/').startsWith(child.title + '/'))
-				return getChildItem(child, path.slice(child.title.length + 1));
-		browser.bookmarks.create({
-			parentId: bookmarkItem.id,
-			title: path.slice(0, (path + '/').indexOf('/'))
-		}).then(created => getChildItem(created, path.slice(created.title.length + 1)), () => callback());
-	};
-	browser.bookmarks.getSubTree(absolute ? 'root________' : 'menu________').then(items => {
-		getChildItem(items[0], absolute ? rootPath.slice(1) : rootPath);
-	}, () => callback());
+		return item;
+	} catch(e){
+		return null;
+	}
 };

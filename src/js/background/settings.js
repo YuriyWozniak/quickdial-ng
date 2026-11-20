@@ -32,11 +32,11 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 app.Settings.LOAD_RETRIES = 2; // More attempts when the stored data can't be read, LOAD_RETRY_DELAY ms apart
 app.Settings.LOAD_RETRY_DELAY = 1000;
 
-// Loads settings and nodes, then calls back; it always does, so the dial pages waiting on app.ready never hang.
-// When the stored data can't be read even after a few attempts, the defaults are used, and nothing is saved
+// Loads settings and nodes. The promise always resolves, so the dial pages waiting on app.ready never hang:
+// when the stored data can't be read even after a few attempts, the defaults are used, and nothing is saved
 // automatically (that would replace the user's data) until the user saves settings or imports a backup.
-app.Settings.init = function(callback){
-	app.Settings._load(app.Settings.LOAD_RETRIES).then(() => { if(callback) callback(); });
+app.Settings.init = function(){
+	return app.Settings._load(app.Settings.LOAD_RETRIES);
 };
 app.Settings._load = function(retries){ // Promise: resolves once app.settings and app.node are set
 	return app.Settings._read().catch(e => {
@@ -80,7 +80,7 @@ app.Settings._read = function(){
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
 			return app.Images.extractFromTree(app.node)
 				.catch(e => console.error('Quick Dial NG: moving the pictures out of the tile tree failed', e))
-				.then(() => new Promise(resolve => app.Settings.save(resolve)));
+				.then(() => app.Settings.save().catch(() => {})); // A failed save is not a failed load: it is logged, and tried again on the next save
 		}
 		app.Settings._lastSaved = app.Settings._serialize();
 		if(migrated){ app.Settings._lastSaved = null; app.Settings.save(); } // Store the migrated data once
@@ -197,10 +197,10 @@ app.Settings.dropObsolete = function(settings){
 	return changed;
 };
 
-app.Settings.update = function(settings, callback){ // Save new settings: the user's own, so saved even after a failed load
+app.Settings.update = function(settings){ // Save new settings: the user's own, so saved even after a failed load. Promise: see save
 	app.settings = settings;
 	delete app.Settings._loadFailed;
-	app.Settings.save(callback);
+	return app.Settings.save();
 };
 // Pictures the user picks in Settings (the background, the Back and folder icons) are data URLs of up to
 // several megabytes. In app.settings they stay CSS values like the built-in ones, so the pages use them as
@@ -263,45 +263,49 @@ app.Settings.rememberBackground = function(){ // Keep the background colour wher
 		else if(localStorage.getItem('dialBackgroundColor') != color) localStorage.setItem('dialBackgroundColor', color);
 	} catch(e){}
 };
-app.Settings._saveCallbacks = [];
-// Save settings (batched, and skipped when nothing changed). callback(error) runs in every case: error is
-// undefined once saved, an Error when it could not be (it is tried again on the next save).
-app.Settings.save = function(callback){
-	if(!app.settings) return;
+app.Settings._saveWaiting = []; // { resolve, reject } of the callers of the save to come
+// Save settings: batched (every call within SAVE_DELAY ms is one write), and skipped when nothing changed. The promise
+// resolves once saved, and rejects when it could not be; the change is then written on the next save. Callers that
+// don't wait on it need not handle the rejection: the failure is logged.
+app.Settings.SAVE_DELAY = 100;
+app.Settings.save = function(){
+	if(!app.settings) return Promise.resolve();
 	app.Settings.rememberBackground(); // Every settings change (settings page, import, migration) passes through here
-	if(callback) app.Settings._saveCallbacks.push(callback);
-	if(app.Settings._saveTimer) return;
-	app.Settings._saveTimer = setTimeout(() => {
-		delete app.Settings._saveTimer;
-		const callbacks = app.Settings._saveCallbacks;
-		app.Settings._saveCallbacks = [];
-		const done = error => { for(const cb of callbacks) cb(error); };
-		if(app.Settings._loadFailed){ // Keep what is stored (see Settings.init)
-			done(new Error('The stored settings could not be loaded, so nothing is saved over them.'));
-			return;
-		}
-		const json = app.Settings._serialize();
-		const pictures = app.Settings._pictures(app.settings), saved = app.Settings._savedPictures;
-		const changed = {}, removed = [];
-		for(const key in app.Settings.PICTURES){
-			if(key in pictures){ if(pictures[key] !== saved[key]) changed[key] = pictures[key]; }
-			else if(key in saved) removed.push(key);
-		}
-		if(json == app.Settings._lastSaved && !Object.keys(changed).length && !removed.length){
-			done();
-			return;
-		}
-		// The pictures are written together with the settings that point at them; one no longer used is removed after
-		const data = Object.assign(json == app.Settings._lastSaved ? {} : JSON.parse(json), changed);
-		(Object.keys(data).length ? browser.storage.local.set(data) : Promise.resolve()).then(() => removed.length ? browser.storage.local.remove(removed) : undefined).then(() => {
-			app.Settings._lastSaved = json;
-			app.Settings._savedPictures = pictures;
-			done();
-		}, e => {
-			console.error('Quick Dial NG: saving the settings failed', e);
-			done(e || new Error('Saving the settings failed'));
-		});
-	}, 100);
+	const promise = new Promise((resolve, reject) => app.Settings._saveWaiting.push({ resolve, reject }));
+	promise.catch(() => {});
+	if(!app.Settings._saveTimer) app.Settings._saveTimer = setTimeout(app.Settings._write, app.Settings.SAVE_DELAY);
+	return promise;
+};
+app.Settings._write = function(){ // The batched save: writes what changed since the last one, then answers the waiting callers
+	delete app.Settings._saveTimer;
+	const waiting = app.Settings._saveWaiting;
+	app.Settings._saveWaiting = [];
+	const done = error => { for(const w of waiting) if(error) w.reject(error); else w.resolve(); };
+	if(app.Settings._loadFailed){ // Keep what is stored (see Settings.init)
+		done(new Error('The stored settings could not be loaded, so nothing is saved over them.'));
+		return;
+	}
+	const json = app.Settings._serialize();
+	const pictures = app.Settings._pictures(app.settings), saved = app.Settings._savedPictures;
+	const changed = {}, removed = [];
+	for(const key in app.Settings.PICTURES){
+		if(key in pictures){ if(pictures[key] !== saved[key]) changed[key] = pictures[key]; }
+		else if(key in saved) removed.push(key);
+	}
+	if(json == app.Settings._lastSaved && !Object.keys(changed).length && !removed.length){
+		done();
+		return;
+	}
+	// The pictures are written together with the settings that point at them; one no longer used is removed after
+	const data = Object.assign(json == app.Settings._lastSaved ? {} : JSON.parse(json), changed);
+	(Object.keys(data).length ? browser.storage.local.set(data) : Promise.resolve()).then(() => removed.length ? browser.storage.local.remove(removed) : undefined).then(() => {
+		app.Settings._lastSaved = json;
+		app.Settings._savedPictures = pictures;
+		done();
+	}, e => {
+		console.error('Quick Dial NG: saving the settings failed', e);
+		done(e || new Error('Saving the settings failed'));
+	});
 };
 
 app.Themes = { list: [] }; // The user's own themes ({ name, description, style }); built-in ones live in themes.js

@@ -94,7 +94,7 @@ module.exports = {
 		t.check('the loading picture is the built-in spinner', spinner.includes('/img/loading.svg'), spinner);
 
 		// ----- Capture page and Properties: the dial asks the background page / opens the popup for the tile under the mouse -----
-		await t.J(() => { const g = bg().app.GridNodes; bg().qdCaptured = []; g.capturePage = (node, cb) => { bg().qdCaptured.push(node.id); if (cb) cb(); }; });
+		await t.J(() => { const g = bg().app.GridNodes; bg().qdCaptured = []; g.capturePage = node => { bg().qdCaptured.push(node.id); return Promise.resolve(null); }; });
 		await menu(t, C.capture, 'site2.example');
 		st = await t.waitFor('the capture request', () => bg().qdCaptured.length && bg().qdCaptured);
 		t.check('Capture page asks for the tile under the mouse', t.same(st, ['b2']), st);

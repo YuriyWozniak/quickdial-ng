@@ -100,7 +100,7 @@
 				results.stage = 'sync';
 				for(var i=0; i<20; i++){
 					await new Promise(function(r){ waitFor(function(){ return !app.GridNodes._syncing; }, r); }); // Start from a settled tree
-					var a = performance.now(); await new Promise(function(r){ app.GridNodes.sync(app.node, app.settings.grid.root, r); }); t.push(performance.now()-a);
+					var a = performance.now(); await app.GridNodes.sync(app.node, app.settings.grid.root); t.push(performance.now()-a);
 				}
 				results.syncMs = median(t);
 				// Save after a change (title rename): time to write storage
@@ -108,7 +108,7 @@
 				for(var i=0; i<10; i++){
 					var first = app.node.children[0]; first.title = 'Site 0 r' + i;
 					var a = performance.now();
-					await new Promise(function(r){ app.Settings.save(r); });
+					await app.Settings.save();
 					t.push(performance.now()-a);
 				}
 				results.saveMs = median(t);

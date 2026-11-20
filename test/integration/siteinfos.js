@@ -29,9 +29,9 @@ const fakeTabs = (t, options) => t.J(o => {
 	w.browser.tabs.captureVisibleTab = () => { if (o.fail) return Promise.reject(new Error('no')); const c = w.document.createElement('canvas'); c.width = 1200; c.height = 1600; return Promise.resolve(c.toDataURL('image/png')); };
 	w.browser.tabs.remove = id => { w.qdTabs.push(['remove', id]); return Promise.resolve(); };
 }, options || {});
-// Capture page / Refresh for a tile by id; both resolve with the site infos (title, picture) or nothing
-const capture = (t, id) => t.J(id => new Promise(r => { const g = bg().app.GridNodes; g.capturePage(g.getNodeById(id), r); }), id);
-const refresh = (t, id) => t.J(id => new Promise(r => { const g = bg().app.GridNodes; g.refreshNode(g.getNodeById(id), r); }), id);
+// Capture page / Refresh for a tile by id; both resolve with the site infos (title, picture) or null
+const capture = (t, id) => t.J(id => { const g = bg().app.GridNodes; return g.capturePage(g.getNodeById(id)); }, id);
+const refresh = (t, id) => t.J(id => { const g = bg().app.GridNodes; return g.refreshNode(g.getNodeById(id)); }, id);
 
 module.exports = {
 	title: 'Refresh (sandboxed download) and Capture page (screenshot of a tab)',
@@ -42,15 +42,15 @@ module.exports = {
 		const page = sitePage(t, 'page.html', '<!doctype html><html><head><title>Sandboxed page</title>' +
 			'<script>top.qdRan = "script";</script></head><body onload="top.qdRan = \'onload\'"><h1>Hello</h1></body></html>');
 		await stubDrawWindow(t);
-		let st = await t.J(url => new Promise(r => bg().app.SiteInfos.fromFrame(url, infos => r({ infos: infos && { title: infos.title, pic: !!infos.screenshot },
-			drawn: bg().qdDrawn, ran: window.qdRan || bg().qdRan || null, frames: bg().document.querySelectorAll('iframe').length }))), page + '?a=1&b="2"');
+		let st = await t.J(url => bg().app.SiteInfos.fromFrame(url).then(infos => ({ infos: infos && { title: infos.title, pic: !!infos.screenshot },
+			drawn: bg().qdDrawn, ran: window.qdRan || bg().qdRan || null, frames: bg().document.querySelectorAll('iframe').length })), page + '?a=1&b="2"');
 		t.check('Refresh draws the page in a sandbox without scripts, reads its title, removes the frame', st.infos && st.infos.title === 'Sandboxed page' && st.infos.pic && st.drawn.sandbox === 'allow-same-origin' &&
 			st.drawn.base.endsWith('/site/page.html?a=1&b=%222%22') && st.ran === null && st.frames === 0, st);
-		st = await t.J(() => Promise.all(['javascript:alert(1)', 'place:sort=8', 'file:///C:/x.html', 'http://a b/'].map(u => new Promise(r => bg().app.SiteInfos.fromFrame(u, i => r(i === undefined))))));
+		st = await t.J(() => Promise.all(['javascript:alert(1)', 'place:sort=8', 'file:///C:/x.html', 'http://a b/'].map(u => bg().app.SiteInfos.fromFrame(u).then(i => i === null))));
 		t.check('addresses that aren\'t web pages are not downloaded', st.every(Boolean), st);
 		await t.J(() => { delete bg().CanvasRenderingContext2D.prototype.drawWindow; });
-		st = await t.J(url => new Promise(r => bg().app.SiteInfos.fromFrame(url, r)), page);
-		t.check('without drawWindow (refused in recent Firefox) Refresh gives up cleanly', st === null || st === undefined, st);
+		st = await t.J(url => bg().app.SiteInfos.fromFrame(url), page);
+		t.check('without drawWindow (refused in recent Firefox) Refresh gives up cleanly', st === null, st);
 		st = await refresh(t, 'b1');
 		await t.idle();
 		st = await t.J(() => bg().app.GridNodes.getNodeById('b1'));
@@ -110,7 +110,9 @@ module.exports = {
 		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)), node: await t.J(() => bg().app.GridNodes.getNodeById('b4')) };
 		t.check('a page that never finishes loading is captured once the waiting time is over', st.infos && st.infos.title === 'Captured title' && t.same(st.tabs, [['remove', 7]]) && st.node.image === '1', st);
 		await t.J(() => { const s = bg().app.SiteInfos; s.LOAD_POLL = 300; s.LOAD_TIMEOUT = 30000; });
-		st = await t.J(() => { const g = bg().app.GridNodes, n = g.getNodeById('b5'); n.__isLoading = true; let called = false; g.capturePage(n, () => { called = true; }); g.refreshNode(n, () => { called = true; }); return called; });
-		t.check('a tile already loading is not loaded twice', st === false);
+		await fakeTabs(t);
+		st = await t.J(() => { const g = bg().app.GridNodes, n = g.getNodeById('b5'), first = g.capturePage(n), again = [g.capturePage(n), g.refreshNode(n)];
+			return Promise.all([first].concat(again)).then(r => ({ same: again.every(p => p === first), title: r[0] && r[0].title, opened: bg().qdTabs.filter(c => c[0] === 'create').length, loading: !!n.__isLoading })); });
+		t.check('a tile already loading is not loaded twice: asked again, the load under way answers', st.same && st.title === 'Captured title' && st.opened === 1 && !st.loading, st);
 	}
 };

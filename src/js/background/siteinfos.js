@@ -1,5 +1,5 @@
 // Quick Dial NG — background page: title and picture of a site, for its tile.
-// Both functions call back with { url, title, icon, screenshot }, or with nothing on failure.
+// Both functions resolve with { url, title, icon, screenshot }, or with null when it failed; they never reject.
 app.SiteInfos = {};
 
 app.SiteInfos.PREVIEW_WIDTH = 1200; // Width a page is drawn at for its picture; the height follows the tile proportions
@@ -28,7 +28,7 @@ app.SiteInfos.LOAD_TIMEOUT = 30000; // A page still loading after this long is c
 
 // Opens the page in a background tab, then shows it for a moment to capture it ("Capture page").
 // The capture sees the page as the user does, logged in. The tab is closed again whatever happens.
-app.SiteInfos.fromNewTab = function(url, callback){
+app.SiteInfos.fromNewTab = function(url){
 	const SiteInfos = app.SiteInfos;
 	const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 	let tabId = null;
@@ -47,7 +47,7 @@ app.SiteInfos.fromNewTab = function(url, callback){
 		if(!tab.active) throw new Error('the tab was no longer shown'); // The user switched tabs: the picture would show another page
 		return { tab, image: await browser.tabs.captureVisibleTab(tab.windowId) };
 	};
-	screenshot().then(
+	return screenshot().then(
 		shot => {
 			browser.tabs.remove(tabId).catch(() => {});
 			return SiteInfos._fromScreenshot(shot.tab, shot.image);
@@ -55,8 +55,9 @@ app.SiteInfos.fromNewTab = function(url, callback){
 		e => {
 			if(tabId != null) browser.tabs.remove(tabId).catch(() => {});
 			console.warn('Quick Dial NG: Capture page failed for ' + url, e);
+			return null;
 		}
-	).then(infos => { if(callback) callback(infos); }, () => { if(callback) callback(); });
+	).catch(() => null);
 };
 // The site infos from a screenshot of its tab: the picture is cut (or stretched) to the tile proportions
 app.SiteInfos._fromScreenshot = async function(tab, image){
@@ -75,8 +76,11 @@ app.SiteInfos._fromScreenshot = async function(tab, image){
 };
 
 // Downloads the page and draws it in a hidden frame ("Refresh"). Only http and https pages.
-app.SiteInfos.fromFrame = function(url, callback){
-	const fail = () => { if(callback) callback(); };
+app.SiteInfos.fromFrame = function(url){
+	return new Promise(resolve => app.SiteInfos._fromFrame(url, resolve));
+};
+app.SiteInfos._fromFrame = function(url, done){ // done(infos), or done(null) when it failed
+	const fail = () => done(null);
 	if(!/^https?:\/\//i.test(url)){ // Only web pages can be fetched (not place:, file:, javascript:...)
 		fail();
 		return;
@@ -99,7 +103,7 @@ app.SiteInfos.fromFrame = function(url, callback){
 		const screenshot = canvas.toDataURL('image/webp', app.Images.quality);
 		iframe.remove();
 		iframe = null;
-		if(callback) callback({ url, title, icon: null, screenshot });
+		done({ url, title, icon: null, screenshot });
 	};
 	const xhr = new XMLHttpRequest();
 	xhr.timeout = 10000;

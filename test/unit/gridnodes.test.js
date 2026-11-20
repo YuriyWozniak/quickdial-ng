@@ -1,5 +1,5 @@
 // app.GridNodes (js/background/gridnodes.js): the tile tree, its sync with the bookmarks folder, and edits
-// (swap, new bookmark or folder, delete).
+// (swap, new bookmark or folder, delete, Refresh and Properties).
 //
 // The tile tree mirrors the "Quick Dial" bookmarks folder: a folder's children are its cells in order,
 // with { type: 0 } for a gap; tiles keep their cells while bookmarks come and go. Here the bookmarks are
@@ -15,11 +15,11 @@ const E = { type: 0 }; // an empty cell
 // A background page with settings loaded and a "Quick Dial" folder holding the given bookmarks
 async function setup(bookmarks = []) {
 	const w = loadBackground();
-	await new Promise(r => w.app.Settings.init(r));
+	await w.app.Settings.init();
 	w.browser.bookmarks.find('menu________').children.push({ id: 'qd', type: 'folder', title: 'Quick Dial', children: bookmarks });
 	return w;
 }
-const sync = w => new Promise(r => w.app.GridNodes.sync(w.app.node, w.app.settings.grid.root, r));
+const sync = w => w.app.GridNodes.sync(w.app.node, w.app.settings.grid.root);
 const ids = node => plain(node.children.map(c => c.id || '-'));
 const bm = (id, url) => ({ id, type: 'bookmark', title: id.toUpperCase(), url: url || 'https://' + id + '.example/' });
 
@@ -65,13 +65,13 @@ test('sync: a new address drops the stored picture; a gone bookmark takes its pi
 	assert.ok(!('img_a' in w.browser.store) && !('img_b' in w.browser.store));
 });
 
-test('sync called again while running runs once more afterwards, and calls back every caller', async () => {
+test('sync called again while running runs once more afterwards, and answers every caller', async () => {
 	const w = await setup([bm('a')]);
 	const order = [];
-	const first = new Promise(r => w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => { order.push('first'); r(); }));
+	const first = w.app.GridNodes.sync(w.app.node, 'Quick Dial').then(() => order.push('first'));
 	w.browser.bookmarks.find('qd').children.push(bm('b'));
-	const second = new Promise(r => w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => { order.push('second'); r(); }));
-	const third = new Promise(r => w.app.GridNodes.sync(w.app.node, 'Quick Dial', () => { order.push('third'); r(); }));
+	const second = w.app.GridNodes.sync(w.app.node, 'Quick Dial').then(() => order.push('second'));
+	const third = w.app.GridNodes.sync(w.app.node, 'Quick Dial').then(() => order.push('third'));
 	await Promise.all([first, second, third]);
 	assert.deepEqual(plain(order), ['first', 'second', 'third'], 'all after the second run, in order');
 	assert.deepEqual(ids(w.app.node), ['a', 'b']);
@@ -81,9 +81,9 @@ test('sync called again while running runs once more afterwards, and calls back 
 test('a sync asked for while one runs uses its own tree: a tree replaced meanwhile (import, new root) is synced', async () => {
 	const w = await setup([bm('a')]);
 	const old = w.app.node;
-	const first = new Promise(r => w.app.GridNodes.sync(old, 'Quick Dial', r));
+	const first = w.app.GridNodes.sync(old, 'Quick Dial');
 	const fresh = { children: [] };
-	const second = new Promise(r => w.app.GridNodes.sync(fresh, 'Quick Dial', r));
+	const second = w.app.GridNodes.sync(fresh, 'Quick Dial');
 	await Promise.all([first, second]);
 	assert.equal(fresh.id, 'qd');
 	assert.deepEqual(ids(fresh), ['a']);
@@ -130,15 +130,15 @@ test('new bookmarks and folders go into the first gap, else at the end; the even
 	await sync(w);
 	w.app.Bookmarks.initListener();
 	w.app.node.children.push({ ...E }, bm('z'));
-	const created = await new Promise(r => w.app.GridNodes.createBookmark(w.app.node, 'example.com', '', (p, n) => r(n)));
+	const created = await w.app.GridNodes.createBookmark(w.app.node, 'example.com', '');
 	assert.equal(created.url, 'http://example.com');
 	assert.equal(created.title, '');
 	assert.deepEqual(ids(w.app.node), ['a', created.id, 'z']);
-	const folder = await new Promise(r => w.app.GridNodes.createFolder(w.app.node, 'New', (p, n) => r(n)));
+	const folder = await w.app.GridNodes.createFolder(w.app.node, 'New');
 	assert.deepEqual(plain(folder.children), []);
 	assert.equal(w.app.node.children[3].id, folder.id);
 	assert.ok(w.browser.bookmarks.onCreated.listeners.has(w.app.Bookmarks._onCreated), 'listening again afterwards');
-	const kept = await new Promise(r => w.app.GridNodes.createBookmark(w.app.node, 'about:config', 'Config', (p, n) => r(n)));
+	const kept = await w.app.GridNodes.createBookmark(w.app.node, 'about:config', 'Config');
 	assert.equal(kept.url, 'about:config', 'an address with its own scheme keeps it');
 });
 
@@ -153,4 +153,70 @@ test('deleteNode: a gap in the middle, nothing at the end; its bookmark and pict
 	await settle();
 	assert.ok(!('img_b' in w.browser.store));
 	assert.deepEqual(plain(w.browser.calls.filter(c => c[0] === 'removeTree')), [['removeTree', 'b'], ['removeTree', 'c']]);
+});
+
+test('sync: bookmarks that can\'t be read leave the tree as it is, unlocked; the next sync catches up', async () => {
+	const w = await setup([bm('a')]);
+	await sync(w);
+	const getSubTree = w.browser.bookmarks.getSubTree;
+	w.browser.bookmarks.getSubTree = () => Promise.reject(new Error('busy'));
+	w.browser.bookmarks.find('qd').children.push(bm('b'));
+	assert.equal(await w.app.Bookmarks.load('Quick Dial'), null, 'Bookmarks.load resolves with null, never rejects');
+	await sync(w);
+	assert.deepEqual(ids(w.app.node), ['a']);
+	assert.equal(w.app.GridNodes._syncing, undefined);
+	w.browser.bookmarks.getSubTree = getSubTree;
+	await sync(w);
+	assert.deepEqual(ids(w.app.node), ['a', 'b']);
+});
+
+// Refresh with a stand-in for the download: fromFrame() waits until the test calls finish(infos)
+const pendingRefresh = w => {
+	const fake = { calls: 0, finish: null };
+	w.app.SiteInfos.fromFrame = () => { fake.calls++; return new Promise(r => { fake.finish = r; }); };
+	return fake;
+};
+
+test('refresh and capture: one at a time per tile; asked again meanwhile, the one under way answers', async () => {
+	const w = await setup([bm('a'), { id: 'f', type: 'folder', title: 'F', children: [] }]);
+	await sync(w);
+	const G = w.app.GridNodes, a = w.app.node.children[0], fake = pendingRefresh(w);
+	const first = G.refreshNode(a);
+	assert.equal(a.__isLoading, true);
+	assert.equal(G.refreshNode(a), first);
+	assert.equal(G.capturePage(a), first);
+	await settle();
+	assert.equal(fake.calls, 1, 'downloaded once');
+	fake.finish({ url: a.url, title: 'Site A', icon: null, screenshot: 'data:image/webp;base64,AAAA' });
+	assert.equal((await first).title, 'Site A');
+	assert.equal(a.title, 'Site A');
+	assert.equal(a.image, '1');
+	assert.ok(!('__isLoading' in a), 'done: not loading any more');
+	const next = G.refreshNode(a);
+	assert.notEqual(next, first, 'a new request once done');
+	await settle();
+	fake.finish(null);
+	assert.equal(await next, null, 'a failed download resolves with null');
+	assert.equal(a.image, '0', 'and marks the tile as having no picture');
+	assert.deepEqual(plain(await G.refreshNode(w.app.node.children[1])), { title: 'F' }, 'a folder: its picture is cleared');
+	assert.equal(await G.refreshNode({ type: 0 }), null, 'an empty cell: nothing to load');
+});
+
+test('updateNode: a new address is refreshed first, then the bookmark gets its new title and address', async () => {
+	const w = await setup([bm('a')]);
+	await sync(w);
+	const a = w.app.node.children[0], fake = pendingRefresh(w);
+	let done = false;
+	const updated = w.app.GridNodes.updateNode(a, { url: 'https://moved.example/' }).then(() => { done = true; });
+	assert.equal(a.url, 'https://moved.example/');
+	assert.equal(a.__isLoading, true);
+	await settle();
+	assert.equal(done, false, 'waits for the refresh');
+	fake.finish({ url: a.url, title: 'Moved', icon: null, screenshot: 'data:image/webp;base64,AAAA' });
+	await updated;
+	assert.deepEqual(plain(w.browser.calls.filter(c => c[0] === 'update').pop()), ['update', 'a', { title: 'Moved', url: 'https://moved.example/' }]);
+	w.browser.calls.length = 0;
+	await w.app.GridNodes.updateNode(a, { title: 'Renamed' });
+	assert.equal(fake.calls, 1, 'the same address: no refresh');
+	assert.deepEqual(plain(w.browser.calls.filter(c => c[0] === 'update')), [['update', 'a', { title: 'Renamed' }]]);
 });

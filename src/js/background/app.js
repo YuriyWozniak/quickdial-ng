@@ -16,7 +16,7 @@ var app = {};
 app.ready = new Promise(resolve => { app._setReady = resolve; }); // Resolves once settings and nodes are loaded; dial pages wait on it
 
 app.init = function(){
-	app.Settings.init(() => {
+	app.Settings.init().then(() => {
 		app.Settings.rememberBackground();
 		app._setReady();
 		app.Messages.init();
@@ -31,7 +31,7 @@ app.init = function(){
 		app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded);
 		app.ContextMenus.initMenu();
 		setTimeout(() => {
-			app.GridNodes.sync(app.node, app.settings.grid.root, () => app.Bookmarks.initListener());
+			app.GridNodes.sync(app.node, app.settings.grid.root).then(() => app.Bookmarks.initListener());
 		}, 500);
 		// The start page is Firefox's home page, set to dial.html by chrome_settings_overrides in manifest.json
 	});

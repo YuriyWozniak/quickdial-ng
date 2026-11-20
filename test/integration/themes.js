@@ -59,7 +59,7 @@ module.exports = {
 			return { bg: getComputedStyle(document.body).backgroundImage.slice(0, 40), radius: cs.borderTopLeftRadius, blur: cs.backdropFilter, shadow: cs.boxShadow !== 'none', titlePos: title.position, panelH: a.firstChild.offsetHeight, linkH: a.clientHeight }; });
 		t.check('the dial draws Anori: picture over the gradient, glass, shadow, title over the picture', st.bg.startsWith('url(') && st.bg.includes('back.svg') && st.radius === '14px' && st.blur === 'blur(14px)' && st.shadow && st.titlePos === 'absolute' && st.panelH === st.linkH, st);
 		st = await t.J(() => { const a = bg().app, T = bg().QDThemes, s = JSON.parse(JSON.stringify(a.settings)); T.apply(s, T.BUILTIN[0].style);
-			return new Promise(r => a.Settings.update(s, () => r(T.equal(T.extract(a.settings), T.CLASSIC)))); });
+			return a.Settings.update(s).then(() => T.equal(T.extract(a.settings), T.CLASSIC)); });
 		t.check('Classic brings the original look back', st);
 	}
 };
