@@ -69,7 +69,6 @@ jobs:
     timeout-minutes: 10
     env:
       COMMIT: ${{ needs.check.outputs.commit }}
-      QDNG_OUT_DIR: ${{ runner.temp }}/amo
     steps:
       - uses: actions/checkout@v6
         with:
@@ -83,8 +82,10 @@ jobs:
         working-directory: release
       # The source without update_url, linted with the listed rules, as quickdial-ng-<version>-amo.zip
       - run: node release/release.js "$VERSION" --amo --commit "$COMMIT"
+        env:
+          QDNG_OUT_DIR: ${{ runner.temp }}/amo
       # Release notes (amo-listing.md) and Notes to Reviewer (release/README.md) for the AMO version page
-      - run: node release/notes.js "$VERSION" --amo-metadata "$QDNG_OUT_DIR/amo-metadata.json"
+      - run: node release/notes.js "$VERSION" --amo-metadata "$RUNNER_TEMP/amo/amo-metadata.json"
       - uses: actions/upload-artifact@v7
         with:
           name: amo-${{ inputs.version }}
