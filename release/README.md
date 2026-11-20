@@ -8,7 +8,9 @@
    - The *submit to AMO* job then waits for you: open the run and choose **Review deployments › amo › Approve**. It uploads the package to addons.mozilla.org with the release notes and the Notes to Reviewer below, and tags the commit `v<version>`.
 3. Mozilla reviews the version (hours to days). The **Publish** workflow checks addons.mozilla.org every 3 hours; once the version is approved it downloads the signed file, checks it against AMO's hash and the tagged source, and creates the GitHub release with the notes and the `.xpi`. To publish sooner, run Publish by hand.
 
-The package and its metadata stay downloadable from the Release run for 30 days. Untick **Firefox for Android** on the version's page if AMO adds it (see below).
+The package and its metadata stay downloadable from the Release run for 30 days. AMO may add **Firefox for Android** to the version (see below); `node release/amo.js compat <version>` takes it off again.
+
+The listing itself (summary, description, screenshots, icon) is kept up to date with [`amo.js`](amo.js) from [amo-listing.md](amo-listing.md); it uses the same API key, from `AMO_JWT_ISSUER`/`AMO_JWT_SECRET` or the key file below.
 
 One-time setup (done once per repository): **Settings › Environments › amo** has you as required reviewer and allows only `develop`. Its secrets `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` are the two values of the AMO API key ([Manage API Keys](https://addons.mozilla.org/developers/addon/api/key/)); they are used only by the *submit to AMO* job and never appear in logs.
 
