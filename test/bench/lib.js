@@ -1,5 +1,5 @@
 // Shared parts of the benchmark tools that run in Node (run.js, build.js, startup.js, startup-report.js,
-// gecko-markers.js): the names and defaults they agree on, command-line arguments, timing, statistics and Firefox.
+// gecko-markers.js, newtab-phases.js): the names and defaults they agree on, command-line arguments, timing, statistics and Firefox.
 'use strict';
 const fs = require('fs'), path = require('path');
 
