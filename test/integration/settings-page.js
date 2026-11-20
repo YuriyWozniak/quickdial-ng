@@ -59,7 +59,7 @@ module.exports = {
 		await t.dial().locator('#BackgroundImageFile').setInputFiles({ name: 'bg.png', mimeType: 'image/png', buffer: Buffer.from(png.split(',')[1], 'base64') });
 		await t.waitFor('the picture to be read', () => !win('dial').BtnApply.disabled);
 		await t.dial().locator('#BtnApply').click();
-		await t.waitFor('the picture to be applied', () => /^url\(data:image\/png/.test(bg().app.settings.backgroundImage || ''));
+		await t.waitFor('the picture to be applied', () => /^url\("?data:image\/png/.test(bg().app.settings.backgroundImage || ''));
 		await t.dial().locator('#BackgroundImageClear').click();
 		await t.dial().locator('#BtnApply').click();
 		await t.waitFor('the picture to be cleared', () => bg().app.settings.backgroundImage === null);

@@ -1,5 +1,5 @@
-// Quick Dial NG — shared UI helpers (tabs, unsaved-changes tracking, image drop/paste,
-// image-mode previews and in-page dialogs). Used by the Settings and Properties pages and,
+// Quick Dial NG — shared UI helpers (the popup frame, tabs, unsaved-changes tracking, reading files,
+// picking, dropping and pasting images, the accent colour and in-page dialogs). Used by the Settings and Properties pages and,
 // loaded on demand, by the dial page. Styles live in /css/ui.css.
 /* exported QDUI */
 // eslint-disable-next-line no-var -- a window property: the pages and the dial (loaded on demand) use it
@@ -7,9 +7,14 @@ var QDUI = (function(){
 	'use strict';
 
 	// ---------- popup frame ----------
+	// A page shown in the dial's popup frame (dial.PopupPanel) reaches it through window.frameElement.popup
 	function closePopup(){
 		if(window.frameElement && window.frameElement.popup) window.frameElement.popup.close();
 		else window.close();
+	}
+	function fitPopup(){ // After the content changed: the frame takes the content's height
+		const popup = window.frameElement && window.frameElement.popup;
+		if(popup && popup.fit) popup.fit();
 	}
 
 	// ---------- tabs ----------
@@ -74,16 +79,34 @@ var QDUI = (function(){
 		};
 	}
 
-	// ---------- images ----------
-	// Same mapping as the dial page: -1 default, 0 stretch, 1 cover, 2 contain, 3 center.
-	function applyImageMode(mode, style){
-		switch(+mode){
-			case 0: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = '100% 100%'; style.backgroundPosition = 'center'; break;
-			case 1: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = 'cover'; style.backgroundPosition = 'center'; break;
-			case 2: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = 'contain'; style.backgroundPosition = 'center'; break;
-			case 3: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = 'auto'; style.backgroundPosition = 'center'; break;
-			default: style.backgroundRepeat = 'no-repeat'; style.backgroundSize = '100% 100%'; style.backgroundPosition = 'center';
-		}
+	// ---------- files and images ----------
+	// (How a picture fills its box: QDCommon.applyImageMode in js/common.js, shared with the dial.)
+
+	// Reads a file the user picked: resolves with its text (asText) or a data URL, or null when it can't be read
+	function readFile(file, asText){
+		return new Promise(resolve => {
+			const fileReader = new FileReader();
+			fileReader.onload = e => { resolve(e.target.result); };
+			fileReader.onerror = () => { resolve(null); };
+			if(asText) fileReader.readAsText(file);
+			else fileReader.readAsDataURL(file);
+		});
+	}
+
+	// A picture chosen with `input` (a file input, hidden behind the `choose` label) is passed to apply(dataUrl).
+	// The label opens the file dialog with Enter and Space too, and the same file can be chosen twice in a row.
+	// imageDrop() hands dropped and pasted files to the same input.
+	function imagePicker(input, choose, apply){
+		if(choose) choose.addEventListener('keydown', e => { if(e.key == 'Enter' || e.key == ' '){ e.preventDefault(); input.click(); } });
+		input.addEventListener('click', () => { input.value = null; });
+		input.addEventListener('change', () => {
+			const file = input.files[0];
+			if(!file) return;
+			readFile(file).then(dataUrl => {
+				input.value = null;
+				if(dataUrl) apply(dataUrl);
+			});
+		});
 	}
 
 	// Lets the user drop an image file on `zone` (and optionally paste one anywhere on the page);
@@ -221,5 +244,5 @@ var QDUI = (function(){
 		});
 	}
 
-	return { closePopup: closePopup, initTabs: initTabs, trackChanges: trackChanges, applyImageMode: applyImageMode, imageDrop: imageDrop, setAccent: setAccent, dialog: dialog };
+	return { closePopup, fitPopup, initTabs, trackChanges, readFile, imagePicker, imageDrop, setAccent, dialog };
 })();

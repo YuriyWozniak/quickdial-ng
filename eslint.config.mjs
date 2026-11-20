@@ -20,6 +20,7 @@ export default [
 				...globals.browser,
 				...globals.webextensions,
 				QDCommon: 'readonly', // js/common.js
+				QDClient: 'readonly', // js/common.js
 				QDThemes: 'readonly', // js/themes.js
 				QDUI: 'readonly' // js/ui.js
 			}
@@ -40,7 +41,7 @@ export default [
 		}
 	},
 	// The scripts that define those globals (with `var` and an /* exported */ comment, so they are window properties)
-	{ files: ['src/js/common.js'], languageOptions: { globals: { QDCommon: 'off' } } },
+	{ files: ['src/js/common.js'], languageOptions: { globals: { QDCommon: 'off', QDClient: 'off' } } },
 	{ files: ['src/js/themes.js'], languageOptions: { globals: { QDThemes: 'off' } } },
 	{ files: ['src/js/ui.js'], languageOptions: { globals: { QDUI: 'off' } } },
 	{ files: ['src/js/background/*.js'], ignores: ['src/js/background/app.js'], languageOptions: { globals: { app: 'writable' } } },

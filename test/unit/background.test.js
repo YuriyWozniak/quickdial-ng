@@ -1,5 +1,6 @@
 // Smaller parts of the background page and what all pages share:
-//   QDCommon (js/common.js)                       message command numbers and node types
+//   QDCommon (js/common.js)                       message command numbers, node types, picture modes and CSS values
+//   QDClient (js/common.js)                       the pages' messages: what each command sends, failures, listening
 //   app.Backup (js/background/backup.js)          copying without transient fields, merging defaults,
 //                                                 linking imported tiles to bookmarks
 //   app.Images (js/background/images.js)          picture values, storage and cache
@@ -18,6 +19,57 @@ test('QDCommon: every message command has its own number', () => {
 	assert.equal(new Set(numbers).size, numbers.length);
 	assert.ok(Object.isFrozen(QDCommon.Commands) && Object.isFrozen(QDCommon.NodeType));
 	assert.deepEqual(plain(QDCommon.NodeType), { back: -1, empty: 0, folder: 1, bookmark: 2 });
+});
+
+test('QDCommon: how a picture fills its box, and pictures as CSS values', () => {
+	const { QDCommon } = load('js/common.js');
+	const mode = m => { const s = { backgroundRepeat: 'x', backgroundSize: 'x', backgroundPosition: 'x' }; QDCommon.applyImageMode(m, s); return [s.backgroundRepeat, s.backgroundSize, s.backgroundPosition]; };
+	assert.deepEqual(mode(0), ['no-repeat', '100% 100%', 'center']);
+	assert.deepEqual(mode('1'), ['no-repeat', 'cover', 'center'], 'a select\'s value works too');
+	assert.deepEqual(mode(2), ['no-repeat', 'contain', 'center']);
+	assert.deepEqual(mode(3), ['no-repeat', 'auto', 'center']);
+	assert.deepEqual(mode(-1), ['', '', ''], '-1: back to the CSS rule underneath');
+	assert.deepEqual(mode(7), mode(0), 'anything else: stretched');
+	assert.equal(QDCommon.toCssUrl('data:image/webp;base64,AA'), 'url("data:image/webp;base64,AA")');
+	assert.equal(QDCommon.toCssUrl('url(/img/folder.svg)'), 'url(/img/folder.svg)');
+	assert.equal(QDCommon.toCssUrl('0'), null);
+	assert.equal(QDCommon.toCssUrl(null), null);
+	assert.equal(QDCommon.fromCssUrl(QDCommon.toCssUrl('data:image/webp;base64,AA')), 'data:image/webp;base64,AA');
+	assert.equal(QDCommon.fromCssUrl(" url( 'data:x' ) "), 'data:x');
+	assert.equal(QDCommon.fromCssUrl('data:x'), 'data:x');
+	assert.equal(QDCommon.fromCssUrl(null), null);
+});
+
+test('QDClient sends each command with its fields, answers failures with empty values, and listens', async () => {
+	const w = load('js/common.js'), { QDClient } = w, Commands = w.QDCommon.Commands;
+	const sent = [], listeners = [];
+	let fail = false;
+	w.browser.runtime.sendMessage = msg => { sent.push(plain(msg)); return fail ? Promise.reject(new Error('no page')) : Promise.resolve(msg.cmd); };
+	w.browser.runtime.onMessage = { addListener: f => listeners.push(f) };
+	await QDClient.updateNode('b1', { title: 'T' });
+	await QDClient.setNodeIndex('/Work/', 2, 5);
+	await QDClient.createBookmark('/', 'https://a.b/', 'https://a.b/');
+	await QDClient.openSettings({ type: 'click' }); // a button handler's event is not a section
+	await QDClient.openSettings('backup');
+	assert.deepEqual(sent, [
+		{ cmd: Commands.updateNode, id: 'b1', value: { title: 'T' } },
+		{ cmd: Commands.setNodeIndex, path: '/Work/', index: 2, newIndex: 5 },
+		{ cmd: Commands.createBookmark, path: '/', url: 'https://a.b/', title: 'https://a.b/' },
+		{ cmd: Commands.openSettings, tab: null },
+		{ cmd: Commands.openSettings, tab: 'backup' }
+	]);
+	fail = true;
+	assert.deepEqual(plain(await QDClient.getImages(['b1'])), {});
+	assert.deepEqual(plain(await QDClient.getThemes()), []);
+	assert.equal(await QDClient.openSettings(), undefined);
+	await assert.rejects(QDClient.getSettings(), 'other commands pass the failure on');
+
+	const got = [];
+	QDClient.listen({ [Commands.gridNodesLoaded]: r => got.push(r.cmd) });
+	assert.equal(listeners.length, 1);
+	const answers = [Commands.gridNodesLoaded, Commands.settingsChanged, Commands.getSettings].map(cmd => listeners[0]({ cmd }));
+	assert.deepEqual(got, [Commands.gridNodesLoaded], 'only the commands it was given');
+	assert.deepEqual(answers, [undefined, undefined, undefined], 'a page never answers in place of the background page');
 });
 
 test('Backup._clean copies without the "__" fields', () => {
