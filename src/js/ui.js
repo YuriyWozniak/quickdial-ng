@@ -1,6 +1,6 @@
 // Quick Dial NG — shared UI helpers (the popup frame, tabs, unsaved-changes tracking, reading files,
 // picking, dropping and pasting images, the accent colour and in-page dialogs). Used by the Settings and Properties pages and,
-// loaded on demand, by the dial page. Styles live in /css/ui.css.
+// loaded on demand, by the dial page. Styles live in /css/ui.css (the pages add /css/page.css).
 /* exported QDUI */
 // eslint-disable-next-line no-var -- a window property: the pages and the dial (loaded on demand) use it
 var QDUI = (function(){

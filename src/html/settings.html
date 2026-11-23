@@ -5,6 +5,8 @@
 		<link rel="shortcut icon" type="image/svg+xml" href="../img/icon.svg" />
 		<title data-i18n="menuSettings"></title>
 		<link rel="stylesheet" href="../css/ui.css" />
+		<link rel="stylesheet" href="../css/page.css" />
+		<link rel="stylesheet" href="../css/settings.css" />
 		<script type="text/javascript" src="../js/common.js"></script>
 	<script type="text/javascript" src="../js/ui.js"></script>
 		<script type="text/javascript" src="../js/themes.js"></script>
@@ -164,7 +166,7 @@
 						<label class="qd-switch-label" for="GridBackNode" data-i18n="settingsBackNode"></label>
 						<input id="GridBackNode" type="checkbox" class="qd-switch">
 					</div>
-					<div class="qd-columns">
+					<div class="qd-split">
 						<div class="qd-image is-stacked">
 							<span class="qd-label" data-i18n="settingsBackPicture"></span>
 							<div class="qd-preview is-small" id="GridBackZone" data-i18n-title="imageDropHere">
@@ -228,7 +230,7 @@
 							<tr><th></th><th data-i18n="tileNormal"></th><th data-i18n="tileHover"></th></tr>
 						</thead>
 						<tbody>
-							<tr class="qd-table-group"><td colspan="3" data-i18n="settingsGroupTile"></td></tr>
+							<tr class="qd-table-group"><th colspan="3" data-i18n="settingsGroupTile"></th></tr>
 							<tr>
 								<td data-i18n="settingsSpacing"></td>
 								<td><span class="qd-unit"><input id="GridCellsMargins" type="number" min="0"> px</span></td>
@@ -296,7 +298,7 @@
 								</select></td>
 							</tr>
 
-							<tr class="qd-table-group"><td colspan="3" data-i18n="settingsGroupTitle"></td></tr>
+							<tr class="qd-table-group"><th colspan="3" data-i18n="settingsGroupTitle"></th></tr>
 							<tr>
 								<td data-i18n="settingsShowTitle"></td>
 								<td><input id="GridCellsTitle" type="checkbox" class="qd-switch"></td>
@@ -344,7 +346,7 @@
 								</select></td>
 							</tr>
 
-							<tr class="qd-table-group"><td colspan="3" data-i18n="settingsGroupThumbnails"></td></tr>
+							<tr class="qd-table-group"><th colspan="3" data-i18n="settingsGroupThumbnails"></th></tr>
 							<tr>
 								<td data-i18n="settingsCaptureDelay"></td>
 								<td colspan="2"><span class="qd-unit"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000" step="100"> <span data-i18n="settingsCaptureDelayUnit"></span></span></td>
