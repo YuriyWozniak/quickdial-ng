@@ -97,7 +97,8 @@ jobs:
     needs: [check, package]
     if: ${{ !inputs.dry_run }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Room for the upload's waits when AMO throttles it (UPLOAD_TRIES x UPLOAD_MAX_WAIT_S) and the compatibility step's
+    timeout-minutes: 30
     # The amo environment holds the API key and waits for your approval (Review deployments) before it starts
     environment:
       name: amo
@@ -123,15 +124,27 @@ jobs:
           path: ${{ runner.temp }}/amo
       # Uploads the package, waits for the automatic validation and creates the version with its notes.
       # Mozilla's review takes hours to days, so it doesn't wait for the approval (--approval-timeout 0).
+      # AMO limits how often an add-on changes ("Request was throttled. Expected available in 58 seconds."):
+      # then it waits and tries again; a longer wait than UPLOAD_MAX_WAIT_S fails the job, so run Release again later.
       - name: Upload and submit for review
         working-directory: ${{ runner.temp }}/amo
         env:
           WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          UPLOAD_TRIES: 3
+          UPLOAD_MAX_WAIT_S: 300 # longest wait for AMO before one more try
+          THROTTLE_MARGIN_S: 5 # waits a little longer than AMO asks
         run: |
+          set -o pipefail
           unzip -q "quickdial-ng-$VERSION-amo.zip" -d src
-          "$GITHUB_WORKSPACE/release/node_modules/.bin/web-ext" sign --source-dir src --artifacts-dir out \
-            --channel listed --amo-metadata amo-metadata.json --approval-timeout 0
+          for try in $(seq "$UPLOAD_TRIES"); do
+            "$GITHUB_WORKSPACE/release/node_modules/.bin/web-ext" sign --source-dir src --artifacts-dir out \
+              --channel listed --amo-metadata amo-metadata.json --approval-timeout 0 2>&1 | tee sign.log && exit 0
+            wait_s=$(grep -oP 'available in \K[0-9]+' sign.log | head -n 1)
+            if [ -z "$wait_s" ] || [ "$wait_s" -gt "$UPLOAD_MAX_WAIT_S" ] || [ "$try" -eq "$UPLOAD_TRIES" ]; then exit 1; fi
+            echo "Throttled by addons.mozilla.org; trying again in $((wait_s + THROTTLE_MARGIN_S)) s"
+            sleep $((wait_s + THROTTLE_MARGIN_S))
+          done
       # The tag marks what was submitted; Publish releases exactly this commit after the approval
       - name: Tag the submitted commit
         run: |
@@ -142,11 +155,15 @@ jobs:
             echo "Tagged v$VERSION at ${COMMIT:0:7}. When Mozilla approves it, the Publish workflow (every 3 hours)"
             echo "creates the GitHub release with the signed file; or run Publish by hand."
           } >> "$GITHUB_STEP_SUMMARY"
-      # AMO adds Firefox for Android because the manifest has gecko_android (the linter needs it), but Android
-      # can't replace the new tab page. If this fails, the version is still submitted: untick Android on its page.
+      # Android can't replace the new tab page, so each version is for Firefox on the desktop only: the metadata
+      # asks for that, and this takes Android off if AMO added it anyway (nothing to do otherwise). AMO throttles
+      # edits, sometimes for an hour: it waits at most QDNG_AMO_MAX_WAIT_S, so the job ends in time. If it fails, the
+      # version is still submitted: run "node release/amo.js compat <version>" later, or untick Android on its page.
       - name: Firefox (desktop) only
         continue-on-error: true
+        timeout-minutes: 8 # a step past its time limit ends without failing the job (continue-on-error)
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          QDNG_AMO_MAX_WAIT_S: 300
         run: node release/amo.js compat "$VERSION"

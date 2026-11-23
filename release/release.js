@@ -9,6 +9,7 @@ const path = require('path');
 const zlib = require('zlib');
 const crypto = require('crypto');
 const { spawnSync } = require('child_process');
+const { lint: lintSource, webExtBin } = require('./lint.js');
 
 const OWNER = 'YuriyWozniak', REPO = 'quickdial-ng', ADDON_ID = 'quickdial-ng@yuriywozniak';
 const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
@@ -146,19 +147,6 @@ function readKeys(file) {
 	return kv;
 }
 
-function webExtBin(dir) {
-	// Look for node_modules/web-ext the way Node does (require.resolve can't: web-ext doesn't export package.json)
-	let pkgJson = null;
-	for (let d = path.resolve(dir); !pkgJson; d = path.dirname(d)) {
-		const p = path.join(d, 'node_modules', 'web-ext', 'package.json');
-		if (fs.existsSync(p)) pkgJson = p;
-		else if (path.dirname(d) === d) fail(`web-ext not found from ${dir}. Run "npm install" in the release folder or set webExtDir.`);
-	}
-	const pkg = JSON.parse(fs.readFileSync(pkgJson, 'utf8'));
-	const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin['web-ext'];
-	return path.join(path.dirname(pkgJson), bin);
-}
-
 function writeSource(src, dir) {
 	for (const [name, data] of src) {
 		fs.mkdirSync(path.dirname(path.join(dir, name)), { recursive: true });
@@ -166,21 +154,18 @@ function writeSource(src, dir) {
 	}
 }
 
-// Lint exactly what will be signed. --self-hosted: the add-on has its own update_url (GitHub), which
-// the linter otherwise rejects as if it were listed on addons.mozilla.org. The AMO package (listed)
-// is linted with the stricter listed rules.
+// Lint exactly what will be signed, with the rules of lint.js. The GitHub builds are self-hosted: they have
+// their own update_url, which the linter otherwise rejects as if they were listed on addons.mozilla.org.
+// The AMO package (listed) is linted with the stricter listed rules.
 function lint(src, cfg, listed) {
-	const bin = webExtBin(cfg.webExtDir);
 	const work = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-lint-'));
 	try {
 		const srcDir = path.join(work, 'src');
 		writeSource(src, srcDir);
-		const args = ['lint', '--source-dir', srcDir, '--warnings-as-errors'];
-		if (!listed) args.push('--self-hosted');
-		log(`Linting the source (web-ext ${args.filter(a => a.startsWith('--') && a !== '--source-dir').join(' ')})...`);
-		const r = spawnSync(process.execPath, [bin, ...args], { cwd: work, stdio: 'inherit' });
-		if (r.status !== 0) fail('web-ext lint reported problems (see above); fix them before releasing.');
-		log('Lint: no errors or warnings');
+		log(`Linting the source (${listed ? 'listed' : 'self-hosted'} rules)...`);
+		const problems = lintSource(srcDir, { selfHosted: !listed, webExtDir: cfg.webExtDir });
+		if (problems) fail(`web-ext lint reported ${problems} problem(s) (see above); fix them before releasing.`);
+		log('Lint: no errors or warnings that count');
 	} finally {
 		fs.rmSync(work, { recursive: true, force: true });
 	}

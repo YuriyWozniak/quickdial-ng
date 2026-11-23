@@ -84,7 +84,7 @@ jobs:
           cache-dependency-path: release/package.json
       - run: npm install --no-audit --no-fund
       # The same lint rules as release.js uses for the GitHub builds
-      - run: npx web-ext lint --source-dir ../src --self-hosted --warnings-as-errors
+      - run: node lint.js ../src --self-hosted
       - run: npx web-ext build --source-dir ../src --artifacts-dir ../web-ext-artifacts --overwrite-dest
       # Downloadable from the run's page; load it in Firefox from about:debugging (unsigned)
       - uses: actions/upload-artifact@v7

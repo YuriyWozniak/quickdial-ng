@@ -3,6 +3,8 @@
 // Versions are submitted by the Release workflow (web-ext sign); this script is for the listing itself.
 // The API key comes from AMO_JWT_ISSUER and AMO_JWT_SECRET, or else from the key file of release.js
 // (amoKeyFile in release/config.local.json or QDNG_AMO_KEY_FILE). It is used only to sign requests and never printed.
+// AMO throttles edits, sometimes for an hour; the script waits as long as AMO asks, at most QDNG_AMO_MAX_WAIT_S
+// seconds at a time when that is set (the CI sets it, to finish within the job's time limit).
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 
@@ -37,6 +39,8 @@ const THROTTLE_MAX_RETRIES = 20;
 const THROTTLE_DEFAULT_WAIT_S = 30; // when AMO doesn't say how long
 const THROTTLE_MARGIN_S = 2;
 const THROTTLE_WAIT = /available in (\d+) second/;
+const ENV_MAX_WAIT = 'QDNG_AMO_MAX_WAIT_S';
+const THROTTLE_MAX_WAIT_S = Number(process.env[ENV_MAX_WAIT]) || Infinity; // longest wait for one throttled request
 const MS_PER_S = 1000;
 
 // ---------- files ----------
@@ -107,6 +111,8 @@ async function api(method, url, body, tries = 0) {
 	let data; try { data = text ? JSON.parse(text) : null; } catch { data = text; }
 	if (r.status === HTTP_TOO_MANY_REQUESTS && tries < THROTTLE_MAX_RETRIES) { // wait as long as AMO asks
 		const s = +((JSON.stringify(data).match(THROTTLE_WAIT) || [])[1] || THROTTLE_DEFAULT_WAIT_S) + THROTTLE_MARGIN_S;
+		if (s > THROTTLE_MAX_WAIT_S)
+			fail(`AMO is throttling edits for ${s} s, longer than ${ENV_MAX_WAIT} (${THROTTLE_MAX_WAIT_S} s): run "${SCRIPT} ${process.argv.slice(2).join(' ')}" again later`);
 		console.log(`  throttled, waiting ${s} s`); await wait(s);
 		return api(method, url, body, tries + 1);
 	}
@@ -229,11 +235,14 @@ const commands = {
 		fs.rmSync(stateFile, { force: true });
 		console.log('screenshots done:', wanted.length);
 	},
-	// AMO adds Firefox for Android when the manifest has gecko_android (needed by the linter): keep only desktop
+	// Quick Dial NG is for Firefox on the desktop only: takes Firefox for Android off a version if AMO added it.
+	// Does nothing when it's already desktop only. AMO refuses when the version's manifest has gecko_android
+	// (0.4.1 to 0.7.0): what the manifest sets can't be changed on AMO.
 	async compat(version) {
 		if (!version) fail(`Usage: ${SCRIPT} compat <version>`);
 		const v = await api('GET', `${ADDON}/versions/${version}/`);
 		console.log('before', JSON.stringify(v.compatibility));
+		if (!v.compatibility[APP_ANDROID]) { console.log('already Firefox (desktop) only'); return; }
 		const r = await api('PATCH', `${ADDON}/versions/${v.id}/`, { compatibility: { [APP_DESKTOP]: v.compatibility[APP_DESKTOP] } });
 		console.log('after', JSON.stringify(r.compatibility));
 		if (r.compatibility[APP_ANDROID]) fail(`AMO still lists ${APP_ANDROID} for ${version}`);
