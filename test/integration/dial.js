@@ -96,6 +96,23 @@ module.exports = {
 		t.check('the click effect plays on Back and a tile, left or middle button only, not on an empty cell', t.same(st, [true, true, false, false]), st);
 		await changeSettings(t, { grid: { cells: { clickEffect: 0 } } });
 
+		// ----- reduced motion (Windows' "Show animations" off): a smooth hover still fades colours, nothing moves -----
+		const SMOOTH_LIFT = 2;
+		// What a tile and its title fade on hover (computed transition properties)
+		const motionStyle = t => t.inDial(() => {
+			const link = document.querySelector('table.qd-grid a.is-bookmark');
+			return { link: getComputedStyle(link).transitionProperty, title: getComputedStyle(link.lastChild).transitionProperty };
+		});
+		await changeSettings(t, { grid: { cells: { hoverEffect: SMOOTH_LIFT } } });
+		await t.waitFor('the dial to follow', () => win('dial').getComputedStyle(win('dial').document.querySelector('table.qd-grid a.is-bookmark')).transitionProperty.includes('transform'));
+		await t.page.emulateMedia({ reducedMotion: 'reduce' });
+		st = await motionStyle(t);
+		t.check('with reduced motion the hover fades colours and borders, without lifting or resizing',
+			st.link === 'border-color, opacity, box-shadow, backdrop-filter' && st.title === 'color, background-color, border-color'
+			&& (await t.inDial(() => matchMedia('(prefers-reduced-motion: reduce)').matches)), st);
+		await t.page.emulateMedia({ reducedMotion: 'no-preference' });
+		await changeSettings(t, { grid: { cells: { hoverEffect: 0 } } });
+
 		// ----- pages (mouse wheel, Page Down / Page Up) -----
 		await t.loadDial();
 		await changeSettings(t, { grid: { rows: 1, columns: 3 } });

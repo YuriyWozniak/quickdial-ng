@@ -308,7 +308,8 @@ app.paintTile = function(tile, cells, hover, ratio){
 	style.backgroundColor = QDThemes.rgba(cells['backgroundColor' + suffix], num('backgroundOpacity'));
 	style.boxShadow = QDThemes.shadow(cells['shadow' + suffix]);
 	style.backdropFilter = num('blur') ? 'blur(' + num('blur') + 'px)' : 'none';
-	style.transform = hover && effect == 2 ? 'translateY(-4px)' : hover && effect == 3 ? 'scale(1.04)' : 'none';
+	const moves = hover && !window.matchMedia('(prefers-reduced-motion: reduce)').matches; // as on the dial: no lift or zoom then
+	style.transform = moves && effect == 2 ? 'translateY(-4px)' : moves && effect == 3 ? 'scale(1.04)' : 'none';
 	const title = tile.lastElementChild.style;
 	title.display = showTitle ? '' : 'none';
 	title.height = titleHeight + 'px';

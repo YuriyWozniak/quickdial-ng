@@ -41,7 +41,10 @@ dial.initStyles = function(){
 		+ ' box-shadow: ' + Themes.shadow(c.shadowHover) + '; backdrop-filter: ' + (c.blurHover > 0 ? 'blur(' + c.blurHover + 'px)' : 'none') + ';'
 		+ (motion == 2 ? ' transform: translateY(-4px);' : motion == 3 ? ' transform: scale(1.04);' : '') + ' }');
 	if(motion) rule('.qd-grid td>a>div { transition: color .2s, background-color .2s, height .2s, line-height .2s, font-size .2s, border-color .2s; }');
-	rule('@media (prefers-reduced-motion: reduce) { .qd-grid td>a, .qd-grid td>a>div { transition: none !important; } .qd-grid td>a:hover { transform: none !important; } }');
+	// Reduced motion (e.g. Windows' "Show animations" off): the hover still fades colours, borders, opacity and shadows,
+	// but nothing moves or grows: no lift or zoom, and sizes change at once
+	rule('@media (prefers-reduced-motion: reduce) { .qd-grid td>a { transition-property: border-color, opacity, box-shadow, backdrop-filter !important; }'
+		+ ' .qd-grid td>a>div { transition-property: color, background-color, border-color !important; } .qd-grid td>a:hover { transform: none !important; } }');
 	dial.styles.grid.linkPanel = rule('.qd-grid td>a>div:first-child { background-repeat: no-repeat; }');
 	if(c.backgroundColor) dial.styles.grid.linkPanel.backgroundColor = Themes.rgba(c.backgroundColor, c.backgroundOpacity);
 	dial.styles.grid.linkPanelHover = rule('.qd-grid td>a:hover>div:first-child { }');
