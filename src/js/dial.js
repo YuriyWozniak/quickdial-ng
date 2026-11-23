@@ -8,7 +8,10 @@ var app = {
 	path: (function(){ // The folder shown: '/' or '/Work/' (?path=/Work, from a folder tile's link)
 		const path = new URL(window.location).searchParams.get('path');
 		return path ? path + '/' : '/';
-	})()
+	})(),
+	RETRY_DELAY: 500, // ms after the page loads: no settings yet and no answer pending means asking the background page again
+	PROPERTIES_WIDTH: 560, // the tile Properties popup (it shrinks to fit its content)
+	PROPERTIES_HEIGHT: 590
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	dial.init();
 	setTimeout(() => { // Safety net for when the background page could not be reached and no broadcast arrived
 		if(!app.settings && !app._waitingForBackground) app.init();
-	}, 500);
+	}, app.RETRY_DELAY);
 });
 
 // ----- Input -----
@@ -225,7 +228,7 @@ app.capturePage = function(link){ // Capture page: open it in a tab and take a p
 	QDClient.capturePage(app.path, link.gridNode.id);
 };
 app.editProperties = function(link){
-	app.loadUI().then(ui => { ui.openPopup('/html/properties.html?id=' + link.gridNode.id, 560, 590); });
+	app.loadUI().then(ui => { ui.openPopup('/html/properties.html?id=' + link.gridNode.id, app.PROPERTIES_WIDTH, app.PROPERTIES_HEIGHT); });
 };
 app.editSettings = function(tab){ // Settings opens in its own tab; tab: optional section ('backup')
 	QDClient.openSettings(tab); // tab is the click event when this is a button's handler: QDClient leaves it out

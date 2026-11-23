@@ -13,7 +13,7 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all me
 	const text = key => browser.i18n.getMessage(key);
 	const toDial = cmd => (info, tab) => { browser.tabs.sendMessage(tab.id, { cmd }); }; // the dial page acts on the tile under the mouse
 	const openSettings = () => { app.openSettings(); };
-	const dialPages = ['moz-extension://*/dial.html', 'moz-extension://*/dial.html?*'];
+	const dialPages = ['moz-extension://*' + QDCommon.DIAL_PAGE, 'moz-extension://*' + QDCommon.DIAL_PAGE + '?*'];
 	const newItems = parentId => { // "New" › Bookmark, Folder
 		create({ id: parentId + 'new', parentId, title: text('menuNew') });
 		create({ parentId: parentId + 'new', title: text('menuNewBookmark'), onclick: toDial(Commands.menuCreateBookmark) });
@@ -46,7 +46,7 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all me
 	create({ parentId: 'itemmenu', type: 'separator' });
 	create({ parentId: 'itemmenu', title: text('menuSettings'), onclick: openSettings });
 	// Right-click menu of the toolbar button: both places, whatever a click on it opens
-	create({ id: 'toolbarOpenDial', title: text('menuOpenDial'), contexts: ['browser_action'], onclick: () => { browser.tabs.create({ url: '/dial.html' }); } });
+	create({ id: 'toolbarOpenDial', title: text('menuOpenDial'), contexts: ['browser_action'], onclick: () => { browser.tabs.create({ url: QDCommon.DIAL_PAGE }); } });
 	create({ id: 'toolbarSettings', title: text('menuSettings'), contexts: ['browser_action'], onclick: openSettings });
 };
 

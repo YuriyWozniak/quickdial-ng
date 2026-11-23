@@ -42,6 +42,30 @@ var QDCommon = Object.freeze({
 		folder: 1,
 		bookmark: 2
 	}),
+	// Where a tile opens its site or folder (grid.openBookmarkMethod, grid.openFolderMethod)
+	OpenIn: Object.freeze({
+		thisTab: 0,
+		newTab: 1
+	}),
+	// How a picture fills its box (applyImageMode): backgroundMode, grid.backIconMode, grid.folderIconMode and
+	// a tile's imageMode. `inherit` is a tile's "Default": the folder picture's mode, or stretched.
+	ImageMode: Object.freeze({
+		inherit: -1,
+		stretch: 0,
+		cover: 1,
+		contain: 2,
+		original: 3
+	}),
+
+	DIAL_PAGE: '/dial.html',
+	// The built-in Back and folder pictures, as CSS values like the settings hold them
+	BACK_ICON: 'url(/img/back.svg)',
+	FOLDER_ICON: 'url(/img/folder.svg)',
+	// Tile shape (width : height) of a new install, and wherever the setting is missing
+	TILE_RATIO_X: 4,
+	TILE_RATIO_Y: 3,
+	// A full backup file (Settings › Backup): { format, version, settings, node, images, themes }
+	BACKUP_FORMAT: 'quickdial-ng',
 
 	// Pictures that are uploaded or imported are stored as WebP, longest side at most IMAGE_MAX_SIZE pixels.
 	// The page background fills the whole screen, so it may be larger: BACKGROUND_MAX_SIZE.
@@ -50,18 +74,27 @@ var QDCommon = Object.freeze({
 	WEBP_QUALITY: 0.85,
 
 	/**
+	 * Height : width of a tile (grid.ratioY / grid.ratioX), in the default shape where a value is missing.
+	 * @param {{ ratioX?: number|string, ratioY?: number|string }} grid
+	 * @returns {number}
+	 */
+	tileRatio(grid){
+		return (+grid.ratioY || QDCommon.TILE_RATIO_Y) / (+grid.ratioX || QDCommon.TILE_RATIO_X);
+	},
+
+	/**
 	 * How a picture fills its box. style: an element's style or a CSS rule's style.
-	 * Modes: 0 stretched, 1 cover, 2 contain, 3 original size, centred. -1 clears the three values, so the
-	 * CSS rule underneath applies again (on the dial: the folder picture's mode, or stretched). Other values stretch.
+	 * Modes (ImageMode): stretched, cover, contain, original size, centred. `inherit` clears the three values, so
+	 * the CSS rule underneath applies again (on the dial: the folder picture's mode, or stretched). Other values stretch.
 	 * @param {number|string} mode
 	 * @param {CSSStyleDeclaration} style
 	 */
 	applyImageMode(mode, style){
-		if(+mode == -1){
+		if(+mode == QDCommon.ImageMode.inherit){
 			style.backgroundRepeat = style.backgroundSize = style.backgroundPosition = '';
 			return;
 		}
-		const sizes = ['100% 100%', 'cover', 'contain', 'auto'];
+		const sizes = ['100% 100%', 'cover', 'contain', 'auto']; // background-size of each ImageMode, in their order
 		style.backgroundRepeat = 'no-repeat';
 		style.backgroundSize = sizes[+mode] || sizes[0];
 		style.backgroundPosition = 'center';

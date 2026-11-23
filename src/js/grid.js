@@ -17,15 +17,16 @@ dial.init = function(){
 
 // ----- Styles: one stylesheet built from the settings, replaced as a whole when they change -----
 dial.initStyles = function(){
-	const applyImageMode = QDCommon.applyImageMode; // on CSS rules here; -1 leaves a rule's own values
+	const applyImageMode = QDCommon.applyImageMode; // on CSS rules here; ImageMode.inherit leaves a rule's own values
 	const oldStyle = dial.styleElement;
 	dial.styleElement = document.createElement('style');
 	document.head.appendChild(dial.styleElement);
 	dial.styles = {};
 	const s = app.settings, c = s.grid.cells, Themes = QDThemes;
 	function rule(text){ const sheet = dial.styleElement.sheet; return sheet.cssRules[sheet.insertRule(text, sheet.cssRules.length)].style; }
-	const motion = +c.hoverEffect || 0; // 0 none, 1 smooth, 2 lift, 3 zoom
-	const titleOverlay = c.titlePosition == 1; // title over the bottom of the picture
+	const smooth = (+c.hoverEffect || Themes.HoverEffect.instant) != Themes.HoverEffect.instant;
+	const hoverTransform = Themes.hoverTransform(c.hoverEffect);
+	const titleOverlay = c.titlePosition == Themes.TitlePosition.over;
 	dial.styles.html = rule('html { height: 100%; }');
 	dial.styles.body = rule('body { user-select: none; display: flex; width: 100%; height: 100%; margin: 0; padding: 0; background-color: ' + s.backgroundColor + '; background-image: ' + Themes.background(s.backgroundImage, s.backgroundGradient) + '; }');
 	applyImageMode(s.backgroundMode, dial.styles.body);
@@ -36,11 +37,11 @@ dial.initStyles = function(){
 	dial.styles.grid.link = rule('.qd-grid td>a { display: block; position: relative; z-index: 0; outline: none; overflow: hidden; text-decoration: none;'
 		+ ' margin: ' + c.margin + 'px; opacity: ' + c.opacity + '; border: ' + c.borderSize + 'px solid ' + c.borderColor + '; border-radius: ' + c.borderRadius + 'px;'
 		+ ' box-shadow: ' + Themes.shadow(c.shadow) + '; backdrop-filter: ' + (c.blur > 0 ? 'blur(' + c.blur + 'px)' : 'none') + ';'
-		+ (motion ? ' transition: margin .2s, width .2s, height .2s, border-color .2s, border-width .2s, border-radius .2s, opacity .2s, box-shadow .2s, transform .2s, backdrop-filter .2s;' : '') + ' }');
+		+ (smooth ? ' transition: margin .2s, width .2s, height .2s, border-color .2s, border-width .2s, border-radius .2s, opacity .2s, box-shadow .2s, transform .2s, backdrop-filter .2s;' : '') + ' }');
 	dial.styles.grid.linkHover = rule('.qd-grid td>a:hover { z-index: 1; border-color: ' + c.borderColorHover + '; border-width: ' + c.borderSizeHover + 'px; margin: ' + c.marginHover + 'px; opacity: ' + c.opacityHover + '; border-radius: ' + c.borderRadiusHover + 'px;'
 		+ ' box-shadow: ' + Themes.shadow(c.shadowHover) + '; backdrop-filter: ' + (c.blurHover > 0 ? 'blur(' + c.blurHover + 'px)' : 'none') + ';'
-		+ (motion == 2 ? ' transform: translateY(-4px);' : motion == 3 ? ' transform: scale(1.04);' : '') + ' }');
-	if(motion) rule('.qd-grid td>a>div { transition: color .2s, background-color .2s, height .2s, line-height .2s, font-size .2s, border-color .2s; }');
+		+ (hoverTransform ? ' transform: ' + hoverTransform + ';' : '') + ' }');
+	if(smooth) rule('.qd-grid td>a>div { transition: color .2s, background-color .2s, height .2s, line-height .2s, font-size .2s, border-color .2s; }');
 	// Reduced motion (e.g. Windows' "Show animations" off): the hover still fades colours, borders, opacity and shadows,
 	// but nothing moves or grows: no lift or zoom, and sizes change at once
 	rule('@media (prefers-reduced-motion: reduce) { .qd-grid td>a { transition-property: border-color, opacity, box-shadow, backdrop-filter !important; }'
@@ -111,7 +112,7 @@ dial.nodeIndex = function(cellIndex){ // position in the folder of the tile show
 };
 dial.updateGridLayout = function(){ // Cell and tile sizes for this window (normal and hover)
 	const g = app.settings.grid, c = g.cells, rules = dial.styles.grid;
-	const titleBelow = c.titlePosition != 1; // a title over the picture takes no room of its own
+	const titleBelow = c.titlePosition != QDThemes.TitlePosition.over; // a title over the picture takes no room of its own
 	const parentWidth = dial.grid.parentElement.offsetWidth;
 	const parentHeight = dial.grid.parentElement.offsetHeight;
 	const px = v => v + 'px';
@@ -137,7 +138,7 @@ dial.updateGridLayout = function(){ // Cell and tile sizes for this window (norm
 //   pending: [{ link, node }] whose pictures are stored apart and not in memory yet (js/dial.js loads them, then showImages)
 //   missing: links of bookmarks with no picture at all, shown loading (js/dial.js has their pictures made)
 dial.populateGrid = function(){
-	const NodeType = QDCommon.NodeType, g = app.settings.grid;
+	const NodeType = QDCommon.NodeType, OpenIn = QDCommon.OpenIn, ImageMode = QDCommon.ImageMode, g = app.settings.grid;
 	const pending = [], missing = [];
 	const setImage = (link, id, src) => { // id: the node whose stored picture this is (null for a picture kept in the node)
 		link._imageId = id;
@@ -169,26 +170,26 @@ dial.populateGrid = function(){
 		link.gridNode = node;
 		link.className = className;
 		link.onclick = null;
-		const mode = node && (node.imageMode || node.imageMode == 0) ? node.imageMode : -1;
+		const mode = node && (node.imageMode || node.imageMode == 0) ? node.imageMode : ImageMode.inherit;
 		QDCommon.applyImageMode(mode, link.firstChild.style);
 		if(!node){
 			setImage(link, null, null);
 			link.firstChild.style.backgroundImage = '';
 		}
 	};
-	const openIn = (link, method) => { // 0: this tab, 1: a new tab
-		if(method == 1) link.target = '_blank';
+	const openIn = (link, method) => { // method: OpenIn
+		if(method == OpenIn.newTab) link.target = '_blank';
 		else link.removeAttribute('target');
 	};
 	const populateEmpty = link => {
 		reset(link, null, 'is-empty');
-		openIn(link, 0);
+		openIn(link, OpenIn.thisTab);
 		link.removeAttribute('href');
 	};
 	const populateBack = link => {
 		reset(link, null, 'is-back');
 		link.lastChild.innerText = 'Back';
-		openIn(link, 0);
+		openIn(link, OpenIn.thisTab);
 		link.href = '#';
 		link.onclick = () => { window.history.back(); };
 	};

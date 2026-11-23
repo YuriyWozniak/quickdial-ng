@@ -11,6 +11,12 @@ let backgroundGradient = null;
 let backIcon = null;
 let folderIcon = null;
 
+// Sizes and times of this page
+const SAMPLE_TILE_WIDTH = 152; // px: the sample tiles of the Tiles tab and the theme cards (.qd-tile-slot, css/ui.css)
+const SAMPLE_TILE_MAX_HEIGHT = 200; // px: taller shapes are cut off
+const COPIED_LABEL_TIME = 2000; // ms the Copy export snippet button says Copied
+const DOWNLOAD_URL_LIFETIME = 1000; // ms a downloaded file's object URL is kept
+
 document.addEventListener('DOMContentLoaded', event => {
 	app.init();
 });
@@ -153,7 +159,7 @@ app.setupActions = function(){
 		app.changes.markDiscarded('Changes discarded');
 	};
 	BtnOpenDial.onclick = function(){
-		browser.tabs.create({ url: '/dial.html' });
+		browser.tabs.create({ url: QDCommon.DIAL_PAGE });
 	};
 	document.addEventListener('keydown', e => {
 		if((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() == 's'){ e.preventDefault(); BtnApply.onclick(); }
@@ -190,8 +196,8 @@ app.setupGrid = function(){
 	QDUI.imagePicker(GridFolderImageFile, GridFolderImageFile.previousElementSibling, app.picturePicked(css => { folderIcon = css; }, QDCommon.IMAGE_MAX_SIZE));
 	QDUI.imageDrop(GridBackZone, GridBackImageFile);
 	QDUI.imageDrop(GridFolderZone, GridFolderImageFile);
-	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = 'url(/img/back.svg)'; });
-	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = 'url(/img/folder.svg)'; });
+	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = QDCommon.BACK_ICON; });
+	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = QDCommon.FOLDER_ICON; });
 };
 // Tab Tiles: the title fonts (an imported theme's font is added when the form is filled, fillForm) and the click
 // effect preview: it plays on the Hover sample when another effect is picked, and on a sample tile when it is clicked
@@ -245,13 +251,13 @@ app.showSection = function(name){
 };
 
 app.download = function(data, name){
-	const blob = new Blob([JSON.stringify(data, null, data.format == 'quickdial-ng-theme' ? '\t' : undefined)], { type: 'application/json' });
+	const blob = new Blob([JSON.stringify(data, null, data.format == QDThemes.FILE_FORMAT ? '\t' : undefined)], { type: 'application/json' });
 	const link = document.createElement('a');
 	link.href = URL.createObjectURL(blob);
 	link.download = name;
 	document.body.appendChild(link);
 	link.click();
-	setTimeout(() => { URL.revokeObjectURL(link.href); link.remove(); }, 1000);
+	setTimeout(() => { URL.revokeObjectURL(link.href); link.remove(); }, DOWNLOAD_URL_LIFETIME);
 };
 app.readJsonFile = function(file){ // Resolves with the parsed object, or null when it isn't JSON
 	return QDUI.readFile(file, true).then(text => {
@@ -284,21 +290,21 @@ app.updatePreviews = function(){
 
 	TileStage.style.backgroundColor = s.backgroundColor;
 	TileStage.style.backgroundImage = QDThemes.background(backgroundImage, backgroundGradient);
-	const ratio = (+s.grid.ratioY || 3) / (+s.grid.ratioX || 4);
+	const ratio = QDCommon.tileRatio(s.grid);
 	app.paintTile(TileNormal, s.grid.cells, false, ratio);
 	app.paintTile(TileHover, s.grid.cells, true, ratio);
 	app.clickEffectStyle.textContent = QDThemes.clickEffectRules('.qd-tile-stage .qd-tile', s.grid.cells.clickEffect, s.grid.cells.titleColorHover).join('\n');
 	app.Themes.markCurrent(s);
 };
 
-// Draws a sample tile (.qd-tile in a .qd-tile-slot, 152 px wide) the way the dial would
+// Draws a sample tile (.qd-tile in a .qd-tile-slot, SAMPLE_TILE_WIDTH px wide) the way the dial would
 app.paintTile = function(tile, cells, hover, ratio){
 	const suffix = hover ? 'Hover' : '';
 	const num = function(name){ return Math.max(0, +cells[name + suffix] || 0); };
 	const margin = num('margin'), border = num('borderSize'), showTitle = !!cells['title' + suffix], titleHeight = num('titleHeight');
-	const titleOverlay = cells.titlePosition == 1, effect = +cells.hoverEffect || 0;
-	const height = Math.round((152 - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !titleOverlay ? titleHeight : 0);
-	tile.parentNode.style.height = (Math.min(height, 200) + 2 * margin) + 'px';
+	const titleOverlay = cells.titlePosition == QDThemes.TitlePosition.over;
+	const height = Math.round((SAMPLE_TILE_WIDTH - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !titleOverlay ? titleHeight : 0);
+	tile.parentNode.style.height = (Math.min(height, SAMPLE_TILE_MAX_HEIGHT) + 2 * margin) + 'px';
 	tile.classList.toggle('is-overlay', titleOverlay);
 	const style = tile.style;
 	style.margin = margin + 'px';
@@ -309,7 +315,7 @@ app.paintTile = function(tile, cells, hover, ratio){
 	style.boxShadow = QDThemes.shadow(cells['shadow' + suffix]);
 	style.backdropFilter = num('blur') ? 'blur(' + num('blur') + 'px)' : 'none';
 	const moves = hover && !window.matchMedia('(prefers-reduced-motion: reduce)').matches; // as on the dial: no lift or zoom then
-	style.transform = moves && effect == 2 ? 'translateY(-4px)' : moves && effect == 3 ? 'scale(1.04)' : 'none';
+	style.transform = (moves && QDThemes.hoverTransform(cells.hoverEffect)) || 'none';
 	const title = tile.lastElementChild.style;
 	title.display = showTitle ? '' : 'none';
 	title.height = titleHeight + 'px';
@@ -357,7 +363,7 @@ app.Themes.render = function(){
 		const preview = el('div', 'qd-theme-preview');
 		preview.style.backgroundColor = theme.style.backgroundColor;
 		preview.style.backgroundImage = QDThemes.background(null, theme.style.backgroundGradient);
-		const ratio = (+app.settings.grid.ratioY || 3) / (+app.settings.grid.ratioX || 4);
+		const ratio = QDCommon.tileRatio(app.settings.grid);
 		[false, true].forEach(hover => {
 			const slot = el('div', 'qd-tile-slot'), tile = el('div', 'qd-tile');
 			tile.appendChild(el('div', 'qd-tile-img'));
@@ -416,7 +422,7 @@ app.Themes.ask = function(title, okText, forSaving){
 		okText: okText,
 		validate: function(v){
 			if(!v.name) return 'Please enter a name.';
-			if(v.name.length > 60) return 'Please use at most 60 characters.';
+			if(v.name.length > QDThemes.NAME_MAX_LENGTH) return 'Please use at most ' + QDThemes.NAME_MAX_LENGTH + ' characters.';
 			if(forSaving && QDThemes.isBuiltinName(v.name)) return '"' + v.name + '" is a built-in theme. Please choose another name.';
 			return '';
 		}
@@ -462,7 +468,7 @@ app.Backup = {};
 app.Backup.setup = function(){
 	BtnExport.onclick = function(){
 		QDClient.exportData().then(data => {
-			app.download(data, 'quickdial-ng-backup-' + new Date().toISOString().substr(0, 10) + '.json');
+			app.download(data, QDCommon.BACKUP_FORMAT + '-backup-' + new Date().toISOString().slice(0, 'yyyy-mm-dd'.length) + '.json');
 		});
 	};
 	BtnImport.onclick = function(){
@@ -475,7 +481,7 @@ app.Backup.setup = function(){
 	BtnCopySnippet.onclick = function(){
 		navigator.clipboard.writeText(app.Backup.exportSnippet).then(() => {
 			BtnCopySnippet.textContent = 'Copied ✓';
-			setTimeout(() => { BtnCopySnippet.textContent = 'Copy export snippet'; }, 2000);
+			setTimeout(() => { BtnCopySnippet.textContent = 'Copy export snippet'; }, COPIED_LABEL_TIME);
 		}, () => { prompt('Copy this snippet:', app.Backup.exportSnippet); });
 	};
 	const result = new URLSearchParams(location.search).get('result');
@@ -484,10 +490,10 @@ app.Backup.setup = function(){
 // A Quick Dial NG backup or an original Quick Dial export (data: the file's content, null when it isn't JSON)
 app.Backup.importFile = function(data){
 	if(!data || !data.settings || !data.node || !data.settings.grid){
-		app.showStatus(ImportStatus, data && data.format == 'quickdial-ng-theme' ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
+		app.showStatus(ImportStatus, data && data.format == QDThemes.FILE_FORMAT ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
 		return;
 	}
-	const source = data.format == 'quickdial-ng' ? 'Quick Dial NG backup' : 'Quick Dial export';
+	const source = data.format == QDCommon.BACKUP_FORMAT ? 'Quick Dial NG backup' : 'Quick Dial export';
 	QDUI.dialog({
 		title: 'Import this ' + source + '?',
 		message: 'Your current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.',

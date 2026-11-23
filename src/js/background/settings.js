@@ -3,26 +3,31 @@
 // Settings (picture_*, see Settings.PICTURES); tile pictures: images.js.
 app.Settings = {};
 
+app.Settings.DATA_VERSION = 5; // Of the stored data and of backups (1 to 4: the original Quick Dial, see _upgrade)
+app.Settings.SNAPSHOT_DELAY = 2000; // ms a page is given after loading before its picture is taken, until the user sets another
+app.Settings.DIAL_COLOR_KEY = 'dialBackgroundColor'; // localStorage key of the dial's colour (rememberBackground); the same in js/dialbg.js
+
 app.Settings.defaults = function(){ // Default settings of a new install: layout and behaviour here, the look from the Classic theme
+	const ImageMode = QDCommon.ImageMode, OpenIn = QDCommon.OpenIn;
 	return QDThemes.apply({
 		backgroundImage: null,
-		backgroundMode: 0,
+		backgroundMode: ImageMode.stretch,
 		menuShowAdd: true,
 		toolbarAction: 'settings',
 		grid: {
 			rows: 4,
 			columns: 5,
-			ratioX: 4,
-			ratioY: 3,
+			ratioX: QDCommon.TILE_RATIO_X,
+			ratioY: QDCommon.TILE_RATIO_Y,
 			backNode: true,
-			backIcon: 'url(/img/back.svg)',
-			backIconMode: 3,
-			folderIcon: 'url(/img/folder.svg)',
-			folderIconMode: 0,
-			openBookmarkMethod: 0,
-			openFolderMethod: 0,
+			backIcon: QDCommon.BACK_ICON,
+			backIconMode: ImageMode.original,
+			folderIcon: QDCommon.FOLDER_ICON,
+			folderIconMode: ImageMode.stretch,
+			openBookmarkMethod: OpenIn.thisTab,
+			openFolderMethod: OpenIn.thisTab,
 			cells: {
-				snapshotDelay: 2000
+				snapshotDelay: app.Settings.SNAPSHOT_DELAY
 			},
 			root: 'Quick Dial',
 		}
@@ -93,8 +98,8 @@ app.Settings._upgrade = function(data){
 	if(!data.version){ // Version 1: settings at the top level
 		data.version = 2;
 		data.grid.backNode = true;
-		data.grid.backIcon = 'url(/img/back.svg)';
-		data.grid.folderIcon = 'url(/img/folder.svg)';
+		data.grid.backIcon = QDCommon.BACK_ICON;
+		data.grid.folderIcon = QDCommon.FOLDER_ICON;
 		data.grid.cells.backgroundColor = null;
 		data.grid.cells.backgroundColorHover = null;
 		data.grid.cells.titleBackgroundColor = null;
@@ -116,9 +121,9 @@ app.Settings._upgrade = function(data){
 	if(data.version == 3){
 		data.version = 4;
 		const s = data.settings, cells = s.grid.cells;
-		s.backgroundMode = 0;
-		s.grid.backIconMode = 3;
-		s.grid.folderIconMode = 0;
+		s.backgroundMode = QDCommon.ImageMode.stretch;
+		s.grid.backIconMode = QDCommon.ImageMode.original;
+		s.grid.folderIconMode = QDCommon.ImageMode.stretch;
 		cells.opacity = 1;
 		cells.opacityHover = 1;
 		cells.borderSize = 1;
@@ -132,20 +137,20 @@ app.Settings._upgrade = function(data){
 	}
 	if(data.version == 4){ // Fields added in the original's 4.x releases
 		const s = data.settings, grid = s.grid;
-		if(!grid.cells.snapshotDelay) grid.cells.snapshotDelay = 2000;
+		if(!grid.cells.snapshotDelay) grid.cells.snapshotDelay = app.Settings.SNAPSHOT_DELAY;
 		if(grid.ratioAuto == true || grid.ratioAuto == false){
 			delete grid.ratioAuto;
-			grid.ratioX = 4;
-			grid.ratioY = 3;
+			grid.ratioX = QDCommon.TILE_RATIO_X;
+			grid.ratioY = QDCommon.TILE_RATIO_Y;
 		}
 		if(!grid.ratioX){
-			grid.ratioX = 4;
-			grid.ratioY = 3;
+			grid.ratioX = QDCommon.TILE_RATIO_X;
+			grid.ratioY = QDCommon.TILE_RATIO_Y;
 		}
 		if(!(s.menuShowAdd == true) && !(s.menuShowAdd == false)) s.menuShowAdd = true;
 		if(!grid.openBookmarkMethod && grid.openBookmarkMethod != 0){
-			grid.openBookmarkMethod = 0;
-			grid.openFolderMethod = 0;
+			grid.openBookmarkMethod = QDCommon.OpenIn.thisTab;
+			grid.openFolderMethod = QDCommon.OpenIn.thisTab;
 		}
 		if(!s.openQuickDialInNewPage && s.openQuickDialInNewPage != false) s.openQuickDialInNewPage = true;
 	}
@@ -170,7 +175,7 @@ app.Settings.migrateToolbar = function(settings){
 // point at the old PNG defaults move to the new ones; the user's own pictures stay.
 // The loading picture is no longer a setting (the dial always shows its SVG spinner).
 // Returns true when `settings` changed.
-app.Settings.LEGACY_ICONS = { 'url(/img/back.png)': 'url(/img/back.svg)', 'url(/img/folder.png)': 'url(/img/folder.svg)' };
+app.Settings.LEGACY_ICONS = { 'url(/img/back.png)': QDCommon.BACK_ICON, 'url(/img/folder.png)': QDCommon.FOLDER_ICON };
 app.Settings.migrateIcons = function(settings){
 	const grid = settings && settings.grid;
 	if(!grid) return false;
@@ -253,14 +258,15 @@ app.Settings._serialize = function(){ // Settings and node tree only: no picture
 		if(settings.grid) settings.grid = Object.assign({}, settings.grid);
 		for(const key in pictures) app.Settings._field(settings, app.Settings.PICTURES[key], app.Settings.STORED_PICTURE);
 	}
-	return JSON.stringify({ version: 5, settings, node: app.node }, (key, value) => key.startsWith('__') ? undefined : value);
+	return JSON.stringify({ version: app.Settings.DATA_VERSION, settings, node: app.node }, (key, value) => key.startsWith('__') ? undefined : value);
 };
 app.Settings.rememberBackground = function(){ // Keep the background colour where dial pages can read it before settings load (see dialbg.js)
 	if(app.Settings._loadFailed) return; // The defaults in use are not the user's colour
 	try {
 		const color = app.settings && app.settings.backgroundColor;
-		if(!color) localStorage.removeItem('dialBackgroundColor');
-		else if(localStorage.getItem('dialBackgroundColor') != color) localStorage.setItem('dialBackgroundColor', color);
+		const key = app.Settings.DIAL_COLOR_KEY;
+		if(!color) localStorage.removeItem(key);
+		else if(localStorage.getItem(key) != color) localStorage.setItem(key, color);
 	} catch(e){}
 };
 app.Settings._saveWaiting = []; // { resolve, reject } of the callers of the save to come

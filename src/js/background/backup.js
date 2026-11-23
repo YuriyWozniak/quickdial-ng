@@ -3,7 +3,7 @@ app.Backup = {};
 
 app.Backup.export = function(){
 	return app.Images.get(app.Images.idsInTree(app.node)).then(images => {
-		const data = { format: 'quickdial-ng', version: 5, settings: app.settings, node: JSON.parse(app.Settings._serialize()).node, images };
+		const data = { format: QDCommon.BACKUP_FORMAT, version: app.Settings.DATA_VERSION, settings: app.settings, node: JSON.parse(app.Settings._serialize()).node, images };
 		if(app.Themes.list.length) data.themes = app.Themes.list;
 		return data;
 	});

@@ -81,6 +81,23 @@ test('complete adds the style keys older settings lack, once', () => {
 	assert.equal(T.complete(s), false);
 });
 
+test('choices from a list (hover effect, click effect, title position, shadow) accept just the listed values', () => {
+	const choices = { hoverEffect: T.HoverEffect, clickEffect: T.ClickEffect, titlePosition: T.TitlePosition, shadow: T.Shadow };
+	for (const [key, list] of Object.entries(choices)) {
+		const values = Object.values(list), highest = Math.max(...values);
+		for (const value of values) assert.equal(cells({ grid: { cells: { [key]: value } } })[key], value, key + ' ' + value);
+		assert.equal(cells({ grid: { cells: { [key]: highest + 1 } } })[key], highest, key + ': above the list, its last value');
+	}
+});
+
+test('the hover transform: lift and grow move the tile, the others don\'t', () => {
+	assert.match(T.hoverTransform(T.HoverEffect.lift), /translateY\(-\d+px\)/);
+	assert.match(T.hoverTransform(T.HoverEffect.grow), /scale\(1\.\d+\)/);
+	assert.equal(T.hoverTransform(T.HoverEffect.smooth), '');
+	assert.equal(T.hoverTransform(T.HoverEffect.instant), '');
+	assert.equal(T.hoverTransform(String(T.HoverEffect.grow)), T.hoverTransform(T.HoverEffect.grow), 'a form value works too');
+});
+
 test('click effects: one of the listed ones, with CSS for each and none for None', () => {
 	const TILE_SELECTOR = '.qd-tile';
 	const EFFECT_COLOR = '#33ccff';

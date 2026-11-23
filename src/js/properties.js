@@ -52,11 +52,13 @@ app.showDeleted = function(){
 	QDUI.fitPopup();
 };
 
-// Preview box in the same proportions as the tiles on the dial
+// Preview box in the same proportions as the tiles on the dial, at most PREVIEW_MAX_WIDTH x PREVIEW_MAX_HEIGHT pixels
+app.PREVIEW_MAX_WIDTH = 240;
+app.PREVIEW_MAX_HEIGHT = 190;
 app.sizePreview = function(){
-	const rx = +app.settings.grid.ratioX || 4, ry = +app.settings.grid.ratioY || 3;
-	let w = 240, h = w * ry / rx;
-	if(h > 190){ h = 190; w = h * rx / ry; }
+	const ratio = QDCommon.tileRatio(app.settings.grid);
+	let w = app.PREVIEW_MAX_WIDTH, h = w * ratio;
+	if(h > app.PREVIEW_MAX_HEIGHT){ h = app.PREVIEW_MAX_HEIGHT; w = h / ratio; }
 	ImageZone.style.width = Math.round(w) + 'px';
 	ImageZone.style.height = Math.round(h) + 'px';
 	ImageZone.style.aspectRatio = 'auto';
@@ -69,7 +71,7 @@ app.showImage = function(){
 	ImagePreview.style.backgroundImage = css || 'none';
 	ImageEmpty.hidden = !!css;
 	let mode = +ImageMode.value;
-	if(mode == -1) mode = isFolder ? app.settings.grid.folderIconMode : 0; // what "Default" means on the dial
+	if(mode == QDCommon.ImageMode.inherit) mode = isFolder ? app.settings.grid.folderIconMode : QDCommon.ImageMode.stretch; // what "Default" means on the dial
 	QDCommon.applyImageMode(mode, ImagePreview.style);
 	ImageDefault.disabled = isFolder && !picture;
 };
@@ -78,7 +80,7 @@ app.initNode = function(node){
 	app.node = node;
 	const isFolder = node.type == QDCommon.NodeType.folder;
 	Title.value = node.title;
-	ImageMode.value = (node.imageMode || node.imageMode == 0) ? node.imageMode : -1;
+	ImageMode.value = (node.imageMode || node.imageMode == 0) ? node.imageMode : QDCommon.ImageMode.inherit;
 	IconBookmark.toggleAttribute('hidden', isFolder); // SVG elements have no .hidden property
 	IconFolder.toggleAttribute('hidden', !isFolder);
 	HeaderTitle.textContent = isFolder ? 'Folder properties' : 'Bookmark properties';
