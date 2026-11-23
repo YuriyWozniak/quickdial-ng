@@ -33,8 +33,15 @@ function fakeBrowser() {
 			set: o => { calls.push(['set', Object.keys(o)]); Object.assign(store, copy(o)); return Promise.resolve(); },
 			remove: ks => { calls.push(['remove', [].concat(ks)]); for (const k of [].concat(ks)) delete store[k]; return Promise.resolve(); },
 			clear: () => { calls.push(['clear']); for (const k in store) delete store[k]; return Promise.resolve(); } } },
-		runtime: { sendMessage: () => Promise.resolve() }
+		runtime: { sendMessage: () => Promise.resolve() },
+		i18n: { getMessage, getUILanguage: () => 'en' }
 	};
+}
+// browser.i18n.getMessage with the English texts, $1..$9 filled in as Firefox does
+const MESSAGES = JSON.parse(fs.readFileSync(path.join(SRC, '_locales', 'en', 'messages.json'), 'utf8'));
+function getMessage(key, substitutions) {
+	const entry = MESSAGES[key], values = substitutions == null ? [] : [].concat(substitutions);
+	return entry ? entry.message.replace(/\$(\d|\$)/g, (all, n) => n === '$' ? '$' : String(values[n - 1] ?? '')) : '';
 }
 
 // load('js/themes.js', ...) -> the sandbox, with its globals (QDThemes, app...) as properties.

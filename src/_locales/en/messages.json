@@ -77,6 +77,973 @@
   "menuOpenDial": {
     "message": "Open Quick Dial NG",
     "description": "Toolbar button right-click menu: opens the dial in a new tab."
-  }
+  },
 
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "Speed dial for the new tab and home page, with tiles from a bookmarks folder. Independent, optimized fork of Quick Dial by MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "Apply"
+  },
+
+  "buttonCancel": {
+    "message": "Cancel"
+  },
+
+  "buttonOk": {
+    "message": "OK"
+  },
+
+  "buttonClose": {
+    "message": "Close"
+  },
+
+  "optionNone": {
+    "message": "None",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "Default",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "Unsaved changes"
+  },
+
+  "statusApplied": {
+    "message": "Changes applied"
+  },
+
+  "statusAppliedToDial": {
+    "message": "Changes applied to the dial"
+  },
+
+  "statusDiscarded": {
+    "message": "Changes discarded"
+  },
+
+  "dialogEnterValue": {
+    "message": "Please enter a value."
+  },
+
+  "dialogAdd": {
+    "message": "Add",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "Create",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "New Folder",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "Enter a web address, e.g. https://example.com"
+  },
+
+  "tileBack": {
+    "message": "Back",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "Example site",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "Example",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "Normal",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "Hover",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "Drop an image here"
+  },
+
+  "imageDropToUse": {
+    "message": "Drop to use this image"
+  },
+
+  "imageChoose": {
+    "message": "Choose image…"
+  },
+
+  "imageChooseShort": {
+    "message": "Choose…"
+  },
+
+  "imageFit": {
+    "message": "Fit",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "Stretch"
+  },
+
+  "fitCover": {
+    "message": "Cover"
+  },
+
+  "fitContain": {
+    "message": "Contain"
+  },
+
+  "fitCenter": {
+    "message": "Center"
+  },
+
+  "settingsVersion": {
+    "message": "Version $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "Page"
+  },
+
+  "settingsTabGrid": {
+    "message": "Grid"
+  },
+
+  "settingsTabTiles": {
+    "message": "Tiles"
+  },
+
+  "settingsTabThemes": {
+    "message": "Themes"
+  },
+
+  "settingsTabBackup": {
+    "message": "Backup"
+  },
+
+  "settingsOpenDial": {
+    "message": "Open Quick Dial NG"
+  },
+
+  "settingsWebsite": {
+    "message": "Website"
+  },
+
+  "settingsSourceCode": {
+    "message": "Source code and releases"
+  },
+
+  "settingsBackground": {
+    "message": "Background"
+  },
+
+  "settingsColor": {
+    "message": "Color"
+  },
+
+  "settingsRemove": {
+    "message": "Remove"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "Or drop an image on the preview."
+  },
+
+  "settingsGradientHint": {
+    "message": "The theme adds a gradient, shown behind any picture."
+  },
+
+  "settingsGradientRemove": {
+    "message": "Remove gradient"
+  },
+
+  "settingsInterface": {
+    "message": "Interface"
+  },
+
+  "settingsAccentColor": {
+    "message": "Accent color"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "Buttons, switches, tabs and focus rings in Quick Dial NG's windows and dialogs"
+  },
+
+  "settingsBehavior": {
+    "message": "Behavior"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "\"Add to Quick Dial NG\" menu item"
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "In the right-click menu of web pages"
+  },
+
+  "settingsToolbarButton": {
+    "message": "Toolbar button"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "What the Quick Dial NG button on the Firefox toolbar opens. Its right-click menu has both."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "These settings"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "The dial in a new tab"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "The dial in the current tab"
+  },
+
+  "settingsStartPage": {
+    "message": "Start page"
+  },
+
+  "settingsStartPageHint": {
+    "message": "Quick Dial NG is Firefox's home page: it opens when Firefox starts and with the Home button. To use another page, go to Firefox Settings › Home."
+  },
+
+  "settingsLayout": {
+    "message": "Layout"
+  },
+
+  "settingsRowsColumns": {
+    "message": "Rows × columns"
+  },
+
+  "settingsRows": {
+    "message": "Rows"
+  },
+
+  "settingsColumns": {
+    "message": "Columns"
+  },
+
+  "settingsTileShape": {
+    "message": "Tile shape"
+  },
+
+  "settingsRatioWidth": {
+    "message": "Width ratio"
+  },
+
+  "settingsRatioHeight": {
+    "message": "Height ratio"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "width : height"
+  },
+
+  "settingsPageMargin": {
+    "message": "Page margin"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "Bookmarks folder"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "The bookmarks folder shown on the dial"
+  },
+
+  "settingsOpening": {
+    "message": "Opening"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "Open bookmarks in"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "Open folders in"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "The same tab"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "A new tab"
+  },
+
+  "settingsFolderTiles": {
+    "message": "Folder tiles"
+  },
+
+  "settingsBackNode": {
+    "message": "Show a Back tile inside folders"
+  },
+
+  "settingsBackPicture": {
+    "message": "Back tile picture"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "Back picture fit"
+  },
+
+  "settingsFolderPicture": {
+    "message": "Folder picture"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "Folder picture fit"
+  },
+
+  "settingsReset": {
+    "message": "Reset"
+  },
+
+  "settingsResetHint": {
+    "message": "Use the built-in picture"
+  },
+
+  "settingsGroupTile": {
+    "message": "Tile",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "Spacing"
+  },
+
+  "settingsOpacity": {
+    "message": "Opacity"
+  },
+
+  "settingsBorderWidth": {
+    "message": "Border width"
+  },
+
+  "settingsCornerRadius": {
+    "message": "Corner radius"
+  },
+
+  "settingsBorderColor": {
+    "message": "Border color"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "Background opacity"
+  },
+
+  "settingsGlassBlur": {
+    "message": "Glass blur"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "Blurs the page behind the tile"
+  },
+
+  "settingsShadow": {
+    "message": "Shadow"
+  },
+
+  "shadowSoft": {
+    "message": "Soft"
+  },
+
+  "shadowStrong": {
+    "message": "Strong"
+  },
+
+  "settingsHoverEffect": {
+    "message": "Hover effect"
+  },
+
+  "hoverInstant": {
+    "message": "Instant change"
+  },
+
+  "hoverSmooth": {
+    "message": "Smooth change"
+  },
+
+  "hoverLift": {
+    "message": "Smooth, tile lifts"
+  },
+
+  "hoverGrow": {
+    "message": "Smooth, tile grows"
+  },
+
+  "settingsClickEffect": {
+    "message": "Click effect"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "Click a sample tile to see it again"
+  },
+
+  "settingsClickToPreview": {
+    "message": "Click to see the click effect"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "Animations are turned off in your system settings, so tiles don't move: click effects flash or fade instead, and a smooth hover fades without lifting or growing."
+  },
+
+  "clickPress": {
+    "message": "Press"
+  },
+
+  "clickBounce": {
+    "message": "Bounce"
+  },
+
+  "clickRipple": {
+    "message": "Ripple"
+  },
+
+  "clickFlash": {
+    "message": "Flash"
+  },
+
+  "clickRing": {
+    "message": "Pulse ring"
+  },
+
+  "settingsGroupTitle": {
+    "message": "Title",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "Show title"
+  },
+
+  "settingsHeight": {
+    "message": "Height"
+  },
+
+  "settingsFontSize": {
+    "message": "Font size"
+  },
+
+  "settingsDividerWidth": {
+    "message": "Divider width",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "Text color"
+  },
+
+  "settingsFont": {
+    "message": "Font"
+  },
+
+  "settingsCustomFont": {
+    "message": "Custom ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "Bold"
+  },
+
+  "settingsPosition": {
+    "message": "Position"
+  },
+
+  "titleBelow": {
+    "message": "Below the picture"
+  },
+
+  "titleOver": {
+    "message": "Over the bottom of the picture"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "Thumbnails"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "Capture delay"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "ms after the page loads"
+  },
+
+  "settingsDiscard": {
+    "message": "Discard changes"
+  },
+
+  "settingsDiscardHint": {
+    "message": "Show the settings the dial uses now"
+  },
+
+  "settingsApplyHint": {
+    "message": "Put the changes on the dial (Ctrl+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "A theme is the look of the dial: background color, page margin, tile and title styles and the accent color. It keeps your background picture, rows and columns, tile shape and tiles. Choose <b>Use</b> to try a theme here, then <b>Apply</b> to put it on the dial.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "Save current as theme…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "Add the current look to your themes"
+  },
+
+  "themeExportCurrent": {
+    "message": "Export current…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "Save the current look as a .json file"
+  },
+
+  "themeImport": {
+    "message": "Import theme…"
+  },
+
+  "themeImportHint": {
+    "message": "Add a theme from a .json file"
+  },
+
+  "themeBuiltIn": {
+    "message": "Built-in"
+  },
+
+  "themeInUse": {
+    "message": "In use"
+  },
+
+  "themeUse": {
+    "message": "Use"
+  },
+
+  "themeUseHint": {
+    "message": "Show this theme here; Apply keeps it"
+  },
+
+  "themeExport": {
+    "message": "Export…"
+  },
+
+  "themeExportHint": {
+    "message": "Save this theme as a .json file"
+  },
+
+  "themeDelete": {
+    "message": "Delete"
+  },
+
+  "themeDeleteHint": {
+    "message": "Remove this theme from the list"
+  },
+
+  "themeShownHere": {
+    "message": "\"$1\" is shown here only. Apply puts it on the dial; Discard changes keeps your previous look.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "From the current settings: background color, page margin, tile and title styles and the accent color."
+  },
+
+  "themeName": {
+    "message": "Name"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "My theme"
+  },
+
+  "themeDescription": {
+    "message": "Description (optional)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "What it looks like"
+  },
+
+  "themeNameMissing": {
+    "message": "Please enter a name."
+  },
+
+  "themeNameTooLong": {
+    "message": "Please use at most $1 characters.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "\"$1\" is a built-in theme. Please choose another name.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "Replace \"$1\"?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "You already have a theme with this name."
+  },
+
+  "themeReplace": {
+    "message": "Replace"
+  },
+
+  "themeSaveTitle": {
+    "message": "Save current as theme"
+  },
+
+  "themeSave": {
+    "message": "Save"
+  },
+
+  "themeSaved": {
+    "message": "Saved \"$1\" to your themes.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "Export current as theme"
+  },
+
+  "themeExportButton": {
+    "message": "Export"
+  },
+
+  "themeImported": {
+    "message": "Imported \"$1\". Choose Use to try it.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (imported)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "Delete \"$1\"?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "The theme is removed from this list. Your current settings stay as they are."
+  },
+
+  "themeFileIsBackup": {
+    "message": "This is a full Quick Dial NG backup. Import it on the Backup tab."
+  },
+
+  "themeFileInvalid": {
+    "message": "This file is not a Quick Dial NG theme."
+  },
+
+  "themeFileNewer": {
+    "message": "This theme was made by a newer version of Quick Dial NG. Update the extension to import it."
+  },
+
+  "themeFileNoName": {
+    "message": "This theme has no name."
+  },
+
+  "themeClassicName": {
+    "message": "Classic"
+  },
+
+  "themeClassicDescription": {
+    "message": "The original Quick Dial look: dark grey page, thin borders, titles under the pictures."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "Inspired by the Anori browser extension (anori.app): a deep-green page, frosted-glass tiles with large rounded corners and titles over the pictures."
+  },
+
+  "themePlumName": {
+    "message": "Plum"
+  },
+
+  "themePlumDescription": {
+    "message": "A dark plum page with light grey rounded borders and titles under the pictures. Made for a large grid with groups of sites and room between them."
+  },
+
+  "themeDesktopName": {
+    "message": "Desktop"
+  },
+
+  "themeDesktopDescription": {
+    "message": "Icons with their names under them on a night-blue page or your wallpaper, like a computer desktop, with a soft highlight under the pointer. For square tiles and icon pictures."
+  },
+
+  "themeDuskName": {
+    "message": "Dusk"
+  },
+
+  "themeDuskDescription": {
+    "message": "Violet glass tiles that grow on hover, over a sunset sky."
+  },
+
+  "themeRetroPcName": {
+    "message": "Retro PC"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "A late-1990s PC desktop: a teal page, icons with white names, and a navy highlight on the name under the pointer. For square tiles and icon pictures."
+  },
+
+  "themeRetroMonoName": {
+    "message": "Retro Mono"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "An early black-and-white desktop: a fine grey pattern, black names on white labels, inverted under the pointer. For square tiles and black-and-white icon pictures."
+  },
+
+  "backupTitle": {
+    "message": "Quick Dial NG backup"
+  },
+
+  "backupIntro": {
+    "message": "Saves settings, tiles, pictures and your themes to one file. Restore it with <b>Import from file…</b> below.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "Export backup"
+  },
+
+  "backupExportHint": {
+    "message": "Save settings, tiles and images to a file"
+  },
+
+  "backupImport": {
+    "message": "Import from file…"
+  },
+
+  "backupImportHint": {
+    "message": "Import an original Quick Dial export or a Quick Dial NG backup"
+  },
+
+  "backupOriginalTitle": {
+    "message": "Import from the original Quick Dial"
+  },
+
+  "backupOriginalIntro": {
+    "message": "Brings over your tiles with their exact grid positions, folders, pictures, grid and style settings. Bookmarks already in your Quick Dial folder are reused; missing ones are created."
+  },
+
+  "backupStep1": {
+    "message": "Open <code>about:debugging#/runtime/this-firefox</code>, find the original <b>Quick Dial</b> and click <b>Inspect</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "Copy the export snippet and paste it into the <b>Console</b> tab (type <code>allow pasting</code> first if Firefox asks). It saves <code>quickdial-export.json</code> to Downloads.",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "Choose that file with <b>Import from file…</b> above."
+  },
+
+  "backupCopySnippet": {
+    "message": "Copy export snippet"
+  },
+
+  "backupCopied": {
+    "message": "Copied ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "Copy this snippet:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "This is a theme. Import it on the Themes tab."
+  },
+
+  "backupFileInvalid": {
+    "message": "This file is not a Quick Dial export or Quick Dial NG backup."
+  },
+
+  "backupImportNgTitle": {
+    "message": "Import this Quick Dial NG backup?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "Import this Quick Dial export?"
+  },
+
+  "backupImportMessage": {
+    "message": "Your current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created."
+  },
+
+  "backupImportButton": {
+    "message": "Import"
+  },
+
+  "backupImporting": {
+    "message": "Importing…"
+  },
+
+  "backupImportResult": {
+    "message": "Imported $1 in $2 with $3, plus grid and style settings. Bookmarks reused: $4, created: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "Import failed: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "Not a Quick Dial backup"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "Cannot open the bookmarks folder \"$1\"",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "$1 tile"
+  },
+
+  "countTilesOther": {
+    "message": "$1 tiles"
+  },
+
+  "countFoldersOne": {
+    "message": "$1 folder"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 folders"
+  },
+
+  "countPicturesOne": {
+    "message": "$1 picture"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 pictures"
+  },
+
+  "propertiesPageTitle": {
+    "message": "Quick Dial NG tile properties"
+  },
+
+  "propertiesTitle": {
+    "message": "Properties"
+  },
+
+  "propertiesFolder": {
+    "message": "Folder properties"
+  },
+
+  "propertiesBookmark": {
+    "message": "Bookmark properties"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "Folder",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "Close (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "Title",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "Lock title"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "Lock the title: refreshing the tile won't rename it"
+  },
+
+  "propertiesAddress": {
+    "message": "Address"
+  },
+
+  "propertiesPicture": {
+    "message": "Picture"
+  },
+
+  "propertiesNoPicture": {
+    "message": "No picture yet"
+  },
+
+  "propertiesRevert": {
+    "message": "Revert"
+  },
+
+  "propertiesRevertHint": {
+    "message": "Undo picture changes made in this window"
+  },
+
+  "propertiesUseDefault": {
+    "message": "Use default"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "Use the default folder picture"
+  },
+
+  "propertiesPasteHint": {
+    "message": "Drop an image on the preview or paste one with Ctrl+V."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "Keep this picture"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "Refresh and capture won't replace it"
+  },
+
+  "propertiesTileGone": {
+    "message": "This tile no longer exists"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "The tile was deleted"
+  }
 }

@@ -63,7 +63,7 @@ module.exports = {
 		await menu(t, C.delete, 'New Folder');
 		d = await t.answer({ ok: false });
 		await t.idle();
-		t.check('Delete asks first; Cancel keeps the tile', d.title === 'dialogDeleteConfirmation' && (await shown(t)).includes('New Folder'), d);
+		t.check('Delete asks first; Cancel keeps the tile', d.title === 'Delete New Folder?' && (await shown(t)).includes('New Folder'), d);
 		await menu(t, C.delete, 'New Folder');
 		await t.answer();
 		await t.waitFor('the tile to go', () => !bg().app.node.children.some(c => c.title === 'New Folder'));

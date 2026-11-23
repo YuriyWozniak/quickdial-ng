@@ -6,6 +6,7 @@ var app = {};
 let picture = null; // The picture being edited: a CSS "url(...)" value, a data URL, or null
 
 document.addEventListener('DOMContentLoaded', event => {
+	QDUI.localize();
 	app.init();
 });
 
@@ -41,14 +42,14 @@ app.init = function(){
 // nothing left to edit or save, only Close.
 app.showDeleted = function(){
 	app.deleted = true;
-	HeaderSubtitle.textContent = 'This tile no longer exists';
+	HeaderSubtitle.textContent = QDCommon.text('propertiesTileGone');
 	HeaderSubtitle.title = '';
 	document.querySelector('main').hidden = true;
 	BtnApply.hidden = BtnOk.hidden = true;
-	BtnCancel.textContent = 'Close';
+	BtnCancel.textContent = QDCommon.text('buttonClose');
 	BtnCancel.focus(); // First: leaving an edited field fires its change event, which marks the form as changed
 	Status.classList.remove('is-dirty', 'is-saved');
-	Status.textContent = 'The tile was deleted';
+	Status.textContent = QDCommon.text('propertiesTileDeleted');
 	QDUI.fitPopup();
 };
 
@@ -83,9 +84,9 @@ app.initNode = function(node){
 	ImageMode.value = (node.imageMode || node.imageMode == 0) ? node.imageMode : QDCommon.ImageMode.inherit;
 	IconBookmark.toggleAttribute('hidden', isFolder); // SVG elements have no .hidden property
 	IconFolder.toggleAttribute('hidden', !isFolder);
-	HeaderTitle.textContent = isFolder ? 'Folder properties' : 'Bookmark properties';
+	HeaderTitle.textContent = QDCommon.text(isFolder ? 'propertiesFolder' : 'propertiesBookmark');
 	if(isFolder){
-		HeaderSubtitle.textContent = node.title || 'Folder';
+		HeaderSubtitle.textContent = node.title || QDCommon.text('propertiesFolderUntitled');
 		TitleLockBox.hidden = true;
 		ImageLockRow.hidden = true;
 		UrlRow.hidden = true;

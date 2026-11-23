@@ -10,7 +10,7 @@ app.ContextMenus.menuItemClicked = function(info, tab){
 app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all menus
 	const Commands = app.Messages.Commands;
 	const create = props => browser.contextMenus.create(props);
-	const text = key => browser.i18n.getMessage(key);
+	const text = QDCommon.text;
 	const toDial = cmd => (info, tab) => { browser.tabs.sendMessage(tab.id, { cmd }); }; // the dial page acts on the tile under the mouse
 	const openSettings = () => { app.openSettings(); };
 	const dialPages = ['moz-extension://*' + QDCommon.DIAL_PAGE, 'moz-extension://*' + QDCommon.DIAL_PAGE + '?*'];
@@ -32,12 +32,12 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all me
 		});
 	}
 	// The dial page's background
-	create({ id: 'pagemenu', title: 'Quick Dial NG', documentUrlPatterns: dialPages, contexts: ['page'] });
+	create({ id: 'pagemenu', title: text('extensionName'), documentUrlPatterns: dialPages, contexts: ['page'] });
 	newItems('pagemenu');
 	create({ parentId: 'pagemenu', title: text('menuSettings'), onclick: openSettings });
 	create({ parentId: 'pagemenu', title: text('menuImportQuickDial'), onclick: () => { app.openSettings('backup'); } });
 	// A tile on the dial
-	create({ id: 'itemmenu', title: 'Quick Dial NG', documentUrlPatterns: dialPages, contexts: ['link'] });
+	create({ id: 'itemmenu', title: text('extensionName'), documentUrlPatterns: dialPages, contexts: ['link'] });
 	newItems('itemmenu');
 	create({ parentId: 'itemmenu', title: text('menuProperties'), onclick: toDial(Commands.menuEditProperties) });
 	create({ parentId: 'itemmenu', title: text('menuRefreshItem'), onclick: toDial(Commands.menuRefreshNode) });

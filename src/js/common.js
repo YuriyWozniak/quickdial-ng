@@ -74,6 +74,29 @@ var QDCommon = Object.freeze({
 	WEBP_QUALITY: 0.85,
 
 	/**
+	 * A text from the language files (_locales/<language>/messages.json), with $1, $2... filled from the
+	 * substitutions. A key that has no text gives the key itself, so a missing text shows up instead of an empty label.
+	 * @param {string} key
+	 * @param {...(string|number)} substitutions
+	 * @returns {string}
+	 */
+	text(key, ...substitutions){
+		return browser.i18n.getMessage(key, substitutions.map(String)) || key;
+	},
+	/**
+	 * A text with a number in it, in the plural form the language uses for that number: the key followed by
+	 * One, Two, Few, Many or Other (the Intl.PluralRules categories). A form a language doesn't have falls back
+	 * to Other. $1 is the number. countText('countTiles', 3) -> "3 tiles"
+	 * @param {string} key
+	 * @param {number} count
+	 * @returns {string}
+	 */
+	countText(key, count){
+		const form = new Intl.PluralRules(browser.i18n.getUILanguage()).select(count);
+		return browser.i18n.getMessage(key + form.charAt(0).toUpperCase() + form.slice(1), [String(count)]) || QDCommon.text(key + 'Other', count);
+	},
+
+	/**
 	 * Height : width of a tile (grid.ratioY / grid.ratioX), in the default shape where a value is missing.
 	 * @param {{ ratioX?: number|string, ratioY?: number|string }} grid
 	 * @returns {number}

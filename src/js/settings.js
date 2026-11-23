@@ -85,7 +85,7 @@ app.fillForm = function(settings){
 			case 'color?': document.getElementById(f.nullToggle).checked = (v == null); el.value = v || f.nullColor; break;
 			case 'text':
 				if(el.tagName == 'SELECT' && v && !Array.prototype.some.call(el.options, o => { return o.value == v; })){
-					el.add(new Option('Custom (' + v.split(',')[0].replace(/["']/g, '') + ')', v)); // a font from an imported theme
+					el.add(new Option(QDCommon.text('settingsCustomFont', v.split(',')[0].replace(/["']/g, '')), v)); // a font from an imported theme
 				}
 				el.value = v == null ? '' : v;
 				break;
@@ -122,7 +122,8 @@ app.formSettings = function(){ return app.readForm(app.clone(app.settings)); };
 
 app.init = function(){
 	// Settings has its own tab (opened from the toolbar button, the dial's menu or Firefox's Add-ons page)
-	try { Version.textContent = 'Version ' + browser.runtime.getManifest().version; } catch(e) { Version.textContent = ''; }
+	QDUI.localize();
+	try { Version.textContent = QDCommon.text('settingsVersion', browser.runtime.getManifest().version); } catch(e) { Version.textContent = ''; }
 	app.tabs = QDUI.initTabs(Tabs, btn => {
 		Content.scrollTop = 0;
 		PanelTitle.textContent = btn.textContent.trim();
@@ -150,13 +151,13 @@ app.setupActions = function(){
 		if(!app.settings || !app.changes.isDirty()) return;
 		app.readForm(app.settings);
 		QDClient.setSettings(app.settings);
-		app.changes.markSaved('Changes applied to the dial');
+		app.changes.markSaved(QDCommon.text('statusAppliedToDial'));
 	};
 	BtnDiscard.onclick = function(){
 		app.fillForm(app.settings);
 		app.updatePreviews();
 		ThemeStatus.hidden = true;
-		app.changes.markDiscarded('Changes discarded');
+		app.changes.markDiscarded(QDCommon.text('statusDiscarded'));
 	};
 	BtnOpenDial.onclick = function(){
 		browser.tabs.create({ url: QDCommon.DIAL_PAGE });
@@ -213,7 +214,7 @@ app.setupTiles = function(){
 	showMotionHint();
 	reducedMotion.addEventListener('change', showMotionHint);
 	[TileNormal, TileHover].forEach(tile => {
-		tile.title = 'Click to see the click effect';
+		tile.title = QDCommon.text('settingsClickToPreview');
 		tile.addEventListener('mousedown', e => { if(e.button == 0) QDThemes.playClickEffect(tile, e.clientX, e.clientY); });
 	});
 };
@@ -343,6 +344,14 @@ app.Themes.setup = function(){
 	};
 };
 app.Themes.all = function(){ return QDThemes.BUILTIN.concat(app.Themes.list); };
+// What the user sees of a theme: a built-in one's name and description come from the language files
+app.Themes.displayName = theme => theme.builtin ? QDCommon.text(theme.nameKey) : theme.name;
+app.Themes.displayDescription = theme => theme.builtin ? QDCommon.text(theme.descriptionKey) : theme.description || '';
+// A built-in theme's name, as stored (English) or as shown in this language
+app.Themes.isBuiltinName = function(name){
+	const lower = String(name).trim().toLowerCase();
+	return QDThemes.isBuiltinName(name) || QDThemes.BUILTIN.some(t => app.Themes.displayName(t).toLowerCase() == lower);
+};
 app.Themes.find = function(name){
 	name = String(name).trim().toLowerCase();
 	return app.Themes.list.filter(t => { return t.name.toLowerCase() == name; })[0] || null;
@@ -367,24 +376,24 @@ app.Themes.render = function(){
 		[false, true].forEach(hover => {
 			const slot = el('div', 'qd-tile-slot'), tile = el('div', 'qd-tile');
 			tile.appendChild(el('div', 'qd-tile-img'));
-			tile.appendChild(el('div', 'qd-tile-title', hover ? 'Hover' : 'Example'));
+			tile.appendChild(el('div', 'qd-tile-title', QDCommon.text(hover ? 'tileHover' : 'tileExample')));
 			slot.appendChild(tile);
 			preview.appendChild(slot);
 			app.paintTile(tile, theme.style.grid.cells, hover, ratio);
 		});
 		card.appendChild(preview);
 		const body = el('div', 'qd-theme-body');
-		const name = el('h3', 'qd-theme-name', theme.name);
-		if(theme.builtin) name.appendChild(el('span', 'qd-badge', 'Built-in'));
-		const current = el('span', 'qd-badge is-accent', 'In use');
+		const name = el('h3', 'qd-theme-name', app.Themes.displayName(theme));
+		if(theme.builtin) name.appendChild(el('span', 'qd-badge', QDCommon.text('themeBuiltIn')));
+		const current = el('span', 'qd-badge is-accent', QDCommon.text('themeInUse'));
 		name.appendChild(current);
 		body.appendChild(name);
-		body.appendChild(el('p', 'qd-theme-desc', theme.description || ''));
+		body.appendChild(el('p', 'qd-theme-desc', app.Themes.displayDescription(theme)));
 		const actions = el('div', 'qd-theme-actions');
-		const use = button('Use', 'Show this theme here; Apply or OK keeps it', () => { app.Themes.use(theme); }, 'is-primary');
+		const use = button(QDCommon.text('themeUse'), QDCommon.text('themeUseHint'), () => { app.Themes.use(theme); }, 'is-primary');
 		actions.appendChild(use);
-		actions.appendChild(button('Export…', 'Save this theme as a .json file', () => { app.download(QDThemes.toFile(theme), QDThemes.fileName(theme.name)); }));
-		if(!theme.builtin) actions.appendChild(button('Delete', 'Remove this theme from the list', () => { app.Themes.remove(theme); }));
+		actions.appendChild(button(QDCommon.text('themeExport'), QDCommon.text('themeExportHint'), () => { app.download(QDThemes.toFile({ name: theme.name, description: app.Themes.displayDescription(theme), style: theme.style }), QDThemes.fileName(theme.name)); }));
+		if(!theme.builtin) actions.appendChild(button(QDCommon.text('themeDelete'), QDCommon.text('themeDeleteHint'), () => { app.Themes.remove(theme); }));
 		body.appendChild(actions);
 		card.appendChild(body);
 		ThemeList.appendChild(card);
@@ -406,7 +415,7 @@ app.Themes.use = function(theme){
 	app.fillForm(s);
 	app.updatePreviews();
 	app.changes.mark();
-	app.showStatus(ThemeStatus, '"' + theme.name + '" is shown here only. Apply puts it on the dial; Discard changes keeps your previous look.');
+	app.showStatus(ThemeStatus, QDCommon.text('themeShownHere', app.Themes.displayName(theme)));
 };
 // Asks for a name and description: resolves to { name, description } or null
 app.Themes.ask = function(title, okText, forSaving){
@@ -414,16 +423,16 @@ app.Themes.ask = function(title, okText, forSaving){
 	const match = app.Themes.all().filter(t => { return QDThemes.equal(style, t.style); })[0];
 	return QDUI.dialog({
 		title: title,
-		message: 'From the current settings: background color, page margin, tile and title styles and the accent color.',
+		message: QDCommon.text('themeDialogMessage'),
 		fields: [
-			{ name: 'name', label: 'Name', value: match && !match.builtin ? match.name : 'My theme', placeholder: 'My theme' },
-			{ name: 'description', label: 'Description (optional)', value: match && !match.builtin ? match.description : '', placeholder: 'What it looks like' }
+			{ name: 'name', label: QDCommon.text('themeName'), value: match && !match.builtin ? match.name : QDCommon.text('themeNamePlaceholder'), placeholder: QDCommon.text('themeNamePlaceholder') },
+			{ name: 'description', label: QDCommon.text('themeDescription'), value: match && !match.builtin ? match.description : '', placeholder: QDCommon.text('themeDescriptionPlaceholder') }
 		],
 		okText: okText,
 		validate: function(v){
-			if(!v.name) return 'Please enter a name.';
-			if(v.name.length > QDThemes.NAME_MAX_LENGTH) return 'Please use at most ' + QDThemes.NAME_MAX_LENGTH + ' characters.';
-			if(forSaving && QDThemes.isBuiltinName(v.name)) return '"' + v.name + '" is a built-in theme. Please choose another name.';
+			if(!v.name) return QDCommon.text('themeNameMissing');
+			if(v.name.length > QDThemes.NAME_MAX_LENGTH) return QDCommon.text('themeNameTooLong', QDThemes.NAME_MAX_LENGTH);
+			if(forSaving && app.Themes.isBuiltinName(v.name)) return QDCommon.text('themeNameBuiltIn', v.name);
 			return '';
 		}
 	});
@@ -431,20 +440,20 @@ app.Themes.ask = function(title, okText, forSaving){
 // Adds a theme to the list; a theme with the same name is replaced after confirmation
 app.Themes.add = function(theme, done){
 	const existing = app.Themes.find(theme.name);
-	(existing ? QDUI.dialog({ title: 'Replace "' + existing.name + '"?', message: 'You already have a theme with this name.', okText: 'Replace', danger: true }) : Promise.resolve(true)).then(ok => {
+	(existing ? QDUI.dialog({ title: QDCommon.text('themeReplaceTitle', existing.name), message: QDCommon.text('themeReplaceMessage'), okText: QDCommon.text('themeReplace'), danger: true }) : Promise.resolve(true)).then(ok => {
 		if(!ok) return;
 		app.Themes.store([theme].concat(app.Themes.list.filter(t => { return t !== existing; })), done);
 	});
 };
 app.Themes.saveCurrent = function(){
-	app.Themes.ask('Save current as theme', 'Save', true).then(v => {
+	app.Themes.ask(QDCommon.text('themeSaveTitle'), QDCommon.text('themeSave'), true).then(v => {
 		if(!v) return;
 		const theme = { name: v.name, description: v.description, style: QDThemes.extract(app.formSettings()) };
-		app.Themes.add(theme, () => { app.showStatus(ThemeStatus, 'Saved "' + theme.name + '" to your themes.'); });
+		app.Themes.add(theme, () => { app.showStatus(ThemeStatus, QDCommon.text('themeSaved', theme.name)); });
 	});
 };
 app.Themes.exportCurrent = function(){
-	app.Themes.ask('Export current as theme', 'Export', false).then(v => {
+	app.Themes.ask(QDCommon.text('themeExportTitle'), QDCommon.text('themeExportButton'), false).then(v => {
 		if(!v) return;
 		app.download(QDThemes.toFile({ name: v.name, description: v.description, style: QDThemes.extract(app.formSettings()) }), QDThemes.fileName(v.name));
 	});
@@ -452,12 +461,12 @@ app.Themes.exportCurrent = function(){
 app.Themes.importFile = function(data){
 	let theme;
 	try { theme = QDThemes.fromFile(data); }
-	catch(e){ app.showStatus(ThemeStatus, data ? e.message : 'This file is not a Quick Dial NG theme.', true); return; }
-	if(QDThemes.isBuiltinName(theme.name)) theme.name += ' (imported)';
-	app.Themes.add(theme, () => { app.showStatus(ThemeStatus, 'Imported "' + theme.name + '". Choose Use to try it.'); });
+	catch(e){ app.showStatus(ThemeStatus, QDCommon.text(data ? e.message : 'themeFileInvalid'), true); return; }
+	if(app.Themes.isBuiltinName(theme.name)) theme.name = QDCommon.text('themeImportedName', theme.name);
+	app.Themes.add(theme, () => { app.showStatus(ThemeStatus, QDCommon.text('themeImported', theme.name)); });
 };
 app.Themes.remove = function(theme){
-	QDUI.dialog({ title: 'Delete "' + theme.name + '"?', message: 'The theme is removed from this list. Your current settings stay as they are.', okText: 'Delete', danger: true }).then(ok => {
+	QDUI.dialog({ title: QDCommon.text('themeDeleteTitle', theme.name), message: QDCommon.text('themeDeleteMessage'), okText: QDCommon.text('themeDelete'), danger: true }).then(ok => {
 		if(ok) app.Themes.store(app.Themes.list.filter(t => { return t !== theme; }));
 	});
 };
@@ -480,9 +489,9 @@ app.Backup.setup = function(){
 	};
 	BtnCopySnippet.onclick = function(){
 		navigator.clipboard.writeText(app.Backup.exportSnippet).then(() => {
-			BtnCopySnippet.textContent = 'Copied ✓';
-			setTimeout(() => { BtnCopySnippet.textContent = 'Copy export snippet'; }, COPIED_LABEL_TIME);
-		}, () => { prompt('Copy this snippet:', app.Backup.exportSnippet); });
+			BtnCopySnippet.textContent = QDCommon.text('backupCopied');
+			setTimeout(() => { BtnCopySnippet.textContent = QDCommon.text('backupCopySnippet'); }, COPIED_LABEL_TIME);
+		}, () => { prompt(QDCommon.text('backupCopyPrompt'), app.Backup.exportSnippet); });
 	};
 	const result = new URLSearchParams(location.search).get('result');
 	if(result) app.showStatus(ImportStatus, result);
@@ -490,26 +499,25 @@ app.Backup.setup = function(){
 // A Quick Dial NG backup or an original Quick Dial export (data: the file's content, null when it isn't JSON)
 app.Backup.importFile = function(data){
 	if(!data || !data.settings || !data.node || !data.settings.grid){
-		app.showStatus(ImportStatus, data && data.format == QDThemes.FILE_FORMAT ? 'This is a theme. Import it on the Themes tab.' : 'This file is not a Quick Dial export or Quick Dial NG backup.', true);
+		app.showStatus(ImportStatus, QDCommon.text(data && data.format == QDThemes.FILE_FORMAT ? 'backupFileIsTheme' : 'backupFileInvalid'), true);
 		return;
 	}
-	const source = data.format == QDCommon.BACKUP_FORMAT ? 'Quick Dial NG backup' : 'Quick Dial export';
 	QDUI.dialog({
-		title: 'Import this ' + source + '?',
-		message: 'Your current settings and tile layout will be replaced. Bookmarks in the Quick Dial folder are kept; missing ones are created.',
-		okText: 'Import',
+		title: QDCommon.text(data.format == QDCommon.BACKUP_FORMAT ? 'backupImportNgTitle' : 'backupImportOriginalTitle'),
+		message: QDCommon.text('backupImportMessage'),
+		okText: QDCommon.text('backupImportButton'),
 		danger: true
 	}).then(ok => {
 		if(!ok) return;
 		BtnImport.disabled = true;
-		app.showStatus(ImportStatus, 'Importing…', false, true);
+		app.showStatus(ImportStatus, QDCommon.text('backupImporting'), false, true);
 		QDClient.importData(data).then(r => {
-			const text = 'Imported ' + r.tiles + ' tile' + (r.tiles == 1 ? '' : 's') + ' in ' + (r.folders + 1) + ' folder' + (r.folders ? 's' : '') + ' with ' + r.images + ' picture' + (r.images == 1 ? '' : 's') + ', plus grid and style settings. '
-				+ r.matched + ' matched existing bookmarks, ' + r.created + ' bookmark' + (r.created == 1 ? ' was' : 's were') + ' created.';
+			const text = QDCommon.text('backupImportResult', QDCommon.countText('countTiles', r.tiles), QDCommon.countText('countFolders', r.folders + 1),
+				QDCommon.countText('countPictures', r.images), r.matched, r.created);
 			location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
 		}, err => {
 			BtnImport.disabled = false;
-			app.showStatus(ImportStatus, 'Import failed: ' + err.message, true);
+			app.showStatus(ImportStatus, QDCommon.text('backupImportFailed', err.message), true);
 		});
 	});
 };

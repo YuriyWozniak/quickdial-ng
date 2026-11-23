@@ -10,15 +10,15 @@
 // The steps build on each other: "Add to Quick Dial" adds a tile at the end; the last step turns
 // that item off.
 'use strict';
-const { freshProfile, spyTabs } = require('../lib/fixtures');
+const { freshProfile, spyTabs, englishText } = require('../lib/fixtures');
 
-// Clicks the menu item with this title (and parent menu, if given), as Firefox would; the tabs record starts empty
-const click = (t, title, parentId, info, tab) => t.J(([title, parentId, info, tab]) => {
+// Clicks the menu item with the text of this key (and parent menu, if given), as Firefox would; the tabs record starts empty
+const click = (t, key, parentId, info, tab) => t.J(([title, parentId, info, tab]) => {
 	const item = (S.menuItems || []).find(m => m.title === title && (!parentId || m.parentId === parentId));
 	if (!item) throw new Error('no menu item ' + title + (parentId ? ' in ' + parentId : ''));
 	bg().qdTabs = [];
 	item.onclick(info || {}, tab || { id: 3 });
-}, [title, parentId || null, info || null, tab || null]);
+}, [englishText(key), parentId || null, info || null, tab || null]);
 // What the background page asked the tabs API for since then
 const tabs = t => t.J(() => bg().qdTabs);
 
@@ -45,7 +45,7 @@ module.exports = {
 
 		// ----- the menus: every item there, and what each one does -----
 		st = await t.J(() => S.menus);
-		t.check('the menus are all there', ['menuAddToQuickDial', 'menuNewBookmark', 'menuNewFolder', 'menuSettings', 'menuImportQuickDial', 'menuProperties', 'menuRefreshItem', 'menuCapturePage', 'menuDeleteItem', 'menuOpenDial'].every(m => st.includes(m)), st);
+		t.check('the menus are all there', ['menuAddToQuickDial', 'menuNewBookmark', 'menuNewFolder', 'menuSettings', 'menuImportQuickDial', 'menuProperties', 'menuRefreshItem', 'menuCapturePage', 'menuDeleteItem', 'menuOpenDial'].every(key => st.includes(englishText(key))), st);
 		await click(t, 'menuAddToQuickDial', null, { menuItemId: 'AddToQuickDial', pageUrl: 'https://added.example/page' }, { id: 4, title: 'Added page' });
 		st = await t.waitFor('the new tile', () => bg().app.node.children.find(c => c.url === 'https://added.example/page'));
 		const bookmark = await t.J(() => S.bm.children[0].children[0].children.find(c => c.url === 'https://added.example/page'));
@@ -70,6 +70,6 @@ module.exports = {
 		await t.J(() => { const s = JSON.parse(JSON.stringify(bg().app.settings)); s.menuShowAdd = false; fire('rt.onMessage.bg', { cmd: 1, settings: s }, {}, () => {}); });
 		await t.idle();
 		st = await t.J(() => S.menus);
-		t.check('turning "Add to Quick Dial" off removes it from the page menu, once', !st.includes('menuAddToQuickDial') && st.filter(m => m === 'menuOpenDial').length === 1, st);
+		t.check('turning "Add to Quick Dial" off removes it from the page menu, once', !st.includes(englishText('menuAddToQuickDial')) && st.filter(m => m === englishText('menuOpenDial')).length === 1, st);
 	}
 };
