@@ -1057,5 +1057,19 @@
 
   "propertiesTileDeleted": {
     "message": "La vignette a été supprimée"
+  },
+
+  "settingsLanguage": {
+    "message": "Langue"
+  },
+
+  "settingsLanguageHint": {
+    "message": "Pour l’accès rapide, ces paramètres et les menus",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Comme Firefox",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

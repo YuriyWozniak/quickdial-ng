@@ -1069,5 +1069,19 @@
 
   "propertiesTileDeleted": {
     "message": "Плитка удалена"
+  },
+
+  "settingsLanguage": {
+    "message": "Язык"
+  },
+
+  "settingsLanguageHint": {
+    "message": "Для экспресс-панели, этих настроек и меню",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Как в Firefox",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

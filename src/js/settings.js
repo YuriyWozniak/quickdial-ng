@@ -23,10 +23,12 @@ document.addEventListener('DOMContentLoaded', event => {
 
 // Form fields and the setting each one edits: { id: element id, path: settings path, kind, nullToggle: id of the
 // "None"/"Default" checkbox (color? only), nullColor: colour shown while that checkbox is on }
-// Kinds: num, pct (0..1 shown as %), bool, color, color? (null = the checkbox), text
+// Kinds: num, pct (0..1 shown as %), bool, color, color? (null = the checkbox), text, choice (a list's value;
+// one the list doesn't have shows its first item)
 const FIELDS = (function(){
 	const field = (id, path, kind, nullToggle, nullColor) => ({ id, path, kind, nullToggle, nullColor });
 	const fields = [
+		field('Language', 'language', 'choice'),
 		field('MenuShowAdd', 'menuShowAdd', 'bool'),
 		field('ToolbarAction', 'toolbarAction', 'text'),
 		field('BackgroundColor', 'backgroundColor', 'color'),
@@ -88,6 +90,10 @@ app.fillForm = function(settings){
 					el.add(new Option(QDCommon.text('settingsCustomFont', v.split(',')[0].replace(/["']/g, '')), v)); // a font from an imported theme
 				}
 				el.value = v == null ? '' : v;
+				break;
+			case 'choice':
+				el.value = v == null ? '' : v;
+				if(el.selectedIndex < 0) el.selectedIndex = 0;
 				break;
 			default: el.value = v == null ? '' : v;
 		}
@@ -184,12 +190,28 @@ app.picturePicked = (fn, maxSize) => {
 		});
 	};
 };
-// Tab Page: the background picture (the rest of the tab is plain form fields, FIELDS)
+// Tab Page: the languages, the background picture (the rest of the tab is plain form fields, FIELDS)
 app.setupPage = function(){
+	app.setupLanguages();
 	QDUI.imagePicker(BackgroundImageFile, BackgroundImageChoose, app.picturePicked(css => { backgroundImage = css; }, QDCommon.BACKGROUND_MAX_SIZE));
 	QDUI.imageDrop(BackgroundZone, BackgroundImageFile);
 	BackgroundImageClear.onclick = app.pictureEdit(() => { backgroundImage = null; });
 	BackgroundGradientClear.onclick = app.pictureEdit(() => { backgroundGradient = null; });
+};
+// The Language list: "Same as Firefox (its language)", then every language in its own name, in alphabetical order
+app.setupLanguages = function(){
+	const names = QDCommon.LANGUAGES;
+	LanguageBrowser.textContent = QDCommon.text('settingsLanguageBrowser') + ' (' + names[app.firefoxLanguage()] + ')';
+	Object.keys(names).sort((a, b) => names[a].localeCompare(names[b])).forEach(code => {
+		const option = new Option(names[code], code);
+		option.lang = code.replace('_', '-'); // read out in its own language
+		Language.add(option);
+	});
+};
+// The language Firefox shows the extension in: its own if there are texts for it ('pt-BR', or 'uk' for 'uk-UA'), otherwise English
+app.firefoxLanguage = function(){
+	const ui = browser.i18n.getUILanguage().replace('-', '_'), codes = Object.keys(QDCommon.LANGUAGES);
+	return codes.find(c => c.toLowerCase() == ui.toLowerCase()) || codes.find(c => c.split('_')[0] == ui.split('_')[0].toLowerCase()) || 'en';
 };
 // Tab Grid: the Back and folder pictures
 app.setupGrid = function(){
@@ -238,7 +260,9 @@ app.listen = function(){
 	const Commands = QDCommon.Commands;
 	QDClient.listen({
 		[Commands.settingsChanged]: () => { // applied here or in another window: show it unless there are edits not applied yet
-			if(app.settings && !app.changes.isDirty()) app.load();
+			if(!app.settings || app.changes.isDirty()) return;
+			if(document.documentElement.lang != QDCommon.language()) location.reload(); // Another language: the page is built again in it, on the same section
+			else app.load();
 		},
 		[Commands.showSettingsSection]: request => { // the Settings tab was already open when the user asked for a section
 			if(request.tab) app.showSection(request.tab);

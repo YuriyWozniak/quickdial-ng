@@ -115,6 +115,7 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 	} finally {
 		app.Bookmarks.initListener();
 	}
+	await app.Language.apply(); // The backup may hold another language
 	app.Messages.broadcast(app.Messages.Commands.settingsChanged);
 	app.ContextMenus.updateMenu();
 	await app.GridNodes.sync(app.node, app.settings.grid.root);

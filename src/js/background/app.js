@@ -3,6 +3,7 @@
 // manifest.json: app.js first, then one file per part of `app`, and main.js last, which starts it.
 //   messages.js   messages from the dial, Settings and Properties pages
 //   settings.js   stored settings (and their upgrades from older versions) and the user's themes
+//   language.js   the language of the texts: Firefox's, or the one chosen in Settings
 //   images.js     tile pictures, one storage key each
 //   backup.js     export and import
 //   menus.js      context menus
@@ -17,7 +18,7 @@ app.SYNC_DELAY = 500; // ms after start before the tiles are checked against the
 app.ready = new Promise(resolve => { app._setReady = resolve; }); // Resolves once settings and nodes are loaded; dial pages wait on it
 
 app.init = function(){
-	app.Settings.init().then(() => {
+	app.Settings.init().then(() => app.Language.apply()).then(() => {
 		app.Settings.rememberBackground();
 		app._setReady();
 		app.Messages.init();

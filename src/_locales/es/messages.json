@@ -1057,5 +1057,19 @@
 
   "propertiesTileDeleted": {
     "message": "El mosaico se eliminó"
+  },
+
+  "settingsLanguage": {
+    "message": "Idioma"
+  },
+
+  "settingsLanguageHint": {
+    "message": "Para la marcación rápida, estos ajustes y los menús",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Igual que Firefox",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

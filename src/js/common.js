@@ -73,6 +73,45 @@ var QDCommon = Object.freeze({
 	BACKGROUND_MAX_SIZE: 2560,
 	WEBP_QUALITY: 0.85,
 
+	// ---------- texts and their language ----------
+	// The texts follow Firefox's language (browser.i18n) unless the Language setting (settings.language) picks
+	// one of LANGUAGES. The background page reads the chosen language's messages.json (app.Language) and keeps
+	// { language, messages: { key: text } } in localStorage under LANGUAGE_KEY; every page reads that copy when
+	// it starts and again when the settings change (useLanguage), so it draws in the right language at once.
+
+	// The languages of _locales (folder names, quoted as they are), each named in its own language (the Language list in Settings)
+	LANGUAGES: Object.freeze({
+		'de': 'Deutsch', 'en': 'English', 'es': 'Español', 'fr': 'Français', 'he_IL': 'עברית', 'it': 'Italiano',
+		'pl': 'Polski', 'pt_BR': 'Português (Brasil)', 'ru': 'Русский', 'sr': 'Српски', 'uk': 'Українська'
+	}),
+	RTL_LANGUAGE: /^(ar|fa|he|ur|yi)([-_]|$)/, // languages written right to left, by their first subtag
+	LANGUAGE_KEY: 'language',
+	/** The language chosen in Settings and its texts; '' and null: Firefox's own. Set by useLanguage only.
+	 *  @type {{ language: string, messages: Record<string, string> | null }} */
+	_chosen: { language: '', messages: null },
+
+	/**
+	 * Shows the texts in this language: { language: a LANGUAGES key, messages }, or null for Firefox's own.
+	 * Without an argument, the copy the background page keeps in localStorage.
+	 * @param {{ language: string, messages: Record<string, string> } | null} [chosen]
+	 */
+	useLanguage(chosen){
+		if(chosen === undefined){
+			try { chosen = JSON.parse(localStorage.getItem(QDCommon.LANGUAGE_KEY)); } catch(e){ chosen = null; }
+		}
+		const valid = !!chosen && Object.prototype.hasOwnProperty.call(QDCommon.LANGUAGES, chosen.language) && !!chosen.messages && typeof chosen.messages == 'object';
+		QDCommon._chosen.language = valid ? chosen.language : '';
+		QDCommon._chosen.messages = valid ? chosen.messages : null;
+	},
+	/** The language of the texts as a language tag ('uk', 'pt-BR'): for lang attributes and Intl. @returns {string} */
+	language(){
+		return QDCommon._chosen.language ? QDCommon._chosen.language.replace('_', '-') : browser.i18n.getUILanguage();
+	},
+	/** The writing direction of the texts: 'rtl' or 'ltr'. @returns {string} */
+	direction(){
+		if(QDCommon._chosen.language) return QDCommon.RTL_LANGUAGE.test(QDCommon._chosen.language) ? 'rtl' : 'ltr';
+		return browser.i18n.getMessage('@@bidi_dir') || 'ltr';
+	},
 	/**
 	 * A text from the language files (_locales/<language>/messages.json), with $1, $2... filled from the
 	 * substitutions. A key that has no text gives the key itself, so a missing text shows up instead of an empty label.
@@ -81,6 +120,8 @@ var QDCommon = Object.freeze({
 	 * @returns {string}
 	 */
 	text(key, ...substitutions){
+		const own = QDCommon._chosen.messages && QDCommon._chosen.messages[key];
+		if(typeof own == 'string') return own.replace(/\$(\d)/g, (_, n) => substitutions[n - 1] === undefined ? '' : String(substitutions[n - 1]));
 		return browser.i18n.getMessage(key, substitutions.map(String)) || key;
 	},
 	/**
@@ -92,8 +133,9 @@ var QDCommon = Object.freeze({
 	 * @returns {string}
 	 */
 	countText(key, count){
-		const form = new Intl.PluralRules(browser.i18n.getUILanguage()).select(count);
-		return browser.i18n.getMessage(key + form.charAt(0).toUpperCase() + form.slice(1), [String(count)]) || QDCommon.text(key + 'Other', count);
+		const form = new Intl.PluralRules(QDCommon.language()).select(count);
+		const formKey = key + form.charAt(0).toUpperCase() + form.slice(1), text = QDCommon.text(formKey, count);
+		return text == formKey ? QDCommon.text(key + 'Other', count) : text;
 	},
 
 	/**
@@ -185,6 +227,7 @@ var QDCommon = Object.freeze({
 		});
 	}
 });
+QDCommon.useLanguage(); // the language chosen in Settings, before the page draws anything
 
 // The pages' side of the messages to the background page (js/background/messages.js answers them). Every
 // method returns a promise of the answer. The pages call these instead of browser.runtime.sendMessage, so
@@ -200,10 +243,12 @@ var QDClient = (function(){
 		/**
 		 * Calls handlers[request.cmd] for the messages the background page sends to every page (settingsChanged,
 		 * gridNodesLoaded, the tile menu's commands). Answers nothing, so the background page's own answers are left alone.
+		 * When the settings change, the texts follow first: the language may be another one.
 		 * @param {Record<number, (request: any) => void>} handlers
 		 */
 		listen(handlers){
 			browser.runtime.onMessage.addListener(request => {
+				if(request && request.cmd == Commands.settingsChanged) QDCommon.useLanguage();
 				const handler = request && handlers[request.cmd];
 				if(handler) handler(request);
 			});

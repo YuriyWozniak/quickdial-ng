@@ -1069,5 +1069,19 @@
 
   "propertiesTileDeleted": {
     "message": "Kafelek został usunięty"
+  },
+
+  "settingsLanguage": {
+    "message": "Język"
+  },
+
+  "settingsLanguageHint": {
+    "message": "Dla panelu, tych ustawień i menu",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Jak w Firefoksie",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

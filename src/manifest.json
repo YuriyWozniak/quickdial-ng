@@ -31,6 +31,7 @@
       "js/background/app.js",
       "js/background/messages.js",
       "js/background/settings.js",
+      "js/background/language.js",
       "js/background/images.js",
       "js/background/backup.js",
       "js/background/menus.js",
