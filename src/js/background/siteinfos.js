@@ -10,21 +10,24 @@ app.SiteInfos._previewSize = function(){ // Size of a tile picture, in the tiles
 	if(grid.title == true) height -= grid.titleHeight; // grid.title / grid.titleHeight: settings of the original Quick Dial 1.x
 	return { width, height };
 };
-app.SiteInfos._canvas = function(size){ // A canvas at half the preview size, scaled so drawing uses preview coordinates
+app.SiteInfos.CANVAS_SCALE = 0.5; // Pictures are stored at this scale of the size pages are drawn at
+app.SiteInfos._canvas = function(size){ // A canvas at CANVAS_SCALE of the preview size, scaled so drawing uses preview coordinates
 	const canvas = document.createElement('canvas');
 	canvas.style.width = size.width + 'px';
 	canvas.style.height = size.height + 'px';
-	canvas.width = size.width / 2;
-	canvas.height = size.height / 2;
+	canvas.width = size.width * app.SiteInfos.CANVAS_SCALE;
+	canvas.height = size.height * app.SiteInfos.CANVAS_SCALE;
 	const ctx = canvas.getContext('2d');
 	ctx.clearRect(0, 0, size.width, size.height);
 	ctx.save();
-	ctx.scale(0.5, 0.5);
+	ctx.scale(app.SiteInfos.CANVAS_SCALE, app.SiteInfos.CANVAS_SCALE);
 	return { canvas, ctx };
 };
 
 app.SiteInfos.LOAD_POLL = 300; // How often Capture page checks whether its tab has finished loading (ms)
 app.SiteInfos.LOAD_TIMEOUT = 30000; // A page still loading after this long is captured as it is (endless loaders)
+app.SiteInfos.DOWNLOAD_TIMEOUT = 10000; // Refresh: how long the page's download may take (ms)
+app.SiteInfos.DRAW_TIMEOUT = 6000; // Refresh: a downloaded page that hasn't finished loading its parts after this long is drawn as it is (ms)
 
 // Opens the page in a background tab, then shows it for a moment to capture it ("Capture page").
 // The capture sees the page as the user does, logged in. The tab is closed again whatever happens.
@@ -106,7 +109,7 @@ app.SiteInfos._fromFrame = function(url, done){ // done(infos), or done(null) wh
 		done({ url, title, icon: null, screenshot });
 	};
 	const xhr = new XMLHttpRequest();
-	xhr.timeout = 10000;
+	xhr.timeout = app.SiteInfos.DOWNLOAD_TIMEOUT;
 	try {
 		xhr.open('GET', url, true);
 	} catch(e) { // Not a valid address after all (e.g. "http://a b")
@@ -131,7 +134,7 @@ app.SiteInfos._fromFrame = function(url, done){ // done(infos), or done(null) wh
 		document.body.appendChild(iframe);
 		iframe.onload = pageLoaded;
 		iframe.srcdoc = content;
-		setTimeout(pageLoaded, 6000);
+		setTimeout(pageLoaded, app.SiteInfos.DRAW_TIMEOUT);
 	};
 	xhr.onabort = xhr.onerror = xhr.ontimeout = fail;
 	xhr.send();

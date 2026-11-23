@@ -147,7 +147,7 @@ app.GridNodes.getNodeWithParents = function(id){
  * @property {string} [title]
  * @property {string} [url]
  * @property {string|null} [image] data URL or url(...) of a picture, '0' or none (see Images.setNodeImage)
- * @property {number} [imageMode] -1: back to the default
+ * @property {number} [imageMode] QDCommon.ImageMode.inherit: back to the default
  * @property {boolean} [titleLocked]
  * @property {boolean} [imageLocked]
  */
@@ -165,7 +165,7 @@ app.GridNodes.updateNode = async function(gridNode, value){
 		app.Images.setNodeImage(gridNode, value.image);
 	}
 	if(value.imageMode || value.imageMode == 0){
-		if(value.imageMode == -1) delete gridNode.imageMode;
+		if(value.imageMode == QDCommon.ImageMode.inherit) delete gridNode.imageMode;
 		else gridNode.imageMode = value.imageMode;
 	}
 	const urlChanged = gridNode.type == NodeType.bookmark && value.url && gridNode.url != value.url;
@@ -281,7 +281,7 @@ app.GridNodes.capturePage = function(gridNode){
 				const nodes = app.GridNodes.getNodeWithParents(gridNode.id);
 				if(!nodes) return null;
 				const path = nodes.slice(1).map(n => '/' + n.title).join('');
-				return app.SiteInfos.fromNewTab('/dial.html?path=' + encodeURIComponent(path)).then(infos => { // folder names may hold & # ? or %
+				return app.SiteInfos.fromNewTab(QDCommon.DIAL_PAGE + '?path=' + encodeURIComponent(path)).then(infos => { // folder names may hold & # ? or %
 					app.Images.setNodeImage(gridNode, infos ? infos.screenshot : null);
 					app.GridNodes.save();
 					return { title: gridNode.title };

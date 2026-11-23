@@ -8,6 +8,17 @@
 var QDThemes = (function(){
 	'use strict';
 
+	// The values of the style settings that are a choice from a list
+	// What a tile does under the pointer (grid.cells.hoverEffect): its styles change at once or smoothly, and then may lift or grow
+	const HoverEffect = Object.freeze({ instant: 0, smooth: 1, lift: 2, grow: 3 });
+	// What a tile does when it is clicked (grid.cells.clickEffect); see clickEffectRules
+	const ClickEffect = Object.freeze({ none: 0, press: 1, bounce: 2, ripple: 3, flash: 4, ring: 5 });
+	// Where the title is (grid.cells.titlePosition): under the picture, or over its bottom edge
+	const TitlePosition = Object.freeze({ below: 0, over: 1 });
+	// The tile shadow (grid.cells.shadow, shadowHover); see shadow()
+	const Shadow = Object.freeze({ none: 0, soft: 1, strong: 2 });
+	const last = list => Math.max(...Object.values(list)); // the highest value of one of these lists
+
 	// Every style key with its Classic value (the defaults of a new install).
 	// The shape mirrors the settings object, so extract/apply can walk both together.
 	const CLASSIC = {
@@ -27,10 +38,10 @@ var QDThemes = (function(){
 				backgroundOpacityHover: 1,
 				blur: 0,
 				blurHover: 0,
-				shadow: 0,
-				shadowHover: 0,
-				hoverEffect: 0,
-				clickEffect: 0,
+				shadow: Shadow.none,
+				shadowHover: Shadow.none,
+				hoverEffect: HoverEffect.instant,
+				clickEffect: ClickEffect.none,
 				borderColor: '#333333',
 				borderColorHover: '#a9a9a9',
 				borderRadius: 4,
@@ -45,7 +56,7 @@ var QDThemes = (function(){
 				titleFontSizeHover: 10,
 				titleFont: 'Arial, Verdana, Sans-serif',
 				titleBold: false,
-				titlePosition: 0,
+				titlePosition: TitlePosition.below,
 				titleColor: '#ffffff',
 				titleColorHover: '#33ccff',
 				titleBackgroundColor: null,
@@ -68,14 +79,14 @@ var QDThemes = (function(){
 		'cells.backgroundColor': 'color?', 'cells.backgroundColorHover': 'color?',
 		backgroundOpacity: [0, 1, .01], backgroundOpacityHover: [0, 1, .01],
 		blur: [0, 40, 1], blurHover: [0, 40, 1],
-		shadow: [0, 2, 1], shadowHover: [0, 2, 1], hoverEffect: [0, 3, 1], clickEffect: [0, 5, 1],
+		shadow: [0, last(Shadow), 1], shadowHover: [0, last(Shadow), 1], hoverEffect: [0, last(HoverEffect), 1], clickEffect: [0, last(ClickEffect), 1],
 		borderColor: 'color', borderColorHover: 'color',
 		borderRadius: [0, 200, 1], borderRadiusHover: [0, 200, 1],
 		borderSize: [0, 20, 1], borderSizeHover: [0, 20, 1],
 		title: 'bool', titleHover: 'bool',
 		titleHeight: [0, 100, 1], titleHeightHover: [0, 100, 1],
 		titleFontSize: [1, 72, .5], titleFontSizeHover: [1, 72, .5],
-		titleFont: 'font', titleBold: 'bool', titlePosition: [0, 1, 1],
+		titleFont: 'font', titleBold: 'bool', titlePosition: [0, last(TitlePosition), 1],
 		titleColor: 'color', titleColorHover: 'color',
 		titleBackgroundColor: 'color?', titleBackgroundColorHover: 'color?',
 		titleBackgroundOpacity: [0, 1, .01], titleBackgroundOpacityHover: [0, 1, .01],
@@ -178,14 +189,14 @@ var QDThemes = (function(){
 						backgroundColor: '#ffffff', backgroundColorHover: '#ffffff',
 						backgroundOpacity: .06, backgroundOpacityHover: .12,
 						blur: 14, blurHover: 18,
-						shadow: 1, shadowHover: 2, hoverEffect: 2,
+						shadow: Shadow.soft, shadowHover: Shadow.strong, hoverEffect: HoverEffect.lift,
 						borderColor: '#2c5a45', borderColorHover: '#56c792',
 						borderRadius: 14, borderRadiusHover: 14,
 						borderSize: 1, borderSizeHover: 1,
 						title: true, titleHover: true,
 						titleHeight: 26, titleHeightHover: 26,
 						titleFontSize: 9.5, titleFontSizeHover: 9.5,
-						titleFont: 'system-ui, "Segoe UI", sans-serif', titleBold: false, titlePosition: 1,
+						titleFont: 'system-ui, "Segoe UI", sans-serif', titleBold: false, titlePosition: TitlePosition.over,
 						titleColor: '#e3f1ea', titleColorHover: '#ffffff',
 						titleBackgroundColor: '#04110b', titleBackgroundColorHover: '#00794a',
 						titleBackgroundOpacity: .78, titleBackgroundOpacityHover: .9,
@@ -209,7 +220,7 @@ var QDThemes = (function(){
 	// (Settings › Grid › Tile shape 1 : 1) and icon pictures shown with the "Contain" picture mode (Properties › Fit).
 	const ICON_CELLS = {
 		margin: 4, marginHover: 4, backgroundColor: null, backgroundColorHover: null, backgroundOpacity: 0, backgroundOpacityHover: 0,
-		borderSize: 0, borderSizeHover: 0, borderRadius: 0, borderRadiusHover: 0, titlePosition: 0, titleBorderSize: 0, titleBorderSizeHover: 0
+		borderSize: 0, borderSizeHover: 0, borderRadius: 0, borderRadiusHover: 0, titlePosition: TitlePosition.below, titleBorderSize: 0, titleBorderSizeHover: 0
 	};
 	BUILTIN.push(
 		{ id: 'plum', builtin: true, name: 'Plum',
@@ -228,7 +239,7 @@ var QDThemes = (function(){
 				backgroundGradient: 'radial-gradient(ellipse at 55% 45%, #2c4f7a 0%, #172a4a 55%, #0b1426 100%)',
 				accentColor: '#3a72c8',
 				grid: { margin: 12, cells: Object.assign({}, ICON_CELLS, {
-					backgroundColor: '#ffffff', backgroundColorHover: '#ffffff', backgroundOpacityHover: .16, borderRadius: 8, borderRadiusHover: 8, hoverEffect: 1,
+					backgroundColor: '#ffffff', backgroundColorHover: '#ffffff', backgroundOpacityHover: .16, borderRadius: 8, borderRadiusHover: 8, hoverEffect: HoverEffect.smooth,
 					titleHeight: 30, titleHeightHover: 30, titleFontSize: 9.5, titleFontSizeHover: 9.5, titleFont: 'system-ui, "Segoe UI", sans-serif',
 					titleColor: '#ffffff', titleColorHover: '#ffffff', titleBackgroundColor: null, titleBackgroundColorHover: '#ffffff', titleBackgroundOpacityHover: .16 }) }
 			}) },
@@ -238,7 +249,7 @@ var QDThemes = (function(){
 				backgroundColor: '#2a2350',
 				backgroundGradient: 'linear-gradient(180deg, #1a2a6c 0%, #6d4a7a 40%, #b46a8f 62%, #fdbb6d 85%, #fdd9a0 100%)',
 				accentColor: '#7e57c2',
-				grid: { cells: { borderColor: '#ffffff', borderColorHover: '#ffffff', backgroundOpacity: .12, hoverEffect: 3,
+				grid: { cells: { borderColor: '#ffffff', borderColorHover: '#ffffff', backgroundOpacity: .12, hoverEffect: HoverEffect.grow,
 					titleBackgroundColor: '#1b1638', titleBackgroundColorHover: '#7e57c2', titleBackgroundOpacity: .55 } }
 			}) },
 		{ id: 'retro-pc', builtin: true, name: 'Retro PC',
@@ -275,29 +286,34 @@ var QDThemes = (function(){
 	];
 
 	// ---------- theme files ----------
-	const FORMAT = 'quickdial-ng-theme';
+	const FILE_FORMAT = 'quickdial-ng-theme';
+	const FILE_VERSION = 1; // the newest theme file version this code reads
+	const BACKUP_FORMAT = 'quickdial-ng'; // QDCommon.BACKUP_FORMAT: themes.js loads without common.js (unit tests), so it keeps its own copy
+	const NAME_MAX_LENGTH = 60;
+	const DESCRIPTION_MAX_LENGTH = 300;
 	// eslint-disable-next-line no-control-regex -- control characters are what it removes
 	function cleanText(v, max){ return typeof v == 'string' ? v.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max) : ''; }
 	// { name, description, style } -> the object saved as a .json file
 	function toFile(theme){
-		return { format: FORMAT, version: 1, name: cleanText(theme.name, 60), description: cleanText(theme.description, 300), style: normalize(theme.style) };
+		return { format: FILE_FORMAT, version: FILE_VERSION, name: cleanText(theme.name, NAME_MAX_LENGTH),
+			description: cleanText(theme.description, DESCRIPTION_MAX_LENGTH), style: normalize(theme.style) };
 	}
 	// Parsed .json -> { name, description, style }; throws an Error with a message for the user
 	function fromFile(data){
-		if(!data || typeof data != 'object' || data.format != FORMAT || !data.style || typeof data.style != 'object'){
-			throw new Error(data && data.format == 'quickdial-ng' ? 'This is a full Quick Dial NG backup. Import it on the Backup tab.' : 'This file is not a Quick Dial NG theme.');
+		if(!data || typeof data != 'object' || data.format != FILE_FORMAT || !data.style || typeof data.style != 'object'){
+			throw new Error(data && data.format == BACKUP_FORMAT ? 'This is a full Quick Dial NG backup. Import it on the Backup tab.' : 'This file is not a Quick Dial NG theme.');
 		}
-		if(data.version > 1) throw new Error('This theme was made by a newer version of Quick Dial NG. Update the extension to import it.');
-		const name = cleanText(data.name, 60);
+		if(data.version > FILE_VERSION) throw new Error('This theme was made by a newer version of Quick Dial NG. Update the extension to import it.');
+		const name = cleanText(data.name, NAME_MAX_LENGTH);
 		if(!name) throw new Error('This theme has no name.');
-		return { name: name, description: cleanText(data.description, 300), style: normalize(data.style) };
+		return { name: name, description: cleanText(data.description, DESCRIPTION_MAX_LENGTH), style: normalize(data.style) };
 	}
 	// Saved custom themes: [{ name, description, style }], invalid entries dropped
 	function cleanList(list){
 		if(!Array.isArray(list)) return [];
 		const out = [], seen = {};
 		list.forEach(t => {
-			try { t = fromFile({ format: FORMAT, version: 1, name: t.name, description: t.description, style: t.style }); } catch(e){ return; }
+			try { t = fromFile({ format: FILE_FORMAT, version: FILE_VERSION, name: t.name, description: t.description, style: t.style }); } catch(e){ return; }
 			const key = t.name.toLowerCase();
 			if(seen[key] || isBuiltinName(t.name)) return;
 			seen[key] = true;
@@ -306,7 +322,7 @@ var QDThemes = (function(){
 		return out;
 	}
 	function isBuiltinName(name){ return BUILTIN.some(t => { return t.name.toLowerCase() == String(name).trim().toLowerCase(); }); }
-	function fileName(name){ return 'quickdial-ng-theme-' + (String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'custom') + '.json'; }
+	function fileName(name){ return FILE_FORMAT + '-' + (String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'custom') + '.json'; }
 
 	// ---------- CSS values ----------
 	function rgba(hex, opacity){ // '#rrggbb' + 0..1 -> CSS colour; null -> transparent
@@ -319,8 +335,14 @@ var QDThemes = (function(){
 		const layers = [picture, gradient].filter(v => { return v; });
 		return layers.length ? layers.join(', ') : 'none';
 	}
-	function shadow(level){
+	function shadow(level){ // level: Shadow; the CSS box-shadow of each, in their order
 		return ['none', '0 2px 8px rgba(0, 0, 0, .28)', '0 10px 28px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .25)'][+level] || 'none';
+	}
+
+	// ---------- hover effect ----------
+	// The CSS transform of a hovered tile, or '' (the dial and the Settings preview)
+	function hoverTransform(effect){
+		return { [HoverEffect.lift]: 'translateY(-4px)', [HoverEffect.grow]: 'scale(1.04)' }[+effect] || '';
 	}
 
 	// ---------- click effects ----------
@@ -328,7 +350,6 @@ var QDThemes = (function(){
 	// rules: clickEffectRules gives the CSS for a tile selector, playClickEffect starts it on one tile. The effect
 	// starts on mouse down, so it shows even when the click opens the site in the same tab right away. Unlike the hover
 	// effect it is not switched off with reduced motion: it was asked for, and is then shown without movement.
-	const ClickEffect = Object.freeze({ none: 0, press: 1, bounce: 2, ripple: 3, flash: 4, ring: 5 });
 	const CLICK_EFFECT_DURATION = 600; // ms; the longest animation below, plus a little
 	// CSS rules (text) for `selector` (the tile: positioned, overflow hidden). color: the effect's colour (#rrggbb).
 	function clickEffectRules(selector, effect, color){
@@ -382,9 +403,11 @@ var QDThemes = (function(){
 	}
 
 	return {
-		CLASSIC: CLASSIC, BUILTIN: BUILTIN, FONTS: FONTS, ClickEffect: ClickEffect,
+		CLASSIC: CLASSIC, BUILTIN: BUILTIN, FONTS: FONTS, HoverEffect: HoverEffect, ClickEffect: ClickEffect, TitlePosition: TitlePosition, Shadow: Shadow,
+		FILE_FORMAT: FILE_FORMAT, NAME_MAX_LENGTH: NAME_MAX_LENGTH,
 		normalize: normalize, extract: extract, apply: apply, equal: equal, complete: complete,
 		toFile: toFile, fromFile: fromFile, cleanList: cleanList, isBuiltinName: isBuiltinName, fileName: fileName,
-		rgba: rgba, background: background, shadow: shadow, clickEffectRules: clickEffectRules, playClickEffect: playClickEffect
+		rgba: rgba, background: background, shadow: shadow, hoverTransform: hoverTransform,
+		clickEffectRules: clickEffectRules, playClickEffect: playClickEffect
 	};
 })();

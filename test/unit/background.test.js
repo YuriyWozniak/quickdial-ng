@@ -40,6 +40,15 @@ test('QDCommon: how a picture fills its box, and pictures as CSS values', () => 
 	assert.equal(QDCommon.fromCssUrl(null), null);
 });
 
+test('QDCommon: the tile shape, with the default shape where a value is missing', () => {
+	const { QDCommon } = load('js/common.js');
+	const DEFAULT_RATIO = QDCommon.TILE_RATIO_Y / QDCommon.TILE_RATIO_X;
+	assert.equal(QDCommon.tileRatio({ ratioX: 16, ratioY: 9 }), 9 / 16);
+	assert.equal(QDCommon.tileRatio({ ratioX: '1', ratioY: '1' }), 1, 'form values work too');
+	assert.equal(QDCommon.tileRatio({}), DEFAULT_RATIO);
+	assert.equal(QDCommon.tileRatio({ ratioX: 0, ratioY: '' }), DEFAULT_RATIO, 'empty or zero: the default');
+});
+
 test('QDClient sends each command with its fields, answers failures with empty values, and listens', async () => {
 	const w = load('js/common.js'), { QDClient } = w, Commands = w.QDCommon.Commands;
 	const sent = [], listeners = [];

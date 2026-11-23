@@ -13,6 +13,7 @@
 /* exported app */
 // eslint-disable-next-line no-var -- a window property: shared by the background scripts; the dial page and the tests read it too
 var app = {};
+app.SYNC_DELAY = 500; // ms after start before the tiles are checked against the bookmarks: the first dial is drawn first
 app.ready = new Promise(resolve => { app._setReady = resolve; }); // Resolves once settings and nodes are loaded; dial pages wait on it
 
 app.init = function(){
@@ -24,7 +25,7 @@ app.init = function(){
 		browser.browserAction.onClicked.addListener(tab => {
 			switch(app.settings.toolbarAction){
 				case 'settings': app.openSettings(); break;
-				case 'current': browser.tabs.update(tab.id, { url: '/dial.html' }); break;
+				case 'current': browser.tabs.update(tab.id, { url: QDCommon.DIAL_PAGE }); break;
 				default: browser.tabs.create({});
 			}
 		});
@@ -32,7 +33,7 @@ app.init = function(){
 		app.ContextMenus.initMenu();
 		setTimeout(() => {
 			app.GridNodes.sync(app.node, app.settings.grid.root).then(() => app.Bookmarks.initListener());
-		}, 500);
+		}, app.SYNC_DELAY);
 		// The start page is Firefox's home page, set to dial.html by chrome_settings_overrides in manifest.json
 	});
 };
