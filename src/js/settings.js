@@ -12,7 +12,7 @@ let backIcon = null;
 let folderIcon = null;
 
 // Sizes and times of this page
-const SAMPLE_TILE_WIDTH = 152; // px: the sample tiles of the Tiles tab and the theme cards (.qd-tile-slot, css/ui.css)
+const SAMPLE_TILE_WIDTH = 152; // px: the sample tiles of the Tiles tab and the theme cards (.qd-tile-slot, css/settings.css)
 const SAMPLE_TILE_MAX_HEIGHT = 200; // px: taller shapes are cut off
 const COPIED_LABEL_TIME = 2000; // ms the Copy export snippet button says Copied
 const DOWNLOAD_URL_LIFETIME = 1000; // ms a downloaded file's object URL is kept

@@ -1,34 +1,49 @@
-/* Quick Dial NG — shared UI styles for every place the user interacts:
-   the Settings and Properties pages, the popup frame and the dialogs on the dial page.
+/* Quick Dial NG — shared UI styles: the tokens, the base text styles and the controls (fields,
+   switches, buttons) of every place the user interacts, and the popup frame and dialogs of the
+   dial page. The dial page loads only this file, when it first needs it (js/dial.js); the
+   Properties and Settings pages add css/page.css, and Settings adds css/settings.css.
 
    Conventions
    - Every class starts with "qd-": a block (qd-card), its parts (qd-card-…), and
      states/variants as "is-…" next to it (qd-btn is-primary).
-   - Plain elements (h2, p, code, input, select) are styled only inside .qd, so this sheet
-     never touches the speed dial grid itself. Components are single classes.
-   - Colors, sizes and spacing come from the tokens below; dark mode only swaps colors. */
+   - Plain elements (h2, th, p, code, input, select) are styled only inside .qd, so these sheets
+     never touch the speed dial grid itself. Components are single classes.
+   - Colors, sizes and spacing come from the tokens below; dark mode only swaps colors.
+   - Logical properties (margin-inline-start, inset-inline), so the pages work right to left too.
+   - Declarations keep one order: position and display, box (size, margin, padding), text,
+     colors and borders, then interaction (cursor, transition). */
 
 /* ========== tokens ========== */
 :root {
+	/* text */
 	--qd-font: system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
 	--qd-font-mono: ui-monospace, Consolas, "Cascadia Mono", monospace;
+	--qd-font-size-lg: 15px;  /* titles */
 	--qd-font-size: 13px;
-	--qd-font-size-sm: 12px;
-	--qd-font-size-caps: 11px;
+	--qd-font-size-sm: 12px;  /* hints, small buttons */
+	--qd-font-size-caps: 11px; /* small caps headings, badges */
 
-	--qd-radius-sm: 6px;
-	--qd-radius: 8px;
-	--qd-radius-lg: 12px;
+	/* sizes and corners */
 	--qd-control-h: 32px;
 	--qd-control-h-sm: 28px;
-	--qd-label-w: 136px;
+	--qd-label-w: 136px;       /* label column of .qd-row */
+	--qd-radius-xs: 4px;
+	--qd-radius-sm: 6px;       /* controls */
+	--qd-radius: 8px;          /* cards, previews */
+	--qd-radius-lg: 12px;      /* dialogs */
+	--qd-radius-pill: 999px;
+
+	/* spacing */
 	--qd-pad-x: 18px;  /* page edge: header, tabs, content, footer */
-	--qd-pad-y: 16px;
-	--qd-gap: 12px;    /* between controls */
+	--qd-pad-y: 16px;  /* top and bottom of the scrolling content */
 	--qd-stack: 14px;  /* between cards */
+	--qd-gap: 12px;    /* between controls */
 	--qd-row: 8px;     /* between form rows */
+	--qd-gap-sm: 6px;  /* inside a control or a small group: icon and text, label and unit */
+
 	--qd-ease: cubic-bezier(.2, .8, .2, 1);
 
+	/* colors, light */
 	--qd-bg: #f9f9fb;
 	--qd-surface: #ffffff;
 	--qd-surface-2: #f0f0f4;
@@ -56,7 +71,6 @@
 	--qd-shadow-lg: 0 24px 64px rgba(10, 10, 20, .35), 0 4px 12px rgba(10, 10, 20, .18);
 	--qd-ring: 0 0 0 3px color-mix(in srgb, var(--qd-focus) 25%, transparent);
 	--qd-ring-danger: 0 0 0 3px color-mix(in srgb, var(--qd-danger) 20%, transparent);
-	color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -85,11 +99,10 @@
 		--qd-backdrop: rgba(0, 0, 0, .55);
 		--qd-shadow: 0 1px 2px rgba(0, 0, 0, .4);
 		--qd-shadow-lg: 0 24px 64px rgba(0, 0, 0, .6), 0 4px 12px rgba(0, 0, 0, .4);
-		color-scheme: dark;
 	}
 }
 
-/* theme accent (QDUI.setAccent): one colour in, every accent shade derived from it */
+/* theme accent (QDUI.setAccent): one color in, every accent shade derived from it */
 :root.qd-accented {
 	--qd-accent: var(--qd-user-accent);
 	--qd-accent-hover: color-mix(in srgb, var(--qd-user-accent) 85%, black);
@@ -116,6 +129,7 @@
 	font-size: var(--qd-font-size);
 	line-height: 1.4;
 	color: var(--qd-text);
+	color-scheme: light dark; /* native parts (checkboxes, scrollbars) match the tokens; not on :root, which is the dial page's */
 	user-select: text;
 }
 .qd [hidden] { display: none !important; }
@@ -127,282 +141,26 @@
 	white-space: nowrap;
 	background: var(--qd-surface-2);
 	border: 1px solid var(--qd-border-soft);
-	border-radius: 4px;
+	border-radius: var(--qd-radius-xs);
 }
 
-/* small caps headings: card titles, table headers, table groups */
-.qd h2, .qd-table th, .qd-table-group td {
+/* small caps headings: card titles, table headers */
+.qd :is(h2, th) {
 	font-size: var(--qd-font-size-caps);
 	font-weight: 600;
 	letter-spacing: .06em;
+	text-align: start;
 	text-transform: uppercase;
 	color: var(--qd-muted);
 }
 .qd h2 { margin: 0 0 var(--qd-row); }
 
-.qd-muted { color: var(--qd-muted); }
-.qd-hint { font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
+.qd-title { margin: 0; font-size: var(--qd-font-size-lg); font-weight: 600; line-height: 1.25; }
 .qd-label { font-weight: 500; }
+.qd-hint { font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
+.qd-muted { color: var(--qd-muted); }
 
-/* ========== page layout (Properties inside the popup frame; the Settings tab builds on it) ========== */
-.qd-page {
-	display: flex;
-	flex-direction: column;
-	height: 100vh;
-	margin: 0;
-	overflow: hidden;
-	background: var(--qd-bg);
-}
-.qd-header, .qd-footer {
-	display: flex;
-	align-items: center;
-	background: var(--qd-surface);
-}
-.qd-header {
-	gap: var(--qd-gap);
-	padding: 14px 14px 14px var(--qd-pad-x); /* close button sits closer to the edge */
-	border-bottom: 1px solid var(--qd-border-soft);
-}
-.qd-header-icon {
-	flex: none;
-	display: grid;
-	place-items: center;
-	width: var(--qd-control-h);
-	height: var(--qd-control-h);
-	border-radius: var(--qd-radius-sm);
-	background: var(--qd-accent-soft);
-	color: var(--qd-accent);
-}
-.qd-header-icon svg { width: 18px; height: 18px; }
-.qd-header-text { flex: 1; min-width: 0; }
-.qd-title { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.25; }
-.qd-subtitle {
-	margin: 1px 0 0;
-	overflow: hidden;
-	font-size: var(--qd-font-size-sm);
-	color: var(--qd-muted);
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-.qd-content {
-	flex: 1;
-	min-height: 0;
-	overflow: auto;
-	padding: var(--qd-pad-y) var(--qd-pad-x);
-	scrollbar-width: thin;
-}
-.qd-footer {
-	gap: var(--qd-row);
-	padding: var(--qd-gap) var(--qd-pad-x);
-	border-top: 1px solid var(--qd-border-soft);
-}
-.qd-status { flex: 1; min-width: 0; font-size: var(--qd-font-size-sm); color: var(--qd-muted); transition: color .2s; }
-.qd-status.is-dirty { color: var(--qd-text); }
-.qd-status.is-dirty::before {
-	content: "";
-	display: inline-block;
-	width: 7px;
-	height: 7px;
-	margin-inline-end: 7px;
-	border-radius: 50%;
-	background: var(--qd-accent);
-	vertical-align: 1px;
-}
-.qd-status.is-saved { color: var(--qd-ok); }
-
-/* ========== tabs ========== */
-.qd-tabs {
-	display: flex;
-	gap: 2px;
-	padding: 0 calc(var(--qd-pad-x) - 12px); /* tab text lines up with the page edge */
-	background: var(--qd-surface);
-	border-bottom: 1px solid var(--qd-border-soft);
-}
-.qd-tab {
-	position: relative;
-	padding: 10px 12px 11px;
-	font: inherit;
-	font-weight: 500;
-	color: var(--qd-muted);
-	background: none;
-	border: 0;
-	border-radius: var(--qd-radius-sm) var(--qd-radius-sm) 0 0;
-	cursor: pointer;
-	transition: color .15s, background-color .15s;
-}
-.qd-tab:hover { color: var(--qd-text); background: var(--qd-surface-2); }
-.qd-tab[aria-selected="true"] { color: var(--qd-accent); }
-.qd-tab[aria-selected="true"]::after {
-	content: "";
-	position: absolute;
-	right: 10px;
-	bottom: -1px;
-	left: 10px;
-	height: 3px;
-	border-radius: 3px 3px 0 0;
-	background: var(--qd-accent);
-}
-.qd-panel { animation: qd-fade .16s var(--qd-ease); }
-
-/* vertical stack of cards; the banner may be hidden, so it brings its own gap */
-.qd-stack > :not(.qd-banner) + * { margin-top: var(--qd-stack); }
-
-/* ========== Settings page (opens in its own tab) ==========
-   Wide windows: a sidebar (title, sections, links) and a centred content column with the
-   cards in two columns. Below 860 px it folds into the narrow layout: tabs across the top
-   and one column, as on phones. */
-.qd-settings {
-	--qd-side-w: 236px;
-	--qd-content-max: 1100px;
-	--qd-pad-y: 28px; /* content top padding; the sticky table header uses it */
-	--qd-gutter: max(36px, calc((100% - var(--qd-content-max)) / 2)); /* centres the content column */
-	display: grid;
-	grid-template-columns: var(--qd-side-w) minmax(0, 1fr);
-	grid-template-rows: auto auto 1fr auto;
-	grid-template-areas: "head main" "nav main" "side main" "side foot";
-}
-.qd-settings > .qd-header { grid-area: head; padding: 22px 16px 16px; padding-inline-start: 20px; border-bottom: 0; }
-.qd-settings > .qd-tabs { grid-area: nav; }
-.qd-settings > .qd-side { grid-area: side; }
-.qd-settings > .qd-content { grid-area: main; padding: var(--qd-pad-y) var(--qd-gutter) 40px; scrollbar-width: auto; container-type: inline-size; }
-.qd-settings > .qd-footer { grid-area: foot; padding: var(--qd-gap) var(--qd-gutter); }
-.qd-settings > :is(.qd-header, .qd-tabs, .qd-side) { background: var(--qd-surface); border-inline-end: 1px solid var(--qd-border-soft); }
-.qd-settings .qd-title { font-size: 16px; }
-
-/* sections: a vertical list in the sidebar */
-.qd-settings .qd-tabs { flex-direction: column; gap: 2px; padding: 4px 12px; border-bottom: 0; }
-.qd-settings .qd-tab {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 8px 10px;
-	text-align: start;
-	border-radius: var(--qd-radius-sm);
-}
-.qd-settings .qd-tab[aria-selected="true"] { color: var(--qd-accent); background: var(--qd-accent-soft); }
-.qd-settings .qd-tab[aria-selected="true"]::after { display: none; }
-.qd-tab-icon { flex: none; width: 18px; height: 18px; }
-
-.qd-side {
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-end;
-	align-items: flex-start;
-	gap: 2px;
-	padding: 16px 12px 18px;
-}
-.qd-side-link {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	padding: 5px 10px;
-	font: inherit;
-	font-size: var(--qd-font-size-sm);
-	color: var(--qd-muted);
-	text-decoration: none;
-	background: none;
-	border: 0;
-	border-radius: var(--qd-radius-sm);
-	cursor: pointer;
-}
-.qd-side-link svg { width: 15px; height: 15px; }
-.qd-side-link:hover { color: var(--qd-text); background: var(--qd-surface-2); }
-.qd-side-link:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
-.qd-side-link:first-child { margin-bottom: 6px; font-size: var(--qd-font-size); font-weight: 500; color: var(--qd-accent); }
-
-.qd-panel-title { margin: 0 0 18px; font-size: 22px; font-weight: 600; line-height: 1.2; }
-
-/* cards side by side, while the content area is wide enough for two columns */
-.qd-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: var(--qd-stack) 18px; }
-.qd-cols.is-aside { grid-template-columns: minmax(0, 1fr) 300px; }
-.qd-aside { order: 2; position: sticky; top: 0; }
-.qd-aside .qd-tile-stage { flex-direction: column; align-items: center; gap: 18px; padding: 22px var(--qd-gap); }
-.qd-settings .qd-card:not(.is-table) { padding: 16px 18px; }
-.qd-settings .qd-preview.is-screen { width: 260px; }
-.qd-settings .qd-footer .qd-btn { min-width: 96px; }
-
-@media (max-width: 860px) {
-	.qd-settings {
-		--qd-pad-y: 16px;
-		--qd-gutter: var(--qd-pad-x);
-		grid-template-columns: minmax(0, 1fr);
-		grid-template-rows: auto auto 1fr auto;
-		grid-template-areas: "head" "nav" "main" "foot";
-	}
-	.qd-settings > :is(.qd-header, .qd-tabs) { border-inline-end: 0; }
-	.qd-settings > .qd-header { padding: 14px var(--qd-pad-x); border-bottom: 1px solid var(--qd-border-soft); }
-	.qd-settings > .qd-side, .qd-settings .qd-panel-title, .qd-settings .qd-tab-icon { display: none; }
-	.qd-settings .qd-tabs { flex-direction: row; overflow-x: auto; padding: 0 calc(var(--qd-pad-x) - 12px); border-bottom: 1px solid var(--qd-border-soft); scrollbar-width: none; }
-	.qd-settings .qd-tab { padding: 10px 12px 11px; border-radius: var(--qd-radius-sm) var(--qd-radius-sm) 0 0; }
-	.qd-settings .qd-tab[aria-selected="true"] { background: none; }
-	.qd-settings .qd-tab[aria-selected="true"]::after { display: block; }
-	.qd-settings .qd-footer .qd-btn { min-width: 0; }
-}
-@container (max-width: 780px) { /* one column; the tile preview goes above the style table */
-	.qd-cols, .qd-cols.is-aside { grid-template-columns: minmax(0, 1fr); }
-	.qd-aside { order: 0; position: static; }
-	.qd-aside .qd-tile-stage { flex-direction: row; justify-content: center; }
-}
-@media (max-width: 520px) { /* phones: the picture preview goes above its controls */
-	.qd-settings .qd-image { flex-direction: column; align-items: stretch; }
-	.qd-settings .qd-preview.is-screen { width: 100%; }
-	.qd-settings .qd-row { grid-template-columns: minmax(0, 1fr); }
-	.qd-settings .qd-row > .qd-hint { grid-column: 1; }
-}
-
-/* ========== cards and form rows ========== */
-.qd-card {
-	padding: 14px 16px;
-	background: var(--qd-surface);
-	border: 1px solid var(--qd-border-soft);
-	border-radius: var(--qd-radius);
-	box-shadow: var(--qd-shadow);
-}
-.qd-card.is-table { padding: 0 6px 6px; }
-
-/* label | control */
-.qd-row {
-	display: grid;
-	grid-template-columns: var(--qd-label-w) minmax(0, 1fr);
-	align-items: center;
-	gap: 6px var(--qd-gap);
-	min-height: var(--qd-control-h);
-}
-.qd-row > label:first-child { font-weight: 500; }
-.qd-row > .qd-hint { grid-column: 2; margin-top: -4px; }
-
-/* text with a description | switch or small control on the right */
-.qd-switch-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--qd-gap);
-	min-height: var(--qd-control-h);
-}
-.qd-switch-label { display: flex; flex-direction: column; gap: 1px; font-weight: 500; }
-.qd-switch-label small { font-size: var(--qd-font-size-sm); font-weight: 400; color: var(--qd-muted); }
-
-:is(.qd-row, .qd-switch-row) + :is(.qd-row, .qd-switch-row) { margin-top: var(--qd-row); }
-.qd-image + .qd-switch-row { margin-top: var(--qd-stack); }
-.qd-switch-row + .qd-columns { margin-top: var(--qd-gap); }
-
-/* small label | control pairs next to an image preview */
-.qd-pairs {
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr);
-	align-items: center;
-	gap: var(--qd-row) var(--qd-gap);
-	justify-items: start;
-}
-.qd-pairs > select { justify-self: stretch; min-width: max-content; } /* the choice is never cut off */
-
-.qd-inline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--qd-row); min-width: 0; }
-.qd-grow { flex: 1; min-width: 0; }
-.qd-sep { font-weight: 500; color: var(--qd-muted); }
-.qd-unit { display: inline-flex; align-items: center; gap: 6px; color: var(--qd-muted); }
-.qd-columns { display: grid; grid-template-columns: 1fr 1fr; gap: var(--qd-stack); }
-
-/* ========== text inputs and selects ========== */
+/* ========== text fields, number fields, selects, color swatches ========== */
 /* :where() keeps this base rule at the specificity of ".qd" alone, so the per-type rules below can refine it */
 .qd :where(input[type=text], input[type=url], input[type=number], select) {
 	height: var(--qd-control-h);
@@ -426,9 +184,7 @@
 	cursor: pointer;
 }
 .qd select:dir(rtl) { background-position: left 9px center; }
-.qd input.is-invalid { border-color: var(--qd-danger) !important; box-shadow: var(--qd-ring-danger) !important; }
 
-/* color swatch */
 .qd input[type=color] {
 	appearance: none;
 	width: 46px;
@@ -439,12 +195,12 @@
 	border-radius: var(--qd-radius-sm);
 	cursor: pointer;
 }
-.qd input[type=color]::-moz-color-swatch { border: 0; border-radius: 4px; }
+.qd input[type=color]::-moz-color-swatch { border: 0; border-radius: var(--qd-radius-xs); }
 /* Chromium, used by the test harness screenshots */
 .qd input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
-.qd input[type=color]::-webkit-color-swatch { border: 0; border-radius: 4px; }
+.qd input[type=color]::-webkit-color-swatch { border: 0; border-radius: var(--qd-radius-xs); }
 
-/* shared hover / focus / disabled for every field */
+/* every field: hover, focus, disabled, invalid */
 .qd :is(input[type=text], input[type=url], input[type=number], input[type=color], select):hover { border-color: var(--qd-muted); }
 .qd :is(input[type=text], input[type=url], input[type=number], select):focus,
 .qd input[type=color]:focus-visible {
@@ -453,6 +209,7 @@
 	box-shadow: var(--qd-ring);
 }
 .qd :is(input, select):disabled { opacity: .45; cursor: not-allowed; }
+.qd input.is-invalid { border-color: var(--qd-danger) !important; box-shadow: var(--qd-ring-danger) !important; }
 
 /* ========== switch, checkbox, lock toggle ========== */
 .qd-switch {
@@ -465,7 +222,7 @@
 	vertical-align: middle;
 	background: var(--qd-surface-3);
 	border: 1px solid var(--qd-border);
-	border-radius: 10px;
+	border-radius: var(--qd-radius-pill);
 	cursor: pointer;
 	transition: background-color .18s, border-color .18s;
 }
@@ -476,8 +233,8 @@
 	inset-inline-start: 2px;
 	width: 14px;
 	height: 14px;
-	border-radius: 50%;
 	background: var(--qd-knob);
+	border-radius: 50%;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, .3);
 	transition: transform .18s var(--qd-ease);
 }
@@ -485,7 +242,16 @@
 .qd-switch:checked::before { transform: translateX(14px); background: var(--qd-accent-text); }
 .qd-switch:checked:dir(rtl)::before { transform: translateX(-14px); }
 
-.qd-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--qd-font-size-sm); color: var(--qd-muted); white-space: nowrap; cursor: pointer; }
+/* small checkbox with its text, next to another control */
+.qd-check {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--qd-gap-sm);
+	font-size: var(--qd-font-size-sm);
+	white-space: nowrap;
+	color: var(--qd-muted);
+	cursor: pointer;
+}
 .qd-check input { width: 15px; height: 15px; margin: 0; accent-color: var(--qd-accent); cursor: pointer; }
 
 /* checkbox shown as an icon button (open / closed padlock) */
@@ -515,14 +281,14 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 6px;
+	gap: var(--qd-gap-sm);
 	height: var(--qd-control-h);
 	padding: 0 14px;
 	font: inherit;
 	font-weight: 500;
-	color: var(--qd-text);
 	white-space: nowrap;
 	text-decoration: none;
+	color: var(--qd-text);
 	background: var(--qd-surface-2);
 	border: 1px solid var(--qd-border);
 	border-radius: var(--qd-radius-sm);
@@ -532,7 +298,7 @@
 }
 .qd-btn:hover { background: var(--qd-surface-3); }
 .qd-btn:active { transform: translateY(1px); }
-.qd-btn:disabled { opacity: .45; cursor: default; transform: none; background: var(--qd-surface-2); }
+.qd-btn:disabled { opacity: .45; transform: none; background: var(--qd-surface-2); cursor: default; }
 .qd-btn.is-small { height: var(--qd-control-h-sm); padding: 0 10px; font-size: var(--qd-font-size-sm); }
 .qd-btn.is-primary { min-width: 76px; color: var(--qd-accent-text); background: var(--qd-accent); border-color: var(--qd-accent); }
 .qd-btn.is-primary:hover { background: var(--qd-accent-hover); border-color: var(--qd-accent-hover); }
@@ -556,195 +322,15 @@
 .qd-icon-btn svg { width: 16px; height: 16px; }
 .qd-icon-btn:hover { color: var(--qd-text); background: var(--qd-surface-2); }
 
-/* keyboard focus outline for everything that isn't a text field */
+/* keyboard focus outline for every control that isn't a text field (fields get the ring above) */
 :is(.qd-btn, .qd-icon-btn, .qd-switch):focus-visible,
 .qd-lock:has(input:focus-visible) { outline: 2px solid var(--qd-focus); outline-offset: 2px; }
-.qd-tab:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -4px; }
-
-/* ========== image picker ========== */
-/* The controls sit beside the picture, or under it when their labels and choices are too wide for that
-   (they never get narrower than their longest label and choice: see .qd-pairs > select) */
-.qd-image {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-start;
-	gap: var(--qd-stack);
-}
-.qd-image > .qd-preview { flex: none; }
-.qd-image.is-stacked { flex-direction: column; align-items: stretch; gap: var(--qd-row); }
-.qd-image-controls { flex: 1 1 0; display: flex; flex-direction: column; gap: var(--qd-row); min-width: min-content; }
-.qd-preview {
-	position: relative;
-	width: 240px;
-	aspect-ratio: 4 / 3;
-	overflow: hidden;
-	border: 1px solid var(--qd-border);
-	border-radius: var(--qd-radius);
-	background-color: var(--qd-surface-2); /* checkerboard: shows transparency */
-	background-image:
-		linear-gradient(45deg, var(--qd-checker) 25%, transparent 25%, transparent 75%, var(--qd-checker) 75%),
-		linear-gradient(45deg, var(--qd-checker) 25%, transparent 25%, transparent 75%, var(--qd-checker) 75%);
-	background-position: 0 0, 8px 8px;
-	background-size: 16px 16px;
-	transition: border-color .15s, box-shadow .15s;
-}
-.qd-preview.is-screen { width: 224px; aspect-ratio: 16 / 10; }
-.qd-preview.is-small { width: 100%; aspect-ratio: 16 / 10; }
-.qd-preview.is-dragover { border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
-.qd-preview-img, .qd-preview-empty, .qd-preview-drop { position: absolute; inset: 0; }
-.qd-preview-img { background-repeat: no-repeat; background-size: 100% 100%; }
-.qd-preview-empty, .qd-preview-drop {
-	display: grid;
-	place-items: center;
-	padding: var(--qd-gap);
-	font-size: var(--qd-font-size-sm);
-	text-align: center;
-	pointer-events: none;
-}
-.qd-preview-empty { color: var(--qd-muted); }
-.qd-preview-drop {
-	font-weight: 500;
-	color: var(--qd-accent);
-	background: color-mix(in srgb, var(--qd-accent-soft) 88%, transparent);
-	opacity: 0;
-	transition: opacity .15s;
-}
-.qd-preview.is-dragover .qd-preview-drop { opacity: 1; }
-.qd-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-
-/* ========== tile style preview (Settings › Tiles) ==========
-   The stage stands in for the dial page, so its colors come from the user's settings (set
-   by settings.js), not from the theme; the sample screenshot is a fixed picture. */
-.qd-tile-stage {
-	display: flex;
-	justify-content: center;
-	gap: 28px;
-	padding: 18px var(--qd-gap) var(--qd-gap);
-	background-color: var(--qd-surface-3);
-	background-position: center;
-	background-size: cover;
-	border: 1px solid var(--qd-border-soft);
-	border-radius: var(--qd-radius);
-}
-.qd-tile-figure { display: flex; flex-direction: column; align-items: center; gap: var(--qd-row); margin: 0; }
-.qd-tile-caption {
-	padding: 2px 8px;
-	font-size: var(--qd-font-size-caps);
-	font-weight: 600;
-	letter-spacing: .05em;
-	text-transform: uppercase;
-	color: #fff;
-	background: rgba(0, 0, 0, .45);
-	border-radius: 10px;
-}
-.qd-tile-slot { display: flex; width: 152px; height: 128px; }
-.qd-tile { position: relative; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.qd-tile.is-overlay .qd-tile-title { position: absolute; right: 0; bottom: 0; left: 0; }
-.qd-tile-stage .qd-tile { cursor: pointer; } /* a click plays the click effect (settings.js) */
-.qd-tile-img {
-	flex: 1;
-	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'%3E%3Crect width='120' height='80' fill='%23f3f3f7'/%3E%3Crect width='120' height='14' fill='%230061e0'/%3E%3Crect x='10' y='24' width='60' height='8' rx='2' fill='%23c9c9d6'/%3E%3Crect x='10' y='38' width='92' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='48' width='84' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='58' width='70' height='5' rx='2' fill='%23dcdce6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
-}
-.qd-tile-title { flex: none; overflow: hidden; font-family: Arial, Verdana, sans-serif; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
-
-/* ========== style table (Settings › Tiles) ========== */
-.qd-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-.qd-table th {
-	position: sticky;
-	top: calc(-1 * var(--qd-pad-y)); /* sticks to the top of the scrolling content */
-	z-index: 1;
-	padding: var(--qd-row) 10px;
-	text-align: start;
-	background: var(--qd-surface);
-	border-bottom: 1px solid var(--qd-border-soft);
-}
-.qd-table td { padding: 5px 10px; vertical-align: middle; border-bottom: 1px solid var(--qd-border-soft); }
-.qd-table td:first-child { width: 40%; font-weight: 500; }
-.qd-table tr:last-child td { border-bottom: 0; }
-.qd-table-group td { padding-top: var(--qd-stack); color: var(--qd-accent); border-bottom-color: transparent; }
-.qd-table tbody tr:not(.qd-table-group):hover td { background: color-mix(in srgb, var(--qd-surface-2) 70%, transparent); }
-.qd-color-cell { display: flex; align-items: center; gap: 10px; }
-
-/* ========== theme gallery (Settings › Themes) ==========
-   Like the tile stage, a card's preview is painted by settings.js with the theme's own colors. */
-.qd-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--qd-gap); }
-.qd-theme {
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	background: var(--qd-surface);
-	border: 1px solid var(--qd-border-soft);
-	border-radius: var(--qd-radius);
-	box-shadow: var(--qd-shadow);
-	transition: border-color .15s, box-shadow .15s;
-}
-.qd-theme.is-current { border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
-.qd-theme-preview {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	height: 108px;
-	padding: 10px;
-	background-position: center;
-	background-size: cover;
-	border-bottom: 1px solid var(--qd-border-soft);
-}
-.qd-theme-preview .qd-tile-slot { zoom: .5; } /* the same 152 px sample tiles as the Tiles tab, at half size */
-.qd-theme-body { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 10px 12px 12px; }
-.qd-theme-name { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: var(--qd-font-size); font-weight: 600; }
-.qd-theme-desc { flex: 1; margin: 0; font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
-.qd-theme-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.qd-badge {
-	padding: 1px 7px;
-	font-size: var(--qd-font-size-caps);
-	font-weight: 600;
-	color: var(--qd-muted);
-	background: var(--qd-surface-2);
-	border: 1px solid var(--qd-border-soft);
-	border-radius: 10px;
-}
-.qd-badge.is-accent { color: var(--qd-accent); background: var(--qd-accent-soft); border-color: transparent; }
-
-/* ========== status banner ========== */
-.qd-banner {
-	display: flex;
-	align-items: flex-start;
-	gap: 10px;
-	margin-bottom: var(--qd-stack);
-	padding: 10px var(--qd-gap);
-	background: var(--qd-ok-soft);
-	border: 1px solid color-mix(in srgb, var(--qd-ok) 45%, transparent);
-	border-radius: var(--qd-radius-sm);
-}
-.qd-banner.is-error { background: var(--qd-danger-soft); border-color: color-mix(in srgb, var(--qd-danger) 45%, transparent); }
-.qd-banner.is-busy { background: var(--qd-surface-2); border-color: var(--qd-border); }
-
-/* ========== numbered steps ========== */
-.qd-steps { margin: 6px 0 var(--qd-gap); padding: 0; list-style: none; counter-reset: step; }
-.qd-steps li { position: relative; padding: 2px 0 10px; padding-inline-start: 36px; counter-increment: step; }
-.qd-steps li::before {
-	content: counter(step);
-	position: absolute;
-	top: 0;
-	inset-inline-start: 0;
-	display: grid;
-	place-items: center;
-	width: 24px;
-	height: 24px;
-	font-size: var(--qd-font-size-sm);
-	font-weight: 600;
-	color: var(--qd-accent);
-	background: var(--qd-accent-soft);
-	border-radius: 50%;
-}
-.qd-steps .qd-btn { margin-top: 6px; }
 
 /* ========== popup frame and dialogs on the dial page ========== */
 .qd-overlay {
 	position: fixed;
 	inset: 0;
-	z-index: 2147483000;
+	z-index: 2147483000; /* above anything the dial page draws */
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -761,6 +347,7 @@
 	box-shadow: var(--qd-shadow-lg);
 	animation: qd-pop .2s var(--qd-ease);
 }
+/* the Properties page, in an iframe; the page shrinks it to its content (QDUI.fitPopup) */
 .qd-frame {
 	position: relative;
 	max-height: 100%;
@@ -769,11 +356,12 @@
 	transition: height .15s var(--qd-ease);
 }
 .qd-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
-.qd-dialog { width: 420px; padding: 20px 20px var(--qd-pad-y); background: var(--qd-surface); }
-.qd-dialog .qd-title { margin-bottom: 6px; }
-.qd-dialog-message { margin: 0 0 var(--qd-stack); color: var(--qd-muted); overflow-wrap: anywhere; }
-.qd-dialog input[type=text] { margin-bottom: 4px; }
+
+.qd-dialog { width: 420px; padding: 20px 20px 16px; background: var(--qd-surface); }
+.qd-dialog .qd-title { margin-bottom: var(--qd-gap-sm); }
+.qd-dialog-message { margin: 0 0 var(--qd-stack); overflow-wrap: anywhere; color: var(--qd-muted); }
 .qd-dialog-label { display: block; margin: 0 0 4px; font-weight: 500; }
+.qd-dialog input[type=text] { margin-bottom: 4px; }
 .qd-dialog input + .qd-dialog-label { margin-top: 10px; }
 .qd-dialog-error { min-height: 18px; font-size: var(--qd-font-size-sm); color: var(--qd-danger); }
 .qd-dialog-actions { display: flex; justify-content: flex-end; gap: var(--qd-row); margin-top: 10px; }
@@ -783,6 +371,6 @@
 @keyframes qd-fade-out { to { opacity: 0; } }
 @keyframes qd-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-	.qd-overlay, .qd-frame, .qd-dialog, .qd-panel { animation: none !important; }
+	.qd-overlay, .qd-frame, .qd-dialog { animation: none !important; }
 	.qd-frame { transition: none; }
 }

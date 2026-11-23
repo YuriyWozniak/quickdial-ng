@@ -1,0 +1,205 @@
+/* Quick Dial NG — the pages: the frame of the Properties and Settings pages (header, scrolling
+   content, footer with the save status) and what their forms are built from: cards, form rows,
+   the image picker. Loaded after css/ui.css, whose tokens and controls it uses; the Settings
+   page's own layout and sections are in css/settings.css. */
+
+/* ========== page frame ========== */
+.qd-page {
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	margin: 0;
+	overflow: hidden;
+	background: var(--qd-bg);
+}
+.qd-header, .qd-footer {
+	display: flex;
+	align-items: center;
+	background: var(--qd-surface);
+}
+.qd-header {
+	gap: var(--qd-gap);
+	padding: 14px;
+	padding-inline-start: var(--qd-pad-x); /* the close button at the end sits closer to the edge */
+	border-bottom: 1px solid var(--qd-border-soft);
+}
+.qd-header-icon {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: var(--qd-control-h);
+	height: var(--qd-control-h);
+	color: var(--qd-accent);
+	background: var(--qd-accent-soft);
+	border-radius: var(--qd-radius-sm);
+}
+.qd-header-icon svg { width: 18px; height: 18px; }
+.qd-header-text { flex: 1; min-width: 0; }
+.qd-subtitle {
+	margin: 1px 0 0;
+	overflow: hidden;
+	font-size: var(--qd-font-size-sm);
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: var(--qd-muted);
+}
+.qd-content {
+	flex: 1;
+	min-height: 0;
+	overflow: auto;
+	padding: var(--qd-pad-y) var(--qd-pad-x);
+	scrollbar-width: thin;
+}
+.qd-footer {
+	gap: var(--qd-row);
+	padding: var(--qd-gap) var(--qd-pad-x);
+	border-top: 1px solid var(--qd-border-soft);
+}
+
+/* save status, at the start of the footer (QDUI: unsaved changes, then saved) */
+.qd-status {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--qd-font-size-sm);
+	color: var(--qd-muted);
+	transition: color .2s;
+}
+.qd-status.is-dirty { color: var(--qd-text); }
+.qd-status.is-dirty::before { /* a dot in the accent color */
+	content: "";
+	display: inline-block;
+	width: 7px;
+	height: 7px;
+	margin-inline-end: 7px;
+	vertical-align: 1px;
+	background: var(--qd-accent);
+	border-radius: 50%;
+}
+.qd-status.is-saved { color: var(--qd-ok); }
+
+/* status message above the cards: done (default), failed, working */
+.qd-banner {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 10px var(--qd-gap);
+	background: var(--qd-ok-soft);
+	border: 1px solid color-mix(in srgb, var(--qd-ok) 45%, transparent);
+	border-radius: var(--qd-radius-sm);
+}
+.qd-banner.is-error { background: var(--qd-danger-soft); border-color: color-mix(in srgb, var(--qd-danger) 45%, transparent); }
+.qd-banner.is-busy { background: var(--qd-surface-2); border-color: var(--qd-border); }
+
+/* ========== cards ========== */
+/* a vertical stack: every shown child after the first is spaced from the one before
+   (a hidden one, like an empty banner, leaves no gap) */
+.qd-stack > :not([hidden]) ~ :not([hidden]) { margin-top: var(--qd-stack); }
+
+.qd-card {
+	padding: 14px 16px;
+	background: var(--qd-surface);
+	border: 1px solid var(--qd-border-soft);
+	border-radius: var(--qd-radius);
+	box-shadow: var(--qd-shadow);
+}
+
+/* ========== form rows ========== */
+/* label | control, with an optional hint under the control */
+.qd-row {
+	display: grid;
+	grid-template-columns: var(--qd-label-w) minmax(0, 1fr);
+	align-items: center;
+	gap: var(--qd-gap-sm) var(--qd-gap);
+	min-height: var(--qd-control-h);
+}
+.qd-row > label:first-child { font-weight: 500; }
+.qd-row > .qd-hint { grid-column: 2; margin-top: -4px; }
+
+/* text with a description | switch or small control at the end */
+.qd-switch-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--qd-gap);
+	min-height: var(--qd-control-h);
+}
+.qd-switch-label { display: flex; flex-direction: column; gap: 1px; font-weight: 500; }
+.qd-switch-label small { font-size: var(--qd-font-size-sm); font-weight: 400; color: var(--qd-muted); }
+
+/* small label | control pairs, next to an image preview */
+.qd-pairs {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	align-items: center;
+	justify-items: start;
+	gap: var(--qd-row) var(--qd-gap);
+}
+.qd-pairs > select { justify-self: stretch; min-width: max-content; } /* the choice is never cut off */
+
+/* spacing between the rows of a card */
+:is(.qd-row, .qd-switch-row) + :is(.qd-row, .qd-switch-row) { margin-top: var(--qd-row); }
+.qd-image + .qd-switch-row { margin-top: var(--qd-stack); }
+.qd-switch-row + .qd-split { margin-top: var(--qd-gap); }
+
+/* ========== inside a row ========== */
+.qd-inline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--qd-row); min-width: 0; }
+.qd-grow { flex: 1; min-width: 0; }
+.qd-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--qd-stack); }
+.qd-sep { font-weight: 500; color: var(--qd-muted); } /* the × between rows and columns */
+.qd-unit { display: inline-flex; align-items: center; gap: var(--qd-gap-sm); color: var(--qd-muted); } /* number field + "px" */
+.qd-color-cell { display: flex; align-items: center; gap: 10px; } /* color swatch + checkbox */
+
+/* ========== image picker ========== */
+/* The controls sit beside the picture, or under it when their labels and choices are too wide for that
+   (they never get narrower than their longest label and choice: see .qd-pairs > select) */
+.qd-image {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: var(--qd-stack);
+}
+.qd-image > .qd-preview { flex: none; }
+.qd-image.is-stacked { flex-direction: column; align-items: stretch; gap: var(--qd-row); }
+.qd-image-controls { flex: 1 1 0; display: flex; flex-direction: column; gap: var(--qd-row); min-width: min-content; }
+
+/* the picture, over a checkerboard that shows transparency; also the drop zone (QDUI.imageDrop) */
+.qd-preview {
+	position: relative;
+	width: 240px;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+	background-color: var(--qd-surface-2);
+	background-image:
+		linear-gradient(45deg, var(--qd-checker) 25%, transparent 25%, transparent 75%, var(--qd-checker) 75%),
+		linear-gradient(45deg, var(--qd-checker) 25%, transparent 25%, transparent 75%, var(--qd-checker) 75%);
+	background-position: 0 0, 8px 8px;
+	background-size: 16px 16px;
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius);
+	transition: border-color .15s, box-shadow .15s;
+}
+.qd-preview.is-screen { width: 260px; aspect-ratio: 16 / 10; } /* the page background */
+.qd-preview.is-small { width: 100%; aspect-ratio: 16 / 10; }
+.qd-preview.is-dragover { border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
+.qd-preview-img, .qd-preview-empty, .qd-preview-drop { position: absolute; inset: 0; }
+.qd-preview-img { background-repeat: no-repeat; background-size: 100% 100%; }
+.qd-preview-empty, .qd-preview-drop {
+	display: grid;
+	place-items: center;
+	padding: var(--qd-gap);
+	font-size: var(--qd-font-size-sm);
+	text-align: center;
+	pointer-events: none;
+}
+.qd-preview-empty { color: var(--qd-muted); }
+.qd-preview-drop {
+	opacity: 0;
+	font-weight: 500;
+	color: var(--qd-accent);
+	background: color-mix(in srgb, var(--qd-accent-soft) 88%, transparent);
+	transition: opacity .15s;
+}
+.qd-preview.is-dragover .qd-preview-drop { opacity: 1; }
+
+/* the file input behind a "Choose…" button (a label that opens it): kept in the page, never seen */
+.qd-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
