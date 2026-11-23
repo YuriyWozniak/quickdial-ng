@@ -49,6 +49,10 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
 
 - Message keys in `src/_locales/*/messages.json` are camelCase and start with where they are used: `menu*` for menu items, `dialog*` for dialogs (`dialogNewBookmarkPrompt`, `dialogDeleteConfirmation`).
 - English (`en`) is the default locale: add new keys there first. A key that is no longer used is removed from every locale.
+- Every language has every key (`test/unit/locales.test.js` checks it): a new text is translated in the same change, or added in English to the other languages and noted for translation.
+- A count is a set of keys, one per plural form: `countTilesOne`, `countTilesFew`, `countTilesMany`, `countTilesOther`, read with `QDCommon.countText('countTiles', n)`. Each language has the forms its plural rules use (`Intl.PluralRules`), always with `Other`.
+- In a message, `<b>`, `<code>` and `<br>` are the only markup (`QDUI.setRichText` builds it as elements); keep the same markup and `$1`..`$9` in every language.
+- Layout works right to left too (Hebrew): use logical CSS properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`), not left and right.
 
 ## Comments
 

@@ -1,6 +1,6 @@
 {
   "menuAddToQuickDial": {
-    "message": "הוסף לחיוג מהיר NG",
+    "message": "הוספה ל־Quick Dial NG",
     "description": "Text of add bookmark menu item."
   },
 
@@ -10,12 +10,12 @@
   },
 
   "menuNewBookmark": {
-    "message": "מועדף",
+    "message": "סימנייה",
     "description": "Text of add bookmark menu item."
   },
 
   "dialogNewBookmarkPrompt": {
-    "message": "הכנס קישור חדש למועדף :",
+    "message": "נא להזין את כתובת הסימנייה החדשה:",
     "description": "Text of the add bookmark prompt."
   },
 
@@ -25,7 +25,7 @@
   },
 
   "dialogNewFolderPrompt": {
-    "message": "הכנס שם חדש לתיקייה :",
+    "message": "נא להזין את שם התיקייה החדשה:",
     "description": "Text of the add folder prompt."
   },
 
@@ -50,13 +50,1012 @@
   },
 
   "dialogDeleteConfirmation": {
-    "message": "האם למחוק $1 ?",
+    "message": "למחוק את $1?",
     "description": "Text of delete confirmation."
   },
 
   "menuSettings": {
-    "message": "הגדרות חיוג מהיר NG",
+    "message": "הגדרות Quick Dial NG",
     "description": "Text of settings menu item."
-  }
+  },
 
+  "dialogNewBookmark": {
+    "message": "סימנייה חדשה",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "תיקייה חדשה",
+    "description": "Title of the new folder dialog."
+  },
+
+  "menuImportQuickDial": {
+    "message": "ייבוא מ־Quick Dial…",
+    "description": "Text of the menu item that opens the import from the original Quick Dial."
+  },
+
+  "menuOpenDial": {
+    "message": "פתיחת Quick Dial NG",
+    "description": "Toolbar button right-click menu: opens the dial in a new tab."
+  },
+
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "חיוג מהיר ללשונית חדשה ולדף הבית, עם אריחים מתיקיית סימניות. פיצול עצמאי ומשופר של Quick Dial מאת MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "החלה"
+  },
+
+  "buttonCancel": {
+    "message": "ביטול"
+  },
+
+  "buttonOk": {
+    "message": "אישור"
+  },
+
+  "buttonClose": {
+    "message": "סגירה"
+  },
+
+  "optionNone": {
+    "message": "ללא",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "ברירת מחדל",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "שינויים שלא נשמרו"
+  },
+
+  "statusApplied": {
+    "message": "השינויים הוחלו"
+  },
+
+  "statusAppliedToDial": {
+    "message": "השינויים הוחלו על החיוג המהיר"
+  },
+
+  "statusDiscarded": {
+    "message": "השינויים בוטלו"
+  },
+
+  "dialogEnterValue": {
+    "message": "נא להזין ערך."
+  },
+
+  "dialogAdd": {
+    "message": "הוספה",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "יצירה",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "תיקייה חדשה",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "נא להזין כתובת אינטרנט, למשל https://example.com"
+  },
+
+  "tileBack": {
+    "message": "חזרה",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "אתר לדוגמה",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "דוגמה",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "רגיל",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "במעבר עכבר",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "יש לשחרר תמונה כאן"
+  },
+
+  "imageDropToUse": {
+    "message": "יש לשחרר כדי להשתמש בתמונה זו"
+  },
+
+  "imageChoose": {
+    "message": "בחירת תמונה…"
+  },
+
+  "imageChooseShort": {
+    "message": "בחירה…"
+  },
+
+  "imageFit": {
+    "message": "התאמה",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "מתיחה"
+  },
+
+  "fitCover": {
+    "message": "כיסוי"
+  },
+
+  "fitContain": {
+    "message": "הכלה"
+  },
+
+  "fitCenter": {
+    "message": "מרכוז"
+  },
+
+  "settingsVersion": {
+    "message": "גרסה $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "דף"
+  },
+
+  "settingsTabGrid": {
+    "message": "רשת"
+  },
+
+  "settingsTabTiles": {
+    "message": "אריחים"
+  },
+
+  "settingsTabThemes": {
+    "message": "ערכות נושא"
+  },
+
+  "settingsTabBackup": {
+    "message": "גיבוי"
+  },
+
+  "settingsOpenDial": {
+    "message": "פתיחת Quick Dial NG"
+  },
+
+  "settingsWebsite": {
+    "message": "אתר"
+  },
+
+  "settingsSourceCode": {
+    "message": "קוד מקור וגרסאות"
+  },
+
+  "settingsBackground": {
+    "message": "רקע"
+  },
+
+  "settingsColor": {
+    "message": "צבע"
+  },
+
+  "settingsRemove": {
+    "message": "הסרה"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "או לשחרר תמונה על התצוגה המקדימה."
+  },
+
+  "settingsGradientHint": {
+    "message": "ערכת הנושא מוסיפה מעבר צבע, שמוצג מאחורי התמונה."
+  },
+
+  "settingsGradientRemove": {
+    "message": "הסרת מעבר הצבע"
+  },
+
+  "settingsInterface": {
+    "message": "ממשק"
+  },
+
+  "settingsAccentColor": {
+    "message": "צבע הדגשה"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "כפתורים, מתגים, לשוניות וטבעות מיקוד בחלונות ובתיבות הדו־שיח של Quick Dial NG"
+  },
+
+  "settingsBehavior": {
+    "message": "התנהגות"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "פריט התפריט \"הוספה ל־Quick Dial NG\""
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "בתפריט ההקשר של דפי אינטרנט"
+  },
+
+  "settingsToolbarButton": {
+    "message": "כפתור בסרגל הכלים"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "מה נפתח בלחיצה על כפתור Quick Dial NG בסרגל הכלים של Firefox. בתפריט ההקשר שלו יש את שתי האפשרויות."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "ההגדרות האלה"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "החיוג המהיר בלשונית חדשה"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "החיוג המהיר בלשונית הנוכחית"
+  },
+
+  "settingsStartPage": {
+    "message": "דף פתיחה"
+  },
+
+  "settingsStartPageHint": {
+    "message": "Quick Dial NG הוא דף הבית של Firefox: הוא נפתח כש־Firefox מופעל ובכפתור הבית. כדי להשתמש בדף אחר, יש לעבור אל הגדרות Firefox › בית."
+  },
+
+  "settingsLayout": {
+    "message": "פריסה"
+  },
+
+  "settingsRowsColumns": {
+    "message": "שורות × עמודות"
+  },
+
+  "settingsRows": {
+    "message": "שורות"
+  },
+
+  "settingsColumns": {
+    "message": "עמודות"
+  },
+
+  "settingsTileShape": {
+    "message": "צורת האריח"
+  },
+
+  "settingsRatioWidth": {
+    "message": "יחס רוחב"
+  },
+
+  "settingsRatioHeight": {
+    "message": "יחס גובה"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "רוחב : גובה"
+  },
+
+  "settingsPageMargin": {
+    "message": "שוליים של הדף"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "תיקיית סימניות"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "תיקיית הסימניות שמוצגת בחיוג המהיר"
+  },
+
+  "settingsOpening": {
+    "message": "פתיחה"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "פתיחת סימניות ב"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "פתיחת תיקיות ב"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "אותה לשונית"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "לשונית חדשה"
+  },
+
+  "settingsFolderTiles": {
+    "message": "אריחי תיקיות"
+  },
+
+  "settingsBackNode": {
+    "message": "הצגת אריח חזרה בתוך תיקיות"
+  },
+
+  "settingsBackPicture": {
+    "message": "תמונת אריח החזרה"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "התאמת תמונת החזרה"
+  },
+
+  "settingsFolderPicture": {
+    "message": "תמונת תיקייה"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "התאמת תמונת התיקייה"
+  },
+
+  "settingsReset": {
+    "message": "איפוס"
+  },
+
+  "settingsResetHint": {
+    "message": "שימוש בתמונה המובנית"
+  },
+
+  "settingsGroupTile": {
+    "message": "אריח",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "מרווח"
+  },
+
+  "settingsOpacity": {
+    "message": "אטימות"
+  },
+
+  "settingsBorderWidth": {
+    "message": "עובי המסגרת"
+  },
+
+  "settingsCornerRadius": {
+    "message": "רדיוס הפינות"
+  },
+
+  "settingsBorderColor": {
+    "message": "צבע המסגרת"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "אטימות הרקע"
+  },
+
+  "settingsGlassBlur": {
+    "message": "טשטוש זכוכית"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "מטשטש את הדף שמאחורי האריח"
+  },
+
+  "settingsShadow": {
+    "message": "צל"
+  },
+
+  "shadowSoft": {
+    "message": "רך"
+  },
+
+  "shadowStrong": {
+    "message": "חזק"
+  },
+
+  "settingsHoverEffect": {
+    "message": "אפקט במעבר עכבר"
+  },
+
+  "hoverInstant": {
+    "message": "שינוי מיידי"
+  },
+
+  "hoverSmooth": {
+    "message": "שינוי הדרגתי"
+  },
+
+  "hoverLift": {
+    "message": "הדרגתי, האריח מתרומם"
+  },
+
+  "hoverGrow": {
+    "message": "הדרגתי, האריח גדל"
+  },
+
+  "settingsClickEffect": {
+    "message": "אפקט לחיצה"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "יש ללחוץ על אריח לדוגמה כדי לראות אותו שוב"
+  },
+
+  "settingsClickToPreview": {
+    "message": "יש ללחוץ כדי לראות את אפקט הלחיצה"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "ההנפשות כבויות בהגדרות המערכת, ולכן האריחים לא זזים: אפקטי הלחיצה מהבהבים או דועכים במקום זאת, ומעבר עכבר הדרגתי רק משנה צבעים, בלי התרוממות או הגדלה."
+  },
+
+  "clickPress": {
+    "message": "לחיצה"
+  },
+
+  "clickBounce": {
+    "message": "קפיצה"
+  },
+
+  "clickRipple": {
+    "message": "אדווה"
+  },
+
+  "clickFlash": {
+    "message": "הבזק"
+  },
+
+  "clickRing": {
+    "message": "טבעת פועמת"
+  },
+
+  "settingsGroupTitle": {
+    "message": "כותרת",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "הצגת כותרת"
+  },
+
+  "settingsHeight": {
+    "message": "גובה"
+  },
+
+  "settingsFontSize": {
+    "message": "גודל גופן"
+  },
+
+  "settingsDividerWidth": {
+    "message": "עובי המפריד",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "צבע הטקסט"
+  },
+
+  "settingsFont": {
+    "message": "גופן"
+  },
+
+  "settingsCustomFont": {
+    "message": "מותאם אישית ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "מודגש"
+  },
+
+  "settingsPosition": {
+    "message": "מיקום"
+  },
+
+  "titleBelow": {
+    "message": "מתחת לתמונה"
+  },
+
+  "titleOver": {
+    "message": "על החלק התחתון של התמונה"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "תמונות ממוזערות"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "השהיית צילום"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "מ״ש אחרי טעינת הדף"
+  },
+
+  "settingsDiscard": {
+    "message": "ביטול השינויים"
+  },
+
+  "settingsDiscardHint": {
+    "message": "הצגת ההגדרות שהחיוג המהיר משתמש בהן כעת"
+  },
+
+  "settingsApplyHint": {
+    "message": "החלת השינויים על החיוג המהיר (Ctrl+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "ערכת נושא היא המראה של החיוג המהיר: צבע הרקע, שולי הדף, סגנונות האריחים והכותרות וצבע ההדגשה. תמונת הרקע, השורות והעמודות, צורת האריחים והאריחים עצמם נשמרים. יש לבחור <b>שימוש</b> כדי לנסות ערכת נושא כאן, ואז <b>החלה</b> כדי להעביר אותה לחיוג המהיר.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "שמירת המראה הנוכחי כערכת נושא…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "הוספת המראה הנוכחי לערכות הנושא שלך"
+  },
+
+  "themeExportCurrent": {
+    "message": "ייצוא המראה הנוכחי…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "שמירת המראה הנוכחי כקובץ ‎.json"
+  },
+
+  "themeImport": {
+    "message": "ייבוא ערכת נושא…"
+  },
+
+  "themeImportHint": {
+    "message": "הוספת ערכת נושא מקובץ ‎.json"
+  },
+
+  "themeBuiltIn": {
+    "message": "מובנית"
+  },
+
+  "themeInUse": {
+    "message": "בשימוש"
+  },
+
+  "themeUse": {
+    "message": "שימוש"
+  },
+
+  "themeUseHint": {
+    "message": "הצגת ערכת הנושא כאן; החלה שומרת אותה"
+  },
+
+  "themeExport": {
+    "message": "ייצוא…"
+  },
+
+  "themeExportHint": {
+    "message": "שמירת ערכת הנושא כקובץ ‎.json"
+  },
+
+  "themeDelete": {
+    "message": "מחיקה"
+  },
+
+  "themeDeleteHint": {
+    "message": "הסרת ערכת הנושא מהרשימה"
+  },
+
+  "themeShownHere": {
+    "message": "\"$1\" מוצגת כאן בלבד. החלה מעבירה אותה לחיוג המהיר; ביטול השינויים משאיר את המראה הקודם.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "מתוך ההגדרות הנוכחיות: צבע הרקע, שולי הדף, סגנונות האריחים והכותרות וצבע ההדגשה."
+  },
+
+  "themeName": {
+    "message": "שם"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "ערכת הנושא שלי"
+  },
+
+  "themeDescription": {
+    "message": "תיאור (לא חובה)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "איך היא נראית"
+  },
+
+  "themeNameMissing": {
+    "message": "נא להזין שם."
+  },
+
+  "themeNameTooLong": {
+    "message": "נא להשתמש ב־$1 תווים לכל היותר.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "\"$1\" היא ערכת נושא מובנית. נא לבחור שם אחר.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "להחליף את \"$1\"?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "כבר יש לך ערכת נושא בשם הזה."
+  },
+
+  "themeReplace": {
+    "message": "החלפה"
+  },
+
+  "themeSaveTitle": {
+    "message": "שמירת המראה הנוכחי כערכת נושא"
+  },
+
+  "themeSave": {
+    "message": "שמירה"
+  },
+
+  "themeSaved": {
+    "message": "\"$1\" נשמרה בערכות הנושא שלך.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "ייצוא המראה הנוכחי כערכת נושא"
+  },
+
+  "themeExportButton": {
+    "message": "ייצוא"
+  },
+
+  "themeImported": {
+    "message": "\"$1\" יובאה. יש לבחור שימוש כדי לנסות אותה.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (מיובאת)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "למחוק את \"$1\"?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "ערכת הנושא תוסר מהרשימה. ההגדרות הנוכחיות שלך לא ישתנו."
+  },
+
+  "themeFileIsBackup": {
+    "message": "זהו גיבוי מלא של Quick Dial NG. יש לייבא אותו בלשונית גיבוי."
+  },
+
+  "themeFileInvalid": {
+    "message": "הקובץ הזה אינו ערכת נושא של Quick Dial NG."
+  },
+
+  "themeFileNewer": {
+    "message": "ערכת הנושא הזו נוצרה בגרסה חדשה יותר של Quick Dial NG. יש לעדכן את ההרחבה כדי לייבא אותה."
+  },
+
+  "themeFileNoName": {
+    "message": "לערכת הנושא הזו אין שם."
+  },
+
+  "themeClassicName": {
+    "message": "קלאסית"
+  },
+
+  "themeClassicDescription": {
+    "message": "המראה המקורי של Quick Dial: דף אפור כהה, מסגרות דקות, כותרות מתחת לתמונות."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "בהשראת ההרחבה Anori ‏(anori.app): דף ירוק עמוק, אריחי זכוכית חלבית עם פינות מעוגלות גדולות וכותרות על גבי התמונות."
+  },
+
+  "themePlumName": {
+    "message": "שזיף"
+  },
+
+  "themePlumDescription": {
+    "message": "דף בצבע שזיף כהה עם מסגרות מעוגלות באפור בהיר וכותרות מתחת לתמונות. מיועדת לרשת גדולה עם קבוצות אתרים ומרווח ביניהן."
+  },
+
+  "themeDesktopName": {
+    "message": "שולחן עבודה"
+  },
+
+  "themeDesktopDescription": {
+    "message": "סמלים עם שמותיהם מתחתם על דף בכחול לילה או על תמונת הרקע שלך, כמו שולחן עבודה של מחשב, עם הדגשה רכה מתחת לסמן. לאריחים ריבועיים ולתמונות סמלים."
+  },
+
+  "themeDuskName": {
+    "message": "דמדומים"
+  },
+
+  "themeDuskDescription": {
+    "message": "אריחי זכוכית סגולים שגדלים במעבר עכבר, על רקע שמי שקיעה."
+  },
+
+  "themeRetroPcName": {
+    "message": "מחשב רטרו"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "שולחן עבודה של מחשב מסוף שנות ה־90: דף טורקיז, סמלים עם שמות לבנים והדגשה בכחול כהה של השם שמתחת לסמן. לאריחים ריבועיים ולתמונות סמלים."
+  },
+
+  "themeRetroMonoName": {
+    "message": "רטרו מונו"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "שולחן עבודה מוקדם בשחור־לבן: דוגמה אפורה עדינה, שמות שחורים על תוויות לבנות, הפוכים מתחת לסמן. לאריחים ריבועיים ולתמונות סמלים בשחור־לבן."
+  },
+
+  "backupTitle": {
+    "message": "גיבוי Quick Dial NG"
+  },
+
+  "backupIntro": {
+    "message": "שומר הגדרות, אריחים, תמונות וערכות הנושא שלך בקובץ אחד. אפשר לשחזר אותו עם <b>ייבוא מקובץ…</b> שלמטה.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "ייצוא גיבוי"
+  },
+
+  "backupExportHint": {
+    "message": "שמירת הגדרות, אריחים ותמונות לקובץ"
+  },
+
+  "backupImport": {
+    "message": "ייבוא מקובץ…"
+  },
+
+  "backupImportHint": {
+    "message": "ייבוא ייצוא של Quick Dial המקורי או גיבוי של Quick Dial NG"
+  },
+
+  "backupOriginalTitle": {
+    "message": "ייבוא מ־Quick Dial המקורי"
+  },
+
+  "backupOriginalIntro": {
+    "message": "מעביר את האריחים שלך עם מיקומם המדויק ברשת, תיקיות, תמונות והגדרות רשת וסגנון. סימניות שכבר נמצאות בתיקיית Quick Dial שלך ינוצלו מחדש; חסרות ייווצרו."
+  },
+
+  "backupStep1": {
+    "message": "יש לפתוח את <code>about:debugging#/runtime/this-firefox</code>, למצוא את <b>Quick Dial</b> המקורי וללחוץ על <b>בדיקה</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "יש להעתיק את קטע הייצוא ולהדביק אותו בלשונית <b>מסוף</b> (קודם להקליד <code>allow pasting</code> אם Firefox מבקש). הוא שומר את <code>quickdial-export.json</code> בהורדות.",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "יש לבחור את הקובץ הזה עם <b>ייבוא מקובץ…</b> שלמעלה."
+  },
+
+  "backupCopySnippet": {
+    "message": "העתקת קטע הייצוא"
+  },
+
+  "backupCopied": {
+    "message": "הועתק ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "יש להעתיק את הקטע הזה:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "זוהי ערכת נושא. יש לייבא אותה בלשונית ערכות נושא."
+  },
+
+  "backupFileInvalid": {
+    "message": "הקובץ הזה אינו ייצוא של Quick Dial וגם לא גיבוי של Quick Dial NG."
+  },
+
+  "backupImportNgTitle": {
+    "message": "לייבא את הגיבוי הזה של Quick Dial NG?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "לייבא את הייצוא הזה של Quick Dial?"
+  },
+
+  "backupImportMessage": {
+    "message": "ההגדרות הנוכחיות ופריסת האריחים יוחלפו. הסימניות בתיקיית Quick Dial נשמרות; חסרות ייווצרו."
+  },
+
+  "backupImportButton": {
+    "message": "ייבוא"
+  },
+
+  "backupImporting": {
+    "message": "מתבצע ייבוא…"
+  },
+
+  "backupImportResult": {
+    "message": "יובאו: $1, $2, $3, וגם הגדרות רשת וסגנון. סימניות שנוצלו מחדש: $4, שנוצרו: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "הייבוא נכשל: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "זה אינו גיבוי של Quick Dial"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "לא ניתן לפתוח את תיקיית הסימניות \"$1\"",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "אריח אחד"
+  },
+
+  "countTilesTwo": {
+    "message": "שני אריחים"
+  },
+
+  "countTilesOther": {
+    "message": "$1 אריחים"
+  },
+
+  "countFoldersOne": {
+    "message": "תיקייה אחת"
+  },
+
+  "countFoldersTwo": {
+    "message": "שתי תיקיות"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 תיקיות"
+  },
+
+  "countPicturesOne": {
+    "message": "תמונה אחת"
+  },
+
+  "countPicturesTwo": {
+    "message": "שתי תמונות"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 תמונות"
+  },
+
+  "propertiesPageTitle": {
+    "message": "מאפייני אריח של Quick Dial NG"
+  },
+
+  "propertiesTitle": {
+    "message": "מאפיינים"
+  },
+
+  "propertiesFolder": {
+    "message": "מאפייני תיקייה"
+  },
+
+  "propertiesBookmark": {
+    "message": "מאפייני סימנייה"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "תיקייה",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "סגירה (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "כותרת",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "נעילת הכותרת"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "נעילת הכותרת: רענון האריח לא ישנה את שמו"
+  },
+
+  "propertiesAddress": {
+    "message": "כתובת"
+  },
+
+  "propertiesPicture": {
+    "message": "תמונה"
+  },
+
+  "propertiesNoPicture": {
+    "message": "אין עדיין תמונה"
+  },
+
+  "propertiesRevert": {
+    "message": "שחזור"
+  },
+
+  "propertiesRevertHint": {
+    "message": "ביטול שינויי התמונה שנעשו בחלון הזה"
+  },
+
+  "propertiesUseDefault": {
+    "message": "ברירת מחדל"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "שימוש בתמונת התיקייה המוגדרת כברירת מחדל"
+  },
+
+  "propertiesPasteHint": {
+    "message": "אפשר לשחרר תמונה על התצוגה המקדימה או להדביק אחת עם Ctrl+V."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "שמירת התמונה הזו"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "רענון וצילום לא יחליפו אותה"
+  },
+
+  "propertiesTileGone": {
+    "message": "האריח הזה כבר לא קיים"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "האריח נמחק"
+  }
 }

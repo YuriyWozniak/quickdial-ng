@@ -20,12 +20,12 @@
   },
 
   "menuNewFolder": {
-    "message": "Папку",
+    "message": "Теку",
     "description": "Text of add folder menu item."
   },
 
   "dialogNewFolderPrompt": {
-    "message": "Введіть ім'я нової папки:",
+    "message": "Введіть назву нової теки:",
     "description": "Text of the add folder prompt."
   },
 
@@ -35,7 +35,7 @@
   },
 
   "dialogNewFolder": {
-    "message": "Нова папка",
+    "message": "Нова тека",
     "description": "Title of the new folder dialog."
   },
 
@@ -50,7 +50,7 @@
   },
 
   "menuCapturePage": {
-    "message": "Захватити на новій вкладці",
+    "message": "Зробити знімок у новій вкладці",
     "description": "Text of capture menu item."
   },
 
@@ -77,6 +77,997 @@
   "menuOpenDial": {
     "message": "Відкрити Quick Dial NG",
     "description": "Toolbar button right-click menu: opens the dial in a new tab."
-  }
+  },
 
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "Швидкий набір для нової вкладки й домашньої сторінки з плитками з теки закладок. Незалежний, оптимізований форк Quick Dial від MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "Застосувати"
+  },
+
+  "buttonCancel": {
+    "message": "Скасувати"
+  },
+
+  "buttonOk": {
+    "message": "Гаразд"
+  },
+
+  "buttonClose": {
+    "message": "Закрити"
+  },
+
+  "optionNone": {
+    "message": "Немає",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "Типово",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "Незбережені зміни"
+  },
+
+  "statusApplied": {
+    "message": "Зміни застосовано"
+  },
+
+  "statusAppliedToDial": {
+    "message": "Зміни застосовано до швидкого набору"
+  },
+
+  "statusDiscarded": {
+    "message": "Зміни скасовано"
+  },
+
+  "dialogEnterValue": {
+    "message": "Будь ласка, введіть значення."
+  },
+
+  "dialogAdd": {
+    "message": "Додати",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "Створити",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "Нова тека",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "Введіть вебадресу, наприклад https://example.com"
+  },
+
+  "tileBack": {
+    "message": "Назад",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "Приклад сайту",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "Приклад",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "Звичайна",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "Під вказівником",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "Перетягніть зображення сюди"
+  },
+
+  "imageDropToUse": {
+    "message": "Відпустіть, щоб використати це зображення"
+  },
+
+  "imageChoose": {
+    "message": "Вибрати зображення…"
+  },
+
+  "imageChooseShort": {
+    "message": "Вибрати…"
+  },
+
+  "imageFit": {
+    "message": "Розміщення",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "Розтягнути"
+  },
+
+  "fitCover": {
+    "message": "Заповнити"
+  },
+
+  "fitContain": {
+    "message": "Вмістити"
+  },
+
+  "fitCenter": {
+    "message": "По центру"
+  },
+
+  "settingsVersion": {
+    "message": "Версія $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "Сторінка"
+  },
+
+  "settingsTabGrid": {
+    "message": "Сітка"
+  },
+
+  "settingsTabTiles": {
+    "message": "Плитки"
+  },
+
+  "settingsTabThemes": {
+    "message": "Теми"
+  },
+
+  "settingsTabBackup": {
+    "message": "Резервна копія"
+  },
+
+  "settingsOpenDial": {
+    "message": "Відкрити Quick Dial NG"
+  },
+
+  "settingsWebsite": {
+    "message": "Вебсайт"
+  },
+
+  "settingsSourceCode": {
+    "message": "Вихідний код і випуски"
+  },
+
+  "settingsBackground": {
+    "message": "Тло"
+  },
+
+  "settingsColor": {
+    "message": "Колір"
+  },
+
+  "settingsRemove": {
+    "message": "Прибрати"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "Або перетягніть зображення на попередній перегляд."
+  },
+
+  "settingsGradientHint": {
+    "message": "Тема додає градієнт, який видно позаду зображення."
+  },
+
+  "settingsGradientRemove": {
+    "message": "Прибрати градієнт"
+  },
+
+  "settingsInterface": {
+    "message": "Інтерфейс"
+  },
+
+  "settingsAccentColor": {
+    "message": "Акцентний колір"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "Кнопки, перемикачі, вкладки й рамки фокуса у вікнах і діалогах Quick Dial NG"
+  },
+
+  "settingsBehavior": {
+    "message": "Поведінка"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "Пункт меню «Додати до Quick Dial NG»"
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "У контекстному меню вебсторінок"
+  },
+
+  "settingsToolbarButton": {
+    "message": "Кнопка на панелі інструментів"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "Що відкриває кнопка Quick Dial NG на панелі інструментів Firefox. У її контекстному меню є обидва варіанти."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "Ці налаштування"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "Швидкий набір у новій вкладці"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "Швидкий набір у поточній вкладці"
+  },
+
+  "settingsStartPage": {
+    "message": "Початкова сторінка"
+  },
+
+  "settingsStartPageHint": {
+    "message": "Quick Dial NG — домашня сторінка Firefox: вона відкривається під час запуску Firefox і кнопкою «Домівка». Щоб використовувати іншу сторінку, перейдіть у Налаштування Firefox › Домівка."
+  },
+
+  "settingsLayout": {
+    "message": "Компонування"
+  },
+
+  "settingsRowsColumns": {
+    "message": "Рядки × стовпці"
+  },
+
+  "settingsRows": {
+    "message": "Рядки"
+  },
+
+  "settingsColumns": {
+    "message": "Стовпці"
+  },
+
+  "settingsTileShape": {
+    "message": "Форма плитки"
+  },
+
+  "settingsRatioWidth": {
+    "message": "Пропорція ширини"
+  },
+
+  "settingsRatioHeight": {
+    "message": "Пропорція висоти"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "ширина : висота"
+  },
+
+  "settingsPageMargin": {
+    "message": "Поле сторінки"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "Тека закладок"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "Тека закладок, показана у швидкому наборі"
+  },
+
+  "settingsOpening": {
+    "message": "Відкриття"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "Відкривати закладки в"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "Відкривати теки в"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "Тій самій вкладці"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "Новій вкладці"
+  },
+
+  "settingsFolderTiles": {
+    "message": "Плитки тек"
+  },
+
+  "settingsBackNode": {
+    "message": "Показувати плитку «Назад» у теках"
+  },
+
+  "settingsBackPicture": {
+    "message": "Зображення плитки «Назад»"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "Розміщення зображення «Назад»"
+  },
+
+  "settingsFolderPicture": {
+    "message": "Зображення теки"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "Розміщення зображення теки"
+  },
+
+  "settingsReset": {
+    "message": "Скинути"
+  },
+
+  "settingsResetHint": {
+    "message": "Використати вбудоване зображення"
+  },
+
+  "settingsGroupTile": {
+    "message": "Плитка",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "Проміжки"
+  },
+
+  "settingsOpacity": {
+    "message": "Непрозорість"
+  },
+
+  "settingsBorderWidth": {
+    "message": "Товщина рамки"
+  },
+
+  "settingsCornerRadius": {
+    "message": "Радіус кутів"
+  },
+
+  "settingsBorderColor": {
+    "message": "Колір рамки"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "Непрозорість тла"
+  },
+
+  "settingsGlassBlur": {
+    "message": "Розмиття скла"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "Розмиває сторінку позаду плитки"
+  },
+
+  "settingsShadow": {
+    "message": "Тінь"
+  },
+
+  "shadowSoft": {
+    "message": "М'яка"
+  },
+
+  "shadowStrong": {
+    "message": "Сильна"
+  },
+
+  "settingsHoverEffect": {
+    "message": "Ефект наведення"
+  },
+
+  "hoverInstant": {
+    "message": "Миттєва зміна"
+  },
+
+  "hoverSmooth": {
+    "message": "Плавна зміна"
+  },
+
+  "hoverLift": {
+    "message": "Плавно, плитка піднімається"
+  },
+
+  "hoverGrow": {
+    "message": "Плавно, плитка збільшується"
+  },
+
+  "settingsClickEffect": {
+    "message": "Ефект клацання"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "Клацніть зразок плитки, щоб побачити його ще раз"
+  },
+
+  "settingsClickToPreview": {
+    "message": "Клацніть, щоб побачити ефект клацання"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "Анімації вимкнено в налаштуваннях системи, тому плитки не рухаються: ефекти клацання натомість спалахують або згасають, а плавне наведення лише змінює кольори без піднімання чи збільшення."
+  },
+
+  "clickPress": {
+    "message": "Натискання"
+  },
+
+  "clickBounce": {
+    "message": "Відскок"
+  },
+
+  "clickRipple": {
+    "message": "Хвиля"
+  },
+
+  "clickFlash": {
+    "message": "Спалах"
+  },
+
+  "clickRing": {
+    "message": "Пульсуюче кільце"
+  },
+
+  "settingsGroupTitle": {
+    "message": "Назва",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "Показувати назву"
+  },
+
+  "settingsHeight": {
+    "message": "Висота"
+  },
+
+  "settingsFontSize": {
+    "message": "Розмір шрифту"
+  },
+
+  "settingsDividerWidth": {
+    "message": "Товщина роздільника",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "Колір тексту"
+  },
+
+  "settingsFont": {
+    "message": "Шрифт"
+  },
+
+  "settingsCustomFont": {
+    "message": "Власний ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "Жирний"
+  },
+
+  "settingsPosition": {
+    "message": "Розташування"
+  },
+
+  "titleBelow": {
+    "message": "Під зображенням"
+  },
+
+  "titleOver": {
+    "message": "Поверх нижньої частини зображення"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "Мініатюри"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "Затримка знімка"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "мс після завантаження сторінки"
+  },
+
+  "settingsDiscard": {
+    "message": "Скасувати зміни"
+  },
+
+  "settingsDiscardHint": {
+    "message": "Показати налаштування, які швидкий набір використовує зараз"
+  },
+
+  "settingsApplyHint": {
+    "message": "Застосувати зміни до швидкого набору (Ctrl+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "Тема — це вигляд швидкого набору: колір тла, поле сторінки, стилі плиток і назв та акцентний колір. Ваше фонове зображення, рядки й стовпці, форма плиток і самі плитки залишаються. Натисніть <b>Використати</b>, щоб спробувати тему тут, а потім <b>Застосувати</b>, щоб перенести її на швидкий набір.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "Зберегти поточний вигляд як тему…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "Додати поточний вигляд до ваших тем"
+  },
+
+  "themeExportCurrent": {
+    "message": "Експортувати поточний…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "Зберегти поточний вигляд у файл .json"
+  },
+
+  "themeImport": {
+    "message": "Імпортувати тему…"
+  },
+
+  "themeImportHint": {
+    "message": "Додати тему з файлу .json"
+  },
+
+  "themeBuiltIn": {
+    "message": "Вбудована"
+  },
+
+  "themeInUse": {
+    "message": "Використовується"
+  },
+
+  "themeUse": {
+    "message": "Використати"
+  },
+
+  "themeUseHint": {
+    "message": "Показати цю тему тут; «Застосувати» залишає її"
+  },
+
+  "themeExport": {
+    "message": "Експортувати…"
+  },
+
+  "themeExportHint": {
+    "message": "Зберегти цю тему у файл .json"
+  },
+
+  "themeDelete": {
+    "message": "Видалити"
+  },
+
+  "themeDeleteHint": {
+    "message": "Прибрати цю тему зі списку"
+  },
+
+  "themeShownHere": {
+    "message": "«$1» показано лише тут. «Застосувати» переносить її на швидкий набір; «Скасувати зміни» повертає попередній вигляд.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "З поточних налаштувань: колір тла, поле сторінки, стилі плиток і назв та акцентний колір."
+  },
+
+  "themeName": {
+    "message": "Назва"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "Моя тема"
+  },
+
+  "themeDescription": {
+    "message": "Опис (необов'язково)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "Як вона виглядає"
+  },
+
+  "themeNameMissing": {
+    "message": "Будь ласка, введіть назву."
+  },
+
+  "themeNameTooLong": {
+    "message": "Будь ласка, використайте не більше ніж $1 символів.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "«$1» — вбудована тема. Будь ласка, виберіть іншу назву.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "Замінити «$1»?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "У вас уже є тема з такою назвою."
+  },
+
+  "themeReplace": {
+    "message": "Замінити"
+  },
+
+  "themeSaveTitle": {
+    "message": "Зберегти поточний вигляд як тему"
+  },
+
+  "themeSave": {
+    "message": "Зберегти"
+  },
+
+  "themeSaved": {
+    "message": "Тему «$1» збережено.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "Експортувати поточний вигляд як тему"
+  },
+
+  "themeExportButton": {
+    "message": "Експортувати"
+  },
+
+  "themeImported": {
+    "message": "Тему «$1» імпортовано. Натисніть «Використати», щоб спробувати її.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (імпортована)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "Видалити «$1»?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "Тему буде прибрано з цього списку. Ваші поточні налаштування залишаться без змін."
+  },
+
+  "themeFileIsBackup": {
+    "message": "Це повна резервна копія Quick Dial NG. Імпортуйте її на вкладці «Резервна копія»."
+  },
+
+  "themeFileInvalid": {
+    "message": "Цей файл не є темою Quick Dial NG."
+  },
+
+  "themeFileNewer": {
+    "message": "Цю тему створено новішою версією Quick Dial NG. Оновіть розширення, щоб імпортувати її."
+  },
+
+  "themeFileNoName": {
+    "message": "Ця тема не має назви."
+  },
+
+  "themeClassicName": {
+    "message": "Класична"
+  },
+
+  "themeClassicDescription": {
+    "message": "Оригінальний вигляд Quick Dial: темно-сіра сторінка, тонкі рамки, назви під зображеннями."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "Натхненна розширенням Anori (anori.app): темно-зелена сторінка, плитки з матового скла з великими заокругленими кутами й назви поверх зображень."
+  },
+
+  "themePlumName": {
+    "message": "Слива"
+  },
+
+  "themePlumDescription": {
+    "message": "Темно-сливова сторінка зі світло-сірими заокругленими рамками й назвами під зображеннями. Для великої сітки з групами сайтів і проміжками між ними."
+  },
+
+  "themeDesktopName": {
+    "message": "Робочий стіл"
+  },
+
+  "themeDesktopDescription": {
+    "message": "Значки з назвами під ними на нічно-синій сторінці або на ваших шпалерах, як на робочому столі комп'ютера, з м'яким підсвічуванням під вказівником. Для квадратних плиток і зображень-значків."
+  },
+
+  "themeDuskName": {
+    "message": "Сутінки"
+  },
+
+  "themeDuskDescription": {
+    "message": "Фіолетові скляні плитки, що збільшуються під вказівником, на тлі неба під час заходу сонця."
+  },
+
+  "themeRetroPcName": {
+    "message": "Ретро ПК"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "Робочий стіл ПК кінця 1990-х: бірюзова сторінка, значки з білими назвами й темно-синє підсвічування назви під вказівником. Для квадратних плиток і зображень-значків."
+  },
+
+  "themeRetroMonoName": {
+    "message": "Ретро моно"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "Ранній чорно-білий робочий стіл: дрібний сірий візерунок, чорні назви на білих підписах, інвертовані під вказівником. Для квадратних плиток і чорно-білих зображень-значків."
+  },
+
+  "backupTitle": {
+    "message": "Резервна копія Quick Dial NG"
+  },
+
+  "backupIntro": {
+    "message": "Зберігає налаштування, плитки, зображення й ваші теми в один файл. Відновити з нього можна кнопкою <b>Імпортувати з файлу…</b> нижче.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "Експортувати резервну копію"
+  },
+
+  "backupExportHint": {
+    "message": "Зберегти налаштування, плитки й зображення у файл"
+  },
+
+  "backupImport": {
+    "message": "Імпортувати з файлу…"
+  },
+
+  "backupImportHint": {
+    "message": "Імпортувати експорт оригінального Quick Dial або резервну копію Quick Dial NG"
+  },
+
+  "backupOriginalTitle": {
+    "message": "Імпорт з оригінального Quick Dial"
+  },
+
+  "backupOriginalIntro": {
+    "message": "Переносить ваші плитки з точними позиціями в сітці, теки, зображення, налаштування сітки й стилю. Закладки, які вже є у вашій теці Quick Dial, використовуються повторно; відсутні створюються."
+  },
+
+  "backupStep1": {
+    "message": "Відкрийте <code>about:debugging#/runtime/this-firefox</code>, знайдіть оригінальний <b>Quick Dial</b> і натисніть <b>Дослідити</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "Скопіюйте фрагмент для експорту та вставте його на вкладці <b>Консоль</b> (спершу введіть <code>allow pasting</code>, якщо Firefox попросить). Він збереже <code>quickdial-export.json</code> у теку «Завантаження».",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "Виберіть цей файл кнопкою <b>Імпортувати з файлу…</b> вище."
+  },
+
+  "backupCopySnippet": {
+    "message": "Скопіювати фрагмент для експорту"
+  },
+
+  "backupCopied": {
+    "message": "Скопійовано ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "Скопіюйте цей фрагмент:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "Це тема. Імпортуйте її на вкладці «Теми»."
+  },
+
+  "backupFileInvalid": {
+    "message": "Цей файл не є ні експортом Quick Dial, ні резервною копією Quick Dial NG."
+  },
+
+  "backupImportNgTitle": {
+    "message": "Імпортувати цю резервну копію Quick Dial NG?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "Імпортувати цей експорт Quick Dial?"
+  },
+
+  "backupImportMessage": {
+    "message": "Ваші поточні налаштування й розташування плиток буде замінено. Закладки в теці Quick Dial залишаться; відсутні буде створено."
+  },
+
+  "backupImportButton": {
+    "message": "Імпортувати"
+  },
+
+  "backupImporting": {
+    "message": "Імпорт…"
+  },
+
+  "backupImportResult": {
+    "message": "Імпортовано: $1, $2, $3, а також налаштування сітки й стилю. Закладок використано повторно: $4, створено: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "Не вдалося імпортувати: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "Це не резервна копія Quick Dial"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "Не вдається відкрити теку закладок «$1»",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "$1 плитка"
+  },
+
+  "countTilesFew": {
+    "message": "$1 плитки"
+  },
+
+  "countTilesMany": {
+    "message": "$1 плиток"
+  },
+
+  "countTilesOther": {
+    "message": "$1 плитки"
+  },
+
+  "countFoldersOne": {
+    "message": "$1 тека"
+  },
+
+  "countFoldersFew": {
+    "message": "$1 теки"
+  },
+
+  "countFoldersMany": {
+    "message": "$1 тек"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 теки"
+  },
+
+  "countPicturesOne": {
+    "message": "$1 зображення"
+  },
+
+  "countPicturesFew": {
+    "message": "$1 зображення"
+  },
+
+  "countPicturesMany": {
+    "message": "$1 зображень"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 зображення"
+  },
+
+  "propertiesPageTitle": {
+    "message": "Властивості плитки Quick Dial NG"
+  },
+
+  "propertiesTitle": {
+    "message": "Властивості"
+  },
+
+  "propertiesFolder": {
+    "message": "Властивості теки"
+  },
+
+  "propertiesBookmark": {
+    "message": "Властивості закладки"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "Тека",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "Закрити (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "Назва",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "Заблокувати назву"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "Заблокувати назву: оновлення плитки не перейменує її"
+  },
+
+  "propertiesAddress": {
+    "message": "Адреса"
+  },
+
+  "propertiesPicture": {
+    "message": "Зображення"
+  },
+
+  "propertiesNoPicture": {
+    "message": "Зображення ще немає"
+  },
+
+  "propertiesRevert": {
+    "message": "Повернути"
+  },
+
+  "propertiesRevertHint": {
+    "message": "Скасувати зміни зображення, зроблені в цьому вікні"
+  },
+
+  "propertiesUseDefault": {
+    "message": "Типове"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "Використати типове зображення теки"
+  },
+
+  "propertiesPasteHint": {
+    "message": "Перетягніть зображення на попередній перегляд або вставте його через Ctrl+V."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "Зберегти це зображення"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "Оновлення та знімок не замінять його"
+  },
+
+  "propertiesTileGone": {
+    "message": "Цієї плитки більше не існує"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "Плитку видалено"
+  }
 }

@@ -30,7 +30,7 @@
   },
 
   "menuProperties": {
-    "message": "Bearbeiten",
+    "message": "Eigenschaften",
     "description": "Text of properties menu item."
   },
 
@@ -50,13 +50,1000 @@
   },
 
   "dialogDeleteConfirmation": {
-    "message": "Löschen $1?",
+    "message": "$1 löschen?",
     "description": "Text of delete confirmation."
   },
 
   "menuSettings": {
     "message": "Quick Dial NG Einstellungen",
     "description": "Text of settings menu item."
-  }
+  },
 
+  "dialogNewBookmark": {
+    "message": "Neues Lesezeichen",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "Neuer Ordner",
+    "description": "Title of the new folder dialog."
+  },
+
+  "menuImportQuickDial": {
+    "message": "Aus Quick Dial importieren…",
+    "description": "Text of the menu item that opens the import from the original Quick Dial."
+  },
+
+  "menuOpenDial": {
+    "message": "Quick Dial NG öffnen",
+    "description": "Toolbar button right-click menu: opens the dial in a new tab."
+  },
+
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "Schnellwahl für neue Tabs und die Startseite, mit Kacheln aus einem Lesezeichenordner. Unabhängiger, optimierter Fork von Quick Dial von MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "Übernehmen"
+  },
+
+  "buttonCancel": {
+    "message": "Abbrechen"
+  },
+
+  "buttonOk": {
+    "message": "OK"
+  },
+
+  "buttonClose": {
+    "message": "Schließen"
+  },
+
+  "optionNone": {
+    "message": "Keine",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "Standard",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "Ungespeicherte Änderungen"
+  },
+
+  "statusApplied": {
+    "message": "Änderungen übernommen"
+  },
+
+  "statusAppliedToDial": {
+    "message": "Änderungen in die Schnellwahl übernommen"
+  },
+
+  "statusDiscarded": {
+    "message": "Änderungen verworfen"
+  },
+
+  "dialogEnterValue": {
+    "message": "Bitte geben Sie einen Wert ein."
+  },
+
+  "dialogAdd": {
+    "message": "Hinzufügen",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "Erstellen",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "Neuer Ordner",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "Geben Sie eine Webadresse ein, z. B. https://example.com"
+  },
+
+  "tileBack": {
+    "message": "Zurück",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "Beispielseite",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "Beispiel",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "Normal",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "Beim Überfahren",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "Bild hier ablegen"
+  },
+
+  "imageDropToUse": {
+    "message": "Ablegen, um dieses Bild zu verwenden"
+  },
+
+  "imageChoose": {
+    "message": "Bild auswählen…"
+  },
+
+  "imageChooseShort": {
+    "message": "Auswählen…"
+  },
+
+  "imageFit": {
+    "message": "Anpassung",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "Strecken"
+  },
+
+  "fitCover": {
+    "message": "Füllen"
+  },
+
+  "fitContain": {
+    "message": "Einpassen"
+  },
+
+  "fitCenter": {
+    "message": "Zentrieren"
+  },
+
+  "settingsVersion": {
+    "message": "Version $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "Seite"
+  },
+
+  "settingsTabGrid": {
+    "message": "Raster"
+  },
+
+  "settingsTabTiles": {
+    "message": "Kacheln"
+  },
+
+  "settingsTabThemes": {
+    "message": "Themes"
+  },
+
+  "settingsTabBackup": {
+    "message": "Sicherung"
+  },
+
+  "settingsOpenDial": {
+    "message": "Quick Dial NG öffnen"
+  },
+
+  "settingsWebsite": {
+    "message": "Website"
+  },
+
+  "settingsSourceCode": {
+    "message": "Quellcode und Versionen"
+  },
+
+  "settingsBackground": {
+    "message": "Hintergrund"
+  },
+
+  "settingsColor": {
+    "message": "Farbe"
+  },
+
+  "settingsRemove": {
+    "message": "Entfernen"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "Oder ein Bild auf der Vorschau ablegen."
+  },
+
+  "settingsGradientHint": {
+    "message": "Das Theme fügt einen Farbverlauf hinzu, der hinter dem Bild angezeigt wird."
+  },
+
+  "settingsGradientRemove": {
+    "message": "Farbverlauf entfernen"
+  },
+
+  "settingsInterface": {
+    "message": "Oberfläche"
+  },
+
+  "settingsAccentColor": {
+    "message": "Akzentfarbe"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "Schaltflächen, Schalter, Tabs und Fokusrahmen in den Fenstern und Dialogen von Quick Dial NG"
+  },
+
+  "settingsBehavior": {
+    "message": "Verhalten"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "Menüeintrag „Zu Quick Dial NG hinzufügen“"
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "Im Kontextmenü von Webseiten"
+  },
+
+  "settingsToolbarButton": {
+    "message": "Symbolleisten-Schaltfläche"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "Was die Quick-Dial-NG-Schaltfläche in der Firefox-Symbolleiste öffnet. Ihr Kontextmenü bietet beides."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "Diese Einstellungen"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "Die Schnellwahl in einem neuen Tab"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "Die Schnellwahl im aktuellen Tab"
+  },
+
+  "settingsStartPage": {
+    "message": "Startseite"
+  },
+
+  "settingsStartPageHint": {
+    "message": "Quick Dial NG ist die Startseite von Firefox: Sie öffnet sich beim Start von Firefox und mit der Startseite-Schaltfläche. Um eine andere Seite zu verwenden, gehen Sie zu Firefox-Einstellungen › Startseite."
+  },
+
+  "settingsLayout": {
+    "message": "Layout"
+  },
+
+  "settingsRowsColumns": {
+    "message": "Zeilen × Spalten"
+  },
+
+  "settingsRows": {
+    "message": "Zeilen"
+  },
+
+  "settingsColumns": {
+    "message": "Spalten"
+  },
+
+  "settingsTileShape": {
+    "message": "Kachelform"
+  },
+
+  "settingsRatioWidth": {
+    "message": "Breitenverhältnis"
+  },
+
+  "settingsRatioHeight": {
+    "message": "Höhenverhältnis"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "Breite : Höhe"
+  },
+
+  "settingsPageMargin": {
+    "message": "Seitenrand"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "Lesezeichenordner"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "Der in der Schnellwahl angezeigte Lesezeichenordner"
+  },
+
+  "settingsOpening": {
+    "message": "Öffnen"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "Lesezeichen öffnen in"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "Ordner öffnen in"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "Demselben Tab"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "Einem neuen Tab"
+  },
+
+  "settingsFolderTiles": {
+    "message": "Ordnerkacheln"
+  },
+
+  "settingsBackNode": {
+    "message": "Zurück-Kachel in Ordnern anzeigen"
+  },
+
+  "settingsBackPicture": {
+    "message": "Bild der Zurück-Kachel"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "Anpassung des Zurück-Bildes"
+  },
+
+  "settingsFolderPicture": {
+    "message": "Ordnerbild"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "Anpassung des Ordnerbildes"
+  },
+
+  "settingsReset": {
+    "message": "Zurücksetzen"
+  },
+
+  "settingsResetHint": {
+    "message": "Das eingebaute Bild verwenden"
+  },
+
+  "settingsGroupTile": {
+    "message": "Kachel",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "Abstand"
+  },
+
+  "settingsOpacity": {
+    "message": "Deckkraft"
+  },
+
+  "settingsBorderWidth": {
+    "message": "Rahmenbreite"
+  },
+
+  "settingsCornerRadius": {
+    "message": "Eckenradius"
+  },
+
+  "settingsBorderColor": {
+    "message": "Rahmenfarbe"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "Hintergrund-Deckkraft"
+  },
+
+  "settingsGlassBlur": {
+    "message": "Glasunschärfe"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "Macht die Seite hinter der Kachel unscharf"
+  },
+
+  "settingsShadow": {
+    "message": "Schatten"
+  },
+
+  "shadowSoft": {
+    "message": "Weich"
+  },
+
+  "shadowStrong": {
+    "message": "Stark"
+  },
+
+  "settingsHoverEffect": {
+    "message": "Hover-Effekt"
+  },
+
+  "hoverInstant": {
+    "message": "Sofortige Änderung"
+  },
+
+  "hoverSmooth": {
+    "message": "Sanfte Änderung"
+  },
+
+  "hoverLift": {
+    "message": "Sanft, Kachel hebt sich"
+  },
+
+  "hoverGrow": {
+    "message": "Sanft, Kachel wächst"
+  },
+
+  "settingsClickEffect": {
+    "message": "Klick-Effekt"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "Klicken Sie auf eine Beispielkachel, um ihn erneut zu sehen"
+  },
+
+  "settingsClickToPreview": {
+    "message": "Klicken, um den Klick-Effekt zu sehen"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "Animationen sind in Ihren Systemeinstellungen ausgeschaltet, daher bewegen sich Kacheln nicht: Klick-Effekte blinken oder verblassen stattdessen, und ein sanfter Hover ändert nur die Farben, ohne Anheben oder Wachsen."
+  },
+
+  "clickPress": {
+    "message": "Drücken"
+  },
+
+  "clickBounce": {
+    "message": "Federn"
+  },
+
+  "clickRipple": {
+    "message": "Welle"
+  },
+
+  "clickFlash": {
+    "message": "Aufblitzen"
+  },
+
+  "clickRing": {
+    "message": "Pulsierender Ring"
+  },
+
+  "settingsGroupTitle": {
+    "message": "Titel",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "Titel anzeigen"
+  },
+
+  "settingsHeight": {
+    "message": "Höhe"
+  },
+
+  "settingsFontSize": {
+    "message": "Schriftgröße"
+  },
+
+  "settingsDividerWidth": {
+    "message": "Trennlinienbreite",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "Textfarbe"
+  },
+
+  "settingsFont": {
+    "message": "Schriftart"
+  },
+
+  "settingsCustomFont": {
+    "message": "Benutzerdefiniert ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "Fett"
+  },
+
+  "settingsPosition": {
+    "message": "Position"
+  },
+
+  "titleBelow": {
+    "message": "Unter dem Bild"
+  },
+
+  "titleOver": {
+    "message": "Über dem unteren Bildrand"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "Vorschaubilder"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "Aufnahmeverzögerung"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "ms nach dem Laden der Seite"
+  },
+
+  "settingsDiscard": {
+    "message": "Änderungen verwerfen"
+  },
+
+  "settingsDiscardHint": {
+    "message": "Die Einstellungen anzeigen, die die Schnellwahl jetzt verwendet"
+  },
+
+  "settingsApplyHint": {
+    "message": "Die Änderungen in die Schnellwahl übernehmen (Strg+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "Ein Theme ist das Aussehen der Schnellwahl: Hintergrundfarbe, Seitenrand, Kachel- und Titelstile und die Akzentfarbe. Ihr Hintergrundbild, Zeilen und Spalten, die Kachelform und die Kacheln bleiben erhalten. Wählen Sie <b>Verwenden</b>, um ein Theme hier auszuprobieren, und dann <b>Übernehmen</b>, um es in die Schnellwahl zu übernehmen.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "Aktuelles als Theme speichern…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "Das aktuelle Aussehen zu Ihren Themes hinzufügen"
+  },
+
+  "themeExportCurrent": {
+    "message": "Aktuelles exportieren…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "Das aktuelle Aussehen als .json-Datei speichern"
+  },
+
+  "themeImport": {
+    "message": "Theme importieren…"
+  },
+
+  "themeImportHint": {
+    "message": "Ein Theme aus einer .json-Datei hinzufügen"
+  },
+
+  "themeBuiltIn": {
+    "message": "Eingebaut"
+  },
+
+  "themeInUse": {
+    "message": "In Verwendung"
+  },
+
+  "themeUse": {
+    "message": "Verwenden"
+  },
+
+  "themeUseHint": {
+    "message": "Dieses Theme hier anzeigen; Übernehmen behält es"
+  },
+
+  "themeExport": {
+    "message": "Exportieren…"
+  },
+
+  "themeExportHint": {
+    "message": "Dieses Theme als .json-Datei speichern"
+  },
+
+  "themeDelete": {
+    "message": "Löschen"
+  },
+
+  "themeDeleteHint": {
+    "message": "Dieses Theme aus der Liste entfernen"
+  },
+
+  "themeShownHere": {
+    "message": "„$1“ wird nur hier angezeigt. Übernehmen bringt es in die Schnellwahl; Änderungen verwerfen stellt das vorherige Aussehen wieder her.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "Aus den aktuellen Einstellungen: Hintergrundfarbe, Seitenrand, Kachel- und Titelstile und die Akzentfarbe."
+  },
+
+  "themeName": {
+    "message": "Name"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "Mein Theme"
+  },
+
+  "themeDescription": {
+    "message": "Beschreibung (optional)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "Wie es aussieht"
+  },
+
+  "themeNameMissing": {
+    "message": "Bitte geben Sie einen Namen ein."
+  },
+
+  "themeNameTooLong": {
+    "message": "Bitte verwenden Sie höchstens $1 Zeichen.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "„$1“ ist ein eingebautes Theme. Bitte wählen Sie einen anderen Namen.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "„$1“ ersetzen?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "Sie haben bereits ein Theme mit diesem Namen."
+  },
+
+  "themeReplace": {
+    "message": "Ersetzen"
+  },
+
+  "themeSaveTitle": {
+    "message": "Aktuelles als Theme speichern"
+  },
+
+  "themeSave": {
+    "message": "Speichern"
+  },
+
+  "themeSaved": {
+    "message": "„$1“ wurde zu Ihren Themes hinzugefügt.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "Aktuelles als Theme exportieren"
+  },
+
+  "themeExportButton": {
+    "message": "Exportieren"
+  },
+
+  "themeImported": {
+    "message": "„$1“ importiert. Wählen Sie Verwenden, um es auszuprobieren.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (importiert)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "„$1“ löschen?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "Das Theme wird aus dieser Liste entfernt. Ihre aktuellen Einstellungen bleiben unverändert."
+  },
+
+  "themeFileIsBackup": {
+    "message": "Dies ist eine vollständige Quick-Dial-NG-Sicherung. Importieren Sie sie im Tab Sicherung."
+  },
+
+  "themeFileInvalid": {
+    "message": "Diese Datei ist kein Quick-Dial-NG-Theme."
+  },
+
+  "themeFileNewer": {
+    "message": "Dieses Theme wurde mit einer neueren Version von Quick Dial NG erstellt. Aktualisieren Sie die Erweiterung, um es zu importieren."
+  },
+
+  "themeFileNoName": {
+    "message": "Dieses Theme hat keinen Namen."
+  },
+
+  "themeClassicName": {
+    "message": "Klassisch"
+  },
+
+  "themeClassicDescription": {
+    "message": "Das ursprüngliche Aussehen von Quick Dial: dunkelgraue Seite, dünne Rahmen, Titel unter den Bildern."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "Inspiriert von der Browsererweiterung Anori (anori.app): eine tiefgrüne Seite, Kacheln aus Milchglas mit großen abgerundeten Ecken und Titel über den Bildern."
+  },
+
+  "themePlumName": {
+    "message": "Pflaume"
+  },
+
+  "themePlumDescription": {
+    "message": "Eine dunkle Pflaumenseite mit hellgrauen abgerundeten Rahmen und Titeln unter den Bildern. Gemacht für ein großes Raster mit Gruppen von Websites und Platz dazwischen."
+  },
+
+  "themeDesktopName": {
+    "message": "Desktop"
+  },
+
+  "themeDesktopDescription": {
+    "message": "Symbole mit ihren Namen darunter auf einer nachtblauen Seite oder Ihrem Hintergrundbild, wie ein Computer-Desktop, mit einer sanften Hervorhebung unter dem Mauszeiger. Für quadratische Kacheln und Symbolbilder."
+  },
+
+  "themeDuskName": {
+    "message": "Abenddämmerung"
+  },
+
+  "themeDuskDescription": {
+    "message": "Violette Glaskacheln, die beim Überfahren wachsen, vor einem Sonnenuntergangshimmel."
+  },
+
+  "themeRetroPcName": {
+    "message": "Retro-PC"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "Ein PC-Desktop der späten 1990er: eine petrolfarbene Seite, Symbole mit weißen Namen und eine marineblaue Hervorhebung des Namens unter dem Mauszeiger. Für quadratische Kacheln und Symbolbilder."
+  },
+
+  "themeRetroMonoName": {
+    "message": "Retro Mono"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "Ein früher Schwarz-Weiß-Desktop: ein feines graues Muster, schwarze Namen auf weißen Beschriftungen, invertiert unter dem Mauszeiger. Für quadratische Kacheln und Schwarz-Weiß-Symbolbilder."
+  },
+
+  "backupTitle": {
+    "message": "Quick-Dial-NG-Sicherung"
+  },
+
+  "backupIntro": {
+    "message": "Speichert Einstellungen, Kacheln, Bilder und Ihre Themes in einer Datei. Stellen Sie sie mit <b>Aus Datei importieren…</b> unten wieder her.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "Sicherung exportieren"
+  },
+
+  "backupExportHint": {
+    "message": "Einstellungen, Kacheln und Bilder in einer Datei speichern"
+  },
+
+  "backupImport": {
+    "message": "Aus Datei importieren…"
+  },
+
+  "backupImportHint": {
+    "message": "Einen Export des ursprünglichen Quick Dial oder eine Quick-Dial-NG-Sicherung importieren"
+  },
+
+  "backupOriginalTitle": {
+    "message": "Aus dem ursprünglichen Quick Dial importieren"
+  },
+
+  "backupOriginalIntro": {
+    "message": "Übernimmt Ihre Kacheln mit ihren genauen Rasterpositionen, Ordner, Bilder sowie Raster- und Stileinstellungen. Lesezeichen, die bereits in Ihrem Quick-Dial-Ordner sind, werden wiederverwendet; fehlende werden erstellt."
+  },
+
+  "backupStep1": {
+    "message": "Öffnen Sie <code>about:debugging#/runtime/this-firefox</code>, suchen Sie das ursprüngliche <b>Quick Dial</b> und klicken Sie auf <b>Untersuchen</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "Kopieren Sie das Export-Snippet und fügen Sie es im Tab <b>Konsole</b> ein (geben Sie zuerst <code>allow pasting</code> ein, falls Firefox danach fragt). Es speichert <code>quickdial-export.json</code> im Download-Ordner.",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "Wählen Sie diese Datei mit <b>Aus Datei importieren…</b> oben."
+  },
+
+  "backupCopySnippet": {
+    "message": "Export-Snippet kopieren"
+  },
+
+  "backupCopied": {
+    "message": "Kopiert ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "Kopieren Sie dieses Snippet:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "Dies ist ein Theme. Importieren Sie es im Tab Themes."
+  },
+
+  "backupFileInvalid": {
+    "message": "Diese Datei ist weder ein Quick-Dial-Export noch eine Quick-Dial-NG-Sicherung."
+  },
+
+  "backupImportNgTitle": {
+    "message": "Diese Quick-Dial-NG-Sicherung importieren?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "Diesen Quick-Dial-Export importieren?"
+  },
+
+  "backupImportMessage": {
+    "message": "Ihre aktuellen Einstellungen und die Kachelanordnung werden ersetzt. Lesezeichen im Quick-Dial-Ordner bleiben erhalten; fehlende werden erstellt."
+  },
+
+  "backupImportButton": {
+    "message": "Importieren"
+  },
+
+  "backupImporting": {
+    "message": "Wird importiert…"
+  },
+
+  "backupImportResult": {
+    "message": "Importiert: $1, $2, $3 sowie Raster- und Stileinstellungen. Lesezeichen wiederverwendet: $4, erstellt: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "Import fehlgeschlagen: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "Keine Quick-Dial-Sicherung"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "Der Lesezeichenordner „$1“ kann nicht geöffnet werden",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "$1 Kachel"
+  },
+
+  "countTilesOther": {
+    "message": "$1 Kacheln"
+  },
+
+  "countFoldersOne": {
+    "message": "$1 Ordner"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 Ordner"
+  },
+
+  "countPicturesOne": {
+    "message": "$1 Bild"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 Bilder"
+  },
+
+  "propertiesPageTitle": {
+    "message": "Quick Dial NG – Kacheleigenschaften"
+  },
+
+  "propertiesTitle": {
+    "message": "Eigenschaften"
+  },
+
+  "propertiesFolder": {
+    "message": "Ordnereigenschaften"
+  },
+
+  "propertiesBookmark": {
+    "message": "Lesezeicheneigenschaften"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "Ordner",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "Schließen (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "Titel",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "Titel sperren"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "Titel sperren: Aktualisieren der Kachel benennt sie nicht um"
+  },
+
+  "propertiesAddress": {
+    "message": "Adresse"
+  },
+
+  "propertiesPicture": {
+    "message": "Bild"
+  },
+
+  "propertiesNoPicture": {
+    "message": "Noch kein Bild"
+  },
+
+  "propertiesRevert": {
+    "message": "Zurücksetzen"
+  },
+
+  "propertiesRevertHint": {
+    "message": "Die in diesem Fenster vorgenommenen Bildänderungen rückgängig machen"
+  },
+
+  "propertiesUseDefault": {
+    "message": "Standard verwenden"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "Das Standard-Ordnerbild verwenden"
+  },
+
+  "propertiesPasteHint": {
+    "message": "Legen Sie ein Bild auf der Vorschau ab oder fügen Sie eines mit Strg+V ein."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "Dieses Bild behalten"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "Aktualisieren und Aufnehmen ersetzen es nicht"
+  },
+
+  "propertiesTileGone": {
+    "message": "Diese Kachel existiert nicht mehr"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "Die Kachel wurde gelöscht"
+  }
 }

@@ -1,62 +1,1061 @@
 {
   "menuAddToQuickDial": {
     "message": "Adicionar ao Quick Dial NG",
-    "description": "Texto do iten de menu adicionar ao Quick Dial."
+    "description": "Text of add bookmark menu item."
   },
 
   "menuNew": {
     "message": "Novo",
-    "description": "Texto do item de menu novo."
+    "description": "Text of new menu item."
   },
 
   "menuNewBookmark": {
     "message": "Favorito",
-    "description": "Texto do iten de menu adicionar favorito."
+    "description": "Text of add bookmark menu item."
   },
 
   "dialogNewBookmarkPrompt": {
-    "message": "Entre com a url do novo favorito :",
-    "description": "Texto do rótulo adicionar favorito."
+    "message": "Digite o endereço do novo favorito:",
+    "description": "Text of the add bookmark prompt."
   },
 
   "menuNewFolder": {
     "message": "Pasta",
-    "description": "Texto do item de menu adicionar pasta."
+    "description": "Text of add folder menu item."
   },
 
   "dialogNewFolderPrompt": {
-    "message": "Entre com o nome da nova pasta :",
-    "description": "Texto do rótulo adicionar pasta."
+    "message": "Digite o nome da nova pasta:",
+    "description": "Text of the add folder prompt."
   },
 
   "menuProperties": {
     "message": "Propriedades",
-    "description": "Texto do item de menu propriedades."
+    "description": "Text of properties menu item."
   },
 
   "menuRefreshItem": {
     "message": "Atualizar",
-    "description": "Texto do item de menu atualizar."
+    "description": "Text of refresh menu item."
   },
 
   "menuCapturePage": {
     "message": "Capturar em uma nova guia",
-    "description": "Texto do item de menu capturar em uma nova guia."
+    "description": "Text of capture menu item."
   },
 
   "menuDeleteItem": {
     "message": "Excluir",
-    "description": "Texto do item de menu excluir."
+    "description": "Text of delete menu item."
   },
 
   "dialogDeleteConfirmation": {
-    "message": "Excluir $1 ?",
-    "description": "Texto de confirmação da exclusão."
+    "message": "Excluir $1?",
+    "description": "Text of delete confirmation."
   },
 
   "menuSettings": {
     "message": "Configurações do Quick Dial NG",
-    "description": "Texto do item de menu configurações."
-  }
+    "description": "Text of settings menu item."
+  },
 
+  "dialogNewBookmark": {
+    "message": "Novo favorito",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "Nova pasta",
+    "description": "Title of the new folder dialog."
+  },
+
+  "menuImportQuickDial": {
+    "message": "Importar do Quick Dial…",
+    "description": "Text of the menu item that opens the import from the original Quick Dial."
+  },
+
+  "menuOpenDial": {
+    "message": "Abrir o Quick Dial NG",
+    "description": "Toolbar button right-click menu: opens the dial in a new tab."
+  },
+
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "Discagem rápida para a nova aba e a página inicial, com blocos de uma pasta de favoritos. Fork independente e otimizado do Quick Dial de MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "Aplicar"
+  },
+
+  "buttonCancel": {
+    "message": "Cancelar"
+  },
+
+  "buttonOk": {
+    "message": "OK"
+  },
+
+  "buttonClose": {
+    "message": "Fechar"
+  },
+
+  "optionNone": {
+    "message": "Nenhum",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "Padrão",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "Alterações não salvas"
+  },
+
+  "statusApplied": {
+    "message": "Alterações aplicadas"
+  },
+
+  "statusAppliedToDial": {
+    "message": "Alterações aplicadas à discagem rápida"
+  },
+
+  "statusDiscarded": {
+    "message": "Alterações descartadas"
+  },
+
+  "dialogEnterValue": {
+    "message": "Digite um valor."
+  },
+
+  "dialogAdd": {
+    "message": "Adicionar",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "Criar",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "Nova pasta",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "Digite um endereço web, por exemplo https://example.com"
+  },
+
+  "tileBack": {
+    "message": "Voltar",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "Site de exemplo",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "Exemplo",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "Normal",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "Ao passar o mouse",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "Solte uma imagem aqui"
+  },
+
+  "imageDropToUse": {
+    "message": "Solte para usar esta imagem"
+  },
+
+  "imageChoose": {
+    "message": "Escolher imagem…"
+  },
+
+  "imageChooseShort": {
+    "message": "Escolher…"
+  },
+
+  "imageFit": {
+    "message": "Ajuste",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "Esticar"
+  },
+
+  "fitCover": {
+    "message": "Cobrir"
+  },
+
+  "fitContain": {
+    "message": "Conter"
+  },
+
+  "fitCenter": {
+    "message": "Centralizar"
+  },
+
+  "settingsVersion": {
+    "message": "Versão $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "Página"
+  },
+
+  "settingsTabGrid": {
+    "message": "Grade"
+  },
+
+  "settingsTabTiles": {
+    "message": "Blocos"
+  },
+
+  "settingsTabThemes": {
+    "message": "Temas"
+  },
+
+  "settingsTabBackup": {
+    "message": "Backup"
+  },
+
+  "settingsOpenDial": {
+    "message": "Abrir o Quick Dial NG"
+  },
+
+  "settingsWebsite": {
+    "message": "Site"
+  },
+
+  "settingsSourceCode": {
+    "message": "Código-fonte e versões"
+  },
+
+  "settingsBackground": {
+    "message": "Fundo"
+  },
+
+  "settingsColor": {
+    "message": "Cor"
+  },
+
+  "settingsRemove": {
+    "message": "Remover"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "Ou solte uma imagem na pré-visualização."
+  },
+
+  "settingsGradientHint": {
+    "message": "O tema adiciona um degradê, exibido atrás da imagem."
+  },
+
+  "settingsGradientRemove": {
+    "message": "Remover degradê"
+  },
+
+  "settingsInterface": {
+    "message": "Interface"
+  },
+
+  "settingsAccentColor": {
+    "message": "Cor de destaque"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "Botões, chaves, abas e contornos de foco nas janelas e diálogos do Quick Dial NG"
+  },
+
+  "settingsBehavior": {
+    "message": "Comportamento"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "Item de menu “Adicionar ao Quick Dial NG”"
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "No menu de contexto das páginas web"
+  },
+
+  "settingsToolbarButton": {
+    "message": "Botão da barra de ferramentas"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "O que o botão do Quick Dial NG na barra de ferramentas do Firefox abre. Seu menu de contexto tem as duas opções."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "Estas configurações"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "A discagem rápida em uma nova aba"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "A discagem rápida na aba atual"
+  },
+
+  "settingsStartPage": {
+    "message": "Página inicial"
+  },
+
+  "settingsStartPageHint": {
+    "message": "O Quick Dial NG é a página inicial do Firefox: ele abre quando o Firefox inicia e com o botão Início. Para usar outra página, vá em Configurações do Firefox › Início."
+  },
+
+  "settingsLayout": {
+    "message": "Layout"
+  },
+
+  "settingsRowsColumns": {
+    "message": "Linhas × colunas"
+  },
+
+  "settingsRows": {
+    "message": "Linhas"
+  },
+
+  "settingsColumns": {
+    "message": "Colunas"
+  },
+
+  "settingsTileShape": {
+    "message": "Formato do bloco"
+  },
+
+  "settingsRatioWidth": {
+    "message": "Proporção da largura"
+  },
+
+  "settingsRatioHeight": {
+    "message": "Proporção da altura"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "largura : altura"
+  },
+
+  "settingsPageMargin": {
+    "message": "Margem da página"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "Pasta de favoritos"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "A pasta de favoritos exibida na discagem rápida"
+  },
+
+  "settingsOpening": {
+    "message": "Abertura"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "Abrir favoritos em"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "Abrir pastas em"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "A mesma aba"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "Uma nova aba"
+  },
+
+  "settingsFolderTiles": {
+    "message": "Blocos de pasta"
+  },
+
+  "settingsBackNode": {
+    "message": "Mostrar um bloco Voltar dentro das pastas"
+  },
+
+  "settingsBackPicture": {
+    "message": "Imagem do bloco Voltar"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "Ajuste da imagem Voltar"
+  },
+
+  "settingsFolderPicture": {
+    "message": "Imagem de pasta"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "Ajuste da imagem de pasta"
+  },
+
+  "settingsReset": {
+    "message": "Redefinir"
+  },
+
+  "settingsResetHint": {
+    "message": "Usar a imagem integrada"
+  },
+
+  "settingsGroupTile": {
+    "message": "Bloco",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "Espaçamento"
+  },
+
+  "settingsOpacity": {
+    "message": "Opacidade"
+  },
+
+  "settingsBorderWidth": {
+    "message": "Largura da borda"
+  },
+
+  "settingsCornerRadius": {
+    "message": "Raio dos cantos"
+  },
+
+  "settingsBorderColor": {
+    "message": "Cor da borda"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "Opacidade do fundo"
+  },
+
+  "settingsGlassBlur": {
+    "message": "Desfoque de vidro"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "Desfoca a página atrás do bloco"
+  },
+
+  "settingsShadow": {
+    "message": "Sombra"
+  },
+
+  "shadowSoft": {
+    "message": "Suave"
+  },
+
+  "shadowStrong": {
+    "message": "Forte"
+  },
+
+  "settingsHoverEffect": {
+    "message": "Efeito ao passar o mouse"
+  },
+
+  "hoverInstant": {
+    "message": "Mudança instantânea"
+  },
+
+  "hoverSmooth": {
+    "message": "Mudança suave"
+  },
+
+  "hoverLift": {
+    "message": "Suave, o bloco se eleva"
+  },
+
+  "hoverGrow": {
+    "message": "Suave, o bloco cresce"
+  },
+
+  "settingsClickEffect": {
+    "message": "Efeito ao clicar"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "Clique em um bloco de exemplo para vê-lo de novo"
+  },
+
+  "settingsClickToPreview": {
+    "message": "Clique para ver o efeito ao clicar"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "As animações estão desativadas nas configurações do sistema, então os blocos não se movem: os efeitos ao clicar piscam ou esmaecem em vez disso, e uma mudança suave ao passar o mouse só altera as cores, sem elevar nem crescer."
+  },
+
+  "clickPress": {
+    "message": "Pressionar"
+  },
+
+  "clickBounce": {
+    "message": "Quicar"
+  },
+
+  "clickRipple": {
+    "message": "Onda"
+  },
+
+  "clickFlash": {
+    "message": "Lampejo"
+  },
+
+  "clickRing": {
+    "message": "Anel pulsante"
+  },
+
+  "settingsGroupTitle": {
+    "message": "Título",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "Mostrar título"
+  },
+
+  "settingsHeight": {
+    "message": "Altura"
+  },
+
+  "settingsFontSize": {
+    "message": "Tamanho da fonte"
+  },
+
+  "settingsDividerWidth": {
+    "message": "Largura do divisor",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "Cor do texto"
+  },
+
+  "settingsFont": {
+    "message": "Fonte"
+  },
+
+  "settingsCustomFont": {
+    "message": "Personalizada ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "Negrito"
+  },
+
+  "settingsPosition": {
+    "message": "Posição"
+  },
+
+  "titleBelow": {
+    "message": "Abaixo da imagem"
+  },
+
+  "titleOver": {
+    "message": "Sobre a parte inferior da imagem"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "Miniaturas"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "Atraso da captura"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "ms após a página carregar"
+  },
+
+  "settingsDiscard": {
+    "message": "Descartar alterações"
+  },
+
+  "settingsDiscardHint": {
+    "message": "Mostrar as configurações que a discagem rápida usa agora"
+  },
+
+  "settingsApplyHint": {
+    "message": "Aplicar as alterações à discagem rápida (Ctrl+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "Um tema é a aparência da discagem rápida: cor de fundo, margem da página, estilos de blocos e títulos e a cor de destaque. Ele mantém sua imagem de fundo, linhas e colunas, formato dos blocos e os blocos. Escolha <b>Usar</b> para experimentar um tema aqui e depois <b>Aplicar</b> para colocá-lo na discagem rápida.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "Salvar o atual como tema…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "Adicionar a aparência atual aos seus temas"
+  },
+
+  "themeExportCurrent": {
+    "message": "Exportar o atual…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "Salvar a aparência atual como arquivo .json"
+  },
+
+  "themeImport": {
+    "message": "Importar tema…"
+  },
+
+  "themeImportHint": {
+    "message": "Adicionar um tema de um arquivo .json"
+  },
+
+  "themeBuiltIn": {
+    "message": "Integrado"
+  },
+
+  "themeInUse": {
+    "message": "Em uso"
+  },
+
+  "themeUse": {
+    "message": "Usar"
+  },
+
+  "themeUseHint": {
+    "message": "Mostrar este tema aqui; Aplicar o mantém"
+  },
+
+  "themeExport": {
+    "message": "Exportar…"
+  },
+
+  "themeExportHint": {
+    "message": "Salvar este tema como arquivo .json"
+  },
+
+  "themeDelete": {
+    "message": "Excluir"
+  },
+
+  "themeDeleteHint": {
+    "message": "Remover este tema da lista"
+  },
+
+  "themeShownHere": {
+    "message": "“$1” é exibido só aqui. Aplicar o coloca na discagem rápida; Descartar alterações mantém sua aparência anterior.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "A partir das configurações atuais: cor de fundo, margem da página, estilos de blocos e títulos e a cor de destaque."
+  },
+
+  "themeName": {
+    "message": "Nome"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "Meu tema"
+  },
+
+  "themeDescription": {
+    "message": "Descrição (opcional)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "Como ele é"
+  },
+
+  "themeNameMissing": {
+    "message": "Digite um nome."
+  },
+
+  "themeNameTooLong": {
+    "message": "Use no máximo $1 caracteres.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "“$1” é um tema integrado. Escolha outro nome.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "Substituir “$1”?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "Você já tem um tema com este nome."
+  },
+
+  "themeReplace": {
+    "message": "Substituir"
+  },
+
+  "themeSaveTitle": {
+    "message": "Salvar o atual como tema"
+  },
+
+  "themeSave": {
+    "message": "Salvar"
+  },
+
+  "themeSaved": {
+    "message": "“$1” foi salvo nos seus temas.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "Exportar o atual como tema"
+  },
+
+  "themeExportButton": {
+    "message": "Exportar"
+  },
+
+  "themeImported": {
+    "message": "“$1” importado. Escolha Usar para experimentá-lo.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (importado)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "Excluir “$1”?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "O tema é removido desta lista. Suas configurações atuais continuam como estão."
+  },
+
+  "themeFileIsBackup": {
+    "message": "Este é um backup completo do Quick Dial NG. Importe-o na aba Backup."
+  },
+
+  "themeFileInvalid": {
+    "message": "Este arquivo não é um tema do Quick Dial NG."
+  },
+
+  "themeFileNewer": {
+    "message": "Este tema foi criado por uma versão mais nova do Quick Dial NG. Atualize a extensão para importá-lo."
+  },
+
+  "themeFileNoName": {
+    "message": "Este tema não tem nome."
+  },
+
+  "themeClassicName": {
+    "message": "Clássico"
+  },
+
+  "themeClassicDescription": {
+    "message": "A aparência original do Quick Dial: página cinza-escura, bordas finas, títulos sob as imagens."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "Inspirado na extensão Anori (anori.app): uma página verde-escura, blocos de vidro fosco com grandes cantos arredondados e títulos sobre as imagens."
+  },
+
+  "themePlumName": {
+    "message": "Ameixa"
+  },
+
+  "themePlumDescription": {
+    "message": "Uma página cor de ameixa escura com bordas arredondadas cinza-claras e títulos sob as imagens. Feito para uma grade grande com grupos de sites e espaço entre eles."
+  },
+
+  "themeDesktopName": {
+    "message": "Área de trabalho"
+  },
+
+  "themeDesktopDescription": {
+    "message": "Ícones com seus nomes embaixo em uma página azul-noite ou no seu papel de parede, como a área de trabalho de um computador, com um destaque suave sob o ponteiro. Para blocos quadrados e imagens de ícones."
+  },
+
+  "themeDuskName": {
+    "message": "Crepúsculo"
+  },
+
+  "themeDuskDescription": {
+    "message": "Blocos de vidro violeta que crescem ao passar o mouse, sobre um céu de pôr do sol."
+  },
+
+  "themeRetroPcName": {
+    "message": "PC retrô"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "Uma área de trabalho de PC do fim dos anos 1990: uma página verde-azulada, ícones com nomes brancos e um destaque azul-marinho no nome sob o ponteiro. Para blocos quadrados e imagens de ícones."
+  },
+
+  "themeRetroMonoName": {
+    "message": "Retrô mono"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "Uma das primeiras áreas de trabalho em preto e branco: um padrão cinza fino, nomes pretos em rótulos brancos, invertidos sob o ponteiro. Para blocos quadrados e imagens de ícones em preto e branco."
+  },
+
+  "backupTitle": {
+    "message": "Backup do Quick Dial NG"
+  },
+
+  "backupIntro": {
+    "message": "Salva configurações, blocos, imagens e seus temas em um único arquivo. Restaure-o com <b>Importar de arquivo…</b> abaixo.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "Exportar backup"
+  },
+
+  "backupExportHint": {
+    "message": "Salvar configurações, blocos e imagens em um arquivo"
+  },
+
+  "backupImport": {
+    "message": "Importar de arquivo…"
+  },
+
+  "backupImportHint": {
+    "message": "Importar uma exportação do Quick Dial original ou um backup do Quick Dial NG"
+  },
+
+  "backupOriginalTitle": {
+    "message": "Importar do Quick Dial original"
+  },
+
+  "backupOriginalIntro": {
+    "message": "Traz seus blocos com suas posições exatas na grade, pastas, imagens e configurações de grade e estilo. Os favoritos que já estão na sua pasta do Quick Dial são reutilizados; os que faltam são criados."
+  },
+
+  "backupStep1": {
+    "message": "Abra <code>about:debugging#/runtime/this-firefox</code>, encontre o <b>Quick Dial</b> original e clique em <b>Inspecionar</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "Copie o trecho de exportação e cole-o na aba <b>Console</b> (digite <code>allow pasting</code> primeiro se o Firefox pedir). Ele salva <code>quickdial-export.json</code> em Downloads.",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "Escolha esse arquivo com <b>Importar de arquivo…</b> acima."
+  },
+
+  "backupCopySnippet": {
+    "message": "Copiar trecho de exportação"
+  },
+
+  "backupCopied": {
+    "message": "Copiado ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "Copie este trecho:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "Isto é um tema. Importe-o na aba Temas."
+  },
+
+  "backupFileInvalid": {
+    "message": "Este arquivo não é uma exportação do Quick Dial nem um backup do Quick Dial NG."
+  },
+
+  "backupImportNgTitle": {
+    "message": "Importar este backup do Quick Dial NG?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "Importar esta exportação do Quick Dial?"
+  },
+
+  "backupImportMessage": {
+    "message": "Suas configurações atuais e o layout dos blocos serão substituídos. Os favoritos na pasta do Quick Dial são mantidos; os que faltam são criados."
+  },
+
+  "backupImportButton": {
+    "message": "Importar"
+  },
+
+  "backupImporting": {
+    "message": "Importando…"
+  },
+
+  "backupImportResult": {
+    "message": "Importado: $1, $2, $3, além das configurações de grade e estilo. Favoritos reutilizados: $4, criados: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "Falha na importação: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "Não é um backup do Quick Dial"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "Não foi possível abrir a pasta de favoritos “$1”",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "$1 bloco"
+  },
+
+  "countTilesMany": {
+    "message": "$1 de blocos"
+  },
+
+  "countTilesOther": {
+    "message": "$1 blocos"
+  },
+
+  "countFoldersOne": {
+    "message": "$1 pasta"
+  },
+
+  "countFoldersMany": {
+    "message": "$1 de pastas"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 pastas"
+  },
+
+  "countPicturesOne": {
+    "message": "$1 imagem"
+  },
+
+  "countPicturesMany": {
+    "message": "$1 de imagens"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 imagens"
+  },
+
+  "propertiesPageTitle": {
+    "message": "Propriedades do bloco do Quick Dial NG"
+  },
+
+  "propertiesTitle": {
+    "message": "Propriedades"
+  },
+
+  "propertiesFolder": {
+    "message": "Propriedades da pasta"
+  },
+
+  "propertiesBookmark": {
+    "message": "Propriedades do favorito"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "Pasta",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "Fechar (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "Título",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "Bloquear título"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "Bloquear o título: atualizar o bloco não vai renomeá-lo"
+  },
+
+  "propertiesAddress": {
+    "message": "Endereço"
+  },
+
+  "propertiesPicture": {
+    "message": "Imagem"
+  },
+
+  "propertiesNoPicture": {
+    "message": "Ainda sem imagem"
+  },
+
+  "propertiesRevert": {
+    "message": "Reverter"
+  },
+
+  "propertiesRevertHint": {
+    "message": "Desfazer as alterações de imagem feitas nesta janela"
+  },
+
+  "propertiesUseDefault": {
+    "message": "Usar padrão"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "Usar a imagem de pasta padrão"
+  },
+
+  "propertiesPasteHint": {
+    "message": "Solte uma imagem na pré-visualização ou cole uma com Ctrl+V."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "Manter esta imagem"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "Atualizar e capturar não vão substituí-la"
+  },
+
+  "propertiesTileGone": {
+    "message": "Este bloco não existe mais"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "O bloco foi excluído"
+  }
 }

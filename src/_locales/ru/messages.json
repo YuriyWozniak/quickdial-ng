@@ -40,7 +40,7 @@
   },
 
   "menuCapturePage": {
-    "message": "Захватить на новой вкладке",
+    "message": "Сделать снимок в новой вкладке",
     "description": "Text of capture menu item."
   },
 
@@ -57,6 +57,1017 @@
   "menuSettings": {
     "message": "Настройки Quick Dial NG",
     "description": "Text of settings menu item."
-  }
+  },
 
+  "dialogNewBookmark": {
+    "message": "Новая закладка",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "Новая папка",
+    "description": "Title of the new folder dialog."
+  },
+
+  "menuImportQuickDial": {
+    "message": "Импорт из Quick Dial…",
+    "description": "Text of the menu item that opens the import from the original Quick Dial."
+  },
+
+  "menuOpenDial": {
+    "message": "Открыть Quick Dial NG",
+    "description": "Toolbar button right-click menu: opens the dial in a new tab."
+  },
+
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "Экспресс-панель для новой вкладки и домашней страницы с плитками из папки закладок. Независимый оптимизированный форк Quick Dial от MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "Применить"
+  },
+
+  "buttonCancel": {
+    "message": "Отмена"
+  },
+
+  "buttonOk": {
+    "message": "ОК"
+  },
+
+  "buttonClose": {
+    "message": "Закрыть"
+  },
+
+  "optionNone": {
+    "message": "Нет",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "По умолчанию",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "Несохранённые изменения"
+  },
+
+  "statusApplied": {
+    "message": "Изменения применены"
+  },
+
+  "statusAppliedToDial": {
+    "message": "Изменения применены к экспресс-панели"
+  },
+
+  "statusDiscarded": {
+    "message": "Изменения отменены"
+  },
+
+  "dialogEnterValue": {
+    "message": "Пожалуйста, введите значение."
+  },
+
+  "dialogAdd": {
+    "message": "Добавить",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "Создать",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "Новая папка",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "Введите веб-адрес, например https://example.com"
+  },
+
+  "tileBack": {
+    "message": "Назад",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "Пример сайта",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "Пример",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "Обычная",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "Под указателем",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "Перетащите изображение сюда"
+  },
+
+  "imageDropToUse": {
+    "message": "Отпустите, чтобы использовать это изображение"
+  },
+
+  "imageChoose": {
+    "message": "Выбрать изображение…"
+  },
+
+  "imageChooseShort": {
+    "message": "Выбрать…"
+  },
+
+  "imageFit": {
+    "message": "Размещение",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "Растянуть"
+  },
+
+  "fitCover": {
+    "message": "Заполнить"
+  },
+
+  "fitContain": {
+    "message": "Вписать"
+  },
+
+  "fitCenter": {
+    "message": "По центру"
+  },
+
+  "settingsVersion": {
+    "message": "Версия $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "Страница"
+  },
+
+  "settingsTabGrid": {
+    "message": "Сетка"
+  },
+
+  "settingsTabTiles": {
+    "message": "Плитки"
+  },
+
+  "settingsTabThemes": {
+    "message": "Темы"
+  },
+
+  "settingsTabBackup": {
+    "message": "Резервная копия"
+  },
+
+  "settingsOpenDial": {
+    "message": "Открыть Quick Dial NG"
+  },
+
+  "settingsWebsite": {
+    "message": "Веб-сайт"
+  },
+
+  "settingsSourceCode": {
+    "message": "Исходный код и выпуски"
+  },
+
+  "settingsBackground": {
+    "message": "Фон"
+  },
+
+  "settingsColor": {
+    "message": "Цвет"
+  },
+
+  "settingsRemove": {
+    "message": "Убрать"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "Или перетащите изображение на предпросмотр."
+  },
+
+  "settingsGradientHint": {
+    "message": "Тема добавляет градиент, который виден позади изображения."
+  },
+
+  "settingsGradientRemove": {
+    "message": "Убрать градиент"
+  },
+
+  "settingsInterface": {
+    "message": "Интерфейс"
+  },
+
+  "settingsAccentColor": {
+    "message": "Акцентный цвет"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "Кнопки, переключатели, вкладки и рамки фокуса в окнах и диалогах Quick Dial NG"
+  },
+
+  "settingsBehavior": {
+    "message": "Поведение"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "Пункт меню «Добавить в Quick Dial NG»"
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "В контекстном меню веб-страниц"
+  },
+
+  "settingsToolbarButton": {
+    "message": "Кнопка на панели инструментов"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "Что открывает кнопка Quick Dial NG на панели инструментов Firefox. В её контекстном меню есть оба варианта."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "Эти настройки"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "Экспресс-панель в новой вкладке"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "Экспресс-панель в текущей вкладке"
+  },
+
+  "settingsStartPage": {
+    "message": "Начальная страница"
+  },
+
+  "settingsStartPageHint": {
+    "message": "Quick Dial NG — домашняя страница Firefox: она открывается при запуске Firefox и кнопкой «Домой». Чтобы использовать другую страницу, откройте Настройки Firefox › Начало."
+  },
+
+  "settingsLayout": {
+    "message": "Компоновка"
+  },
+
+  "settingsRowsColumns": {
+    "message": "Строки × столбцы"
+  },
+
+  "settingsRows": {
+    "message": "Строки"
+  },
+
+  "settingsColumns": {
+    "message": "Столбцы"
+  },
+
+  "settingsTileShape": {
+    "message": "Форма плитки"
+  },
+
+  "settingsRatioWidth": {
+    "message": "Пропорция ширины"
+  },
+
+  "settingsRatioHeight": {
+    "message": "Пропорция высоты"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "ширина : высота"
+  },
+
+  "settingsPageMargin": {
+    "message": "Поле страницы"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "Папка закладок"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "Папка закладок, показанная на экспресс-панели"
+  },
+
+  "settingsOpening": {
+    "message": "Открытие"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "Открывать закладки в"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "Открывать папки в"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "Той же вкладке"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "Новой вкладке"
+  },
+
+  "settingsFolderTiles": {
+    "message": "Плитки папок"
+  },
+
+  "settingsBackNode": {
+    "message": "Показывать плитку «Назад» в папках"
+  },
+
+  "settingsBackPicture": {
+    "message": "Изображение плитки «Назад»"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "Размещение изображения «Назад»"
+  },
+
+  "settingsFolderPicture": {
+    "message": "Изображение папки"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "Размещение изображения папки"
+  },
+
+  "settingsReset": {
+    "message": "Сбросить"
+  },
+
+  "settingsResetHint": {
+    "message": "Использовать встроенное изображение"
+  },
+
+  "settingsGroupTile": {
+    "message": "Плитка",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "Промежутки"
+  },
+
+  "settingsOpacity": {
+    "message": "Непрозрачность"
+  },
+
+  "settingsBorderWidth": {
+    "message": "Толщина рамки"
+  },
+
+  "settingsCornerRadius": {
+    "message": "Радиус углов"
+  },
+
+  "settingsBorderColor": {
+    "message": "Цвет рамки"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "Непрозрачность фона"
+  },
+
+  "settingsGlassBlur": {
+    "message": "Размытие стекла"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "Размывает страницу позади плитки"
+  },
+
+  "settingsShadow": {
+    "message": "Тень"
+  },
+
+  "shadowSoft": {
+    "message": "Мягкая"
+  },
+
+  "shadowStrong": {
+    "message": "Сильная"
+  },
+
+  "settingsHoverEffect": {
+    "message": "Эффект наведения"
+  },
+
+  "hoverInstant": {
+    "message": "Мгновенное изменение"
+  },
+
+  "hoverSmooth": {
+    "message": "Плавное изменение"
+  },
+
+  "hoverLift": {
+    "message": "Плавно, плитка приподнимается"
+  },
+
+  "hoverGrow": {
+    "message": "Плавно, плитка увеличивается"
+  },
+
+  "settingsClickEffect": {
+    "message": "Эффект щелчка"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "Щёлкните образец плитки, чтобы увидеть его ещё раз"
+  },
+
+  "settingsClickToPreview": {
+    "message": "Щёлкните, чтобы увидеть эффект щелчка"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "Анимации отключены в настройках системы, поэтому плитки не двигаются: эффекты щелчка вместо этого вспыхивают или угасают, а плавное наведение только меняет цвета, без подъёма и увеличения."
+  },
+
+  "clickPress": {
+    "message": "Нажатие"
+  },
+
+  "clickBounce": {
+    "message": "Отскок"
+  },
+
+  "clickRipple": {
+    "message": "Волна"
+  },
+
+  "clickFlash": {
+    "message": "Вспышка"
+  },
+
+  "clickRing": {
+    "message": "Пульсирующее кольцо"
+  },
+
+  "settingsGroupTitle": {
+    "message": "Название",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "Показывать название"
+  },
+
+  "settingsHeight": {
+    "message": "Высота"
+  },
+
+  "settingsFontSize": {
+    "message": "Размер шрифта"
+  },
+
+  "settingsDividerWidth": {
+    "message": "Толщина разделителя",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "Цвет текста"
+  },
+
+  "settingsFont": {
+    "message": "Шрифт"
+  },
+
+  "settingsCustomFont": {
+    "message": "Свой ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "Жирный"
+  },
+
+  "settingsPosition": {
+    "message": "Положение"
+  },
+
+  "titleBelow": {
+    "message": "Под изображением"
+  },
+
+  "titleOver": {
+    "message": "Поверх нижней части изображения"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "Миниатюры"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "Задержка снимка"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "мс после загрузки страницы"
+  },
+
+  "settingsDiscard": {
+    "message": "Отменить изменения"
+  },
+
+  "settingsDiscardHint": {
+    "message": "Показать настройки, которые экспресс-панель использует сейчас"
+  },
+
+  "settingsApplyHint": {
+    "message": "Применить изменения к экспресс-панели (Ctrl+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "Тема — это внешний вид экспресс-панели: цвет фона, поле страницы, стили плиток и названий и акцентный цвет. Ваше фоновое изображение, строки и столбцы, форма плиток и сами плитки сохраняются. Нажмите <b>Использовать</b>, чтобы попробовать тему здесь, а затем <b>Применить</b>, чтобы перенести её на экспресс-панель.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "Сохранить текущий вид как тему…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "Добавить текущий вид в ваши темы"
+  },
+
+  "themeExportCurrent": {
+    "message": "Экспортировать текущий…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "Сохранить текущий вид в файл .json"
+  },
+
+  "themeImport": {
+    "message": "Импортировать тему…"
+  },
+
+  "themeImportHint": {
+    "message": "Добавить тему из файла .json"
+  },
+
+  "themeBuiltIn": {
+    "message": "Встроенная"
+  },
+
+  "themeInUse": {
+    "message": "Используется"
+  },
+
+  "themeUse": {
+    "message": "Использовать"
+  },
+
+  "themeUseHint": {
+    "message": "Показать эту тему здесь; «Применить» оставляет её"
+  },
+
+  "themeExport": {
+    "message": "Экспортировать…"
+  },
+
+  "themeExportHint": {
+    "message": "Сохранить эту тему в файл .json"
+  },
+
+  "themeDelete": {
+    "message": "Удалить"
+  },
+
+  "themeDeleteHint": {
+    "message": "Убрать эту тему из списка"
+  },
+
+  "themeShownHere": {
+    "message": "«$1» показана только здесь. «Применить» переносит её на экспресс-панель; «Отменить изменения» возвращает прежний вид.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "Из текущих настроек: цвет фона, поле страницы, стили плиток и названий и акцентный цвет."
+  },
+
+  "themeName": {
+    "message": "Название"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "Моя тема"
+  },
+
+  "themeDescription": {
+    "message": "Описание (необязательно)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "Как она выглядит"
+  },
+
+  "themeNameMissing": {
+    "message": "Пожалуйста, введите название."
+  },
+
+  "themeNameTooLong": {
+    "message": "Пожалуйста, используйте не более $1 символов.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "«$1» — встроенная тема. Пожалуйста, выберите другое название.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "Заменить «$1»?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "У вас уже есть тема с таким названием."
+  },
+
+  "themeReplace": {
+    "message": "Заменить"
+  },
+
+  "themeSaveTitle": {
+    "message": "Сохранить текущий вид как тему"
+  },
+
+  "themeSave": {
+    "message": "Сохранить"
+  },
+
+  "themeSaved": {
+    "message": "Тема «$1» сохранена.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "Экспортировать текущий вид как тему"
+  },
+
+  "themeExportButton": {
+    "message": "Экспортировать"
+  },
+
+  "themeImported": {
+    "message": "Тема «$1» импортирована. Нажмите «Использовать», чтобы попробовать её.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (импортированная)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "Удалить «$1»?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "Тема будет убрана из этого списка. Ваши текущие настройки останутся без изменений."
+  },
+
+  "themeFileIsBackup": {
+    "message": "Это полная резервная копия Quick Dial NG. Импортируйте её на вкладке «Резервная копия»."
+  },
+
+  "themeFileInvalid": {
+    "message": "Этот файл не является темой Quick Dial NG."
+  },
+
+  "themeFileNewer": {
+    "message": "Эта тема создана более новой версией Quick Dial NG. Обновите расширение, чтобы импортировать её."
+  },
+
+  "themeFileNoName": {
+    "message": "У этой темы нет названия."
+  },
+
+  "themeClassicName": {
+    "message": "Классическая"
+  },
+
+  "themeClassicDescription": {
+    "message": "Оригинальный вид Quick Dial: тёмно-серая страница, тонкие рамки, названия под изображениями."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "По мотивам расширения Anori (anori.app): тёмно-зелёная страница, плитки из матового стекла с большими скруглёнными углами и названия поверх изображений."
+  },
+
+  "themePlumName": {
+    "message": "Слива"
+  },
+
+  "themePlumDescription": {
+    "message": "Тёмно-сливовая страница со светло-серыми скруглёнными рамками и названиями под изображениями. Для большой сетки с группами сайтов и промежутками между ними."
+  },
+
+  "themeDesktopName": {
+    "message": "Рабочий стол"
+  },
+
+  "themeDesktopDescription": {
+    "message": "Значки с названиями под ними на ночно-синей странице или на ваших обоях, как на рабочем столе компьютера, с мягкой подсветкой под указателем. Для квадратных плиток и изображений-значков."
+  },
+
+  "themeDuskName": {
+    "message": "Сумерки"
+  },
+
+  "themeDuskDescription": {
+    "message": "Фиолетовые стеклянные плитки, которые увеличиваются под указателем, на фоне закатного неба."
+  },
+
+  "themeRetroPcName": {
+    "message": "Ретро ПК"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "Рабочий стол ПК конца 1990-х: бирюзовая страница, значки с белыми названиями и тёмно-синяя подсветка названия под указателем. Для квадратных плиток и изображений-значков."
+  },
+
+  "themeRetroMonoName": {
+    "message": "Ретро моно"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "Ранний чёрно-белый рабочий стол: мелкий серый узор, чёрные названия на белых подписях, инвертированные под указателем. Для квадратных плиток и чёрно-белых изображений-значков."
+  },
+
+  "backupTitle": {
+    "message": "Резервная копия Quick Dial NG"
+  },
+
+  "backupIntro": {
+    "message": "Сохраняет настройки, плитки, изображения и ваши темы в один файл. Восстановить из него можно кнопкой <b>Импортировать из файла…</b> ниже.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "Экспортировать резервную копию"
+  },
+
+  "backupExportHint": {
+    "message": "Сохранить настройки, плитки и изображения в файл"
+  },
+
+  "backupImport": {
+    "message": "Импортировать из файла…"
+  },
+
+  "backupImportHint": {
+    "message": "Импортировать экспорт оригинального Quick Dial или резервную копию Quick Dial NG"
+  },
+
+  "backupOriginalTitle": {
+    "message": "Импорт из оригинального Quick Dial"
+  },
+
+  "backupOriginalIntro": {
+    "message": "Переносит ваши плитки с точными позициями в сетке, папки, изображения, настройки сетки и стиля. Закладки, которые уже есть в вашей папке Quick Dial, используются повторно; недостающие создаются."
+  },
+
+  "backupStep1": {
+    "message": "Откройте <code>about:debugging#/runtime/this-firefox</code>, найдите оригинальный <b>Quick Dial</b> и нажмите <b>Исследовать</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "Скопируйте фрагмент для экспорта и вставьте его на вкладке <b>Консоль</b> (сначала введите <code>allow pasting</code>, если Firefox попросит). Он сохранит <code>quickdial-export.json</code> в папку «Загрузки».",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "Выберите этот файл кнопкой <b>Импортировать из файла…</b> выше."
+  },
+
+  "backupCopySnippet": {
+    "message": "Скопировать фрагмент для экспорта"
+  },
+
+  "backupCopied": {
+    "message": "Скопировано ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "Скопируйте этот фрагмент:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "Это тема. Импортируйте её на вкладке «Темы»."
+  },
+
+  "backupFileInvalid": {
+    "message": "Этот файл не является ни экспортом Quick Dial, ни резервной копией Quick Dial NG."
+  },
+
+  "backupImportNgTitle": {
+    "message": "Импортировать эту резервную копию Quick Dial NG?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "Импортировать этот экспорт Quick Dial?"
+  },
+
+  "backupImportMessage": {
+    "message": "Ваши текущие настройки и расположение плиток будут заменены. Закладки в папке Quick Dial сохранятся; недостающие будут созданы."
+  },
+
+  "backupImportButton": {
+    "message": "Импортировать"
+  },
+
+  "backupImporting": {
+    "message": "Импорт…"
+  },
+
+  "backupImportResult": {
+    "message": "Импортировано: $1, $2, $3, а также настройки сетки и стиля. Закладок использовано повторно: $4, создано: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "Не удалось импортировать: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "Это не резервная копия Quick Dial"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "Не удаётся открыть папку закладок «$1»",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "$1 плитка"
+  },
+
+  "countTilesFew": {
+    "message": "$1 плитки"
+  },
+
+  "countTilesMany": {
+    "message": "$1 плиток"
+  },
+
+  "countTilesOther": {
+    "message": "$1 плитки"
+  },
+
+  "countFoldersOne": {
+    "message": "$1 папка"
+  },
+
+  "countFoldersFew": {
+    "message": "$1 папки"
+  },
+
+  "countFoldersMany": {
+    "message": "$1 папок"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 папки"
+  },
+
+  "countPicturesOne": {
+    "message": "$1 изображение"
+  },
+
+  "countPicturesFew": {
+    "message": "$1 изображения"
+  },
+
+  "countPicturesMany": {
+    "message": "$1 изображений"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 изображения"
+  },
+
+  "propertiesPageTitle": {
+    "message": "Свойства плитки Quick Dial NG"
+  },
+
+  "propertiesTitle": {
+    "message": "Свойства"
+  },
+
+  "propertiesFolder": {
+    "message": "Свойства папки"
+  },
+
+  "propertiesBookmark": {
+    "message": "Свойства закладки"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "Папка",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "Закрыть (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "Название",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "Закрепить название"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "Закрепить название: обновление плитки не переименует её"
+  },
+
+  "propertiesAddress": {
+    "message": "Адрес"
+  },
+
+  "propertiesPicture": {
+    "message": "Изображение"
+  },
+
+  "propertiesNoPicture": {
+    "message": "Изображения пока нет"
+  },
+
+  "propertiesRevert": {
+    "message": "Вернуть"
+  },
+
+  "propertiesRevertHint": {
+    "message": "Отменить изменения изображения, сделанные в этом окне"
+  },
+
+  "propertiesUseDefault": {
+    "message": "По умолчанию"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "Использовать изображение папки по умолчанию"
+  },
+
+  "propertiesPasteHint": {
+    "message": "Перетащите изображение на предпросмотр или вставьте его через Ctrl+V."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "Сохранить это изображение"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "Обновление и снимок не заменят его"
+  },
+
+  "propertiesTileGone": {
+    "message": "Этой плитки больше нет"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "Плитка удалена"
+  }
 }

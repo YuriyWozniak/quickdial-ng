@@ -1,21 +1,21 @@
 {
   "menuAddToQuickDial": {
-    "message": "Додај у брзо бирање NG",
+    "message": "Додај у Quick Dial NG",
     "description": "Text of add bookmark menu item."
   },
 
   "menuNew": {
-    "message": "Нова",
+    "message": "Ново",
     "description": "Text of new menu item."
   },
 
   "menuNewBookmark": {
-    "message": "Забелешка",
+    "message": "Обележивач",
     "description": "Text of add bookmark menu item."
   },
 
   "dialogNewBookmarkPrompt": {
-    "message": "Унесите УРЛ нове забелешке :",
+    "message": "Унесите адресу новог обележивача:",
     "description": "Text of the add bookmark prompt."
   },
 
@@ -25,7 +25,7 @@
   },
 
   "dialogNewFolderPrompt": {
-    "message": "Унесите име нове фасцикле :",
+    "message": "Унесите име нове фасцикле:",
     "description": "Text of the add folder prompt."
   },
 
@@ -40,7 +40,7 @@
   },
 
   "menuCapturePage": {
-    "message": "Ухвати у новом језичку",
+    "message": "Сними у новој картици",
     "description": "Text of capture menu item."
   },
 
@@ -50,13 +50,1012 @@
   },
 
   "dialogDeleteConfirmation": {
-    "message": "Обрисати $1 ?",
+    "message": "Обрисати $1?",
     "description": "Text of delete confirmation."
   },
 
   "menuSettings": {
-    "message": "Подешавање брзог бирања NG",
+    "message": "Подешавања за Quick Dial NG",
     "description": "Text of settings menu item."
-  }
+  },
 
+  "dialogNewBookmark": {
+    "message": "Нови обележивач",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "Нова фасцикла",
+    "description": "Title of the new folder dialog."
+  },
+
+  "menuImportQuickDial": {
+    "message": "Увези из Quick Dial-а…",
+    "description": "Text of the menu item that opens the import from the original Quick Dial."
+  },
+
+  "menuOpenDial": {
+    "message": "Отвори Quick Dial NG",
+    "description": "Toolbar button right-click menu: opens the dial in a new tab."
+  },
+
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "Брзо бирање за нову картицу и почетну страницу, са плочицама из фасцикле обележивача. Независан, оптимизован форк Quick Dial-а аутора MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "Примени"
+  },
+
+  "buttonCancel": {
+    "message": "Откажи"
+  },
+
+  "buttonOk": {
+    "message": "У реду"
+  },
+
+  "buttonClose": {
+    "message": "Затвори"
+  },
+
+  "optionNone": {
+    "message": "Ништа",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "Подразумевано",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "Несачуване измене"
+  },
+
+  "statusApplied": {
+    "message": "Измене су примењене"
+  },
+
+  "statusAppliedToDial": {
+    "message": "Измене су примењене на брзо бирање"
+  },
+
+  "statusDiscarded": {
+    "message": "Измене су одбачене"
+  },
+
+  "dialogEnterValue": {
+    "message": "Унесите вредност."
+  },
+
+  "dialogAdd": {
+    "message": "Додај",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "Направи",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "Нова фасцикла",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "Унесите веб-адресу, нпр. https://example.com"
+  },
+
+  "tileBack": {
+    "message": "Назад",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "Пример сајта",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "Пример",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "Обична",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "Под показивачем",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "Превуците слику овде"
+  },
+
+  "imageDropToUse": {
+    "message": "Отпустите да бисте користили ову слику"
+  },
+
+  "imageChoose": {
+    "message": "Изабери слику…"
+  },
+
+  "imageChooseShort": {
+    "message": "Изабери…"
+  },
+
+  "imageFit": {
+    "message": "Уклапање",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "Развуци"
+  },
+
+  "fitCover": {
+    "message": "Попуни"
+  },
+
+  "fitContain": {
+    "message": "Уклопи"
+  },
+
+  "fitCenter": {
+    "message": "Центрирај"
+  },
+
+  "settingsVersion": {
+    "message": "Верзија $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "Страница"
+  },
+
+  "settingsTabGrid": {
+    "message": "Мрежа"
+  },
+
+  "settingsTabTiles": {
+    "message": "Плочице"
+  },
+
+  "settingsTabThemes": {
+    "message": "Теме"
+  },
+
+  "settingsTabBackup": {
+    "message": "Резервна копија"
+  },
+
+  "settingsOpenDial": {
+    "message": "Отвори Quick Dial NG"
+  },
+
+  "settingsWebsite": {
+    "message": "Веб-сајт"
+  },
+
+  "settingsSourceCode": {
+    "message": "Изворни код и издања"
+  },
+
+  "settingsBackground": {
+    "message": "Позадина"
+  },
+
+  "settingsColor": {
+    "message": "Боја"
+  },
+
+  "settingsRemove": {
+    "message": "Уклони"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "Или превуците слику на преглед."
+  },
+
+  "settingsGradientHint": {
+    "message": "Тема додаје прелив, приказан иза слике."
+  },
+
+  "settingsGradientRemove": {
+    "message": "Уклони прелив"
+  },
+
+  "settingsInterface": {
+    "message": "Интерфејс"
+  },
+
+  "settingsAccentColor": {
+    "message": "Боја истицања"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "Дугмад, прекидачи, картице и оквири фокуса у прозорима и дијалозима Quick Dial NG-а"
+  },
+
+  "settingsBehavior": {
+    "message": "Понашање"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "Ставка менија „Додај у Quick Dial NG“"
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "У контекстном менију веб-страница"
+  },
+
+  "settingsToolbarButton": {
+    "message": "Дугме на траци алатки"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "Шта отвара дугме Quick Dial NG на траци алатки Firefox-а. Његов контекстни мени има обе опције."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "Ова подешавања"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "Брзо бирање у новој картици"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "Брзо бирање у тренутној картици"
+  },
+
+  "settingsStartPage": {
+    "message": "Почетна страница"
+  },
+
+  "settingsStartPageHint": {
+    "message": "Quick Dial NG је почетна страница Firefox-а: отвара се при покретању Firefox-а и дугметом Почетна. Да бисте користили другу страницу, идите у Подешавања Firefox-а › Почетна."
+  },
+
+  "settingsLayout": {
+    "message": "Распоред"
+  },
+
+  "settingsRowsColumns": {
+    "message": "Редови × колоне"
+  },
+
+  "settingsRows": {
+    "message": "Редови"
+  },
+
+  "settingsColumns": {
+    "message": "Колоне"
+  },
+
+  "settingsTileShape": {
+    "message": "Облик плочице"
+  },
+
+  "settingsRatioWidth": {
+    "message": "Однос ширине"
+  },
+
+  "settingsRatioHeight": {
+    "message": "Однос висине"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "ширина : висина"
+  },
+
+  "settingsPageMargin": {
+    "message": "Маргина странице"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "Фасцикла обележивача"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "Фасцикла обележивача приказана у брзом бирању"
+  },
+
+  "settingsOpening": {
+    "message": "Отварање"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "Отварај обележиваче у"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "Отварај фасцикле у"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "Истој картици"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "Новој картици"
+  },
+
+  "settingsFolderTiles": {
+    "message": "Плочице фасцикли"
+  },
+
+  "settingsBackNode": {
+    "message": "Прикажи плочицу Назад у фасциклама"
+  },
+
+  "settingsBackPicture": {
+    "message": "Слика плочице Назад"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "Уклапање слике Назад"
+  },
+
+  "settingsFolderPicture": {
+    "message": "Слика фасцикле"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "Уклапање слике фасцикле"
+  },
+
+  "settingsReset": {
+    "message": "Врати"
+  },
+
+  "settingsResetHint": {
+    "message": "Користи уграђену слику"
+  },
+
+  "settingsGroupTile": {
+    "message": "Плочица",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "Размак"
+  },
+
+  "settingsOpacity": {
+    "message": "Непрозирност"
+  },
+
+  "settingsBorderWidth": {
+    "message": "Дебљина ивице"
+  },
+
+  "settingsCornerRadius": {
+    "message": "Заобљеност углова"
+  },
+
+  "settingsBorderColor": {
+    "message": "Боја ивице"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "Непрозирност позадине"
+  },
+
+  "settingsGlassBlur": {
+    "message": "Замућење стакла"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "Замућује страницу иза плочице"
+  },
+
+  "settingsShadow": {
+    "message": "Сенка"
+  },
+
+  "shadowSoft": {
+    "message": "Мека"
+  },
+
+  "shadowStrong": {
+    "message": "Јака"
+  },
+
+  "settingsHoverEffect": {
+    "message": "Ефекат при прелазу"
+  },
+
+  "hoverInstant": {
+    "message": "Тренутна промена"
+  },
+
+  "hoverSmooth": {
+    "message": "Глатка промена"
+  },
+
+  "hoverLift": {
+    "message": "Глатко, плочица се подиже"
+  },
+
+  "hoverGrow": {
+    "message": "Глатко, плочица се увећава"
+  },
+
+  "settingsClickEffect": {
+    "message": "Ефекат клика"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "Кликните на пример плочице да бисте га поново видели"
+  },
+
+  "settingsClickToPreview": {
+    "message": "Кликните да видите ефекат клика"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "Анимације су искључене у подешавањима система, па се плочице не померају: ефекти клика уместо тога трепну или избледе, а глатки прелаз само мења боје, без подизања или увећања."
+  },
+
+  "clickPress": {
+    "message": "Притисак"
+  },
+
+  "clickBounce": {
+    "message": "Одскок"
+  },
+
+  "clickRipple": {
+    "message": "Талас"
+  },
+
+  "clickFlash": {
+    "message": "Бљесак"
+  },
+
+  "clickRing": {
+    "message": "Пулсирајући прстен"
+  },
+
+  "settingsGroupTitle": {
+    "message": "Наслов",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "Прикажи наслов"
+  },
+
+  "settingsHeight": {
+    "message": "Висина"
+  },
+
+  "settingsFontSize": {
+    "message": "Величина фонта"
+  },
+
+  "settingsDividerWidth": {
+    "message": "Дебљина разделника",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "Боја текста"
+  },
+
+  "settingsFont": {
+    "message": "Фонт"
+  },
+
+  "settingsCustomFont": {
+    "message": "Прилагођен ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "Подебљано"
+  },
+
+  "settingsPosition": {
+    "message": "Положај"
+  },
+
+  "titleBelow": {
+    "message": "Испод слике"
+  },
+
+  "titleOver": {
+    "message": "Преко доњег дела слике"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "Сличице"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "Кашњење снимања"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "ms након учитавања странице"
+  },
+
+  "settingsDiscard": {
+    "message": "Одбаци измене"
+  },
+
+  "settingsDiscardHint": {
+    "message": "Прикажи подешавања која брзо бирање сада користи"
+  },
+
+  "settingsApplyHint": {
+    "message": "Примени измене на брзо бирање (Ctrl+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "Тема је изглед брзог бирања: боја позадине, маргина странице, стилови плочица и наслова и боја истицања. Ваша позадинска слика, редови и колоне, облик плочица и саме плочице остају. Изаберите <b>Користи</b> да испробате тему овде, а затим <b>Примени</b> да је пренесете на брзо бирање.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "Сачувај тренутни изглед као тему…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "Додај тренутни изглед у своје теме"
+  },
+
+  "themeExportCurrent": {
+    "message": "Извези тренутни…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "Сачувај тренутни изглед као .json датотеку"
+  },
+
+  "themeImport": {
+    "message": "Увези тему…"
+  },
+
+  "themeImportHint": {
+    "message": "Додај тему из .json датотеке"
+  },
+
+  "themeBuiltIn": {
+    "message": "Уграђена"
+  },
+
+  "themeInUse": {
+    "message": "У употреби"
+  },
+
+  "themeUse": {
+    "message": "Користи"
+  },
+
+  "themeUseHint": {
+    "message": "Прикажи ову тему овде; Примени је задржава"
+  },
+
+  "themeExport": {
+    "message": "Извези…"
+  },
+
+  "themeExportHint": {
+    "message": "Сачувај ову тему као .json датотеку"
+  },
+
+  "themeDelete": {
+    "message": "Обриши"
+  },
+
+  "themeDeleteHint": {
+    "message": "Уклони ову тему са листе"
+  },
+
+  "themeShownHere": {
+    "message": "„$1“ је приказана само овде. Примени је преноси на брзо бирање; Одбаци измене задржава претходни изглед.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "Из тренутних подешавања: боја позадине, маргина странице, стилови плочица и наслова и боја истицања."
+  },
+
+  "themeName": {
+    "message": "Назив"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "Моја тема"
+  },
+
+  "themeDescription": {
+    "message": "Опис (необавезно)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "Како изгледа"
+  },
+
+  "themeNameMissing": {
+    "message": "Унесите назив."
+  },
+
+  "themeNameTooLong": {
+    "message": "Користите највише $1 знакова.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "„$1“ је уграђена тема. Изаберите други назив.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "Заменити „$1“?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "Већ имате тему са овим називом."
+  },
+
+  "themeReplace": {
+    "message": "Замени"
+  },
+
+  "themeSaveTitle": {
+    "message": "Сачувај тренутни изглед као тему"
+  },
+
+  "themeSave": {
+    "message": "Сачувај"
+  },
+
+  "themeSaved": {
+    "message": "„$1“ је сачувана у ваше теме.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "Извези тренутни изглед као тему"
+  },
+
+  "themeExportButton": {
+    "message": "Извези"
+  },
+
+  "themeImported": {
+    "message": "„$1“ је увезена. Изаберите Користи да је испробате.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (увезена)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "Обрисати „$1“?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "Тема се уклања са ове листе. Ваша тренутна подешавања остају непромењена."
+  },
+
+  "themeFileIsBackup": {
+    "message": "Ово је потпуна резервна копија Quick Dial NG-а. Увезите је на картици Резервна копија."
+  },
+
+  "themeFileInvalid": {
+    "message": "Ова датотека није тема за Quick Dial NG."
+  },
+
+  "themeFileNewer": {
+    "message": "Ову тему је направила новија верзија Quick Dial NG-а. Ажурирајте проширење да бисте је увезли."
+  },
+
+  "themeFileNoName": {
+    "message": "Ова тема нема назив."
+  },
+
+  "themeClassicName": {
+    "message": "Класична"
+  },
+
+  "themeClassicDescription": {
+    "message": "Изворни изглед Quick Dial-а: тамносива страница, танке ивице, наслови испод слика."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "Инспирисана проширењем Anori (anori.app): тамнозелена страница, плочице од мат стакла са великим заобљеним угловима и наслови преко слика."
+  },
+
+  "themePlumName": {
+    "message": "Шљива"
+  },
+
+  "themePlumDescription": {
+    "message": "Тамна страница боје шљиве са светлосивим заобљеним ивицама и насловима испод слика. Направљена за велику мрежу са групама сајтова и простором између њих."
+  },
+
+  "themeDesktopName": {
+    "message": "Радна површина"
+  },
+
+  "themeDesktopDescription": {
+    "message": "Иконе са називима испод њих на ноћноплавој страници или вашој позадини, као радна површина рачунара, са меким истицањем испод показивача. За квадратне плочице и слике икона."
+  },
+
+  "themeDuskName": {
+    "message": "Сумрак"
+  },
+
+  "themeDuskDescription": {
+    "message": "Љубичасте стаклене плочице које се увећавају при прелазу, на небу у залазак сунца."
+  },
+
+  "themeRetroPcName": {
+    "message": "Ретро PC"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "Радна површина рачунара из касних 1990-их: тиркизна страница, иконе са белим називима и тамноплаво истицање назива испод показивача. За квадратне плочице и слике икона."
+  },
+
+  "themeRetroMonoName": {
+    "message": "Ретро моно"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "Рана црно-бела радна површина: фина сива шара, црни називи на белим натписима, обрнути испод показивача. За квадратне плочице и црно-беле слике икона."
+  },
+
+  "backupTitle": {
+    "message": "Резервна копија Quick Dial NG-а"
+  },
+
+  "backupIntro": {
+    "message": "Чува подешавања, плочице, слике и ваше теме у једну датотеку. Вратите је помоћу <b>Увези из датотеке…</b> испод.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "Извези резервну копију"
+  },
+
+  "backupExportHint": {
+    "message": "Сачувај подешавања, плочице и слике у датотеку"
+  },
+
+  "backupImport": {
+    "message": "Увези из датотеке…"
+  },
+
+  "backupImportHint": {
+    "message": "Увези извоз изворног Quick Dial-а или резервну копију Quick Dial NG-а"
+  },
+
+  "backupOriginalTitle": {
+    "message": "Увоз из изворног Quick Dial-а"
+  },
+
+  "backupOriginalIntro": {
+    "message": "Преноси ваше плочице са тачним положајима у мрежи, фасцикле, слике и подешавања мреже и стила. Обележивачи који су већ у вашој фасцикли Quick Dial поново се користе; они који недостају се праве."
+  },
+
+  "backupStep1": {
+    "message": "Отворите <code>about:debugging#/runtime/this-firefox</code>, пронађите изворни <b>Quick Dial</b> и кликните на <b>Прегледај</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "Копирајте исечак за извоз и налепите га на картици <b>Конзола</b> (прво укуцајте <code>allow pasting</code> ако Firefox то затражи). Он чува <code>quickdial-export.json</code> у Преузимања.",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "Изаберите ту датотеку помоћу <b>Увези из датотеке…</b> изнад."
+  },
+
+  "backupCopySnippet": {
+    "message": "Копирај исечак за извоз"
+  },
+
+  "backupCopied": {
+    "message": "Копирано ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "Копирајте овај исечак:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "Ово је тема. Увезите је на картици Теме."
+  },
+
+  "backupFileInvalid": {
+    "message": "Ова датотека није ни извоз Quick Dial-а ни резервна копија Quick Dial NG-а."
+  },
+
+  "backupImportNgTitle": {
+    "message": "Увести ову резервну копију Quick Dial NG-а?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "Увести овај извоз Quick Dial-а?"
+  },
+
+  "backupImportMessage": {
+    "message": "Ваша тренутна подешавања и распоред плочица биће замењени. Обележивачи у фасцикли Quick Dial се задржавају; они који недостају биће направљени."
+  },
+
+  "backupImportButton": {
+    "message": "Увези"
+  },
+
+  "backupImporting": {
+    "message": "Увоз…"
+  },
+
+  "backupImportResult": {
+    "message": "Увезено: $1, $2, $3, као и подешавања мреже и стила. Поново коришћених обележивача: $4, направљених: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "Увоз није успео: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "Није резервна копија Quick Dial-а"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "Не могу да отворим фасциклу обележивача „$1“",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "$1 плочица"
+  },
+
+  "countTilesFew": {
+    "message": "$1 плочице"
+  },
+
+  "countTilesOther": {
+    "message": "$1 плочица"
+  },
+
+  "countFoldersOne": {
+    "message": "$1 фасцикла"
+  },
+
+  "countFoldersFew": {
+    "message": "$1 фасцикле"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 фасцикли"
+  },
+
+  "countPicturesOne": {
+    "message": "$1 слика"
+  },
+
+  "countPicturesFew": {
+    "message": "$1 слике"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 слика"
+  },
+
+  "propertiesPageTitle": {
+    "message": "Својства плочице Quick Dial NG"
+  },
+
+  "propertiesTitle": {
+    "message": "Својства"
+  },
+
+  "propertiesFolder": {
+    "message": "Својства фасцикле"
+  },
+
+  "propertiesBookmark": {
+    "message": "Својства обележивача"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "Фасцикла",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "Затвори (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "Наслов",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "Закључај наслов"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "Закључај наслов: освежавање плочице је неће преименовати"
+  },
+
+  "propertiesAddress": {
+    "message": "Адреса"
+  },
+
+  "propertiesPicture": {
+    "message": "Слика"
+  },
+
+  "propertiesNoPicture": {
+    "message": "Још нема слике"
+  },
+
+  "propertiesRevert": {
+    "message": "Врати"
+  },
+
+  "propertiesRevertHint": {
+    "message": "Поништи измене слике направљене у овом прозору"
+  },
+
+  "propertiesUseDefault": {
+    "message": "Подразумевана"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "Користи подразумевану слику фасцикле"
+  },
+
+  "propertiesPasteHint": {
+    "message": "Превуците слику на преглед или је налепите помоћу Ctrl+V."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "Задржи ову слику"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "Освежавање и снимање је неће заменити"
+  },
+
+  "propertiesTileGone": {
+    "message": "Ова плочица више не постоји"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "Плочица је обрисана"
+  }
 }

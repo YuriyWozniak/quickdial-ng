@@ -50,13 +50,1012 @@
   },
 
   "dialogDeleteConfirmation": {
-    "message": "¿Eliminar $1 ?",
+    "message": "¿Eliminar $1?",
     "description": "Text of delete confirmation."
   },
 
   "menuSettings": {
     "message": "Configuración de Quick Dial NG",
     "description": "Text of settings menu item."
-  }
+  },
 
+  "dialogNewBookmark": {
+    "message": "Nuevo marcador",
+    "description": "Title of the new bookmark dialog."
+  },
+
+  "dialogNewFolder": {
+    "message": "Nueva carpeta",
+    "description": "Title of the new folder dialog."
+  },
+
+  "menuImportQuickDial": {
+    "message": "Importar desde Quick Dial…",
+    "description": "Text of the menu item that opens the import from the original Quick Dial."
+  },
+
+  "menuOpenDial": {
+    "message": "Abrir Quick Dial NG",
+    "description": "Toolbar button right-click menu: opens the dial in a new tab."
+  },
+
+  "extensionName": {
+    "message": "Quick Dial NG",
+    "description": "The extension's name (the same in every language)"
+  },
+
+  "extensionDescription": {
+    "message": "Marcación rápida para la pestaña nueva y la página de inicio, con mosaicos de una carpeta de marcadores. Fork independiente y optimizado de Quick Dial de MatMoul.",
+    "description": "The extension's description in Firefox's Add-ons manager"
+  },
+
+  "buttonApply": {
+    "message": "Aplicar"
+  },
+
+  "buttonCancel": {
+    "message": "Cancelar"
+  },
+
+  "buttonOk": {
+    "message": "Aceptar"
+  },
+
+  "buttonClose": {
+    "message": "Cerrar"
+  },
+
+  "optionNone": {
+    "message": "Ninguno",
+    "description": "A choice in lists and the \"None\" checkbox next to colours"
+  },
+
+  "optionDefault": {
+    "message": "Predeterminado",
+    "description": "A choice: use the default value"
+  },
+
+  "statusUnsaved": {
+    "message": "Cambios sin guardar"
+  },
+
+  "statusApplied": {
+    "message": "Cambios aplicados"
+  },
+
+  "statusAppliedToDial": {
+    "message": "Cambios aplicados a la marcación rápida"
+  },
+
+  "statusDiscarded": {
+    "message": "Cambios descartados"
+  },
+
+  "dialogEnterValue": {
+    "message": "Introduce un valor."
+  },
+
+  "dialogAdd": {
+    "message": "Añadir",
+    "description": "Button of the New bookmark dialog"
+  },
+
+  "dialogCreate": {
+    "message": "Crear",
+    "description": "Button of the New folder dialog"
+  },
+
+  "dialogNewFolderName": {
+    "message": "Nueva carpeta",
+    "description": "Name a new folder starts with"
+  },
+
+  "dialogInvalidAddress": {
+    "message": "Introduce una dirección web, p. ej. https://example.com"
+  },
+
+  "tileBack": {
+    "message": "Atrás",
+    "description": "Title of the tile that goes back to the parent folder"
+  },
+
+  "tileExampleSite": {
+    "message": "Sitio de ejemplo",
+    "description": "Title of the sample tiles in Settings"
+  },
+
+  "tileExample": {
+    "message": "Ejemplo",
+    "description": "Title of the small sample tile on a theme card"
+  },
+
+  "tileNormal": {
+    "message": "Normal",
+    "description": "A tile as it normally looks"
+  },
+
+  "tileHover": {
+    "message": "Al pasar el ratón",
+    "description": "A tile under the mouse pointer"
+  },
+
+  "imageDropHere": {
+    "message": "Suelta una imagen aquí"
+  },
+
+  "imageDropToUse": {
+    "message": "Suelta para usar esta imagen"
+  },
+
+  "imageChoose": {
+    "message": "Elegir imagen…"
+  },
+
+  "imageChooseShort": {
+    "message": "Elegir…"
+  },
+
+  "imageFit": {
+    "message": "Ajuste",
+    "description": "How a picture fills its box"
+  },
+
+  "fitStretch": {
+    "message": "Estirar"
+  },
+
+  "fitCover": {
+    "message": "Cubrir"
+  },
+
+  "fitContain": {
+    "message": "Contener"
+  },
+
+  "fitCenter": {
+    "message": "Centrar"
+  },
+
+  "settingsVersion": {
+    "message": "Versión $1",
+    "description": "$1: the version number"
+  },
+
+  "settingsTabPage": {
+    "message": "Página"
+  },
+
+  "settingsTabGrid": {
+    "message": "Cuadrícula"
+  },
+
+  "settingsTabTiles": {
+    "message": "Mosaicos"
+  },
+
+  "settingsTabThemes": {
+    "message": "Temas"
+  },
+
+  "settingsTabBackup": {
+    "message": "Copia de seguridad"
+  },
+
+  "settingsOpenDial": {
+    "message": "Abrir Quick Dial NG"
+  },
+
+  "settingsWebsite": {
+    "message": "Sitio web"
+  },
+
+  "settingsSourceCode": {
+    "message": "Código fuente y versiones"
+  },
+
+  "settingsBackground": {
+    "message": "Fondo"
+  },
+
+  "settingsColor": {
+    "message": "Color"
+  },
+
+  "settingsRemove": {
+    "message": "Quitar"
+  },
+
+  "settingsBackgroundDropHint": {
+    "message": "O suelta una imagen sobre la vista previa."
+  },
+
+  "settingsGradientHint": {
+    "message": "El tema añade un degradado, que se muestra detrás de la imagen."
+  },
+
+  "settingsGradientRemove": {
+    "message": "Quitar degradado"
+  },
+
+  "settingsInterface": {
+    "message": "Interfaz"
+  },
+
+  "settingsAccentColor": {
+    "message": "Color de acento"
+  },
+
+  "settingsAccentColorHint": {
+    "message": "Botones, interruptores, pestañas y anillos de foco en las ventanas y diálogos de Quick Dial NG"
+  },
+
+  "settingsBehavior": {
+    "message": "Comportamiento"
+  },
+
+  "settingsMenuShowAdd": {
+    "message": "Elemento de menú «Añadir a Quick Dial NG»"
+  },
+
+  "settingsMenuShowAddHint": {
+    "message": "En el menú contextual de las páginas web"
+  },
+
+  "settingsToolbarButton": {
+    "message": "Botón de la barra de herramientas"
+  },
+
+  "settingsToolbarButtonHint": {
+    "message": "Lo que abre el botón de Quick Dial NG en la barra de herramientas de Firefox. Su menú contextual tiene ambas opciones."
+  },
+
+  "settingsToolbarSettings": {
+    "message": "Estos ajustes"
+  },
+
+  "settingsToolbarNewTab": {
+    "message": "La marcación rápida en una pestaña nueva"
+  },
+
+  "settingsToolbarCurrentTab": {
+    "message": "La marcación rápida en la pestaña actual"
+  },
+
+  "settingsStartPage": {
+    "message": "Página de inicio"
+  },
+
+  "settingsStartPageHint": {
+    "message": "Quick Dial NG es la página de inicio de Firefox: se abre al iniciar Firefox y con el botón Inicio. Para usar otra página, ve a Ajustes de Firefox › Inicio."
+  },
+
+  "settingsLayout": {
+    "message": "Diseño"
+  },
+
+  "settingsRowsColumns": {
+    "message": "Filas × columnas"
+  },
+
+  "settingsRows": {
+    "message": "Filas"
+  },
+
+  "settingsColumns": {
+    "message": "Columnas"
+  },
+
+  "settingsTileShape": {
+    "message": "Forma del mosaico"
+  },
+
+  "settingsRatioWidth": {
+    "message": "Proporción de ancho"
+  },
+
+  "settingsRatioHeight": {
+    "message": "Proporción de alto"
+  },
+
+  "settingsTileShapeHint": {
+    "message": "ancho : alto"
+  },
+
+  "settingsPageMargin": {
+    "message": "Margen de la página"
+  },
+
+  "settingsBookmarksFolder": {
+    "message": "Carpeta de marcadores"
+  },
+
+  "settingsBookmarksFolderHint": {
+    "message": "La carpeta de marcadores que se muestra en la marcación rápida"
+  },
+
+  "settingsOpening": {
+    "message": "Apertura"
+  },
+
+  "settingsOpenBookmarksIn": {
+    "message": "Abrir marcadores en"
+  },
+
+  "settingsOpenFoldersIn": {
+    "message": "Abrir carpetas en"
+  },
+
+  "settingsOpenSameTab": {
+    "message": "La misma pestaña"
+  },
+
+  "settingsOpenNewTab": {
+    "message": "Una pestaña nueva"
+  },
+
+  "settingsFolderTiles": {
+    "message": "Mosaicos de carpeta"
+  },
+
+  "settingsBackNode": {
+    "message": "Mostrar un mosaico Atrás dentro de las carpetas"
+  },
+
+  "settingsBackPicture": {
+    "message": "Imagen del mosaico Atrás"
+  },
+
+  "settingsBackPictureFit": {
+    "message": "Ajuste de la imagen Atrás"
+  },
+
+  "settingsFolderPicture": {
+    "message": "Imagen de carpeta"
+  },
+
+  "settingsFolderPictureFit": {
+    "message": "Ajuste de la imagen de carpeta"
+  },
+
+  "settingsReset": {
+    "message": "Restablecer"
+  },
+
+  "settingsResetHint": {
+    "message": "Usar la imagen integrada"
+  },
+
+  "settingsGroupTile": {
+    "message": "Mosaico",
+    "description": "Heading of the tile style rows"
+  },
+
+  "settingsSpacing": {
+    "message": "Espaciado"
+  },
+
+  "settingsOpacity": {
+    "message": "Opacidad"
+  },
+
+  "settingsBorderWidth": {
+    "message": "Grosor del borde"
+  },
+
+  "settingsCornerRadius": {
+    "message": "Radio de las esquinas"
+  },
+
+  "settingsBorderColor": {
+    "message": "Color del borde"
+  },
+
+  "settingsBackgroundOpacity": {
+    "message": "Opacidad del fondo"
+  },
+
+  "settingsGlassBlur": {
+    "message": "Desenfoque de cristal"
+  },
+
+  "settingsGlassBlurHint": {
+    "message": "Desenfoca la página detrás del mosaico"
+  },
+
+  "settingsShadow": {
+    "message": "Sombra"
+  },
+
+  "shadowSoft": {
+    "message": "Suave"
+  },
+
+  "shadowStrong": {
+    "message": "Intensa"
+  },
+
+  "settingsHoverEffect": {
+    "message": "Efecto al pasar el ratón"
+  },
+
+  "hoverInstant": {
+    "message": "Cambio instantáneo"
+  },
+
+  "hoverSmooth": {
+    "message": "Cambio suave"
+  },
+
+  "hoverLift": {
+    "message": "Suave, el mosaico se eleva"
+  },
+
+  "hoverGrow": {
+    "message": "Suave, el mosaico crece"
+  },
+
+  "settingsClickEffect": {
+    "message": "Efecto al hacer clic"
+  },
+
+  "settingsClickEffectHint": {
+    "message": "Haz clic en un mosaico de ejemplo para verlo de nuevo"
+  },
+
+  "settingsClickToPreview": {
+    "message": "Haz clic para ver el efecto al hacer clic"
+  },
+
+  "settingsReducedMotionHint": {
+    "message": "Las animaciones están desactivadas en los ajustes del sistema, así que los mosaicos no se mueven: los efectos al hacer clic destellan o se desvanecen en su lugar, y un cambio suave al pasar el ratón solo cambia los colores, sin elevar ni crecer."
+  },
+
+  "clickPress": {
+    "message": "Pulsación"
+  },
+
+  "clickBounce": {
+    "message": "Rebote"
+  },
+
+  "clickRipple": {
+    "message": "Onda"
+  },
+
+  "clickFlash": {
+    "message": "Destello"
+  },
+
+  "clickRing": {
+    "message": "Anillo pulsante"
+  },
+
+  "settingsGroupTitle": {
+    "message": "Título",
+    "description": "Heading of the tile title rows"
+  },
+
+  "settingsShowTitle": {
+    "message": "Mostrar título"
+  },
+
+  "settingsHeight": {
+    "message": "Altura"
+  },
+
+  "settingsFontSize": {
+    "message": "Tamaño de fuente"
+  },
+
+  "settingsDividerWidth": {
+    "message": "Grosor del separador",
+    "description": "The line between the picture and the title"
+  },
+
+  "settingsTextColor": {
+    "message": "Color del texto"
+  },
+
+  "settingsFont": {
+    "message": "Fuente"
+  },
+
+  "settingsCustomFont": {
+    "message": "Personalizada ($1)",
+    "description": "A font from an imported theme; $1: its name"
+  },
+
+  "settingsBold": {
+    "message": "Negrita"
+  },
+
+  "settingsPosition": {
+    "message": "Posición"
+  },
+
+  "titleBelow": {
+    "message": "Debajo de la imagen"
+  },
+
+  "titleOver": {
+    "message": "Sobre la parte inferior de la imagen"
+  },
+
+  "settingsGroupThumbnails": {
+    "message": "Miniaturas"
+  },
+
+  "settingsCaptureDelay": {
+    "message": "Retardo de captura"
+  },
+
+  "settingsCaptureDelayUnit": {
+    "message": "ms después de cargar la página"
+  },
+
+  "settingsDiscard": {
+    "message": "Descartar cambios"
+  },
+
+  "settingsDiscardHint": {
+    "message": "Mostrar los ajustes que usa ahora la marcación rápida"
+  },
+
+  "settingsApplyHint": {
+    "message": "Aplicar los cambios a la marcación rápida (Ctrl+S)"
+  },
+
+  "settingsThemesIntro": {
+    "message": "Un tema es el aspecto de la marcación rápida: color de fondo, margen de la página, estilos de mosaicos y títulos y el color de acento. Conserva tu imagen de fondo, las filas y columnas, la forma de los mosaicos y los mosaicos. Elige <b>Usar</b> para probar un tema aquí y luego <b>Aplicar</b> para ponerlo en la marcación rápida.",
+    "description": "Keep <b> and </b> around the words of the buttons"
+  },
+
+  "themeSaveCurrent": {
+    "message": "Guardar el actual como tema…"
+  },
+
+  "themeSaveCurrentHint": {
+    "message": "Añadir el aspecto actual a tus temas"
+  },
+
+  "themeExportCurrent": {
+    "message": "Exportar el actual…"
+  },
+
+  "themeExportCurrentHint": {
+    "message": "Guardar el aspecto actual como archivo .json"
+  },
+
+  "themeImport": {
+    "message": "Importar tema…"
+  },
+
+  "themeImportHint": {
+    "message": "Añadir un tema desde un archivo .json"
+  },
+
+  "themeBuiltIn": {
+    "message": "Integrado"
+  },
+
+  "themeInUse": {
+    "message": "En uso"
+  },
+
+  "themeUse": {
+    "message": "Usar"
+  },
+
+  "themeUseHint": {
+    "message": "Mostrar este tema aquí; Aplicar lo conserva"
+  },
+
+  "themeExport": {
+    "message": "Exportar…"
+  },
+
+  "themeExportHint": {
+    "message": "Guardar este tema como archivo .json"
+  },
+
+  "themeDelete": {
+    "message": "Eliminar"
+  },
+
+  "themeDeleteHint": {
+    "message": "Quitar este tema de la lista"
+  },
+
+  "themeShownHere": {
+    "message": "«$1» solo se muestra aquí. Aplicar lo pone en la marcación rápida; Descartar cambios mantiene tu aspecto anterior.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDialogMessage": {
+    "message": "A partir de los ajustes actuales: color de fondo, margen de la página, estilos de mosaicos y títulos y el color de acento."
+  },
+
+  "themeName": {
+    "message": "Nombre"
+  },
+
+  "themeNamePlaceholder": {
+    "message": "Mi tema"
+  },
+
+  "themeDescription": {
+    "message": "Descripción (opcional)"
+  },
+
+  "themeDescriptionPlaceholder": {
+    "message": "Cómo se ve"
+  },
+
+  "themeNameMissing": {
+    "message": "Introduce un nombre."
+  },
+
+  "themeNameTooLong": {
+    "message": "Usa como máximo $1 caracteres.",
+    "description": "$1: a number"
+  },
+
+  "themeNameBuiltIn": {
+    "message": "«$1» es un tema integrado. Elige otro nombre.",
+    "description": "$1: the name typed"
+  },
+
+  "themeReplaceTitle": {
+    "message": "¿Reemplazar «$1»?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeReplaceMessage": {
+    "message": "Ya tienes un tema con este nombre."
+  },
+
+  "themeReplace": {
+    "message": "Reemplazar"
+  },
+
+  "themeSaveTitle": {
+    "message": "Guardar el actual como tema"
+  },
+
+  "themeSave": {
+    "message": "Guardar"
+  },
+
+  "themeSaved": {
+    "message": "«$1» se guardó en tus temas.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeExportTitle": {
+    "message": "Exportar el actual como tema"
+  },
+
+  "themeExportButton": {
+    "message": "Exportar"
+  },
+
+  "themeImported": {
+    "message": "«$1» importado. Elige Usar para probarlo.",
+    "description": "$1: the theme's name"
+  },
+
+  "themeImportedName": {
+    "message": "$1 (importado)",
+    "description": "Name of an imported theme that has a built-in theme's name; $1: that name"
+  },
+
+  "themeDeleteTitle": {
+    "message": "¿Eliminar «$1»?",
+    "description": "$1: the theme's name"
+  },
+
+  "themeDeleteMessage": {
+    "message": "El tema se quita de esta lista. Tus ajustes actuales no cambian."
+  },
+
+  "themeFileIsBackup": {
+    "message": "Esta es una copia de seguridad completa de Quick Dial NG. Impórtala en la pestaña Copia de seguridad."
+  },
+
+  "themeFileInvalid": {
+    "message": "Este archivo no es un tema de Quick Dial NG."
+  },
+
+  "themeFileNewer": {
+    "message": "Este tema se creó con una versión más reciente de Quick Dial NG. Actualiza la extensión para importarlo."
+  },
+
+  "themeFileNoName": {
+    "message": "Este tema no tiene nombre."
+  },
+
+  "themeClassicName": {
+    "message": "Clásico"
+  },
+
+  "themeClassicDescription": {
+    "message": "El aspecto original de Quick Dial: página gris oscuro, bordes finos y títulos bajo las imágenes."
+  },
+
+  "themeAnoriName": {
+    "message": "Anori",
+    "description": "A name: usually kept as it is"
+  },
+
+  "themeAnoriDescription": {
+    "message": "Inspirado en la extensión Anori (anori.app): una página verde intenso, mosaicos de cristal esmerilado con grandes esquinas redondeadas y títulos sobre las imágenes."
+  },
+
+  "themePlumName": {
+    "message": "Ciruela"
+  },
+
+  "themePlumDescription": {
+    "message": "Una página color ciruela oscuro con bordes redondeados gris claro y títulos bajo las imágenes. Pensado para una cuadrícula grande con grupos de sitios y espacio entre ellos."
+  },
+
+  "themeDesktopName": {
+    "message": "Escritorio"
+  },
+
+  "themeDesktopDescription": {
+    "message": "Iconos con su nombre debajo sobre una página azul noche o tu fondo de pantalla, como un escritorio de ordenador, con un resaltado suave bajo el puntero. Para mosaicos cuadrados e imágenes de iconos."
+  },
+
+  "themeDuskName": {
+    "message": "Atardecer"
+  },
+
+  "themeDuskDescription": {
+    "message": "Mosaicos de cristal violeta que crecen al pasar el ratón, sobre un cielo de puesta de sol."
+  },
+
+  "themeRetroPcName": {
+    "message": "PC retro"
+  },
+
+  "themeRetroPcDescription": {
+    "message": "Un escritorio de PC de finales de los 90: una página verde azulado, iconos con nombres blancos y un resaltado azul marino del nombre bajo el puntero. Para mosaicos cuadrados e imágenes de iconos."
+  },
+
+  "themeRetroMonoName": {
+    "message": "Retro mono"
+  },
+
+  "themeRetroMonoDescription": {
+    "message": "Uno de los primeros escritorios en blanco y negro: un fino patrón gris, nombres negros en etiquetas blancas, invertidos bajo el puntero. Para mosaicos cuadrados e imágenes de iconos en blanco y negro."
+  },
+
+  "backupTitle": {
+    "message": "Copia de seguridad de Quick Dial NG"
+  },
+
+  "backupIntro": {
+    "message": "Guarda los ajustes, los mosaicos, las imágenes y tus temas en un solo archivo. Restáuralo con <b>Importar desde archivo…</b> más abajo.",
+    "description": "Keep <b> and </b>; the words inside are the button's"
+  },
+
+  "backupExport": {
+    "message": "Exportar copia de seguridad"
+  },
+
+  "backupExportHint": {
+    "message": "Guardar ajustes, mosaicos e imágenes en un archivo"
+  },
+
+  "backupImport": {
+    "message": "Importar desde archivo…"
+  },
+
+  "backupImportHint": {
+    "message": "Importar una exportación del Quick Dial original o una copia de seguridad de Quick Dial NG"
+  },
+
+  "backupOriginalTitle": {
+    "message": "Importar desde el Quick Dial original"
+  },
+
+  "backupOriginalIntro": {
+    "message": "Trae tus mosaicos con su posición exacta en la cuadrícula, carpetas, imágenes y ajustes de cuadrícula y estilo. Los marcadores que ya están en tu carpeta de Quick Dial se reutilizan; los que faltan se crean."
+  },
+
+  "backupStep1": {
+    "message": "Abre <code>about:debugging#/runtime/this-firefox</code>, busca el <b>Quick Dial</b> original y haz clic en <b>Inspeccionar</b>.",
+    "description": "Keep the <code> part as it is; <b>Inspect</b>: the button's name in Firefox"
+  },
+
+  "backupStep2": {
+    "message": "Copia el fragmento de exportación y pégalo en la pestaña <b>Consola</b> (escribe primero <code>allow pasting</code> si Firefox lo pide). Guarda <code>quickdial-export.json</code> en Descargas.",
+    "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
+  },
+
+  "backupStep3": {
+    "message": "Elige ese archivo con <b>Importar desde archivo…</b> más arriba."
+  },
+
+  "backupCopySnippet": {
+    "message": "Copiar fragmento de exportación"
+  },
+
+  "backupCopied": {
+    "message": "Copiado ✓"
+  },
+
+  "backupCopyPrompt": {
+    "message": "Copia este fragmento:"
+  },
+
+  "backupFileIsTheme": {
+    "message": "Esto es un tema. Impórtalo en la pestaña Temas."
+  },
+
+  "backupFileInvalid": {
+    "message": "Este archivo no es una exportación de Quick Dial ni una copia de seguridad de Quick Dial NG."
+  },
+
+  "backupImportNgTitle": {
+    "message": "¿Importar esta copia de seguridad de Quick Dial NG?"
+  },
+
+  "backupImportOriginalTitle": {
+    "message": "¿Importar esta exportación de Quick Dial?"
+  },
+
+  "backupImportMessage": {
+    "message": "Se reemplazarán tus ajustes actuales y la disposición de los mosaicos. Los marcadores de la carpeta de Quick Dial se conservan; los que faltan se crean."
+  },
+
+  "backupImportButton": {
+    "message": "Importar"
+  },
+
+  "backupImporting": {
+    "message": "Importando…"
+  },
+
+  "backupImportResult": {
+    "message": "Importado: $1, $2, $3, además de los ajustes de cuadrícula y estilo. Marcadores reutilizados: $4, creados: $5.",
+    "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
+  },
+
+  "backupImportFailed": {
+    "message": "Error al importar: $1",
+    "description": "$1: what went wrong"
+  },
+
+  "backupNotABackup": {
+    "message": "No es una copia de seguridad de Quick Dial"
+  },
+
+  "backupNoBookmarksFolder": {
+    "message": "No se puede abrir la carpeta de marcadores «$1»",
+    "description": "$1: the folder's name"
+  },
+
+  "countTilesOne": {
+    "message": "$1 mosaico"
+  },
+
+  "countTilesMany": {
+    "message": "$1 de mosaicos"
+  },
+
+  "countTilesOther": {
+    "message": "$1 mosaicos"
+  },
+
+  "countFoldersOne": {
+    "message": "$1 carpeta"
+  },
+
+  "countFoldersMany": {
+    "message": "$1 de carpetas"
+  },
+
+  "countFoldersOther": {
+    "message": "$1 carpetas"
+  },
+
+  "countPicturesOne": {
+    "message": "$1 imagen"
+  },
+
+  "countPicturesMany": {
+    "message": "$1 de imágenes"
+  },
+
+  "countPicturesOther": {
+    "message": "$1 imágenes"
+  },
+
+  "propertiesPageTitle": {
+    "message": "Propiedades del mosaico de Quick Dial NG"
+  },
+
+  "propertiesTitle": {
+    "message": "Propiedades"
+  },
+
+  "propertiesFolder": {
+    "message": "Propiedades de la carpeta"
+  },
+
+  "propertiesBookmark": {
+    "message": "Propiedades del marcador"
+  },
+
+  "propertiesFolderUntitled": {
+    "message": "Carpeta",
+    "description": "Shown for a folder with no name"
+  },
+
+  "propertiesCloseHint": {
+    "message": "Cerrar (Esc)"
+  },
+
+  "propertiesTitleLabel": {
+    "message": "Título",
+    "description": "The tile's title"
+  },
+
+  "propertiesLockTitle": {
+    "message": "Bloquear título"
+  },
+
+  "propertiesLockTitleHint": {
+    "message": "Bloquear el título: actualizar el mosaico no le cambiará el nombre"
+  },
+
+  "propertiesAddress": {
+    "message": "Dirección"
+  },
+
+  "propertiesPicture": {
+    "message": "Imagen"
+  },
+
+  "propertiesNoPicture": {
+    "message": "Todavía no hay imagen"
+  },
+
+  "propertiesRevert": {
+    "message": "Revertir"
+  },
+
+  "propertiesRevertHint": {
+    "message": "Deshacer los cambios de imagen hechos en esta ventana"
+  },
+
+  "propertiesUseDefault": {
+    "message": "Usar predeterminada"
+  },
+
+  "propertiesUseDefaultHint": {
+    "message": "Usar la imagen de carpeta predeterminada"
+  },
+
+  "propertiesPasteHint": {
+    "message": "Suelta una imagen sobre la vista previa o pega una con Ctrl+V."
+  },
+
+  "propertiesKeepPicture": {
+    "message": "Conservar esta imagen"
+  },
+
+  "propertiesKeepPictureHint": {
+    "message": "Actualizar y capturar no la reemplazarán"
+  },
+
+  "propertiesTileGone": {
+    "message": "Este mosaico ya no existe"
+  },
+
+  "propertiesTileDeleted": {
+    "message": "El mosaico se eliminó"
+  }
 }
