@@ -1,6 +1,6 @@
 # Code style
 
-How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](eslint.config.mjs) and TypeScript's checker) enforces part of it, including camelCase names; the rest is kept by review. When something isn't covered here, follow the code around it.
+How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](eslint.config.mjs) for the scripts and the stylesheets, and TypeScript's checker) enforces part of it, including camelCase names and logical CSS properties; the rest is kept by review. When something isn't covered here, follow the code around it.
 
 ## Formatting
 
@@ -53,7 +53,7 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
 - Every language has every key (`test/unit/locales.test.js` checks it): a new text is translated in the same change, or added in English to the other languages and noted for translation.
 - A count is a set of keys, one per plural form: `countTilesOne`, `countTilesFew`, `countTilesMany`, `countTilesOther`, read with `QDCommon.countText('countTiles', n)`. Each language has the forms its plural rules use (`Intl.PluralRules`), always with `Other`.
 - In a message, `<b>`, `<code>` and `<br>` are the only markup (`QDUI.setRichText` builds it as elements); keep the same markup and `$1`..`$9` in every language.
-- Layout works right to left too (Hebrew): use logical CSS properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`), not left and right.
+- Layout works right to left too (Hebrew): use logical CSS properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`), not left and right. ESLint reports left and right in the stylesheets (`css/prefer-logical-properties`); top, bottom, width and height are fine.
 
 ## Comments
 

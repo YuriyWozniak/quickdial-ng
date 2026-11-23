@@ -132,6 +132,7 @@
 	color-scheme: light dark; /* native parts (checkboxes, scrollbars) match the tokens; not on :root, which is the dial page's */
 	user-select: text;
 }
+/* eslint-disable-next-line css/no-important -- hidden must win over every component's display (.qd-banner is a flex box) */
 .qd [hidden] { display: none !important; }
 .qd p { margin: 0 0 var(--qd-row); }
 .qd code {
@@ -209,7 +210,12 @@
 	box-shadow: var(--qd-ring);
 }
 .qd :is(input, select):disabled { opacity: .45; cursor: not-allowed; }
-.qd input.is-invalid { border-color: var(--qd-danger) !important; box-shadow: var(--qd-ring-danger) !important; }
+.qd input.is-invalid,
+.qd input.is-invalid:is(:hover, :focus) { /* the second selector outweighs the hover and focus rules above */
+	border-color: var(--qd-danger);
+	/* eslint-disable-next-line css/no-invalid-properties -- valid: @eslint/css 2.0 reads a token that uses var() itself as empty */
+	box-shadow: var(--qd-ring-danger);
+}
 
 /* ========== switch, checkbox, lock toggle ========== */
 .qd-switch {
@@ -371,6 +377,6 @@
 @keyframes qd-fade-out { to { opacity: 0; } }
 @keyframes qd-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-	.qd-overlay, .qd-frame, .qd-dialog { animation: none !important; }
+	.qd-overlay, .qd-overlay.is-closing, .qd-frame, .qd-dialog { animation: none; }
 	.qd-frame { transition: none; }
 }
