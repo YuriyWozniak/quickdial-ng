@@ -31,6 +31,10 @@ window.addEventListener('keyup', e => {
 	if(e.key == 'PageDown') app.turnPage(1);
 	else if(e.key == 'PageUp') app.turnPage(-1);
 });
+window.addEventListener('keydown', e => { // Enter on a tile reached with Tab opens it: the click effect shows too
+	const link = e.key == 'Enter' && !e.repeat && app.settings ? document.activeElement : null;
+	if(link && link.tagName == 'A' && dial.cellIndex(link) >= 0) dial.showClick(link);
+});
 // The tiles: one listener each for the whole page, not one per cell (the grid is rebuilt on every settings change)
 document.addEventListener('mousedown', e => { app._onMouseDown(e); });
 document.addEventListener('dragstart', e => { app._onDragStart(e); });
@@ -126,9 +130,11 @@ app.turnPage = function(step){ // Mouse wheel, PageDown / PageUp
 };
 
 // ----- Mouse: the tile menu, and drag and drop (a tile dropped on another cell of the same folder swaps places with it) -----
-app._onMouseDown = function(e){ // the tile the tile menu acts on
+app._onMouseDown = function(e){ // the tile the tile menu acts on; the click effect on a left or middle click
 	const link = e.target.closest ? e.target.closest('a') : null;
-	if(link && dial.cellIndex(link) >= 0) app._selectedLink = link;
+	if(!link || dial.cellIndex(link) < 0) return;
+	app._selectedLink = link;
+	if((e.button == 0 || e.button == 1) && app.settings) dial.showClick(link, e.clientX, e.clientY);
 };
 app._dragData = function(e){ // what _onDragStart set, if it came from this folder
 	try {

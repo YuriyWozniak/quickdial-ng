@@ -41,7 +41,10 @@ dial.initStyles = function(){
 		+ ' box-shadow: ' + Themes.shadow(c.shadowHover) + '; backdrop-filter: ' + (c.blurHover > 0 ? 'blur(' + c.blurHover + 'px)' : 'none') + ';'
 		+ (motion == 2 ? ' transform: translateY(-4px);' : motion == 3 ? ' transform: scale(1.04);' : '') + ' }');
 	if(motion) rule('.qd-grid td>a>div { transition: color .2s, background-color .2s, height .2s, line-height .2s, font-size .2s, border-color .2s; }');
-	rule('@media (prefers-reduced-motion: reduce) { .qd-grid td>a, .qd-grid td>a>div { transition: none !important; } .qd-grid td>a:hover { transform: none !important; } }');
+	// Reduced motion (e.g. Windows' "Show animations" off): the hover still fades colours, borders, opacity and shadows,
+	// but nothing moves or grows: no lift or zoom, and sizes change at once
+	rule('@media (prefers-reduced-motion: reduce) { .qd-grid td>a { transition-property: border-color, opacity, box-shadow, backdrop-filter !important; }'
+		+ ' .qd-grid td>a>div { transition-property: color, background-color, border-color !important; } .qd-grid td>a:hover { transform: none !important; } }');
 	dial.styles.grid.linkPanel = rule('.qd-grid td>a>div:first-child { background-repeat: no-repeat; }');
 	if(c.backgroundColor) dial.styles.grid.linkPanel.backgroundColor = Themes.rgba(c.backgroundColor, c.backgroundOpacity);
 	dial.styles.grid.linkPanelHover = rule('.qd-grid td>a:hover>div:first-child { }');
@@ -62,6 +65,7 @@ dial.initStyles = function(){
 	applyImageMode(s.grid.folderIconMode, dial.styles.grid.linkFolder);
 	dial.styles.grid.linkBookmark = rule('.qd-grid td>a.is-bookmark :first-child { background-size: 100% 100%; }');
 	dial.styles.grid.linkLoading = rule('.qd-grid td>a.is-loading :first-child { background-image: ' + dial.LOADING_ICON + '; background-size: auto; background-position: center; }');
+	Themes.clickEffectRules('.qd-grid td>a', c.clickEffect, c.titleColorHover).forEach(rule);
 	dial.applyAccent();
 	if(oldStyle) document.head.removeChild(oldStyle);
 };
@@ -235,6 +239,10 @@ dial.showImages = function(pending, images){
 		r.link._imageSrc = images[r.node.id];
 		r.link.firstChild.style.backgroundImage = 'url("' + images[r.node.id] + '")';
 	}
+};
+// The click effect of the settings on a tile (Back, a folder or a bookmark); x, y: the pointer, or none for the middle
+dial.showClick = function(link, x, y){
+	if(+app.settings.grid.cells.clickEffect && !link.classList.contains('is-empty')) QDThemes.playClickEffect(link, x, y);
 };
 dial.showLoading = function(link){ // A spinner until the background page sends the new picture
 	link.className = 'is-loading';
