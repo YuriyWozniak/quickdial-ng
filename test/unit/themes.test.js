@@ -92,7 +92,9 @@ test('click effects: one of the listed ones, with CSS for each and none for None
 		const css = plain(T.clickEffectRules(TILE_SELECTOR, effect, EFFECT_COLOR)).join('\n');
 		assert.match(css, /@keyframes qd-click-/, name);
 		assert.ok(css.includes(TILE_SELECTOR + '.is-clicked'), name);
-		assert.match(css, /prefers-reduced-motion: reduce/, name + ': still with reduced motion');
+		const reduced = (css.match(/@media \(prefers-reduced-motion: reduce\).*/) || [''])[0];
+		if (effect === T.ClickEffect.flash) assert.equal(reduced, '', 'flash: nothing moves, the same with reduced motion');
+		else assert.match(reduced, /qd-click-flash|qd-click-ring-fade/, name + ': with reduced motion, a flash or a fade instead');
 	}
 	assert.ok(plain(T.clickEffectRules(TILE_SELECTOR, T.ClickEffect.ripple, EFFECT_COLOR)).join('').includes(EFFECT_COLOR), 'the ripple has the given colour');
 });

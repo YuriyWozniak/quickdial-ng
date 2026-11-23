@@ -202,6 +202,10 @@ app.setupTiles = function(){
 		app.updatePreviews(); // before the page's own change listener: the new effect's rules must be in place
 		QDThemes.playClickEffect(TileHover);
 	});
+	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)'); // e.g. Windows' "Show animations" off
+	const showMotionHint = () => { ReducedMotionHint.hidden = !reducedMotion.matches; };
+	showMotionHint();
+	reducedMotion.addEventListener('change', showMotionHint);
 	[TileNormal, TileHover].forEach(tile => {
 		tile.title = 'Click to see the click effect';
 		tile.addEventListener('mousedown', e => { if(e.button == 0) QDThemes.playClickEffect(tile, e.clientX, e.clientY); });

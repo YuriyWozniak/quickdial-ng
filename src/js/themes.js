@@ -326,13 +326,24 @@ var QDThemes = (function(){
 	// ---------- click effects ----------
 	// What a tile does when it is clicked (grid.cells.clickEffect). The dial and the Settings preview use the same
 	// rules: clickEffectRules gives the CSS for a tile selector, playClickEffect starts it on one tile. The effect
-	// starts on mouse down, so it shows even when the click opens the site in the same tab right away.
+	// starts on mouse down, so it shows even when the click opens the site in the same tab right away. Unlike the hover
+	// effect it is not switched off with reduced motion: it was asked for, and is then shown without movement.
 	const ClickEffect = Object.freeze({ none: 0, press: 1, bounce: 2, ripple: 3, flash: 4, ring: 5 });
 	const CLICK_EFFECT_DURATION = 600; // ms; the longest animation below, plus a little
 	// CSS rules (text) for `selector` (the tile: positioned, overflow hidden). color: the effect's colour (#rrggbb).
 	function clickEffectRules(selector, effect, color){
 		const clicked = selector + '.is-clicked';
 		const overlay = clicked + '::after { content: ""; position: absolute; z-index: 2; pointer-events: none; background-color: ' + color + ';';
+		const FLASH_KEYFRAMES = '@keyframes qd-click-flash { from { opacity: .5; } to { opacity: 0; } }';
+		// With reduced motion (asked for by the system: on Windows, "Show animations" turned off) nothing moves or
+		// grows: the ring fades where it is, and the effects that move flash the whole tile instead
+		const reducedMotion = +effect == ClickEffect.flash ? [] : +effect == ClickEffect.ring ? [ // one rule per entry (insertRule takes one)
+			'@keyframes qd-click-ring-fade { from { outline-color: ' + color + '; } to { outline-color: transparent; } }',
+			'@media (prefers-reduced-motion: reduce) { ' + clicked + ' { outline-offset: 2px; animation: qd-click-ring-fade .45s ease-out !important; } }'
+		] : [
+			'@media (prefers-reduced-motion: reduce) { ' + clicked + ' { animation: none !important; } ' + overlay
+				+ ' left: 0; top: 0; width: 100%; height: 100%; margin: 0; border-radius: 0; transform: none; opacity: 0; animation: qd-click-flash .35s ease-out !important; } }'
+		];
 		const rules = {
 			[ClickEffect.press]: [
 				'@keyframes qd-click-press { 0% { scale: 1; } 35% { scale: .93; } 100% { scale: 1; } }',
@@ -346,14 +357,13 @@ var QDThemes = (function(){
 					+ ' margin: calc(var(--qd-click-size, 200%) / -2) 0 0 calc(var(--qd-click-size, 200%) / -2); border-radius: 50%; opacity: 0;'
 					+ ' animation: qd-click-ripple .5s ease-out; }'],
 			[ClickEffect.flash]: [
-				'@keyframes qd-click-flash { from { opacity: .5; } to { opacity: 0; } }',
 				overlay + ' inset: 0; opacity: 0; animation: qd-click-flash .35s ease-out; }'],
 			[ClickEffect.ring]: [ // outside the tile: an outline is not clipped by the tile's overflow
 				'@keyframes qd-click-ring { from { outline-offset: 0; outline-color: ' + color + '; } to { outline-offset: 10px; outline-color: transparent; } }',
 				clicked + ' { outline: 3px solid transparent; animation: qd-click-ring .45s ease-out; }']
 		}[+effect];
 		if(!rules) return [];
-		return rules.concat('@media (prefers-reduced-motion: reduce) { ' + clicked + ', ' + clicked + '::after { animation: none !important; } }');
+		return [FLASH_KEYFRAMES].concat(rules, reducedMotion);
 	}
 	// Starts the effect on a tile, again from the start if it is still playing. x, y: the pointer in the viewport
 	// (the ripple starts there); left out, the middle of the tile.
