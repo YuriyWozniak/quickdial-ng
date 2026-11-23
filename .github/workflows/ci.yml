@@ -1,12 +1,15 @@
-# CI: checks every push and pull request. Each job runs on its own fresh Ubuntu machine, in parallel.
+# CI: checks every pull request and every push to develop. Each job runs on its own fresh Ubuntu machine, in parallel.
 # The jobs only call the repository's own scripts, so any failure can be reproduced locally with the same command.
 name: CI
 
 on:
+  # Only develop: a feature branch is checked by its pull request. With both events on every branch,
+  # each push to a branch with an open pull request ran all of CI twice on the same commit.
+  # A branch without a pull request yet can still be checked with "Run workflow".
   push:
-    branches: ['**'] # every branch (tags are left to the release workflow)
+    branches: [develop]
   pull_request:
-    branches: [develop] # also pull requests from forks
+    branches: [develop] # the branch merged into develop; also pull requests from forks
   workflow_dispatch: # the "Run workflow" button on the Actions tab
   workflow_call: # the Release workflow runs all of CI first
 
