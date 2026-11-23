@@ -62,6 +62,7 @@ dial.initStyles = function(){
 	applyImageMode(s.grid.folderIconMode, dial.styles.grid.linkFolder);
 	dial.styles.grid.linkBookmark = rule('.qd-grid td>a.is-bookmark :first-child { background-size: 100% 100%; }');
 	dial.styles.grid.linkLoading = rule('.qd-grid td>a.is-loading :first-child { background-image: ' + dial.LOADING_ICON + '; background-size: auto; background-position: center; }');
+	Themes.clickEffectRules('.qd-grid td>a', c.clickEffect, c.titleColorHover).forEach(rule);
 	dial.applyAccent();
 	if(oldStyle) document.head.removeChild(oldStyle);
 };
@@ -235,6 +236,10 @@ dial.showImages = function(pending, images){
 		r.link._imageSrc = images[r.node.id];
 		r.link.firstChild.style.backgroundImage = 'url("' + images[r.node.id] + '")';
 	}
+};
+// The click effect of the settings on a tile (Back, a folder or a bookmark); x, y: the pointer, or none for the middle
+dial.showClick = function(link, x, y){
+	if(+app.settings.grid.cells.clickEffect && !link.classList.contains('is-empty')) QDThemes.playClickEffect(link, x, y);
 };
 dial.showLoading = function(link){ // A spinner until the background page sends the new picture
 	link.className = 'is-loading';

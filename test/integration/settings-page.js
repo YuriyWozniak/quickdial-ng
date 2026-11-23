@@ -53,6 +53,20 @@ module.exports = {
 		t.check('an open Settings page switches to the section asked for', st.themes && st.title === 'Themes' && st.url === '?tab=themes', st);
 		await changeSettings(t, { toolbarAction: 'settings' });
 
+		// ----- the click effect: picked from the list, it plays on the sample tile and is applied like the rest -----
+		const RIPPLE = '3';
+		await t.loadSettings('tiles');
+		await t.dial().locator('#GridCellsClickEffect').selectOption(RIPPLE);
+		st = await t.inDial(() => ({ playing: TileHover.classList.contains('is-clicked'), css: app.clickEffectStyle.textContent, apply: BtnApply.disabled }));
+		t.check('a click effect picked plays on the Hover sample, with its rules', st.playing && st.css.includes('qd-click-ripple') && !st.apply, st);
+		await t.waitFor('the effect to end', () => !win('dial').TileHover.classList.contains('is-clicked'));
+		await t.dial().locator('#TileNormal').click();
+		t.check('clicking a sample tile plays it again', await t.inDial(() => TileNormal.classList.contains('is-clicked')));
+		await t.dial().locator('#GridCellsClickEffect').press('Control+s');
+		await t.waitFor('Ctrl+S to apply', () => bg().app.settings.grid.cells.clickEffect === 3);
+		t.check('the click effect is applied to the dial settings', true);
+		await changeSettings(t, { grid: { cells: { clickEffect: 0 } } });
+
 		// ----- the background picture: from a file (made WebP and smaller), then cleared; a folder picture -----
 		await t.loadSettings('page');
 		const pngFile = (name, png) => ({ name, mimeType: 'image/png', buffer: Buffer.from(png.split(',')[1], 'base64') });

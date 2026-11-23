@@ -38,6 +38,7 @@ const FIELDS = (function(){
 		field('GridBackMode', 'grid.backIconMode', 'num'),
 		field('GridFolderMode', 'grid.folderIconMode', 'num'),
 		field('GridCellsHoverEffect', 'grid.cells.hoverEffect', 'num'),
+		field('GridCellsClickEffect', 'grid.cells.clickEffect', 'num'),
 		field('GridCellsTitleFont', 'grid.cells.titleFont', 'text'),
 		field('GridCellsTitleBold', 'grid.cells.titleBold', 'bool'),
 		field('GridCellsTitlePosition', 'grid.cells.titlePosition', 'num'),
@@ -192,9 +193,19 @@ app.setupGrid = function(){
 	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = 'url(/img/back.svg)'; });
 	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = 'url(/img/folder.svg)'; });
 };
-// Tab Tiles: the title fonts (an imported theme's font is added when the form is filled, fillForm)
+// Tab Tiles: the title fonts (an imported theme's font is added when the form is filled, fillForm) and the click
+// effect preview: it plays on the Hover sample when another effect is picked, and on a sample tile when it is clicked
 app.setupTiles = function(){
 	QDThemes.FONTS.forEach(f => { GridCellsTitleFont.add(new Option(f.label, f.value)); });
+	app.clickEffectStyle = document.head.appendChild(document.createElement('style')); // filled by updatePreviews
+	GridCellsClickEffect.addEventListener('change', () => {
+		app.updatePreviews(); // before the page's own change listener: the new effect's rules must be in place
+		QDThemes.playClickEffect(TileHover);
+	});
+	[TileNormal, TileHover].forEach(tile => {
+		tile.title = 'Click to see the click effect';
+		tile.addEventListener('mousedown', e => { if(e.button == 0) QDThemes.playClickEffect(tile, e.clientX, e.clientY); });
+	});
 };
 
 // Reads the settings and themes the dial uses now into the form
@@ -272,6 +283,7 @@ app.updatePreviews = function(){
 	const ratio = (+s.grid.ratioY || 3) / (+s.grid.ratioX || 4);
 	app.paintTile(TileNormal, s.grid.cells, false, ratio);
 	app.paintTile(TileHover, s.grid.cells, true, ratio);
+	app.clickEffectStyle.textContent = QDThemes.clickEffectRules('.qd-tile-stage .qd-tile', s.grid.cells.clickEffect, s.grid.cells.titleColorHover).join('\n');
 	app.Themes.markCurrent(s);
 };
 

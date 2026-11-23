@@ -30,6 +30,7 @@ var QDThemes = (function(){
 				shadow: 0,
 				shadowHover: 0,
 				hoverEffect: 0,
+				clickEffect: 0,
 				borderColor: '#333333',
 				borderColorHover: '#a9a9a9',
 				borderRadius: 4,
@@ -67,7 +68,7 @@ var QDThemes = (function(){
 		'cells.backgroundColor': 'color?', 'cells.backgroundColorHover': 'color?',
 		backgroundOpacity: [0, 1, .01], backgroundOpacityHover: [0, 1, .01],
 		blur: [0, 40, 1], blurHover: [0, 40, 1],
-		shadow: [0, 2, 1], shadowHover: [0, 2, 1], hoverEffect: [0, 3, 1],
+		shadow: [0, 2, 1], shadowHover: [0, 2, 1], hoverEffect: [0, 3, 1], clickEffect: [0, 5, 1],
 		borderColor: 'color', borderColorHover: 'color',
 		borderRadius: [0, 200, 1], borderRadiusHover: [0, 200, 1],
 		borderSize: [0, 20, 1], borderSizeHover: [0, 20, 1],
@@ -322,10 +323,58 @@ var QDThemes = (function(){
 		return ['none', '0 2px 8px rgba(0, 0, 0, .28)', '0 10px 28px rgba(0, 0, 0, .45), 0 2px 6px rgba(0, 0, 0, .25)'][+level] || 'none';
 	}
 
+	// ---------- click effects ----------
+	// What a tile does when it is clicked (grid.cells.clickEffect). The dial and the Settings preview use the same
+	// rules: clickEffectRules gives the CSS for a tile selector, playClickEffect starts it on one tile. The effect
+	// starts on mouse down, so it shows even when the click opens the site in the same tab right away.
+	const ClickEffect = Object.freeze({ none: 0, press: 1, bounce: 2, ripple: 3, flash: 4, ring: 5 });
+	const CLICK_EFFECT_DURATION = 600; // ms; the longest animation below, plus a little
+	// CSS rules (text) for `selector` (the tile: positioned, overflow hidden). color: the effect's colour (#rrggbb).
+	function clickEffectRules(selector, effect, color){
+		const clicked = selector + '.is-clicked';
+		const overlay = clicked + '::after { content: ""; position: absolute; z-index: 2; pointer-events: none; background-color: ' + color + ';';
+		const rules = {
+			[ClickEffect.press]: [
+				'@keyframes qd-click-press { 0% { scale: 1; } 35% { scale: .93; } 100% { scale: 1; } }',
+				clicked + ' { animation: qd-click-press .25s ease-out; }'],
+			[ClickEffect.bounce]: [
+				'@keyframes qd-click-bounce { 0% { scale: 1; } 30% { scale: .9; } 65% { scale: 1.05; } 100% { scale: 1; } }',
+				clicked + ' { animation: qd-click-bounce .4s ease-out; }'],
+			[ClickEffect.ripple]: [ // a circle from the pointer; JS sets where (--qd-click-x/y) and how big (--qd-click-size)
+				'@keyframes qd-click-ripple { from { transform: scale(0); opacity: .45; } to { transform: scale(1); opacity: 0; } }',
+				overlay + ' left: var(--qd-click-x, 50%); top: var(--qd-click-y, 50%); width: var(--qd-click-size, 200%); height: var(--qd-click-size, 200%);'
+					+ ' margin: calc(var(--qd-click-size, 200%) / -2) 0 0 calc(var(--qd-click-size, 200%) / -2); border-radius: 50%; opacity: 0;'
+					+ ' animation: qd-click-ripple .5s ease-out; }'],
+			[ClickEffect.flash]: [
+				'@keyframes qd-click-flash { from { opacity: .5; } to { opacity: 0; } }',
+				overlay + ' inset: 0; opacity: 0; animation: qd-click-flash .35s ease-out; }'],
+			[ClickEffect.ring]: [ // outside the tile: an outline is not clipped by the tile's overflow
+				'@keyframes qd-click-ring { from { outline-offset: 0; outline-color: ' + color + '; } to { outline-offset: 10px; outline-color: transparent; } }',
+				clicked + ' { outline: 3px solid transparent; animation: qd-click-ring .45s ease-out; }']
+		}[+effect];
+		if(!rules) return [];
+		return rules.concat('@media (prefers-reduced-motion: reduce) { ' + clicked + ', ' + clicked + '::after { animation: none !important; } }');
+	}
+	// Starts the effect on a tile, again from the start if it is still playing. x, y: the pointer in the viewport
+	// (the ripple starts there); left out, the middle of the tile.
+	function playClickEffect(tile, x, y){
+		const box = tile.getBoundingClientRect();
+		const left = x === undefined ? box.width / 2 : x - box.left, top = y === undefined ? box.height / 2 : y - box.top;
+		const reach = Math.hypot(Math.max(left, box.width - left), Math.max(top, box.height - top)); // to the farthest corner
+		tile.style.setProperty('--qd-click-x', left + 'px');
+		tile.style.setProperty('--qd-click-y', top + 'px');
+		tile.style.setProperty('--qd-click-size', 2 * reach + 'px');
+		tile.classList.remove('is-clicked');
+		void tile.offsetWidth; // a new style pass, so the animation starts over
+		tile.classList.add('is-clicked');
+		clearTimeout(tile._clickEffectTimer);
+		tile._clickEffectTimer = setTimeout(() => { tile.classList.remove('is-clicked'); }, CLICK_EFFECT_DURATION);
+	}
+
 	return {
-		CLASSIC: CLASSIC, BUILTIN: BUILTIN, FONTS: FONTS,
+		CLASSIC: CLASSIC, BUILTIN: BUILTIN, FONTS: FONTS, ClickEffect: ClickEffect,
 		normalize: normalize, extract: extract, apply: apply, equal: equal, complete: complete,
 		toFile: toFile, fromFile: fromFile, cleanList: cleanList, isBuiltinName: isBuiltinName, fileName: fileName,
-		rgba: rgba, background: background, shadow: shadow
+		rgba: rgba, background: background, shadow: shadow, clickEffectRules: clickEffectRules, playClickEffect: playClickEffect
 	};
 })();

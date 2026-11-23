@@ -76,8 +76,25 @@ test('complete adds the style keys older settings lack, once', () => {
 	assert.equal(T.complete(s), true);
 	assert.equal(s.grid.cells.margin, 2);
 	assert.equal(s.grid.cells.hoverEffect, 0);
+	assert.equal(s.grid.cells.clickEffect, 0, 'no click effect for settings from before 0.8.0');
 	assert.equal(s.accentColor, null);
 	assert.equal(T.complete(s), false);
+});
+
+test('click effects: one of the listed ones, with CSS for each and none for None', () => {
+	const TILE_SELECTOR = '.qd-tile';
+	const EFFECT_COLOR = '#33ccff';
+	assert.equal(cells({ grid: { cells: { clickEffect: 9 } } }).clickEffect, T.ClickEffect.ring, 'above the range: the last one');
+	assert.equal(cells({ grid: { cells: { clickEffect: 'ripple' } } }).clickEffect, T.ClickEffect.none, 'not a number: none');
+	assert.deepEqual(plain(T.clickEffectRules(TILE_SELECTOR, T.ClickEffect.none, EFFECT_COLOR)), []);
+	for (const [name, effect] of Object.entries(T.ClickEffect)) {
+		if (effect === T.ClickEffect.none) continue;
+		const css = plain(T.clickEffectRules(TILE_SELECTOR, effect, EFFECT_COLOR)).join('\n');
+		assert.match(css, /@keyframes qd-click-/, name);
+		assert.ok(css.includes(TILE_SELECTOR + '.is-clicked'), name);
+		assert.match(css, /prefers-reduced-motion: reduce/, name + ': still with reduced motion');
+	}
+	assert.ok(plain(T.clickEffectRules(TILE_SELECTOR, T.ClickEffect.ripple, EFFECT_COLOR)).join('').includes(EFFECT_COLOR), 'the ripple has the given colour');
 });
 
 test('theme files round-trip; descriptions and names are cleaned', () => {
