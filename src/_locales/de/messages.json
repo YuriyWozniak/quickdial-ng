@@ -1045,5 +1045,19 @@
 
   "propertiesTileDeleted": {
     "message": "Die Kachel wurde gelöscht"
+  },
+
+  "settingsLanguage": {
+    "message": "Sprache"
+  },
+
+  "settingsLanguageHint": {
+    "message": "Für die Schnellwahl, diese Einstellungen und die Menüs",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Wie Firefox",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

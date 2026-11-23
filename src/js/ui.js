@@ -308,8 +308,8 @@ var QDUI = (function(){
 			for(const el of root.querySelectorAll('[data-i18n-' + attr + ']')) el.setAttribute(attr, QDCommon.text(el.getAttribute('data-i18n-' + attr)));
 		}
 		if(root === document){
-			document.documentElement.lang = browser.i18n.getUILanguage();
-			document.documentElement.dir = browser.i18n.getMessage('@@bidi_dir') || 'ltr';
+			document.documentElement.lang = QDCommon.language();
+			document.documentElement.dir = QDCommon.direction();
 		}
 	}
 	// A text may hold <b>...</b>, <code>...</code> and <br>: they become those elements (built one by one, never

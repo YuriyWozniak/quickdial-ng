@@ -1045,5 +1045,19 @@
 
   "propertiesTileDeleted": {
     "message": "The tile was deleted"
+  },
+
+  "settingsLanguage": {
+    "message": "Language"
+  },
+
+  "settingsLanguageHint": {
+    "message": "For the dial, these settings and the menus",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Same as Firefox",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

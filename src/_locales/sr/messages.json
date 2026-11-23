@@ -1057,5 +1057,19 @@
 
   "propertiesTileDeleted": {
     "message": "Плочица је обрисана"
+  },
+
+  "settingsLanguage": {
+    "message": "Језик"
+  },
+
+  "settingsLanguageHint": {
+    "message": "За брзо бирање, ова подешавања и меније",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Као Firefox",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

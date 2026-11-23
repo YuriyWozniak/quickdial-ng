@@ -52,6 +52,8 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
 - English (`en`) is the default locale: add new keys there first. A key that is no longer used is removed from every locale.
 - Every language has every key (`test/unit/locales.test.js` checks it): a new text is translated in the same change, or added in English to the other languages and noted for translation.
 - A count is a set of keys, one per plural form: `countTilesOne`, `countTilesFew`, `countTilesMany`, `countTilesOther`, read with `QDCommon.countText('countTiles', n)`. Each language has the forms its plural rules use (`Intl.PluralRules`), always with `Other`.
+- Texts are read with `QDCommon.text`, never `browser.i18n.getMessage`: the user can choose a language other than Firefox's (Settings › Page › Language), and only `QDCommon` knows it. The same goes for the language tag and direction (`QDCommon.language()`, `QDCommon.direction()`).
+- A new language: its folder in `src/_locales` and its own name in `QDCommon.LANGUAGES` (`test/unit/language.test.js` checks that they match).
 - In a message, `<b>`, `<code>` and `<br>` are the only markup (`QDUI.setRichText` builds it as elements); keep the same markup and `$1`..`$9` in every language.
 - Layout works right to left too (Hebrew): use logical CSS properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`), not left and right.
 

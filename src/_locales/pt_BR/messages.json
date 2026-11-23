@@ -1057,5 +1057,19 @@
 
   "propertiesTileDeleted": {
     "message": "O bloco foi excluído"
+  },
+
+  "settingsLanguage": {
+    "message": "Idioma"
+  },
+
+  "settingsLanguageHint": {
+    "message": "Para a discagem rápida, estas configurações e os menus",
+    "description": "Where the chosen language is used"
+  },
+
+  "settingsLanguageBrowser": {
+    "message": "Igual ao Firefox",
+    "description": "The first choice of the Language list; the list adds the name of Firefox's language in brackets"
   }
 }

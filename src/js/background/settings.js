@@ -14,6 +14,7 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 		backgroundMode: ImageMode.stretch,
 		menuShowAdd: true,
 		toolbarAction: 'settings',
+		language: '', // Firefox's (see language.js)
 		grid: {
 			rows: 4,
 			columns: 5,

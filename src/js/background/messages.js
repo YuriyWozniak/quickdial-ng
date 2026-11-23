@@ -21,15 +21,17 @@ app.Messages.init = function(){
 				const rootChanged = app.settings.grid.root != request.settings.grid.root;
 				app.Settings.update(request.settings);
 				sendResponse(app.settings);
-				app.Messages.broadcast(Commands.settingsChanged);
-				if(rootChanged){
-					app.Images.removeTree(app.node);
-					app.node = { children: [] };
-					GridNodes.sync(app.node, app.settings.grid.root).then(loaded);
-				} else {
-					loaded();
-				}
-				app.ContextMenus.updateMenu();
+				app.Language.apply().then(() => { // The pages and the menus get the texts of a new language with the change
+					app.Messages.broadcast(Commands.settingsChanged);
+					if(rootChanged){
+						app.Images.removeTree(app.node);
+						app.node = { children: [] };
+						GridNodes.sync(app.node, app.settings.grid.root).then(loaded);
+					} else {
+						loaded();
+					}
+					app.ContextMenus.updateMenu();
+				});
 				break;
 			}
 			case Commands.getNodeById:
