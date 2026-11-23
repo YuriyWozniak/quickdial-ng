@@ -8,7 +8,7 @@
    - The *submit to AMO* job then waits for you: open the run and choose **Review deployments › amo › Approve**. It uploads the package to addons.mozilla.org with the release notes and the Notes to Reviewer below, and tags the commit `v<version>`.
 3. Mozilla reviews the version (hours to days). The **Publish** workflow checks addons.mozilla.org every 3 hours; once the version is approved it downloads the signed file, checks it against AMO's hash and the tagged source, and creates the GitHub release with the notes and the `.xpi`. To publish sooner, run Publish by hand.
 
-The package and its metadata stay downloadable from the Release run for 30 days. AMO adds **Firefox for Android** to each version (see below); the *submit to AMO* job takes it off again with `node release/amo.js compat <version>`, and if that step fails (it doesn't stop the release), untick it on the version's page.
+The package and its metadata stay downloadable from the Release run for 30 days. Each version is for **Firefox on the desktop** only: the metadata asks for that, and if AMO adds Firefox for Android anyway, the *submit to AMO* job takes it off with `node release/amo.js compat <version>`. If that step fails (it doesn't stop the release; AMO sometimes throttles edits for an hour), run the same command on the PC later or untick Android on the version's page. AMO throttles uploads too: the job waits and tries again up to 3 times when AMO asks for at most 5 minutes; after a longer throttle, run Release again later. Up to 0.7.0 the manifest had `gecko_android`, and AMO doesn't let anyone change what the manifest sets, so those versions stay listed for Android.
 
 The listing itself (summary, description, screenshots, icon) is kept up to date with [`amo.js`](amo.js) from [amo-listing.md](amo-listing.md); it uses the same API key, from `AMO_JWT_ISSUER`/`AMO_JWT_SECRET` or the key file below.
 
@@ -21,7 +21,7 @@ GitHub turns off scheduled workflows in a repository without activity for 60 day
 `release.js` takes a version that is already committed in `src/manifest.json` and turns it into a published, auto-updating release:
 
 1. **Commit.** Uses the last commit on `origin/develop` that changed `src/` (or `--commit`). Checks that its `src/manifest.json` has the requested version.
-2. **Lint and sign.** Exports `src/` exactly as it is at that commit (not your working copy) and runs `web-ext lint --self-hosted --warnings-as-errors` on it; any error or warning stops the release (dry runs included). Then it signs it on addons.mozilla.org as an *unlisted* add-on with `web-ext sign`. Mozilla's approval usually takes a few minutes. The result is saved as `quickdial-ng-<version>.xpi` in the output folder. If that file already exists, signing is skipped.
+2. **Lint and sign.** Exports `src/` exactly as it is at that commit (not your working copy) and lints it with `release/lint.js` (`web-ext lint --self-hosted`); any error or warning stops the release (dry runs included), except the one in `ALLOWED_WARNINGS`: the manifest has no `gecko_android` (desktop only), so the linter warns that `data_collection_permissions` needs Firefox for Android 142. The CI lints `src/` with the same script. Then it signs it on addons.mozilla.org as an *unlisted* add-on with `web-ext sign`. Mozilla's approval usually takes a few minutes. The result is saved as `quickdial-ng-<version>.xpi` in the output folder. If that file already exists, signing is skipped.
 3. **Verify.** Checks that the `.xpi` is signed by Mozilla (`META-INF/mozilla.rsa`), has the right version and contains exactly the source files of the commit.
 4. **Tag.** Tags the commit as `v<version>` and pushes the tag. It stops if the tag already exists at another commit.
 5. **GitHub release.** Creates the release *Quick Dial NG &lt;version&gt;* with the notes from `--notes` and attaches the `.xpi`.
@@ -85,8 +85,8 @@ AMO refuses `update_url` in listed versions. The source keeps it for the GitHub 
    ```
    node release/release.js 0.4.1 --amo
    ```
-   It lints the source without `update_url` with the listed rules (`web-ext lint --warnings-as-errors`, no `--self-hosted`) and saves `quickdial-ng-<version>-amo.zip` in the output folder.
-3. On [My Add-ons](https://addons.mozilla.org/developers/addons) open Quick Dial NG › **Upload New Version**, choose **On this site** and upload the `.zip`. Untick **Firefox for Android** under compatibility: Android doesn't let extensions replace the new tab or home page and has no bookmarks API. (`gecko_android` stays in the manifest only because the linter needs its minimum version, 142, for `data_collection_permissions`.)
+   It lints the source without `update_url` with the listed rules (`release/lint.js` without `--self-hosted`) and saves `quickdial-ng-<version>-amo.zip` in the output folder.
+3. On [My Add-ons](https://addons.mozilla.org/developers/addons) open Quick Dial NG › **Upload New Version**, choose **On this site** and upload the `.zip`. Untick **Firefox for Android** under compatibility if it's ticked: Android doesn't let extensions replace the new tab or home page and has no bookmarks API, so the manifest has no `gecko_android`.
    - No source code upload is needed: the package is the plain source, nothing is minified or generated.
    - The first listed version asks for the listing (summary, description, categories, license, support links, screenshots and release notes). Copy them from [amo-listing.md](amo-listing.md). Keep that file up to date with every version: add the version's release notes there (and pass the same text to `--notes`), and update the description when features change.
    - **Notes to Reviewer**: paste the text below.
