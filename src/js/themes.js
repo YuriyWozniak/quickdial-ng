@@ -171,12 +171,14 @@ var QDThemes = (function(){
 	}
 
 	// ---------- built-in themes ----------
+	// `name` is the theme's identity (saved themes can't take it, theme files carry it); what the user sees are the
+	// texts under nameKey and descriptionKey in the language files.
 	const BUILTIN = [
-		{ id: 'classic', builtin: true, name: 'Classic',
-			description: 'The original Quick Dial look: dark grey page, thin borders, titles under the pictures.',
+		{ id: 'classic', builtin: true, name: 'Classic', nameKey: 'themeClassicName',
+			descriptionKey: 'themeClassicDescription',
 			style: normalize(CLASSIC) },
-		{ id: 'anori', builtin: true, name: 'Anori',
-			description: 'Inspired by the Anori browser extension (anori.app): a deep-green page, frosted-glass tiles with large rounded corners and titles over the pictures.',
+		{ id: 'anori', builtin: true, name: 'Anori', nameKey: 'themeAnoriName',
+			descriptionKey: 'themeAnoriDescription',
 			style: normalize({
 				backgroundColor: '#06140d',
 				backgroundGradient: 'radial-gradient(ellipse at 18% 12%, rgba(22, 151, 101, .38), transparent 55%), radial-gradient(ellipse at 85% 95%, rgba(0, 121, 73, .30), transparent 55%), linear-gradient(160deg, #0b2a1c 0%, #04110b 100%)',
@@ -223,8 +225,8 @@ var QDThemes = (function(){
 		borderSize: 0, borderSizeHover: 0, borderRadius: 0, borderRadiusHover: 0, titlePosition: TitlePosition.below, titleBorderSize: 0, titleBorderSizeHover: 0
 	};
 	BUILTIN.push(
-		{ id: 'plum', builtin: true, name: 'Plum',
-			description: 'A dark plum page with light grey rounded borders and titles under the pictures. Made for a large grid with groups of sites and room between them.',
+		{ id: 'plum', builtin: true, name: 'Plum', nameKey: 'themePlumName',
+			descriptionKey: 'themePlumDescription',
 			style: derive(CLASSIC, {
 				backgroundColor: '#251721',
 				grid: { margin: 10, cells: {
@@ -232,8 +234,8 @@ var QDThemes = (function(){
 					borderRadius: 6, borderRadiusHover: 6, titleHeight: 18, titleHeightHover: 18, titleColor: '#ffffff', titleColorHover: '#33ccff',
 					titleBackgroundColor: null, titleBackgroundColorHover: null, titleBorderSize: 2, titleBorderSizeHover: 2 } }
 			}) },
-		{ id: 'desktop', builtin: true, name: 'Desktop',
-			description: 'Icons with their names under them on a night-blue page or your wallpaper, like a computer desktop, with a soft highlight under the pointer. For square tiles and icon pictures.',
+		{ id: 'desktop', builtin: true, name: 'Desktop', nameKey: 'themeDesktopName',
+			descriptionKey: 'themeDesktopDescription',
 			style: derive(CLASSIC, {
 				backgroundColor: '#0f1b30',
 				backgroundGradient: 'radial-gradient(ellipse at 55% 45%, #2c4f7a 0%, #172a4a 55%, #0b1426 100%)',
@@ -243,8 +245,8 @@ var QDThemes = (function(){
 					titleHeight: 30, titleHeightHover: 30, titleFontSize: 9.5, titleFontSizeHover: 9.5, titleFont: 'system-ui, "Segoe UI", sans-serif',
 					titleColor: '#ffffff', titleColorHover: '#ffffff', titleBackgroundColor: null, titleBackgroundColorHover: '#ffffff', titleBackgroundOpacityHover: .16 }) }
 			}) },
-		{ id: 'dusk', builtin: true, name: 'Dusk',
-			description: 'Violet glass tiles that grow on hover, over a sunset sky.',
+		{ id: 'dusk', builtin: true, name: 'Dusk', nameKey: 'themeDuskName',
+			descriptionKey: 'themeDuskDescription',
 			style: derive(BUILTIN[1].style, {
 				backgroundColor: '#2a2350',
 				backgroundGradient: 'linear-gradient(180deg, #1a2a6c 0%, #6d4a7a 40%, #b46a8f 62%, #fdbb6d 85%, #fdd9a0 100%)',
@@ -252,8 +254,8 @@ var QDThemes = (function(){
 				grid: { cells: { borderColor: '#ffffff', borderColorHover: '#ffffff', backgroundOpacity: .12, hoverEffect: HoverEffect.grow,
 					titleBackgroundColor: '#1b1638', titleBackgroundColorHover: '#7e57c2', titleBackgroundOpacity: .55 } }
 			}) },
-		{ id: 'retro-pc', builtin: true, name: 'Retro PC',
-			description: 'A late-1990s PC desktop: a teal page, icons with white names, and a navy highlight on the name under the pointer. For square tiles and icon pictures.',
+		{ id: 'retro-pc', builtin: true, name: 'Retro PC', nameKey: 'themeRetroPcName',
+			descriptionKey: 'themeRetroPcDescription',
 			style: derive(CLASSIC, {
 				backgroundColor: '#008080',
 				accentColor: '#000080',
@@ -261,8 +263,8 @@ var QDThemes = (function(){
 					titleHeight: 20, titleHeightHover: 20, titleFontSize: 8, titleFontSizeHover: 8, titleFont: 'Tahoma, Verdana, sans-serif',
 					titleColor: '#ffffff', titleColorHover: '#ffffff', titleBackgroundColor: null, titleBackgroundColorHover: '#000080', titleBackgroundOpacityHover: 1 }) }
 			}) },
-		{ id: 'retro-mono', builtin: true, name: 'Retro Mono',
-			description: 'An early black-and-white desktop: a fine grey pattern, black names on white labels, inverted under the pointer. For square tiles and black-and-white icon pictures.',
+		{ id: 'retro-mono', builtin: true, name: 'Retro Mono', nameKey: 'themeRetroMonoName',
+			descriptionKey: 'themeRetroMonoDescription',
 			style: derive(CLASSIC, {
 				backgroundColor: '#ffffff',
 				backgroundGradient: 'repeating-linear-gradient(45deg, rgba(0, 0, 0, .3) 0px, rgba(0, 0, 0, .3) 1px, transparent 1px, transparent 4px), repeating-linear-gradient(-45deg, rgba(0, 0, 0, .3) 0px, rgba(0, 0, 0, .3) 1px, transparent 1px, transparent 4px)',
@@ -298,14 +300,15 @@ var QDThemes = (function(){
 		return { format: FILE_FORMAT, version: FILE_VERSION, name: cleanText(theme.name, NAME_MAX_LENGTH),
 			description: cleanText(theme.description, DESCRIPTION_MAX_LENGTH), style: normalize(theme.style) };
 	}
-	// Parsed .json -> { name, description, style }; throws an Error with a message for the user
+	// Parsed .json -> { name, description, style }. A file it can't take throws an Error whose message is the key
+	// of the text that tells the user why (themes.js doesn't read the language files; Settings shows the text).
 	function fromFile(data){
 		if(!data || typeof data != 'object' || data.format != FILE_FORMAT || !data.style || typeof data.style != 'object'){
-			throw new Error(data && data.format == BACKUP_FORMAT ? 'This is a full Quick Dial NG backup. Import it on the Backup tab.' : 'This file is not a Quick Dial NG theme.');
+			throw new Error(data && data.format == BACKUP_FORMAT ? 'themeFileIsBackup' : 'themeFileInvalid');
 		}
-		if(data.version > FILE_VERSION) throw new Error('This theme was made by a newer version of Quick Dial NG. Update the extension to import it.');
+		if(data.version > FILE_VERSION) throw new Error('themeFileNewer');
 		const name = cleanText(data.name, NAME_MAX_LENGTH);
-		if(!name) throw new Error('This theme has no name.');
+		if(!name) throw new Error('themeFileNoName');
 		return { name: name, description: cleanText(data.description, DESCRIPTION_MAX_LENGTH), style: normalize(data.style) };
 	}
 	// Saved custom themes: [{ name, description, style }], invalid entries dropped

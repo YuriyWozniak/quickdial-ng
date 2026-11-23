@@ -107,4 +107,8 @@ function sitePage(t, name, html) {
 // The names of the built-in themes, in the order Settings › Themes lists them (src/js/themes.js)
 const BUILTIN_THEMES = ['Classic', 'Anori', 'Plum', 'Desktop', 'Dusk', 'Retro PC', 'Retro Mono'];
 
-module.exports = { BUILTIN_THEMES, seedBookmarks, freshProfile, makeVersion4, pictures, changeSettings, spyTabs, stubDrawWindow, sitePage };
+// The English text of a key in the language files, as the simulated browser.i18n gives it (mock.js)
+const ENGLISH_MESSAGES = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', '..', 'src', '_locales', 'en', 'messages.json'), 'utf8'));
+const englishText = key => ENGLISH_MESSAGES[key].message;
+
+module.exports = { BUILTIN_THEMES, seedBookmarks, freshProfile, makeVersion4, pictures, changeSettings, spyTabs, stubDrawWindow, sitePage, englishText };

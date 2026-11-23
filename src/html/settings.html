@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" type="image/svg+xml" href="../img/icon.svg" />
-		<title>Quick Dial NG Settings</title>
+		<title data-i18n="menuSettings"></title>
 		<link rel="stylesheet" href="../css/ui.css" />
 		<script type="text/javascript" src="../js/common.js"></script>
 	<script type="text/javascript" src="../js/ui.js"></script>
@@ -16,59 +16,59 @@
 				<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
 			</div>
 			<div class="qd-header-text">
-				<h1 class="qd-title">Quick Dial NG Settings</h1>
+				<h1 class="qd-title" data-i18n="menuSettings"></h1>
 				<p class="qd-subtitle" id="Version">&nbsp;</p>
 			</div>
 		</header>
 
 		<nav class="qd-tabs" id="Tabs" role="tablist" aria-orientation="vertical">
-			<button type="button" class="qd-tab" role="tab" id="TabPageButton" aria-controls="TabPage" aria-selected="true"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="16" height="11" rx="1.5"/><path d="M7 17h6M10 14v3"/></svg><span>Page</span></button>
-			<button type="button" class="qd-tab" role="tab" id="TabGridButton" aria-controls="TabGrid"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.2"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.2"/></svg><span>Grid</span></button>
-			<button type="button" class="qd-tab" role="tab" id="TabTilesButton" aria-controls="TabTiles"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 13h14"/></svg><span>Tiles</span></button>
-			<button type="button" class="qd-tab" role="tab" id="TabThemesButton" aria-controls="TabThemes"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c-4.1 0-7.5 3.1-7.5 7.1 0 3.9 3.2 7.9 7.2 7.9 1.1 0 1.7-.7 1.7-1.5 0-1.1-.9-1.4-.9-2.4 0-.9.7-1.5 1.6-1.5h1.6c2.2 0 3.8-1.6 3.8-3.6 0-3.3-3.4-6-7.5-6Z"/><circle cx="6.5" cy="9" r=".9"/><circle cx="9.5" cy="6.2" r=".9"/><circle cx="13.2" cy="7.4" r=".9"/></svg><span>Themes</span></button>
-			<button type="button" class="qd-tab" role="tab" id="TabBackupButton" aria-controls="TabBackup"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="3" width="15" height="4" rx="1"/><path d="M4 7v8.5a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V7M8 10.5h4"/></svg><span>Backup</span></button>
+			<button type="button" class="qd-tab" role="tab" id="TabPageButton" aria-controls="TabPage" aria-selected="true"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="16" height="11" rx="1.5"/><path d="M7 17h6M10 14v3"/></svg><span data-i18n="settingsTabPage"></span></button>
+			<button type="button" class="qd-tab" role="tab" id="TabGridButton" aria-controls="TabGrid"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.2"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.2"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.2"/></svg><span data-i18n="settingsTabGrid"></span></button>
+			<button type="button" class="qd-tab" role="tab" id="TabTilesButton" aria-controls="TabTiles"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 13h14"/></svg><span data-i18n="settingsTabTiles"></span></button>
+			<button type="button" class="qd-tab" role="tab" id="TabThemesButton" aria-controls="TabThemes"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2.5c-4.1 0-7.5 3.1-7.5 7.1 0 3.9 3.2 7.9 7.2 7.9 1.1 0 1.7-.7 1.7-1.5 0-1.1-.9-1.4-.9-2.4 0-.9.7-1.5 1.6-1.5h1.6c2.2 0 3.8-1.6 3.8-3.6 0-3.3-3.4-6-7.5-6Z"/><circle cx="6.5" cy="9" r=".9"/><circle cx="9.5" cy="6.2" r=".9"/><circle cx="13.2" cy="7.4" r=".9"/></svg><span data-i18n="settingsTabThemes"></span></button>
+			<button type="button" class="qd-tab" role="tab" id="TabBackupButton" aria-controls="TabBackup"><svg class="qd-tab-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="3" width="15" height="4" rx="1"/><path d="M4 7v8.5a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5V7M8 10.5h4"/></svg><span data-i18n="settingsTabBackup"></span></button>
 		</nav>
 
 		<div class="qd-side">
-			<button type="button" class="qd-side-link" id="BtnOpenDial"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3h6v6M17 3l-8 8M14 12v3.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 15.5v-8A1.5 1.5 0 0 1 4.5 6H8"/></svg>Open Quick Dial NG</button>
-			<a class="qd-side-link" href="https://qdng.srv.if.ua/" target="_blank" rel="noopener">Website</a>
-			<a class="qd-side-link" href="https://github.com/YuriyWozniak/quickdial-ng" target="_blank" rel="noopener">Source code and releases</a>
+			<button type="button" class="qd-side-link" id="BtnOpenDial"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3h6v6M17 3l-8 8M14 12v3.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 15.5v-8A1.5 1.5 0 0 1 4.5 6H8"/></svg><span data-i18n="settingsOpenDial"></span></button>
+			<a class="qd-side-link" href="https://qdng.srv.if.ua/" target="_blank" rel="noopener" data-i18n="settingsWebsite"></a>
+			<a class="qd-side-link" href="https://github.com/YuriyWozniak/quickdial-ng" target="_blank" rel="noopener" data-i18n="settingsSourceCode"></a>
 		</div>
 
 		<main class="qd-content" id="Content">
-			<h1 class="qd-panel-title" id="PanelTitle">Page</h1>
+			<h1 class="qd-panel-title" id="PanelTitle" data-i18n="settingsTabPage"></h1>
 
 			<!-- ===== Page ===== -->
 			<div class="qd-panel qd-cols" id="TabPage" role="tabpanel" aria-labelledby="TabPageButton">
 				<div class="qd-col qd-stack">
 				<section class="qd-card">
-					<h2>Background</h2>
+					<h2 data-i18n="settingsBackground"></h2>
 					<div class="qd-image">
-						<div class="qd-preview is-screen" id="BackgroundZone" title="Drop an image here">
+						<div class="qd-preview is-screen" id="BackgroundZone" data-i18n-title="imageDropHere">
 							<div class="qd-preview-img" id="BackgroundPreview"></div>
-							<div class="qd-preview-drop">Drop to use this image</div>
+							<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
 						</div>
 						<div class="qd-image-controls">
 							<div class="qd-pairs">
-								<label class="qd-label" for="BackgroundColor">Color</label>
+								<label class="qd-label" for="BackgroundColor" data-i18n="settingsColor"></label>
 								<input id="BackgroundColor" type="color">
-								<label class="qd-label" for="BackgroundMode">Fit</label>
+								<label class="qd-label" for="BackgroundMode" data-i18n="imageFit"></label>
 								<select id="BackgroundMode">
-									<option value="0">Stretch</option>
-									<option value="1">Cover</option>
-									<option value="2">Contain</option>
-									<option value="3">Center</option>
+									<option value="0" data-i18n="fitStretch"></option>
+									<option value="1" data-i18n="fitCover"></option>
+									<option value="2" data-i18n="fitContain"></option>
+									<option value="3" data-i18n="fitCenter"></option>
 								</select>
 							</div>
 							<div class="qd-inline">
-								<label class="qd-btn is-small" for="BackgroundImageFile" id="BackgroundImageChoose" tabindex="0" role="button">Choose image…</label>
+								<label class="qd-btn is-small" for="BackgroundImageFile" id="BackgroundImageChoose" tabindex="0" role="button" data-i18n="imageChoose"></label>
 								<input id="BackgroundImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
-								<button type="button" class="qd-btn is-small" id="BackgroundImageClear">Remove</button>
+								<button type="button" class="qd-btn is-small" id="BackgroundImageClear" data-i18n="settingsRemove"></button>
 							</div>
-							<span class="qd-hint">Or drop an image on the preview.</span>
+							<span class="qd-hint" data-i18n="settingsBackgroundDropHint"></span>
 							<div class="qd-inline" id="BackgroundGradientRow" hidden>
-								<span class="qd-hint">The theme adds a gradient, shown behind any picture.</span>
-								<button type="button" class="qd-btn is-small" id="BackgroundGradientClear">Remove gradient</button>
+								<span class="qd-hint" data-i18n="settingsGradientHint"></span>
+								<button type="button" class="qd-btn is-small" id="BackgroundGradientClear" data-i18n="settingsGradientRemove"></button>
 							</div>
 						</div>
 					</div>
@@ -77,29 +77,29 @@
 
 				<div class="qd-col qd-stack">
 				<section class="qd-card">
-					<h2>Interface</h2>
+					<h2 data-i18n="settingsInterface"></h2>
 					<div class="qd-switch-row">
-						<label class="qd-switch-label" for="AccentColor">Accent color<small>Buttons, switches, tabs and focus rings in Quick Dial NG's windows and dialogs</small></label>
-						<div class="qd-color-cell"><input id="AccentColor" type="color"><label class="qd-check"><input id="AccentDefault" type="checkbox"> Default</label></div>
+						<label class="qd-switch-label" for="AccentColor"><span data-i18n="settingsAccentColor"></span><small data-i18n="settingsAccentColorHint"></small></label>
+						<div class="qd-color-cell"><input id="AccentColor" type="color"><label class="qd-check"><input id="AccentDefault" type="checkbox"> <span data-i18n="optionDefault"></span></label></div>
 					</div>
 				</section>
 
 				<section class="qd-card">
-					<h2>Behavior</h2>
+					<h2 data-i18n="settingsBehavior"></h2>
 					<div class="qd-switch-row">
-						<label class="qd-switch-label" for="MenuShowAdd">"Add to Quick Dial NG" menu item<small>In the right-click menu of web pages</small></label>
+						<label class="qd-switch-label" for="MenuShowAdd"><span data-i18n="settingsMenuShowAdd"></span><small data-i18n="settingsMenuShowAddHint"></small></label>
 						<input id="MenuShowAdd" type="checkbox" class="qd-switch">
 					</div>
 					<div class="qd-switch-row">
-						<label class="qd-switch-label" for="ToolbarAction">Toolbar button<small>What the Quick Dial NG button on the Firefox toolbar opens. Its right-click menu has both.</small></label>
+						<label class="qd-switch-label" for="ToolbarAction"><span data-i18n="settingsToolbarButton"></span><small data-i18n="settingsToolbarButtonHint"></small></label>
 						<select id="ToolbarAction">
-							<option value="settings">These settings</option>
-							<option value="newtab">The dial in a new tab</option>
-							<option value="current">The dial in the current tab</option>
+							<option value="settings" data-i18n="settingsToolbarSettings"></option>
+							<option value="newtab" data-i18n="settingsToolbarNewTab"></option>
+							<option value="current" data-i18n="settingsToolbarCurrentTab"></option>
 						</select>
 					</div>
 					<div class="qd-switch-row">
-						<span class="qd-switch-label">Start page<small>Quick Dial NG is Firefox's home page: it opens when Firefox starts and with the Home button. To use another page, go to Firefox Settings › Home.</small></span>
+						<span class="qd-switch-label"><span data-i18n="settingsStartPage"></span><small data-i18n="settingsStartPageHint"></small></span>
 					</div>
 				</section>
 				</div>
@@ -109,49 +109,49 @@
 			<div class="qd-panel qd-cols" id="TabGrid" role="tabpanel" aria-labelledby="TabGridButton" hidden>
 				<div class="qd-col qd-stack">
 				<section class="qd-card">
-					<h2>Layout</h2>
+					<h2 data-i18n="settingsLayout"></h2>
 					<div class="qd-row">
-						<label for="GridRows">Rows × columns</label>
+						<label for="GridRows" data-i18n="settingsRowsColumns"></label>
 						<div class="qd-inline">
-							<input id="GridRows" type="number" min="1" aria-label="Rows">
+							<input id="GridRows" type="number" min="1" data-i18n-aria-label="settingsRows">
 							<span class="qd-sep">×</span>
-							<input id="GridColumns" type="number" min="1" aria-label="Columns">
+							<input id="GridColumns" type="number" min="1" data-i18n-aria-label="settingsColumns">
 						</div>
 					</div>
 					<div class="qd-row">
-						<label for="GridRatioX">Tile shape</label>
+						<label for="GridRatioX" data-i18n="settingsTileShape"></label>
 						<div class="qd-inline">
-							<input id="GridRatioX" type="number" min="1" aria-label="Width ratio">
+							<input id="GridRatioX" type="number" min="1" data-i18n-aria-label="settingsRatioWidth">
 							<span class="qd-sep">:</span>
-							<input id="GridRatioY" type="number" min="1" aria-label="Height ratio">
-							<span class="qd-hint">width : height</span>
+							<input id="GridRatioY" type="number" min="1" data-i18n-aria-label="settingsRatioHeight">
+							<span class="qd-hint" data-i18n="settingsTileShapeHint"></span>
 						</div>
 					</div>
 					<div class="qd-row">
-						<label for="GridMargins">Page margin</label>
+						<label for="GridMargins" data-i18n="settingsPageMargin"></label>
 						<span class="qd-unit"><input id="GridMargins" type="number" min="0"> px</span>
 					</div>
 					<div class="qd-row">
-						<label for="GridRoot">Bookmarks folder</label>
+						<label for="GridRoot" data-i18n="settingsBookmarksFolder"></label>
 						<input id="GridRoot" type="text" spellcheck="false">
-						<span class="qd-hint">The bookmarks folder shown on the dial</span>
+						<span class="qd-hint" data-i18n="settingsBookmarksFolderHint"></span>
 					</div>
 				</section>
 
 				<section class="qd-card">
-					<h2>Opening</h2>
+					<h2 data-i18n="settingsOpening"></h2>
 					<div class="qd-row">
-						<label for="GridOpenBookmarksIn">Open bookmarks in</label>
+						<label for="GridOpenBookmarksIn" data-i18n="settingsOpenBookmarksIn"></label>
 						<select id="GridOpenBookmarksIn">
-							<option value="0">The same tab</option>
-							<option value="1">A new tab</option>
+							<option value="0" data-i18n="settingsOpenSameTab"></option>
+							<option value="1" data-i18n="settingsOpenNewTab"></option>
 						</select>
 					</div>
 					<div class="qd-row">
-						<label for="GridOpenFoldersIn">Open folders in</label>
+						<label for="GridOpenFoldersIn" data-i18n="settingsOpenFoldersIn"></label>
 						<select id="GridOpenFoldersIn">
-							<option value="0">The same tab</option>
-							<option value="1">A new tab</option>
+							<option value="0" data-i18n="settingsOpenSameTab"></option>
+							<option value="1" data-i18n="settingsOpenNewTab"></option>
 						</select>
 					</div>
 				</section>
@@ -159,46 +159,46 @@
 
 				<div class="qd-col qd-stack">
 				<section class="qd-card">
-					<h2>Folder tiles</h2>
+					<h2 data-i18n="settingsFolderTiles"></h2>
 					<div class="qd-switch-row">
-						<label class="qd-switch-label" for="GridBackNode">Show a Back tile inside folders</label>
+						<label class="qd-switch-label" for="GridBackNode" data-i18n="settingsBackNode"></label>
 						<input id="GridBackNode" type="checkbox" class="qd-switch">
 					</div>
 					<div class="qd-columns">
 						<div class="qd-image is-stacked">
-							<span class="qd-label">Back tile picture</span>
-							<div class="qd-preview is-small" id="GridBackZone" title="Drop an image here">
+							<span class="qd-label" data-i18n="settingsBackPicture"></span>
+							<div class="qd-preview is-small" id="GridBackZone" data-i18n-title="imageDropHere">
 								<div class="qd-preview-img" id="GridBackPreview"></div>
-								<div class="qd-preview-drop">Drop to use this image</div>
+								<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
 							</div>
 							<div class="qd-inline">
-								<select id="GridBackMode" aria-label="Back picture fit">
-									<option value="0">Stretch</option>
-									<option value="1">Cover</option>
-									<option value="2">Contain</option>
-									<option value="3">Center</option>
+								<select id="GridBackMode" data-i18n-aria-label="settingsBackPictureFit">
+									<option value="0" data-i18n="fitStretch"></option>
+									<option value="1" data-i18n="fitCover"></option>
+									<option value="2" data-i18n="fitContain"></option>
+									<option value="3" data-i18n="fitCenter"></option>
 								</select>
-								<label class="qd-btn is-small" for="GridBackImageFile" tabindex="0" role="button">Choose…</label>
+								<label class="qd-btn is-small" for="GridBackImageFile" tabindex="0" role="button" data-i18n="imageChooseShort"></label>
 								<input id="GridBackImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
-								<button type="button" class="qd-btn is-small" id="GridBackImageReset" title="Use the built-in picture">Reset</button>
+								<button type="button" class="qd-btn is-small" id="GridBackImageReset" data-i18n-title="settingsResetHint" data-i18n="settingsReset"></button>
 							</div>
 						</div>
 						<div class="qd-image is-stacked">
-							<span class="qd-label">Folder picture</span>
-							<div class="qd-preview is-small" id="GridFolderZone" title="Drop an image here">
+							<span class="qd-label" data-i18n="settingsFolderPicture"></span>
+							<div class="qd-preview is-small" id="GridFolderZone" data-i18n-title="imageDropHere">
 								<div class="qd-preview-img" id="GridFolderPreview"></div>
-								<div class="qd-preview-drop">Drop to use this image</div>
+								<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
 							</div>
 							<div class="qd-inline">
-								<select id="GridFolderMode" aria-label="Folder picture fit">
-									<option value="0">Stretch</option>
-									<option value="1">Cover</option>
-									<option value="2">Contain</option>
-									<option value="3">Center</option>
+								<select id="GridFolderMode" data-i18n-aria-label="settingsFolderPictureFit">
+									<option value="0" data-i18n="fitStretch"></option>
+									<option value="1" data-i18n="fitCover"></option>
+									<option value="2" data-i18n="fitContain"></option>
+									<option value="3" data-i18n="fitCenter"></option>
 								</select>
-								<label class="qd-btn is-small" for="GridFolderImageFile" tabindex="0" role="button">Choose…</label>
+								<label class="qd-btn is-small" for="GridFolderImageFile" tabindex="0" role="button" data-i18n="imageChooseShort"></label>
 								<input id="GridFolderImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
-								<button type="button" class="qd-btn is-small" id="GridFolderImageReset" title="Use the built-in picture">Reset</button>
+								<button type="button" class="qd-btn is-small" id="GridFolderImageReset" data-i18n-title="settingsResetHint" data-i18n="settingsReset"></button>
 							</div>
 						</div>
 					</div>
@@ -211,12 +211,12 @@
 				<div class="qd-col qd-aside">
 				<div class="qd-tile-stage" id="TileStage">
 					<figure class="qd-tile-figure">
-						<div class="qd-tile-slot"><div class="qd-tile" id="TileNormal"><div class="qd-tile-img"></div><div class="qd-tile-title">Example site</div></div></div>
-						<figcaption class="qd-tile-caption">Normal</figcaption>
+						<div class="qd-tile-slot"><div class="qd-tile" id="TileNormal"><div class="qd-tile-img"></div><div class="qd-tile-title" data-i18n="tileExampleSite"></div></div></div>
+						<figcaption class="qd-tile-caption" data-i18n="tileNormal"></figcaption>
 					</figure>
 					<figure class="qd-tile-figure">
-						<div class="qd-tile-slot"><div class="qd-tile" id="TileHover"><div class="qd-tile-img"></div><div class="qd-tile-title">Example site</div></div></div>
-						<figcaption class="qd-tile-caption">Hover</figcaption>
+						<div class="qd-tile-slot"><div class="qd-tile" id="TileHover"><div class="qd-tile-img"></div><div class="qd-tile-title" data-i18n="tileExampleSite"></div></div></div>
+						<figcaption class="qd-tile-caption" data-i18n="tileHover"></figcaption>
 					</figure>
 				</div>
 				</div>
@@ -225,129 +225,129 @@
 				<section class="qd-card is-table">
 					<table class="qd-table">
 						<thead>
-							<tr><th></th><th>Normal</th><th>Hover</th></tr>
+							<tr><th></th><th data-i18n="tileNormal"></th><th data-i18n="tileHover"></th></tr>
 						</thead>
 						<tbody>
-							<tr class="qd-table-group"><td colspan="3">Tile</td></tr>
+							<tr class="qd-table-group"><td colspan="3" data-i18n="settingsGroupTile"></td></tr>
 							<tr>
-								<td>Spacing</td>
+								<td data-i18n="settingsSpacing"></td>
 								<td><span class="qd-unit"><input id="GridCellsMargins" type="number" min="0"> px</span></td>
 								<td><span class="qd-unit"><input id="GridCellsMarginsHover" type="number" min="0"> px</span></td>
 							</tr>
 							<tr>
-								<td>Opacity</td>
+								<td data-i18n="settingsOpacity"></td>
 								<td><span class="qd-unit"><input id="GridCellsOpacity" type="number" min="0" max="100" step="5"> %</span></td>
 								<td><span class="qd-unit"><input id="GridCellsOpacityHover" type="number" min="0" max="100" step="5"> %</span></td>
 							</tr>
 							<tr>
-								<td>Border width</td>
+								<td data-i18n="settingsBorderWidth"></td>
 								<td><span class="qd-unit"><input id="GridCellsBorderSize" type="number" min="0"> px</span></td>
 								<td><span class="qd-unit"><input id="GridCellsBorderSizeHover" type="number" min="0"> px</span></td>
 							</tr>
 							<tr>
-								<td>Corner radius</td>
+								<td data-i18n="settingsCornerRadius"></td>
 								<td><span class="qd-unit"><input id="GridCellsBorderRadius" type="number" min="0"> px</span></td>
 								<td><span class="qd-unit"><input id="GridCellsBorderRadiusHover" type="number" min="0"> px</span></td>
 							</tr>
 							<tr>
-								<td>Border color</td>
+								<td data-i18n="settingsBorderColor"></td>
 								<td><input id="GridCellsBorderColor" type="color"></td>
 								<td><input id="GridCellsBorderColorHover" type="color"></td>
 							</tr>
 							<tr>
-								<td>Background</td>
-								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparent" type="checkbox"> None</label></div></td>
-								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparentHover" type="checkbox"> None</label></div></td>
+								<td data-i18n="settingsBackground"></td>
+								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparent" type="checkbox"> <span data-i18n="optionNone"></span></label></div></td>
+								<td><div class="qd-color-cell"><input id="GridCellsBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsBackgroundTransparentHover" type="checkbox"> <span data-i18n="optionNone"></span></label></div></td>
 							</tr>
 							<tr>
-								<td>Background opacity</td>
+								<td data-i18n="settingsBackgroundOpacity"></td>
 								<td><span class="qd-unit"><input id="GridCellsBackgroundOpacity" type="number" min="0" max="100" step="5"> %</span></td>
 								<td><span class="qd-unit"><input id="GridCellsBackgroundOpacityHover" type="number" min="0" max="100" step="5"> %</span></td>
 							</tr>
 							<tr>
-								<td>Glass blur<br><small class="qd-hint">Blurs the page behind the tile</small></td>
+								<td><span data-i18n="settingsGlassBlur"></span><br><small class="qd-hint" data-i18n="settingsGlassBlurHint"></small></td>
 								<td><span class="qd-unit"><input id="GridCellsBlur" type="number" min="0" max="40"> px</span></td>
 								<td><span class="qd-unit"><input id="GridCellsBlurHover" type="number" min="0" max="40"> px</span></td>
 							</tr>
 							<tr>
-								<td>Shadow</td>
-								<td><select id="GridCellsShadow"><option value="0">None</option><option value="1">Soft</option><option value="2">Strong</option></select></td>
-								<td><select id="GridCellsShadowHover"><option value="0">None</option><option value="1">Soft</option><option value="2">Strong</option></select></td>
+								<td data-i18n="settingsShadow"></td>
+								<td><select id="GridCellsShadow"><option value="0" data-i18n="optionNone"></option><option value="1" data-i18n="shadowSoft"></option><option value="2" data-i18n="shadowStrong"></option></select></td>
+								<td><select id="GridCellsShadowHover"><option value="0" data-i18n="optionNone"></option><option value="1" data-i18n="shadowSoft"></option><option value="2" data-i18n="shadowStrong"></option></select></td>
 							</tr>
 							<tr>
-								<td>Hover effect</td>
+								<td data-i18n="settingsHoverEffect"></td>
 								<td colspan="2"><select id="GridCellsHoverEffect">
-									<option value="0">Instant change</option>
-									<option value="1">Smooth change</option>
-									<option value="2">Smooth, tile lifts</option>
-									<option value="3">Smooth, tile grows</option>
+									<option value="0" data-i18n="hoverInstant"></option>
+									<option value="1" data-i18n="hoverSmooth"></option>
+									<option value="2" data-i18n="hoverLift"></option>
+									<option value="3" data-i18n="hoverGrow"></option>
 								</select></td>
 							</tr>
 							<tr>
-								<td>Click effect<br><small class="qd-hint">Click a sample tile to see it again</small>
-									<small class="qd-hint" id="ReducedMotionHint" hidden><br>Animations are turned off in your system settings, so tiles don't move: click effects flash or fade instead, and a smooth hover fades without lifting or growing.</small></td>
+								<td><span data-i18n="settingsClickEffect"></span><br><small class="qd-hint" data-i18n="settingsClickEffectHint"></small>
+									<small class="qd-hint" id="ReducedMotionHint" hidden><br><span data-i18n="settingsReducedMotionHint"></span></small></td>
 								<td colspan="2"><select id="GridCellsClickEffect">
-									<option value="0">None</option>
-									<option value="1">Press</option>
-									<option value="2">Bounce</option>
-									<option value="3">Ripple</option>
-									<option value="4">Flash</option>
-									<option value="5">Pulse ring</option>
+									<option value="0" data-i18n="optionNone"></option>
+									<option value="1" data-i18n="clickPress"></option>
+									<option value="2" data-i18n="clickBounce"></option>
+									<option value="3" data-i18n="clickRipple"></option>
+									<option value="4" data-i18n="clickFlash"></option>
+									<option value="5" data-i18n="clickRing"></option>
 								</select></td>
 							</tr>
 
-							<tr class="qd-table-group"><td colspan="3">Title</td></tr>
+							<tr class="qd-table-group"><td colspan="3" data-i18n="settingsGroupTitle"></td></tr>
 							<tr>
-								<td>Show title</td>
+								<td data-i18n="settingsShowTitle"></td>
 								<td><input id="GridCellsTitle" type="checkbox" class="qd-switch"></td>
 								<td><input id="GridCellsTitleHover" type="checkbox" class="qd-switch"></td>
 							</tr>
 							<tr>
-								<td>Height</td>
+								<td data-i18n="settingsHeight"></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleHeight" type="number" min="0"> px</span></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleHeightHover" type="number" min="0"> px</span></td>
 							</tr>
 							<tr>
-								<td>Font size</td>
+								<td data-i18n="settingsFontSize"></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleFontSize" type="number" min="1" step="0.5"> pt</span></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleFontSizeHover" type="number" min="1" step="0.5"> pt</span></td>
 							</tr>
 							<tr>
-								<td>Divider width</td>
+								<td data-i18n="settingsDividerWidth"></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleBorderSize" type="number" min="0"> px</span></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleBorderSizeHover" type="number" min="0"> px</span></td>
 							</tr>
 							<tr>
-								<td>Text color</td>
+								<td data-i18n="settingsTextColor"></td>
 								<td><input id="GridCellsTitleColor" type="color"></td>
 								<td><input id="GridCellsTitleColorHover" type="color"></td>
 							</tr>
 							<tr>
-								<td>Background</td>
-								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparent" type="checkbox"> None</label></div></td>
-								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparentHover" type="checkbox"> None</label></div></td>
+								<td data-i18n="settingsBackground"></td>
+								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColor" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparent" type="checkbox"> <span data-i18n="optionNone"></span></label></div></td>
+								<td><div class="qd-color-cell"><input id="GridCellsTitleBackgroundColorHover" type="color"><label class="qd-check"><input id="GridCellsTitleBackgroundTransparentHover" type="checkbox"> <span data-i18n="optionNone"></span></label></div></td>
 							</tr>
 							<tr>
-								<td>Background opacity</td>
+								<td data-i18n="settingsBackgroundOpacity"></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleBackgroundOpacity" type="number" min="0" max="100" step="5"> %</span></td>
 								<td><span class="qd-unit"><input id="GridCellsTitleBackgroundOpacityHover" type="number" min="0" max="100" step="5"> %</span></td>
 							</tr>
 							<tr>
-								<td>Font</td>
-								<td colspan="2"><div class="qd-inline"><select id="GridCellsTitleFont"></select><label class="qd-check"><input id="GridCellsTitleBold" type="checkbox"> Bold</label></div></td>
+								<td data-i18n="settingsFont"></td>
+								<td colspan="2"><div class="qd-inline"><select id="GridCellsTitleFont"></select><label class="qd-check"><input id="GridCellsTitleBold" type="checkbox"> <span data-i18n="settingsBold"></span></label></div></td>
 							</tr>
 							<tr>
-								<td>Position</td>
+								<td data-i18n="settingsPosition"></td>
 								<td colspan="2"><select id="GridCellsTitlePosition">
-									<option value="0">Below the picture</option>
-									<option value="1">Over the bottom of the picture</option>
+									<option value="0" data-i18n="titleBelow"></option>
+									<option value="1" data-i18n="titleOver"></option>
 								</select></td>
 							</tr>
 
-							<tr class="qd-table-group"><td colspan="3">Thumbnails</td></tr>
+							<tr class="qd-table-group"><td colspan="3" data-i18n="settingsGroupThumbnails"></td></tr>
 							<tr>
-								<td>Capture delay</td>
-								<td colspan="2"><span class="qd-unit"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000" step="100"> ms after the page loads</span></td>
+								<td data-i18n="settingsCaptureDelay"></td>
+								<td colspan="2"><span class="qd-unit"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000" step="100"> <span data-i18n="settingsCaptureDelayUnit"></span></span></td>
 							</tr>
 						</tbody>
 					</table>
@@ -360,13 +360,12 @@
 				<div id="ThemeStatus" class="qd-banner" hidden></div>
 
 				<section class="qd-card">
-					<h2>Themes</h2>
-					<p class="qd-muted">A theme is the look of the dial: background color, page margin, tile and title styles and the accent color.
-					It keeps your background picture, rows and columns, tile shape and tiles. Choose <b>Use</b> to try a theme here, then <b>Apply</b> to put it on the dial.</p>
+					<h2 data-i18n="settingsTabThemes"></h2>
+					<p class="qd-muted" data-i18n="settingsThemesIntro"></p>
 					<div class="qd-inline">
-						<button type="button" class="qd-btn" id="BtnThemeSave" title="Add the current look to your themes">Save current as theme…</button>
-						<button type="button" class="qd-btn" id="BtnThemeExport" title="Save the current look as a .json file">Export current…</button>
-						<button type="button" class="qd-btn" id="BtnThemeImport" title="Add a theme from a .json file">Import theme…</button>
+						<button type="button" class="qd-btn" id="BtnThemeSave" data-i18n-title="themeSaveCurrentHint" data-i18n="themeSaveCurrent"></button>
+						<button type="button" class="qd-btn" id="BtnThemeExport" data-i18n-title="themeExportCurrentHint" data-i18n="themeExportCurrent"></button>
+						<button type="button" class="qd-btn" id="BtnThemeImport" data-i18n-title="themeImportHint" data-i18n="themeImport"></button>
 					</div>
 					<input id="ThemeFile" type="file" accept=".json,application/json" class="qd-file" data-no-dirty tabindex="-1">
 				</section>
@@ -380,24 +379,23 @@
 
 				<div class="qd-cols">
 				<section class="qd-card qd-col">
-					<h2>Quick Dial NG backup</h2>
-					<p class="qd-muted">Saves settings, tiles, pictures and your themes to one file. Restore it with <b>Import from file…</b> below.</p>
+					<h2 data-i18n="backupTitle"></h2>
+					<p class="qd-muted" data-i18n="backupIntro"></p>
 					<div class="qd-inline">
-						<button type="button" class="qd-btn is-primary" id="BtnExport" title="Save settings, tiles and images to a file">Export backup</button>
-						<button type="button" class="qd-btn" id="BtnImport" title="Import an original Quick Dial export or a Quick Dial NG backup">Import from file…</button>
+						<button type="button" class="qd-btn is-primary" id="BtnExport" data-i18n-title="backupExportHint" data-i18n="backupExport"></button>
+						<button type="button" class="qd-btn" id="BtnImport" data-i18n-title="backupImportHint" data-i18n="backupImport"></button>
 					</div>
 					<input id="ImportFile" type="file" accept=".json,application/json" class="qd-file" data-no-dirty tabindex="-1">
 				</section>
 
 				<section class="qd-card qd-col">
-					<h2>Import from the original Quick Dial</h2>
-					<p class="qd-muted">Brings over your tiles with their exact grid positions, folders, pictures, grid and style settings.
-					Bookmarks already in your Quick Dial folder are reused; missing ones are created.</p>
+					<h2 data-i18n="backupOriginalTitle"></h2>
+					<p class="qd-muted" data-i18n="backupOriginalIntro"></p>
 					<ol class="qd-steps">
-						<li>Open <code>about:debugging#/runtime/this-firefox</code>, find the original <b>Quick Dial</b> and click <b>Inspect</b>.</li>
-						<li>Copy the export snippet and paste it into the <b>Console</b> tab (type <code>allow pasting</code> first if Firefox asks). It saves <code>quickdial-export.json</code> to Downloads.<br>
-							<button type="button" class="qd-btn is-small" id="BtnCopySnippet">Copy export snippet</button></li>
-						<li>Choose that file with <b>Import from file…</b> above.</li>
+						<li data-i18n="backupStep1"></li>
+						<li><span data-i18n="backupStep2"></span><br>
+							<button type="button" class="qd-btn is-small" id="BtnCopySnippet" data-i18n="backupCopySnippet"></button></li>
+						<li data-i18n="backupStep3"></li>
 					</ol>
 				</section>
 				</div>
@@ -406,8 +404,8 @@
 
 		<footer class="qd-footer">
 			<span class="qd-status" id="Status" aria-live="polite"></span>
-			<button type="button" class="qd-btn" id="BtnDiscard" title="Show the settings the dial uses now">Discard changes</button>
-			<button type="button" class="qd-btn is-primary" id="BtnApply" title="Put the changes on the dial (Ctrl+S)">Apply</button>
+			<button type="button" class="qd-btn" id="BtnDiscard" data-i18n-title="settingsDiscardHint" data-i18n="settingsDiscard"></button>
+			<button type="button" class="qd-btn is-primary" id="BtnApply" data-i18n-title="settingsApplyHint" data-i18n="buttonApply"></button>
 		</footer>
 	</body>
 </html>

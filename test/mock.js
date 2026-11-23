@@ -8,6 +8,14 @@ function findNode(id, n = S.bm, parent = null) { if (n.id === id) return { node:
 function evt(name, owner) { S.listeners[name] = S.listeners[name] || []; return { addListener: f => { f.__owner = owner; if (!S.listeners[name].includes(f)) S.listeners[name].push(f); }, removeListener: f => { S.listeners[name] = S.listeners[name].filter(x => x !== f); }, hasListener: f => S.listeners[name].includes(f) }; }
 function fire(name, ...a) { for (const f of [...(S.listeners[name] || [])]) try { f(...a); } catch (e) { console.error('listener', name, e); } }
 window.fire = fire;
+// browser.i18n: the English texts (_locales/en/messages.json, read once), $1..$9 filled in as Firefox does
+let messages = null;
+function getMessage(key, substitutions) {
+  if (key === '@@bidi_dir') return 'ltr';
+  if (!messages) { const xhr = new XMLHttpRequest(); xhr.open('GET', '/_locales/en/messages.json', false); xhr.send(); messages = JSON.parse(xhr.responseText); }
+  const entry = messages[key], values = substitutions == null ? [] : [].concat(substitutions);
+  return entry ? entry.message.replace(/\$(\d|\$)/g, (all, n) => n === '$' ? '$' : String(values[n - 1] ?? '')) : '';
+}
 window.makeBrowser = function (win, role) {
   S.frames.push({ win, role });
   return {
@@ -41,5 +49,5 @@ window.makeBrowser = function (win, role) {
     contextMenus: { create: o => { (S.menus = S.menus || []).push(o.title); (S.menuItems = S.menuItems || []).push(o); return o.id || S.menuItems.length; },
       removeAll: () => { S.menus = []; S.menuItems = []; return Promise.resolve(); }, onClicked: evt('cm.onClicked', role) },
     browserAction: { onClicked: evt('ba.onClicked', role) },
-    i18n: { getMessage: k => k } };
+    i18n: { getMessage, getUILanguage: () => 'en' } };
 };

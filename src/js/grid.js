@@ -188,7 +188,7 @@ dial.populateGrid = function(){
 	};
 	const populateBack = link => {
 		reset(link, null, 'is-back');
-		link.lastChild.innerText = 'Back';
+		link.lastChild.innerText = QDCommon.text('tileBack');
 		openIn(link, OpenIn.thisTab);
 		link.href = '#';
 		link.onclick = () => { window.history.back(); };

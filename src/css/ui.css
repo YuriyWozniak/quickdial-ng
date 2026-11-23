@@ -203,7 +203,7 @@
 	display: inline-block;
 	width: 7px;
 	height: 7px;
-	margin-right: 7px;
+	margin-inline-end: 7px;
 	border-radius: 50%;
 	background: var(--qd-accent);
 	vertical-align: 1px;
@@ -261,12 +261,12 @@
 	grid-template-rows: auto auto 1fr auto;
 	grid-template-areas: "head main" "nav main" "side main" "side foot";
 }
-.qd-settings > .qd-header { grid-area: head; padding: 22px 16px 16px 20px; border-bottom: 0; }
+.qd-settings > .qd-header { grid-area: head; padding: 22px 16px 16px; padding-inline-start: 20px; border-bottom: 0; }
 .qd-settings > .qd-tabs { grid-area: nav; }
 .qd-settings > .qd-side { grid-area: side; }
 .qd-settings > .qd-content { grid-area: main; padding: var(--qd-pad-y) var(--qd-gutter) 40px; scrollbar-width: auto; container-type: inline-size; }
 .qd-settings > .qd-footer { grid-area: foot; padding: var(--qd-gap) var(--qd-gutter); }
-.qd-settings > :is(.qd-header, .qd-tabs, .qd-side) { background: var(--qd-surface); border-right: 1px solid var(--qd-border-soft); }
+.qd-settings > :is(.qd-header, .qd-tabs, .qd-side) { background: var(--qd-surface); border-inline-end: 1px solid var(--qd-border-soft); }
 .qd-settings .qd-title { font-size: 16px; }
 
 /* sections: a vertical list in the sidebar */
@@ -276,7 +276,7 @@
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	text-align: left;
+	text-align: start;
 	border-radius: var(--qd-radius-sm);
 }
 .qd-settings .qd-tab[aria-selected="true"] { color: var(--qd-accent); background: var(--qd-accent-soft); }
@@ -329,7 +329,7 @@
 		grid-template-rows: auto auto 1fr auto;
 		grid-template-areas: "head" "nav" "main" "foot";
 	}
-	.qd-settings > :is(.qd-header, .qd-tabs) { border-right: 0; }
+	.qd-settings > :is(.qd-header, .qd-tabs) { border-inline-end: 0; }
 	.qd-settings > .qd-header { padding: 14px var(--qd-pad-x); border-bottom: 1px solid var(--qd-border-soft); }
 	.qd-settings > .qd-side, .qd-settings .qd-panel-title, .qd-settings .qd-tab-icon { display: none; }
 	.qd-settings .qd-tabs { flex-direction: row; overflow-x: auto; padding: 0 calc(var(--qd-pad-x) - 12px); border-bottom: 1px solid var(--qd-border-soft); scrollbar-width: none; }
@@ -344,7 +344,7 @@
 	.qd-aside .qd-tile-stage { flex-direction: row; justify-content: center; }
 }
 @media (max-width: 520px) { /* phones: the picture preview goes above its controls */
-	.qd-settings .qd-image { grid-template-columns: minmax(0, 1fr); }
+	.qd-settings .qd-image { flex-direction: column; align-items: stretch; }
 	.qd-settings .qd-preview.is-screen { width: 100%; }
 	.qd-settings .qd-row { grid-template-columns: minmax(0, 1fr); }
 	.qd-settings .qd-row > .qd-hint { grid-column: 1; }
@@ -394,7 +394,7 @@
 	gap: var(--qd-row) var(--qd-gap);
 	justify-items: start;
 }
-.qd-pairs > select { justify-self: stretch; }
+.qd-pairs > select { justify-self: stretch; min-width: max-content; } /* the choice is never cut off */
 
 .qd-inline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--qd-row); min-width: 0; }
 .qd-grow { flex: 1; min-width: 0; }
@@ -415,15 +415,17 @@
 	transition: border-color .15s, box-shadow .15s, background-color .15s;
 }
 .qd :where(input[type=text], input[type=url]) { width: 100%; }
-.qd input[type=number] { width: 76px; padding-right: 4px; }
+.qd input[type=url] { direction: ltr; } /* addresses read left to right in every language */
+.qd input[type=number] { width: 76px; padding-inline-end: 4px; }
 .qd select {
 	appearance: none;
-	padding-right: 30px;
+	padding-inline-end: 30px;
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23808090' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	background-repeat: no-repeat;
 	background-position: right 9px center;
 	cursor: pointer;
 }
+.qd select:dir(rtl) { background-position: left 9px center; }
 .qd input.is-invalid { border-color: var(--qd-danger) !important; box-shadow: var(--qd-ring-danger) !important; }
 
 /* color swatch */
@@ -471,7 +473,7 @@
 	content: "";
 	position: absolute;
 	top: 2px;
-	left: 2px;
+	inset-inline-start: 2px;
 	width: 14px;
 	height: 14px;
 	border-radius: 50%;
@@ -481,6 +483,7 @@
 }
 .qd-switch:checked { background: var(--qd-accent); border-color: var(--qd-accent); }
 .qd-switch:checked::before { transform: translateX(14px); background: var(--qd-accent-text); }
+.qd-switch:checked:dir(rtl)::before { transform: translateX(-14px); }
 
 .qd-check { display: inline-flex; align-items: center; gap: 6px; font-size: var(--qd-font-size-sm); color: var(--qd-muted); white-space: nowrap; cursor: pointer; }
 .qd-check input { width: 15px; height: 15px; margin: 0; accent-color: var(--qd-accent); cursor: pointer; }
@@ -559,14 +562,17 @@
 .qd-tab:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -4px; }
 
 /* ========== image picker ========== */
+/* The controls sit beside the picture, or under it when their labels and choices are too wide for that
+   (they never get narrower than their longest label and choice: see .qd-pairs > select) */
 .qd-image {
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr);
-	align-items: start;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
 	gap: var(--qd-stack);
 }
-.qd-image.is-stacked { grid-template-columns: minmax(0, 1fr); gap: var(--qd-row); }
-.qd-image-controls { display: flex; flex-direction: column; gap: var(--qd-row); min-width: 0; }
+.qd-image > .qd-preview { flex: none; }
+.qd-image.is-stacked { flex-direction: column; align-items: stretch; gap: var(--qd-row); }
+.qd-image-controls { flex: 1 1 0; display: flex; flex-direction: column; gap: var(--qd-row); min-width: min-content; }
 .qd-preview {
 	position: relative;
 	width: 240px;
@@ -648,7 +654,7 @@
 	top: calc(-1 * var(--qd-pad-y)); /* sticks to the top of the scrolling content */
 	z-index: 1;
 	padding: var(--qd-row) 10px;
-	text-align: left;
+	text-align: start;
 	background: var(--qd-surface);
 	border-bottom: 1px solid var(--qd-border-soft);
 }
@@ -716,12 +722,12 @@
 
 /* ========== numbered steps ========== */
 .qd-steps { margin: 6px 0 var(--qd-gap); padding: 0; list-style: none; counter-reset: step; }
-.qd-steps li { position: relative; padding: 2px 0 10px 36px; counter-increment: step; }
+.qd-steps li { position: relative; padding: 2px 0 10px; padding-inline-start: 36px; counter-increment: step; }
 .qd-steps li::before {
 	content: counter(step);
 	position: absolute;
 	top: 0;
-	left: 0;
+	inset-inline-start: 0;
 	display: grid;
 	place-items: center;
 	width: 24px;

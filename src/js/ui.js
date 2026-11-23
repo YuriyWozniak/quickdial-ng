@@ -108,7 +108,7 @@ var QDUI = (function(){
 			applyButton.disabled = !dirty;
 			if(discardButton) discardButton.disabled = !dirty;
 			statusEl.classList.toggle('is-dirty', dirty);
-			if(dirty){ statusEl.classList.remove('is-saved'); statusEl.textContent = 'Unsaved changes'; }
+			if(dirty){ statusEl.classList.remove('is-saved'); statusEl.textContent = QDCommon.text('statusUnsaved'); }
 		}
 		function mark(){ if(!ready) return; dirty = true; clearTimeout(timer); render(); }
 		function onEvent(e){ if(e.target.closest && e.target.closest('[data-no-dirty]')) return; mark(); }
@@ -126,8 +126,8 @@ var QDUI = (function(){
 			mark: mark,
 			start: function(){ ready = true; }, // Call after the form has been filled in
 			isDirty: function(){ return dirty; },
-			markSaved: function(text){ done(text || 'Changes applied', true); },
-			markDiscarded: function(text){ done(text || 'Changes discarded', false); }
+			markSaved: function(text){ done(text || QDCommon.text('statusApplied'), true); },
+			markDiscarded: function(text){ done(text || QDCommon.text('statusDiscarded'), false); }
 		};
 	}
 
@@ -252,8 +252,8 @@ var QDUI = (function(){
 				box.addEventListener('input', () => { inputs.forEach(i => { i.classList.remove('is-invalid'); }); error.textContent = ''; });
 			}
 			const actions = document.createElement('div'); actions.className = 'qd-dialog-actions';
-			const cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'qd-btn'; cancel.textContent = options.cancelText || 'Cancel';
-			const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'qd-btn ' + (options.danger ? 'is-danger' : 'is-primary'); ok.textContent = options.okText || 'OK';
+			const cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'qd-btn'; cancel.textContent = options.cancelText || QDCommon.text('buttonCancel');
+			const ok = document.createElement('button'); ok.type = 'button'; ok.className = 'qd-btn ' + (options.danger ? 'is-danger' : 'is-primary'); ok.textContent = options.okText || QDCommon.text('buttonOk');
 			actions.appendChild(cancel); actions.appendChild(ok);
 			box.appendChild(actions);
 			overlay.appendChild(box);
@@ -273,7 +273,7 @@ var QDUI = (function(){
 					result = {};
 					options.fields.forEach((f, i) => { result[f.name] = inputs[i].value.trim(); });
 				} else result = inputs[0].value.trim();
-				const problem = options.validate ? options.validate(result) : (inputs[0].value.trim() ? '' : 'Please enter a value.');
+				const problem = options.validate ? options.validate(result) : (inputs[0].value.trim() ? '' : QDCommon.text('dialogEnterValue'));
 				if(problem){ inputs[0].classList.add('is-invalid'); error.textContent = problem; inputs[0].focus(); return; }
 				finish(options.transform ? options.transform(result) : result);
 			}
@@ -296,5 +296,36 @@ var QDUI = (function(){
 		});
 	}
 
-	return { openPopup, closePopup, fitPopup, initTabs, trackChanges, readFile, imagePicker, imageDrop, setAccent, dialog };
+	// ---------- page texts ----------
+	// The pages' texts live in the language files (_locales), not in the HTML: an element marked data-i18n="key"
+	// gets that text, data-i18n-title, data-i18n-placeholder and data-i18n-aria-label set those attributes.
+	// The page also gets its language and writing direction (right to left for Hebrew).
+	const TEXT_ATTRIBUTES = ['title', 'placeholder', 'aria-label'];
+	function localize(root){
+		root = root || document;
+		for(const el of root.querySelectorAll('[data-i18n]')) setRichText(el, QDCommon.text(el.getAttribute('data-i18n')));
+		for(const attr of TEXT_ATTRIBUTES){
+			for(const el of root.querySelectorAll('[data-i18n-' + attr + ']')) el.setAttribute(attr, QDCommon.text(el.getAttribute('data-i18n-' + attr)));
+		}
+		if(root === document){
+			document.documentElement.lang = browser.i18n.getUILanguage();
+			document.documentElement.dir = browser.i18n.getMessage('@@bidi_dir') || 'ltr';
+		}
+	}
+	// A text may hold <b>...</b>, <code>...</code> and <br>: they become those elements (built one by one, never
+	// parsed as HTML); anything else in it is shown as it is.
+	const RICH_TEXT = /<(b|code)>(.*?)<\/\1>|<br>/g;
+	function setRichText(el, text){
+		el.replaceChildren();
+		let last = 0;
+		for(const m of text.matchAll(RICH_TEXT)){
+			el.append(text.slice(last, m.index));
+			if(m[1]){ const part = document.createElement(m[1]); part.textContent = m[2]; el.append(part); }
+			else el.append(document.createElement('br'));
+			last = m.index + m[0].length;
+		}
+		el.append(text.slice(last));
+	}
+
+	return { openPopup, closePopup, fitPopup, initTabs, trackChanges, readFile, imagePicker, imageDrop, setAccent, dialog, localize, setRichText };
 })();

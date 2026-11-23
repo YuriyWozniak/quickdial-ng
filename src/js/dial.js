@@ -193,16 +193,16 @@ app.loadUI = function(){
 app.createBookmark = function(){
 	app.loadUI().then(ui => {
 		return ui.dialog({
-			title: browser.i18n.getMessage('dialogNewBookmark'),
-			message: browser.i18n.getMessage('dialogNewBookmarkPrompt'),
-			value: 'https://', placeholder: 'https://example.com', okText: 'Add',
+			title: QDCommon.text('dialogNewBookmark'),
+			message: QDCommon.text('dialogNewBookmarkPrompt'),
+			value: 'https://', placeholder: 'https://example.com', okText: QDCommon.text('dialogAdd'),
 			validate: function(v){
 				const u = /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v;
 				try { // web addresses need a host; other schemes (file:, about:...) are kept, except scripts and inline data
 					const p = new URL(u);
 					if(/^https?:$/.test(p.protocol) ? p.hostname : !/^(javascript|data):$/i.test(p.protocol)) return '';
 				} catch(e) {}
-				return 'Enter a web address, e.g. https://example.com';
+				return QDCommon.text('dialogInvalidAddress');
 			},
 			transform: function(v){ return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v; }
 		});
@@ -210,13 +210,13 @@ app.createBookmark = function(){
 };
 app.createFolder = function(){
 	app.loadUI().then(ui => {
-		return ui.dialog({ title: browser.i18n.getMessage('dialogNewFolder'), message: browser.i18n.getMessage('dialogNewFolderPrompt'), value: 'New Folder', okText: 'Create' });
+		return ui.dialog({ title: QDCommon.text('dialogNewFolder'), message: QDCommon.text('dialogNewFolderPrompt'), value: QDCommon.text('dialogNewFolderName'), okText: QDCommon.text('dialogCreate') });
 	}).then(name => { if(name) QDClient.createFolder(app.path, name); });
 };
 app.deleteNode = function(link){ // Delete: asks first
 	const node = link.gridNode;
 	app.loadUI().then(ui => {
-		return ui.dialog({ title: browser.i18n.getMessage('dialogDeleteConfirmation', node.title), message: node.url || '', okText: browser.i18n.getMessage('menuDeleteItem'), danger: true });
+		return ui.dialog({ title: QDCommon.text('dialogDeleteConfirmation', node.title), message: node.url || '', okText: QDCommon.text('menuDeleteItem'), danger: true });
 	}).then(ok => { if(ok) QDClient.deleteNode(app.path, node.id); });
 };
 app.refreshNode = function(link){ // Refresh: download the page for its title and picture

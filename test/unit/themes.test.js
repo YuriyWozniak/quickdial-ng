@@ -130,14 +130,14 @@ test('theme files round-trip; descriptions and names are cleaned', () => {
 	assert.equal(f.description, 'a b');
 });
 
-test('fromFile explains what is wrong with a file', () => {
+test('fromFile says what is wrong with a file (the key of the text Settings shows)', () => {
 	const err = data => { try { T.fromFile(data); return 'no error'; } catch (e) { return e.message; } };
-	assert.match(err({ format: 'quickdial-ng', settings: {} }), /full Quick Dial NG backup/);
-	assert.match(err({ hello: 1 }), /not a Quick Dial NG theme/);
-	assert.match(err(null), /not a Quick Dial NG theme/);
-	assert.match(err({ format: 'quickdial-ng-theme', version: 2, name: 'x', style: {} }), /newer version/);
-	assert.match(err({ format: 'quickdial-ng-theme', version: 1, name: '  ', style: {} }), /no name/);
-	assert.match(err({ format: 'quickdial-ng-theme', version: 1, name: 'x', style: 'red' }), /not a Quick Dial NG theme/);
+	assert.equal(err({ format: 'quickdial-ng', settings: {} }), 'themeFileIsBackup');
+	assert.equal(err({ hello: 1 }), 'themeFileInvalid');
+	assert.equal(err(null), 'themeFileInvalid');
+	assert.equal(err({ format: 'quickdial-ng-theme', version: 2, name: 'x', style: {} }), 'themeFileNewer');
+	assert.equal(err({ format: 'quickdial-ng-theme', version: 1, name: '  ', style: {} }), 'themeFileNoName');
+	assert.equal(err({ format: 'quickdial-ng-theme', version: 1, name: 'x', style: 'red' }), 'themeFileInvalid');
 });
 
 test('cleanList keeps valid custom themes once; built-in names and broken entries go', () => {

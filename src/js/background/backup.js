@@ -22,7 +22,7 @@ app.Backup._mergeDefaults = function(defaults, value){ // Imported values win; a
 };
 app.Backup._loadRoot = async function(rootPath){ // Promise<bookmark subtree of the Quick Dial root folder> (created if missing)
 	const item = await app.Bookmarks.load(rootPath);
-	if(!item) throw new Error('Cannot open the bookmarks folder "' + rootPath + '"');
+	if(!item) throw new Error(QDCommon.text('backupNoBookmarksFolder', rootPath));
 	return (await browser.bookmarks.getSubTree(item.id))[0];
 };
 // Links each tile to a bookmark (by id, then URL / folder name), creating missing ones; cell positions are kept
@@ -79,7 +79,7 @@ app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){
 	while(children.length && children[children.length - 1].type == NodeType.empty) children.pop();
 };
 app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an original Quick Dial data dump ({ version: 4, settings, node })
-	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error('Not a Quick Dial backup');
+	if(!data || !data.settings || !data.node || !data.settings.grid) throw new Error(QDCommon.text('backupNotABackup'));
 	const imported = app.Backup._clean(data.settings);
 	app.Settings.migrateToolbar(imported); // older backups and the original Quick Dial: the toolbar switch becomes toolbarAction
 	app.Settings.migrateIcons(imported); // and the old PNG folder and Back pictures become the SVG ones
