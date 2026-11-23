@@ -1,8 +1,16 @@
-// ESLint for the extension's code (src/). Run: npm install, then npm run lint (or npm run lint:fix).
+// ESLint for the extension's code (src/): the scripts and the stylesheets (@eslint/css).
+// Run: npm install, then npm run lint (or npm run lint:fix).
 // The pages are plain scripts sharing a few globals; no build step, no modules.
 import fs from 'node:fs';
 import js from '@eslint/js';
+import css from '@eslint/css';
 import globals from 'globals';
+
+// The physical properties and units prefer-logical-properties knows: allowed, except those for left and right,
+// which flip in a right-to-left language (top, width or vh are the same in every language the pages use)
+const logical = css.rules['prefer-logical-properties'].meta.schema[0].properties;
+const UP_DOWN_PROPERTIES = logical.allowProperties.items.enum.filter(p => !/left|right/.test(p));
+const VIEWPORT_UNITS = logical.allowUnits.items.enum;
 
 // Settings and Properties reach their form elements by id (window.BtnApply...): those ids are globals there
 const idsOf = page => Object.fromEntries([...fs.readFileSync(new URL(page, import.meta.url), 'utf8').matchAll(/\sid="([A-Za-z_][\w]*)"/g)].map(m => [m[1], 'readonly']));
@@ -10,7 +18,23 @@ const idsOf = page => Object.fromEntries([...fs.readFileSync(new URL(page, impor
 export default [
 	{ files: ['src/**/*.js', 'test/**/*.js'] },
 	{ ignores: ['*.mjs', 'release/**', 'node_modules/**', 'web-ext-artifacts/**', 'test/node_modules/**', 'test/screenshots/**'] },
-	js.configs.recommended,
+	{ files: ['**/*.js'], ...js.configs.recommended },
+
+	// Stylesheets: the recommended rules, and logical properties for left and right (CODE_STYLE.md: layout works right to left too)
+	{
+		files: ['src/**/*.css'],
+		plugins: { css },
+		language: 'css/css',
+		rules: {
+			...css.configs.recommended.rules,
+			// The tokens (--qd-*) are defined in css/ui.css, or set by script, so another file can't look them up
+			'css/no-invalid-properties': ['error', { allowUnknownVariables: true }],
+			// Baseline means every major browser, Safari included; the extension runs only in Firefox (140 and later).
+			// Newly available features are fine there, and so are these two, unprefixed in Firefox.
+			'css/use-baseline': ['error', { available: 'newly', allowProperties: ['user-select', 'accent-color'] }],
+			'css/prefer-logical-properties': ['error', { allowProperties: UP_DOWN_PROPERTIES, allowUnits: VIEWPORT_UNITS }]
+		}
+	},
 	{
 		files: ['src/**/*.js'],
 		languageOptions: {
