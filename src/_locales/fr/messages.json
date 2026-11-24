@@ -15,7 +15,7 @@
   },
 
   "dialogNewBookmarkPrompt": {
-    "message": "Entrez l'url du nouveau marque-page :",
+    "message": "Adresse du nouveau marque-page :",
     "description": "Text of the add bookmark prompt."
   },
 
@@ -25,7 +25,7 @@
   },
 
   "dialogNewFolderPrompt": {
-    "message": "Entrez le nom du nouveau dossier :",
+    "message": "Nom du nouveau dossier :",
     "description": "Text of the add folder prompt."
   },
 
@@ -55,7 +55,7 @@
   },
 
   "menuSettings": {
-    "message": "Paramètres Quick Dial NG",
+    "message": "Paramètres de Quick Dial NG",
     "description": "Text of settings menu item."
   },
 
@@ -85,7 +85,7 @@
   },
 
   "extensionDescription": {
-    "message": "Accès rapide pour les nouveaux onglets et la page d’accueil, avec des vignettes issues d’un dossier de marque-pages. Fork indépendant et optimisé de Quick Dial de MatMoul.",
+    "message": "Accès rapide sur les nouveaux onglets et la page d’accueil, avec des vignettes tirées d’un dossier de marque-pages. Fork indépendant et optimisé du Quick Dial de MatMoul.",
     "description": "The extension's description in Firefox's Add-ons manager"
   },
 
@@ -132,7 +132,7 @@
   },
 
   "dialogEnterValue": {
-    "message": "Veuillez saisir une valeur."
+    "message": "Saisissez une valeur."
   },
 
   "dialogAdd": {
@@ -175,7 +175,7 @@
   },
 
   "tileHover": {
-    "message": "Survol",
+    "message": "Au survol",
     "description": "A tile under the mouse pointer"
   },
 
@@ -205,11 +205,11 @@
   },
 
   "fitCover": {
-    "message": "Couvrir"
+    "message": "Remplir"
   },
 
   "fitContain": {
-    "message": "Contenir"
+    "message": "Ajuster"
   },
 
   "fitCenter": {
@@ -266,11 +266,11 @@
   },
 
   "settingsBackgroundDropHint": {
-    "message": "Ou déposez une image sur l’aperçu."
+    "message": "Ou glissez une image sur l’aperçu."
   },
 
   "settingsGradientHint": {
-    "message": "Le thème ajoute un dégradé, affiché derrière l’image."
+    "message": "Le thème ajoute un dégradé, visible derrière l’image."
   },
 
   "settingsGradientRemove": {
@@ -286,7 +286,7 @@
   },
 
   "settingsAccentColorHint": {
-    "message": "Boutons, interrupteurs, onglets et contours de focus dans les fenêtres et boîtes de dialogue de Quick Dial NG"
+    "message": "Couleur des boutons, interrupteurs, onglets et contours de focus dans Quick Dial NG"
   },
 
   "settingsBehavior": {
@@ -306,7 +306,7 @@
   },
 
   "settingsToolbarButtonHint": {
-    "message": "Ce qu’ouvre le bouton Quick Dial NG dans la barre d’outils de Firefox. Son menu contextuel propose les deux."
+    "message": "Ce qui s’ouvre avec le bouton Quick Dial NG de la barre d’outils de Firefox. Son menu contextuel propose les deux."
   },
 
   "settingsToolbarSettings": {
@@ -326,7 +326,7 @@
   },
 
   "settingsStartPageHint": {
-    "message": "Quick Dial NG est la page d’accueil de Firefox : elle s’ouvre au démarrage de Firefox et avec le bouton Accueil. Pour utiliser une autre page, allez dans Paramètres de Firefox › Accueil."
+    "message": "Quick Dial NG est désormais la page d’accueil de Firefox : il s’ouvre au démarrage et avec le bouton Accueil. Pour choisir une autre page, ouvrez Paramètres de Firefox › Accueil."
   },
 
   "settingsLayout": {
@@ -350,11 +350,11 @@
   },
 
   "settingsRatioWidth": {
-    "message": "Rapport largeur"
+    "message": "Largeur relative"
   },
 
   "settingsRatioHeight": {
-    "message": "Rapport hauteur"
+    "message": "Hauteur relative"
   },
 
   "settingsTileShapeHint": {
@@ -370,7 +370,7 @@
   },
 
   "settingsBookmarksFolderHint": {
-    "message": "Le dossier de marque-pages affiché dans l’accès rapide"
+    "message": "Le dossier de marque-pages que montre l’accès rapide"
   },
 
   "settingsOpening": {
@@ -443,7 +443,7 @@
   },
 
   "settingsCornerRadius": {
-    "message": "Rayon des coins"
+    "message": "Arrondi des coins"
   },
 
   "settingsBorderColor": {
@@ -455,11 +455,11 @@
   },
 
   "settingsGlassBlur": {
-    "message": "Flou de verre"
+    "message": "Verre dépoli"
   },
 
   "settingsGlassBlurHint": {
-    "message": "Floute la page derrière la vignette"
+    "message": "Floute le fond sous la vignette"
   },
 
   "settingsShadow": {
@@ -471,7 +471,7 @@
   },
 
   "shadowStrong": {
-    "message": "Forte"
+    "message": "Marquée"
   },
 
   "settingsHoverEffect": {
@@ -479,11 +479,11 @@
   },
 
   "hoverInstant": {
-    "message": "Changement immédiat"
+    "message": "Immédiat"
   },
 
   "hoverSmooth": {
-    "message": "Changement progressif"
+    "message": "Progressif"
   },
 
   "hoverLift": {
@@ -499,15 +499,15 @@
   },
 
   "settingsClickEffectHint": {
-    "message": "Cliquez sur une vignette d’exemple pour le revoir"
+    "message": "Cliquez sur une vignette d’exemple pour revoir l’effet"
   },
 
   "settingsClickToPreview": {
-    "message": "Cliquez pour voir l’effet au clic"
+    "message": "Cliquez pour voir l’effet"
   },
 
   "settingsReducedMotionHint": {
-    "message": "Les animations sont désactivées dans les paramètres de votre système, donc les vignettes ne bougent pas : les effets au clic clignotent ou s’estompent à la place, et un survol progressif ne change que les couleurs, sans soulever ni agrandir."
+    "message": "Les animations sont désactivées dans les paramètres du système : les vignettes ne bougent donc pas. Les effets au clic clignotent ou s’estompent à la place, et le survol progressif ne change que les couleurs, sans soulèvement ni agrandissement."
   },
 
   "clickPress": {
@@ -527,7 +527,7 @@
   },
 
   "clickRing": {
-    "message": "Anneau pulsé"
+    "message": "Pulsation"
   },
 
   "settingsGroupTitle": {
@@ -578,7 +578,7 @@
   },
 
   "titleOver": {
-    "message": "Sur le bas de l’image"
+    "message": "Sur l’image, en bas"
   },
 
   "settingsGroupThumbnails": {
@@ -598,7 +598,7 @@
   },
 
   "settingsDiscardHint": {
-    "message": "Afficher les paramètres utilisés actuellement par l’accès rapide"
+    "message": "Revenir aux paramètres qu’utilise actuellement l’accès rapide"
   },
 
   "settingsApplyHint": {
@@ -606,12 +606,12 @@
   },
 
   "settingsThemesIntro": {
-    "message": "Un thème est l’apparence de l’accès rapide : couleur de fond, marge de la page, styles des vignettes et des titres, et couleur d’accent. Il conserve votre image d’arrière-plan, les lignes et colonnes, la forme des vignettes et les vignettes. Choisissez <b>Utiliser</b> pour essayer un thème ici, puis <b>Appliquer</b> pour l’appliquer à l’accès rapide.",
+    "message": "Un thème définit l’apparence de l’accès rapide : couleur de fond, marge de la page, style des vignettes et des titres, couleur d’accent. Votre image d’arrière-plan, le nombre de lignes et de colonnes, la forme des vignettes et les vignettes elles-mêmes ne changent pas. Choisissez <b>Utiliser</b> pour essayer un thème ici, puis <b>Appliquer</b> pour l’adopter dans l’accès rapide.",
     "description": "Keep <b> and </b> around the words of the buttons"
   },
 
   "themeSaveCurrent": {
-    "message": "Enregistrer l’actuel comme thème…"
+    "message": "Enregistrer l’apparence actuelle comme thème…"
   },
 
   "themeSaveCurrentHint": {
@@ -619,7 +619,7 @@
   },
 
   "themeExportCurrent": {
-    "message": "Exporter l’actuel…"
+    "message": "Exporter l’apparence actuelle…"
   },
 
   "themeExportCurrentHint": {
@@ -639,7 +639,7 @@
   },
 
   "themeInUse": {
-    "message": "Utilisé"
+    "message": "Actif"
   },
 
   "themeUse": {
@@ -647,7 +647,7 @@
   },
 
   "themeUseHint": {
-    "message": "Afficher ce thème ici ; Appliquer le conserve"
+    "message": "Essayer ce thème ici ; « Appliquer » le conserve"
   },
 
   "themeExport": {
@@ -667,12 +667,12 @@
   },
 
   "themeShownHere": {
-    "message": "« $1 » est affiché ici seulement. Appliquer le met sur l’accès rapide ; Abandonner les modifications rétablit l’apparence précédente.",
+    "message": "« $1 » n’est affiché qu’ici. « Appliquer » l’active dans l’accès rapide ; « Abandonner les modifications » rétablit l’apparence précédente.",
     "description": "$1: the theme's name"
   },
 
   "themeDialogMessage": {
-    "message": "À partir des paramètres actuels : couleur de fond, marge de la page, styles des vignettes et des titres, et couleur d’accent."
+    "message": "Reprend des paramètres actuels la couleur de fond, la marge de la page, le style des vignettes et des titres, et la couleur d’accent."
   },
 
   "themeName": {
@@ -692,16 +692,16 @@
   },
 
   "themeNameMissing": {
-    "message": "Veuillez saisir un nom."
+    "message": "Saisissez un nom."
   },
 
   "themeNameTooLong": {
-    "message": "Veuillez utiliser au plus $1 caractères.",
+    "message": "Nom trop long ($1 caractères au maximum).",
     "description": "$1: a number"
   },
 
   "themeNameBuiltIn": {
-    "message": "« $1 » est un thème intégré. Veuillez choisir un autre nom.",
+    "message": "« $1 » est déjà un thème intégré. Choisissez un autre nom.",
     "description": "$1: the name typed"
   },
 
@@ -719,7 +719,7 @@
   },
 
   "themeSaveTitle": {
-    "message": "Enregistrer l’actuel comme thème"
+    "message": "Enregistrer l’apparence actuelle comme thème"
   },
 
   "themeSave": {
@@ -732,7 +732,7 @@
   },
 
   "themeExportTitle": {
-    "message": "Exporter l’actuel comme thème"
+    "message": "Exporter l’apparence actuelle comme thème"
   },
 
   "themeExportButton": {
@@ -740,7 +740,7 @@
   },
 
   "themeImported": {
-    "message": "« $1 » importé. Choisissez Utiliser pour l’essayer.",
+    "message": "« $1 » importé. Choisissez « Utiliser » pour l’essayer.",
     "description": "$1: the theme's name"
   },
 
@@ -759,7 +759,7 @@
   },
 
   "themeFileIsBackup": {
-    "message": "Ceci est une sauvegarde complète de Quick Dial NG. Importez-la dans l’onglet Sauvegarde."
+    "message": "Ceci est une sauvegarde complète de Quick Dial NG. Restaurez-la dans l’onglet « Sauvegarde »."
   },
 
   "themeFileInvalid": {
@@ -788,7 +788,7 @@
   },
 
   "themeAnoriDescription": {
-    "message": "Inspiré de l’extension Anori (anori.app) : une page vert profond, des vignettes en verre dépoli aux grands coins arrondis et des titres sur les images."
+    "message": "Inspiré de l’extension Anori (anori.app) : fond vert profond, vignettes en verre dépoli aux grands coins arrondis, titres sur les images."
   },
 
   "themePlumName": {
@@ -796,7 +796,7 @@
   },
 
   "themePlumDescription": {
-    "message": "Une page prune foncé avec des bordures arrondies gris clair et des titres sous les images. Conçu pour une grande grille avec des groupes de sites et de l’espace entre eux."
+    "message": "Fond prune foncé, bordures arrondies gris clair, titres sous les images. Pour une grande grille avec des groupes de sites espacés."
   },
 
   "themeDesktopName": {
@@ -804,7 +804,7 @@
   },
 
   "themeDesktopDescription": {
-    "message": "Des icônes avec leur nom en dessous sur une page bleu nuit ou votre fond d’écran, comme un bureau d’ordinateur, avec une surbrillance douce sous le pointeur. Pour des vignettes carrées et des images d’icônes."
+    "message": "Des icônes avec leur nom en dessous, sur fond bleu nuit ou sur votre fond d’écran — comme un bureau d’ordinateur, avec une légère surbrillance sous le pointeur. Pour des vignettes carrées et des images d’icônes."
   },
 
   "themeDuskName": {
@@ -812,7 +812,7 @@
   },
 
   "themeDuskDescription": {
-    "message": "Des vignettes de verre violet qui s’agrandissent au survol, sur un ciel de coucher de soleil."
+    "message": "Vignettes de verre violet sur un ciel de coucher de soleil ; la vignette sous le pointeur s’agrandit."
   },
 
   "themeRetroPcName": {
@@ -820,7 +820,7 @@
   },
 
   "themeRetroPcDescription": {
-    "message": "Un bureau de PC de la fin des années 1990 : une page bleu canard, des icônes aux noms blancs et une surbrillance bleu marine du nom sous le pointeur. Pour des vignettes carrées et des images d’icônes."
+    "message": "Un bureau de PC de la fin des années 1990 : fond bleu canard, icônes aux noms blancs, nom surligné en bleu marine sous le pointeur. Pour des vignettes carrées et des images d’icônes."
   },
 
   "themeRetroMonoName": {
@@ -828,7 +828,7 @@
   },
 
   "themeRetroMonoDescription": {
-    "message": "Un des premiers bureaux en noir et blanc : un motif gris fin, des noms noirs sur des étiquettes blanches, inversés sous le pointeur. Pour des vignettes carrées et des images d’icônes en noir et blanc."
+    "message": "Un des premiers bureaux noir et blanc : fin motif gris, noms noirs sur étiquettes blanches, inversés sous le pointeur. Pour des vignettes carrées et des icônes noir et blanc."
   },
 
   "backupTitle": {
@@ -836,7 +836,7 @@
   },
 
   "backupIntro": {
-    "message": "Enregistre les paramètres, les vignettes, les images et vos thèmes dans un seul fichier. Restaurez-le avec <b>Importer depuis un fichier…</b> ci-dessous.",
+    "message": "Enregistre les paramètres, les vignettes, les images et vos thèmes dans un seul fichier. Pour les restaurer, utilisez <b>Importer depuis un fichier…</b> ci-dessous.",
     "description": "Keep <b> and </b>; the words inside are the button's"
   },
 
@@ -853,7 +853,7 @@
   },
 
   "backupImportHint": {
-    "message": "Importer un export du Quick Dial original ou une sauvegarde Quick Dial NG"
+    "message": "Ouvrir un export du Quick Dial original ou une sauvegarde Quick Dial NG"
   },
 
   "backupOriginalTitle": {
@@ -861,7 +861,7 @@
   },
 
   "backupOriginalIntro": {
-    "message": "Reprend vos vignettes avec leur position exacte dans la grille, les dossiers, les images et les paramètres de grille et de style. Les marque-pages déjà présents dans votre dossier Quick Dial sont réutilisés ; ceux qui manquent sont créés."
+    "message": "Reprend vos vignettes (aux mêmes places dans la grille), les dossiers, les images ainsi que les paramètres de grille et de style. Les marque-pages déjà présents dans votre dossier Quick Dial sont réutilisés, les autres sont créés."
   },
 
   "backupStep1": {
@@ -870,16 +870,16 @@
   },
 
   "backupStep2": {
-    "message": "Copiez l’extrait d’export et collez-le dans l’onglet <b>Console</b> (tapez d’abord <code>allow pasting</code> si Firefox le demande). Il enregistre <code>quickdial-export.json</code> dans Téléchargements.",
+    "message": "Copiez le code d’export et collez-le dans l’onglet <b>Console</b> (si Firefox le demande, tapez d’abord <code>allow pasting</code>). Le code enregistre <code>quickdial-export.json</code> dans Téléchargements.",
     "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
   },
 
   "backupStep3": {
-    "message": "Choisissez ce fichier avec <b>Importer depuis un fichier…</b> ci-dessus."
+    "message": "Ouvrez ce fichier avec <b>Importer depuis un fichier…</b> ci-dessus."
   },
 
   "backupCopySnippet": {
-    "message": "Copier l’extrait d’export"
+    "message": "Copier le code d’export"
   },
 
   "backupCopied": {
@@ -887,11 +887,11 @@
   },
 
   "backupCopyPrompt": {
-    "message": "Copiez cet extrait :"
+    "message": "Copiez ce code :"
   },
 
   "backupFileIsTheme": {
-    "message": "Ceci est un thème. Importez-le dans l’onglet Thèmes."
+    "message": "Ceci est un thème. Importez-le dans l’onglet « Thèmes »."
   },
 
   "backupFileInvalid": {
@@ -907,7 +907,7 @@
   },
 
   "backupImportMessage": {
-    "message": "Vos paramètres actuels et la disposition des vignettes seront remplacés. Les marque-pages du dossier Quick Dial sont conservés ; ceux qui manquent sont créés."
+    "message": "Vos paramètres actuels et la disposition des vignettes seront remplacés. Les marque-pages du dossier Quick Dial sont conservés, les manquants sont créés."
   },
 
   "backupImportButton": {
@@ -919,7 +919,7 @@
   },
 
   "backupImportResult": {
-    "message": "Importé : $1, $2, $3, ainsi que les paramètres de grille et de style. Marque-pages réutilisés : $4, créés : $5.",
+    "message": "Importé : $1, $2, $3, ainsi que les paramètres de grille et de style. Marque-pages existants réutilisés : $4, nouveaux : $5.",
     "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
   },
 
@@ -1008,7 +1008,7 @@
   },
 
   "propertiesLockTitleHint": {
-    "message": "Verrouiller le titre : actualiser la vignette ne la renommera pas"
+    "message": "Verrouiller le titre pour que l’actualisation de la vignette ne le change pas"
   },
 
   "propertiesAddress": {
@@ -1040,7 +1040,7 @@
   },
 
   "propertiesPasteHint": {
-    "message": "Déposez une image sur l’aperçu ou collez-en une avec Ctrl+V."
+    "message": "Glissez une image sur l’aperçu ou collez-la avec Ctrl+V."
   },
 
   "propertiesKeepPicture": {
