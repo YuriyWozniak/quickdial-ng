@@ -601,6 +601,66 @@
     "message": "ms nach dem Laden der Seite"
   },
 
+  "settingsNewTilePicture": {
+    "message": "Neue Kacheln erhalten"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Selbst gewählte Bilder werden nie ersetzt."
+  },
+
+  "tilePicturePage": {
+    "message": "Ein Bildschirmfoto der Seite"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "Das Website-Symbol (ein Buchstabe, wenn es keines gibt)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "Das Website-Symbol oder ein Bildschirmfoto, wenn es keines gibt"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Vorhandene Kacheln"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Auf Kacheln anwenden…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Den vorhandenen Kacheln Bilder geben, die wie oben gewählt erstellt werden"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Auf Ihre Kacheln anwenden?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Ihre Kacheln erhalten neue Bilder: $1. Selbst gewählte und beibehaltene Bilder bleiben, wie sie sind. Bei vielen Kacheln dauert das eine Weile."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Auf Kacheln anwenden"
+  },
+
+  "tilePictureApplying": {
+    "message": "Neue Bilder werden erstellt…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Kacheln mit neuen Bildern: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Jede Kachel hat bereits ein solches Bild."
+  },
+
+  "tilePictureFailed": {
+    "message": "Die Bilder konnten nicht erstellt werden."
+  },
+
   "settingsDiscard": {
     "message": "Änderungen verwerfen"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "„$1“ ist nur hier zu sehen. „Übernehmen“ aktiviert es in der Schnellwahl, „Änderungen verwerfen“ stellt das vorherige Aussehen wieder her.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "Es ist für Symbolbilder gemacht."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Website-Symbole für neue Kacheln verwenden"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "Neue Kacheln erhalten nach dem Übernehmen das Website-Symbol. Vorhandene Kacheln behalten ihre Bilder, außer Sie wenden die Symbole auch auf sie an."
   },
 
   "themeDialogMessage": {

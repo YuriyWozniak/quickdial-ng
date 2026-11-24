@@ -601,6 +601,66 @@
     "message": "ms dopo il caricamento della pagina"
   },
 
+  "settingsNewTilePicture": {
+    "message": "I nuovi riquadri ricevono"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Le immagini scelte da te non vengono mai sostituite."
+  },
+
+  "tilePicturePage": {
+    "message": "Una cattura della pagina"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "L’icona del sito (una lettera se non ne ha)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "L’icona del sito, o una cattura se non ne ha"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Riquadri esistenti"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Applica ai riquadri…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Dare ai riquadri esistenti immagini fatte nel modo scelto sopra"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Applicare ai tuoi riquadri?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "I tuoi riquadri ricevono nuove immagini: $1. Le immagini scelte da te e quelle conservate restano come sono. Con molti riquadri ci vuole un po’."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Applica ai riquadri"
+  },
+
+  "tilePictureApplying": {
+    "message": "Creazione delle nuove immagini…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Riquadri con nuove immagini: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Ogni riquadro ha già un’immagine così."
+  },
+
+  "tilePictureFailed": {
+    "message": "Non è stato possibile creare le immagini."
+  },
+
   "settingsDiscard": {
     "message": "Annulla modifiche"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "“$1” è visibile solo qui. “Applica” lo attiva nell’accesso rapido; “Annulla modifiche” torna all’aspetto precedente.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "È pensato per immagini di icone."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Usa le icone dei siti per i nuovi riquadri"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "I nuovi riquadri riceveranno l’icona del sito dopo l’applicazione. I riquadri esistenti mantengono le loro immagini, a meno che tu non applichi le icone anche a loro."
   },
 
   "themeDialogMessage": {

@@ -601,6 +601,66 @@
     "message": "ms after the page loads"
   },
 
+  "settingsNewTilePicture": {
+    "message": "New tiles get"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Pictures you chose yourself are never replaced."
+  },
+
+  "tilePicturePage": {
+    "message": "A screenshot of the page"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "The site's icon (a letter if it has none)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "The site's icon, or a screenshot if it has none"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Tiles you have now"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Apply to tiles…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Give the tiles you have now pictures made the way chosen above"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Apply to your tiles?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Your tiles get new pictures: $1. Pictures you chose yourself and kept pictures stay as they are. With many tiles this takes a while."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Apply to tiles"
+  },
+
+  "tilePictureApplying": {
+    "message": "Making the new pictures…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Tiles with new pictures: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Every tile has such a picture already."
+  },
+
+  "tilePictureFailed": {
+    "message": "The pictures could not be made."
+  },
+
   "settingsDiscard": {
     "message": "Discard changes"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "\"$1\" is shown here only. Apply puts it on the dial; Discard changes keeps your previous look.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "It is made for icon pictures."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Use site icons for new tiles"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "New tiles will get the site's icon once you apply. The tiles you have keep their pictures, unless you apply icons to them too."
   },
 
   "themeDialogMessage": {

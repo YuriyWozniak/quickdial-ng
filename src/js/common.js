@@ -27,6 +27,7 @@ var QDCommon = Object.freeze({
 		openSettings: 16,
 		findSiteIcons: 17,
 		useSiteIcon: 18,
+		applyTilePicture: 19,
 		settingsChanged: 100,
 		gridNodesLoaded: 101,
 		menuCreateBookmark: 200,
@@ -66,6 +67,12 @@ var QDCommon = Object.freeze({
 		siteIcon: 1, // the site's own icon (js/background/siteicons.js)
 		letter: 2, // a letter tile, for a site without an icon
 		file: 3 // a picture the user chose, dropped or pasted: Refresh keeps it
+	}),
+	// The picture a new tile gets (grid.newTilePicture), and what Settings › Tiles › Apply to tiles makes
+	TilePicture: Object.freeze({
+		page: 0, // a screenshot of the page
+		siteIcon: 1, // the site's icon, or a letter tile when it has none
+		siteIconOrPage: 2 // the site's icon, or a screenshot when it has none
 	}),
 
 	DIAL_PAGE: '/dial.html',
@@ -156,6 +163,14 @@ var QDCommon = Object.freeze({
 	 */
 	tileRatio(grid){
 		return (+grid.ratioY || QDCommon.TILE_RATIO_Y) / (+grid.ratioX || QDCommon.TILE_RATIO_X);
+	},
+	/**
+	 * Whether a value is one of QDCommon.TilePicture (stored settings and messages may hold anything).
+	 * @param {any} value
+	 * @returns {boolean}
+	 */
+	isTilePicture(value){
+		return Object.values(QDCommon.TilePicture).some(kind => kind === value);
 	},
 
 	/**
@@ -284,6 +299,8 @@ var QDClient = (function(){
 		refreshNode: (path, id) => send(Commands.refreshNode, { path, id }),
 		capturePage: (path, id) => send(Commands.capturePage, { path, id }),
 		useSiteIcon: (path, id) => send(Commands.useSiteIcon, { path, id }),
+		// Every tile whose picture isn't kept or the user's own gets one of this kind (QDCommon.TilePicture); answers the number of tiles
+		applyTilePicture: kind => send(Commands.applyTilePicture, { kind }).then(count => count || 0),
 		// The icons of a site and a letter tile for it, as tile pictures: { title, icons: [{ picture, width, height, isVector }], letter }
 		findSiteIcons: (url, title) => send(Commands.findSiteIcons, { url, title }).then(found => found || noIcons(), noIcons)
 	});

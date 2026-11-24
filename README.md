@@ -72,6 +72,9 @@ The page that Refresh downloads is only drawn, never run: it goes into a sandbox
 **Site icons and letter tiles.**
 A tile's picture can also be the site's own icon: right-click the tile → **Picture › Use site icon**, or in its Properties choose **Site icon** as the picture's source, where the site's icons (largest first, SVG before all) and a letter tile are shown side by side. The icons come only from the site itself: the icons its page links to, its web app manifest and `/favicon.ico`, never from a favicon service, so no other server learns the addresses on your dial. Each icon is drawn in the middle of a transparent picture, so the tile's own colour shows around it, which suits the icon themes; a small icon is enlarged by whole pixels and stays sharp. A site without an icon gets a letter tile: the first letter of its address on a colour of its own. **Refresh** makes the same kind of picture again: an icon stays an icon, a letter tile stays a letter tile, and a picture you chose yourself is kept. **Capture in a new tab** turns the tile back to a screenshot; if the capture fails, the icon stays.
 
+**What new tiles get.**
+In Settings › Tiles › Thumbnails, **New tiles get** chooses the picture a new tile starts with: a screenshot of the page (as before), the site's icon (a letter tile when it has none), or the site's icon with a screenshot for sites without one. **Apply to tiles…** gives the tiles you have now pictures made the same way, after asking; pictures you chose yourself and pictures you keep (**Keep picture** in Properties) are never replaced. The Desktop, Retro PC and Retro Mono themes are drawn for icons: using one offers site icons for new tiles in the same step, and switching themes never changes the tiles' pictures by itself.
+
 ## Permissions and privacy
 
 Quick Dial NG collects no data and sends nothing anywhere. Everything stays in your Firefox profile: settings and pictures in the extension's storage, tiles in your bookmarks.

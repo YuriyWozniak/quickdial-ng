@@ -75,6 +75,18 @@ test('dropObsolete: the start page timer and the fixed picture size go; nothing 
 	assert.equal('previewWidth' in sandbox.app.Settings.defaults().grid.cells, false, 'not in new installs');
 });
 
+test('addMissing: what new tiles get starts as a screenshot; a value this version doesn\'t know is replaced', () => {
+	const sandbox = loadBackground(), TilePicture = sandbox.QDCommon.TilePicture;
+	// [whether it changed something, grid.newTilePicture afterwards]
+	const completed = grid => { const settings = { grid }; return [sandbox.app.Settings.addMissing(settings), settings.grid.newTilePicture]; };
+	assert.deepEqual(completed({}), [true, TilePicture.page]);
+	assert.deepEqual(completed({ newTilePicture: 7 }), [true, TilePicture.page]);
+	assert.deepEqual(completed({ newTilePicture: '1' }), [true, TilePicture.page], 'a number, not text');
+	assert.deepEqual(completed({ newTilePicture: TilePicture.siteIconOrPage }), [false, TilePicture.siteIconOrPage]);
+	assert.equal(sandbox.app.Settings.addMissing(null), false);
+	assert.equal(sandbox.app.Settings.defaults().grid.newTilePicture, TilePicture.page, 'a new install');
+});
+
 test('_upgrade: version 1 data (settings at the top, tiles inside them) reaches version 4', () => {
 	const sandbox = loadBackground();
 	const version1 = { backgroundColor: '#000000', grid: { rows: 2, columns: 3, node: { children: [{ id: 'a', type: NodeType.bookmark }] },

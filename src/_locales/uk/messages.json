@@ -601,6 +601,66 @@
     "message": "мс після завантаження сторінки"
   },
 
+  "settingsNewTilePicture": {
+    "message": "Нові плитки отримують"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Зображення, вибрані вами, ніколи не замінюються."
+  },
+
+  "tilePicturePage": {
+    "message": "Знімок сторінки"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "Значок сайту (літеру, якщо значка немає)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "Значок сайту або знімок, якщо значка немає"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Наявні плитки"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Застосувати до плиток…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Дати наявним плиткам зображення, зроблені вибраним вище способом"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Застосувати до ваших плиток?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Ваші плитки отримають нові зображення: $1. Зображення, вибрані вами, і збережені зображення залишаться як є. Якщо плиток багато, це триватиме певний час."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Застосувати до плиток"
+  },
+
+  "tilePictureApplying": {
+    "message": "Створення нових зображень…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Плитки з новими зображеннями: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Усі плитки вже мають таке зображення."
+  },
+
+  "tilePictureFailed": {
+    "message": "Не вдалося створити зображення."
+  },
+
   "settingsDiscard": {
     "message": "Скасувати зміни"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "Тему «$1» показано лише тут. Кнопка «Застосувати» ввімкне її у швидкому наборі, а «Скасувати зміни» поверне попередній вигляд.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "Її зроблено для зображень-значків."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Використовувати значки сайтів для нових плиток"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "Після застосування нові плитки отримають значок сайту. Наявні плитки збережуть свої зображення, якщо не застосувати значки й до них."
   },
 
   "themeDialogMessage": {

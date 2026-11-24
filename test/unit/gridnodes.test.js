@@ -358,3 +358,96 @@ test('updateNode saves the picture\'s source with it (Page is not stored), and c
 	assert.equal(tile.imageSource, undefined);
 	assert.equal(storedPicture(sandbox, tile), WEBP_PICTURE);
 });
+
+// ----- the picture new tiles get (grid.newTilePicture), and Settings › Tiles › Apply to tiles -----
+// The kinds of picture (QDCommon.TilePicture)
+const TilePicture = { page: 0, siteIcon: 1, siteIconOrPage: 2 };
+const SCREENSHOT = { url: 'https://a.example/', title: 'Shot', icon: null, screenshot: WEBP_PICTURE };
+// A stand-in for Refresh's screenshot that answers at once with SCREENSHOT; the calls are counted
+const instantDownload = sandbox => {
+	const download = { calls: 0 };
+	sandbox.app.SiteInfos.fromFrame = () => { download.calls++; return Promise.resolve(SCREENSHOT); };
+	return download;
+};
+
+test('new tiles get the picture chosen in Settings; Refresh of a tile with a screenshot takes a screenshot again', async () => {
+	const sandbox = await setup([bookmark('a'), bookmark('b')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, [iconTile, shotTile] = sandbox.app.node.children;
+	const calls = fakeSiteIcons(sandbox, SITE_ICONS), download = instantDownload(sandbox);
+	assert.equal(GridNodes.newTilePicture(), TilePicture.page, 'a screenshot by default');
+	await GridNodes.refreshNode(shotTile);
+	assert.equal(download.calls, 1);
+	sandbox.app.settings.grid.newTilePicture = TilePicture.siteIcon;
+	await GridNodes.refreshNode(iconTile);
+	assert.equal(iconTile.imageSource, ImageSource.siteIcon);
+	assert.equal(storedPicture(sandbox, iconTile), ICON_PICTURE);
+	assert.equal(iconTile.title, 'Site A');
+	await GridNodes.refreshNode(shotTile);
+	assert.equal(download.calls, 2, 'a tile with a screenshot keeps getting screenshots');
+	assert.equal(calls.find, 1);
+	assert.equal(shotTile.imageSource, undefined);
+	sandbox.app.settings.grid.newTilePicture = 9;
+	assert.equal(GridNodes.newTilePicture(), TilePicture.page, 'a value it doesn\'t know: a screenshot');
+});
+
+test('new tiles: the site\'s icon or a letter tile; the icon or a screenshot; a kept picture takes none', async () => {
+	const sandbox = await setup([bookmark('a'), bookmark('b'), bookmark('c'), bookmark('d')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, [letterTile, shotTile, iconTile, keptTile] = sandbox.app.node.children;
+	const grid = sandbox.app.settings.grid, download = instantDownload(sandbox);
+	fakeSiteIcons(sandbox, NO_ICONS);
+	grid.newTilePicture = TilePicture.siteIcon;
+	await GridNodes.refreshNode(letterTile);
+	assert.equal(storedPicture(sandbox, letterTile), LETTER_PICTURE, 'no icon: a letter tile');
+	assert.equal(letterTile.imageSource, ImageSource.siteIcon, 'Refresh looks for an icon again');
+	grid.newTilePicture = TilePicture.siteIconOrPage;
+	await GridNodes.refreshNode(shotTile);
+	assert.equal(download.calls, 1, 'no icon: a screenshot');
+	assert.equal(storedPicture(sandbox, shotTile), WEBP_PICTURE);
+	assert.equal(shotTile.imageSource, undefined);
+	fakeSiteIcons(sandbox, SITE_ICONS);
+	await GridNodes.refreshNode(iconTile);
+	assert.equal(storedPicture(sandbox, iconTile), ICON_PICTURE);
+	keptTile.imageLocked = true;
+	await GridNodes.refreshNode(keptTile);
+	assert.equal(keptTile.imageSource, undefined, 'a kept picture is not made into an icon');
+});
+
+test('Apply to tiles: icons for every tile in every folder but the user\'s own and kept pictures; screenshots back again', async () => {
+	const sandbox = await setup([bookmark('a'), bookmark('b'), bookmark('c'), bookmarkFolder('f', 'F', [bookmark('d')])]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, [shotTile, fileTile, keptTile, folder] = sandbox.app.node.children, innerTile = folder.children[0];
+	const download = instantDownload(sandbox);
+	await GridNodes.refreshNode(shotTile);
+	await GridNodes.updateNode(fileTile, { image: WEBP_PICTURE, imageSource: ImageSource.file });
+	await GridNodes.refreshNode(keptTile);
+	keptTile.imageLocked = true;
+	const calls = fakeSiteIcons(sandbox, SITE_ICONS);
+	let shown = 0;
+	assert.equal(await GridNodes.applyTilePicture(TilePicture.siteIcon, () => { shown++; }), 2, 'the screenshot tile and the one in the folder');
+	assert.equal(shown, 2, 'the pages are told after each tile');
+	assert.deepEqual([shotTile.imageSource, innerTile.imageSource], [ImageSource.siteIcon, ImageSource.siteIcon]);
+	assert.equal(storedPicture(sandbox, fileTile), WEBP_PICTURE, 'the user\'s own picture stays');
+	assert.equal(keptTile.imageSource, undefined, 'and so does a kept one');
+	assert.equal(calls.find, 2);
+	assert.equal(folder.imageSource, undefined, 'a folder takes no icon');
+	assert.equal(await GridNodes.applyTilePicture(TilePicture.siteIconOrPage), 0, 'icons already');
+	const shots = download.calls;
+	assert.equal(await GridNodes.applyTilePicture(TilePicture.page), 2);
+	assert.equal(download.calls, shots + 2);
+	assert.deepEqual([shotTile.imageSource, innerTile.imageSource], [undefined, undefined]);
+	assert.equal(await GridNodes.applyTilePicture('1'), 0, 'not a kind of picture');
+});
+
+test('Apply to tiles, the icon or a screenshot: a site without an icon keeps its screenshot', async () => {
+	const sandbox = await setup([bookmark('a')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0], download = instantDownload(sandbox);
+	await GridNodes.refreshNode(tile);
+	fakeSiteIcons(sandbox, NO_ICONS);
+	assert.equal(await GridNodes.applyTilePicture(TilePicture.siteIconOrPage), 1, 'looked at');
+	assert.equal(download.calls, 1, 'no new screenshot');
+	assert.equal(tile.imageSource, undefined);
+	assert.equal(storedPicture(sandbox, tile), WEBP_PICTURE);
+});

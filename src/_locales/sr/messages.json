@@ -601,6 +601,66 @@
     "message": "ms након учитавања странице"
   },
 
+  "settingsNewTilePicture": {
+    "message": "Нове плочице добијају"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Слике које сте сами изабрали никада се не замењују."
+  },
+
+  "tilePicturePage": {
+    "message": "Снимак странице"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "Иконицу сајта (слово ако је нема)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "Иконицу сајта или снимак ако је нема"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Постојеће плочице"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Примени на плочице…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Дај постојећим плочицама слике направљене на начин изабран изнад"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Применити на ваше плочице?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Ваше плочице добијају нове слике: $1. Слике које сте сами изабрали и задржане слике остају какве јесу. Са много плочица ово траје неко време."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Примени на плочице"
+  },
+
+  "tilePictureApplying": {
+    "message": "Прављење нових слика…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Плочице са новим сликама: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Свака плочица већ има такву слику."
+  },
+
+  "tilePictureFailed": {
+    "message": "Слике нису могле да се направе."
+  },
+
   "settingsDiscard": {
     "message": "Одбаци измене"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "Тема „$1“ се види само овде. „Примени“ је укључује у брзом бирању, а „Одбаци измене“ враћа претходни изглед.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "Направљена је за слике иконица."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Користи иконице сајтова за нове плочице"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "Нове плочице ће после примене добити иконицу сајта. Постојеће плочице задржавају своје слике, осим ако и на њих примените иконице."
   },
 
   "themeDialogMessage": {

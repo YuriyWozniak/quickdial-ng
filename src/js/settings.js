@@ -50,7 +50,8 @@ const FIELDS = (function(){
 		field('GridCellsTitleFont', 'grid.cells.titleFont', 'text'),
 		field('GridCellsTitleBold', 'grid.cells.titleBold', 'bool'),
 		field('GridCellsTitlePosition', 'grid.cells.titlePosition', 'num'),
-		field('GridCellsSnapshotDelay', 'grid.cells.snapshotDelay', 'num')
+		field('GridCellsSnapshotDelay', 'grid.cells.snapshotDelay', 'num'),
+		field('GridNewTilePicture', 'grid.newTilePicture', 'num')
 	];
 	// Tile and title styles come in pairs: GridCells<Name> / GridCells<Name>Hover
 	[
@@ -239,6 +240,23 @@ app.setupTiles = function(){
 		tile.title = QDCommon.text('settingsClickToPreview');
 		tile.addEventListener('mousedown', e => { if(e.button == 0) QDThemes.playClickEffect(tile, e.clientX, e.clientY); });
 	});
+	BtnApplyTilePicture.onclick = () => app.applyTilePicture(text => { TilePictureStatus.textContent = text; });
+};
+// "Apply to tiles": after asking, the tiles the user has now get pictures of the kind chosen under New tiles get (even
+// before Apply: that only sets what new tiles get). Pictures the user chose or kept stay (GridNodes.applyTilePicture).
+// report(text, isBusy, isError) shows how it goes: under the button, or in the Themes tab's banner.
+app.applyTilePicture = function(report){
+	const kind = +GridNewTilePicture.value, label = GridNewTilePicture.selectedOptions[0].textContent;
+	QDUI.dialog({ title: QDCommon.text('tilePictureApplyTitle'), message: QDCommon.text('tilePictureApplyMessage', label), okText: QDCommon.text('tilePictureApplyButton') }).then(ok => {
+		if(!ok) return;
+		BtnApplyTilePicture.disabled = true;
+		report(QDCommon.text('tilePictureApplying'), true);
+		QDClient.applyTilePicture(kind).then(count => {
+			report(count ? QDCommon.text('tilePictureApplied', QDCommon.countText('countTiles', count)) : QDCommon.text('tilePictureNothing'));
+		}, () => {
+			report(QDCommon.text('tilePictureFailed'), false, true);
+		}).finally(() => { BtnApplyTilePicture.disabled = false; });
+	});
 };
 
 // Reads the settings and themes the dial uses now into the form
@@ -289,8 +307,19 @@ app.readJsonFile = function(file){ // Resolves with the parsed object, or null w
 		try { return JSON.parse(text); } catch(e) { return null; }
 	});
 };
-app.showStatus = function(element, text, isError, isBusy){
-	element.textContent = text;
+// A banner's text, and buttons after it: actions [{ label, onclick }], optional
+app.showStatus = function(element, text, isError, isBusy, actions){
+	const message = document.createElement('span');
+	message.textContent = text;
+	element.replaceChildren(message);
+	for(const action of actions || []){
+		const control = document.createElement('button');
+		control.type = 'button';
+		control.className = 'qd-btn is-small';
+		control.textContent = action.label;
+		control.onclick = action.onclick;
+		element.appendChild(control);
+	}
 	element.className = 'qd-banner' + (isError ? ' is-error' : '') + (isBusy ? ' is-busy' : '');
 	element.hidden = false;
 };
@@ -439,7 +468,19 @@ app.Themes.use = function(theme){
 	app.fillForm(s);
 	app.updatePreviews();
 	app.changes.mark();
-	app.showStatus(ThemeStatus, QDCommon.text('themeShownHere', app.Themes.displayName(theme)));
+	// A theme drawn for icons offers site icons for new tiles, unless they get icons already
+	const offersIcons = theme.suggestsIcons && +GridNewTilePicture.value == QDCommon.TilePicture.page;
+	const shown = QDCommon.text('themeShownHere', app.Themes.displayName(theme));
+	app.showStatus(ThemeStatus, offersIcons ? shown + ' ' + QDCommon.text('themeSuitsIcons') : shown, false, false,
+		offersIcons ? [{ label: QDCommon.text('themeUseSiteIcons'), onclick: app.Themes.useSiteIcons }] : null);
+};
+// The banner's "Use site icons for new tiles": sets New tiles get (applied with the theme), and offers Apply to tiles
+app.Themes.useSiteIcons = function(){
+	const report = (text, isBusy, isError) => app.showStatus(ThemeStatus, text, isError, isBusy);
+	GridNewTilePicture.value = String(QDCommon.TilePicture.siteIcon);
+	app.changes.mark();
+	app.showStatus(ThemeStatus, QDCommon.text('themeSiteIconsChosen'), false, false,
+		[{ label: QDCommon.text('settingsApplyTilePicture'), onclick: () => app.applyTilePicture(report) }]);
 };
 // Asks for a name and description: resolves to { name, description } or null
 app.Themes.ask = function(title, okText, forSaving){

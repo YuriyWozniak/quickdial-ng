@@ -176,7 +176,8 @@ var QDThemes = (function(){
 
 	// ---------- built-in themes ----------
 	// `name` is the theme's identity (saved themes can't take it, theme files carry it); what the user sees are the
-	// texts under nameKey and descriptionKey in the language files.
+	// texts under nameKey and descriptionKey in the language files. suggestsIcons: the theme is drawn for icon pictures,
+	// so Settings offers site icons for new tiles when it is used (the tiles' pictures stay as they are).
 	const BUILTIN = [
 		{ id: 'classic', builtin: true, name: 'Classic', nameKey: 'themeClassicName',
 			descriptionKey: 'themeClassicDescription',
@@ -239,7 +240,7 @@ var QDThemes = (function(){
 					borderRadius: 6, borderRadiusHover: 6, titleHeight: 18, titleHeightHover: 18, titleColor: '#ffffff', titleColorHover: '#33ccff',
 					titleBackgroundColor: null, titleBackgroundColorHover: null, titleBorderSize: 2, titleBorderSizeHover: 2 } }
 			}) },
-		{ id: 'desktop', builtin: true, name: 'Desktop', nameKey: 'themeDesktopName',
+		{ id: 'desktop', builtin: true, suggestsIcons: true, name: 'Desktop', nameKey: 'themeDesktopName',
 			descriptionKey: 'themeDesktopDescription',
 			style: derive(CLASSIC, {
 				backgroundColor: '#0f1b30',
@@ -259,7 +260,7 @@ var QDThemes = (function(){
 				grid: { cells: { borderColor: '#ffffff', borderColorHover: '#ffffff', backgroundOpacity: .12, hoverEffect: HoverEffect.grow,
 					titleBackgroundColor: '#1b1638', titleBackgroundColorHover: '#7e57c2', titleBackgroundOpacity: .55 } }
 			}) },
-		{ id: 'retro-pc', builtin: true, name: 'Retro PC', nameKey: 'themeRetroPcName',
+		{ id: 'retro-pc', builtin: true, suggestsIcons: true, name: 'Retro PC', nameKey: 'themeRetroPcName',
 			descriptionKey: 'themeRetroPcDescription',
 			style: derive(CLASSIC, {
 				backgroundColor: '#008080',
@@ -268,7 +269,7 @@ var QDThemes = (function(){
 					titleHeight: 20, titleHeightHover: 20, titleFontSize: 8, titleFontSizeHover: 8, titleFont: 'Tahoma, Verdana, sans-serif',
 					titleColor: '#ffffff', titleColorHover: '#ffffff', titleBackgroundColor: null, titleBackgroundColorHover: '#000080', titleBackgroundOpacityHover: 1 }) }
 			}) },
-		{ id: 'retro-mono', builtin: true, name: 'Retro Mono', nameKey: 'themeRetroMonoName',
+		{ id: 'retro-mono', builtin: true, suggestsIcons: true, name: 'Retro Mono', nameKey: 'themeRetroMonoName',
 			descriptionKey: 'themeRetroMonoDescription',
 			style: derive(CLASSIC, {
 				backgroundColor: '#ffffff',

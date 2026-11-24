@@ -6,6 +6,8 @@
 //   1. the background page stores a custom theme list (cleaned) and reloads it after a restart
 //   2. with one custom theme ("Mine") and a background picture set, Settings › Themes: Use Anori,
 //      Apply; the dial then draws Anori; finally Classic is put back
+//   3. Use Anori offers nothing; Use Desktop offers site icons for new tiles, then Apply to tiles: every tile
+//      gets the site's icon; once that is applied, Desktop offers nothing more
 // Related: the theme rules (value checks, theme files) are unit tests (unit/themes.test.js); the
 // Themes tab's Save / Export / Import / Delete buttons are in settings-page.js.
 'use strict';
@@ -17,10 +19,18 @@ const themeCards = () => ({ tab: !document.getElementById('TabThemes').hidden, c
 // Anori's values in the Settings form (its accent colour; the title over the picture; glass level 6)
 const ANORI = { accent: '#00794a', titlePosition: '1', glass: '6' };
 // The built-in themes by their place in QDThemes.BUILTIN
-const CLASSIC_INDEX = 0, ANORI_INDEX = 1;
+const CLASSIC_INDEX = 0, ANORI_INDEX = 1, DESKTOP_INDEX = 3;
+// The kinds of picture new tiles get (QDCommon.TilePicture), and a tile's picture source (QDCommon.ImageSource)
+const TilePicture = { siteIcon: 1 }, ImageSource = { siteIcon: 1 };
+// The node type of a bookmark tile (QDCommon.NodeType)
+const NodeType = { bookmark: 2 };
+// ms Apply to tiles may take: each test site is asked for its icons
+const ICONS_TIMEOUT = 30000;
+// Runs on the host page: the picture source of each bookmark tile on the dial's first page (undefined: a screenshot)
+const tileSources = bookmarkType => backgroundPage().app.node.children.filter(tile => tile.type === bookmarkType).map(tile => tile.imageSource);
 
 module.exports = {
-	title: 'Custom themes saved and reloaded; Use, Apply and Classic in Settings; the dial draws the theme',
+	title: 'Custom themes saved and reloaded; Use, Apply and Classic in Settings; the dial draws the theme; icon themes offer site icons',
 	async run(testPage) {
 		await freshProfile(testPage);
 
@@ -80,5 +90,31 @@ module.exports = {
 			return app.Settings.update(settings).then(() => Themes.equal(Themes.extract(app.settings), Themes.CLASSIC));
 		}, CLASSIC_INDEX);
 		testPage.check('Classic brings the original look back', classicBack);
+
+		// ----- a theme drawn for icons offers site icons for new tiles, and Apply to tiles; the tiles' pictures stay until then -----
+		await testPage.loadSettings('themes');
+		await testPage.dial().locator('.qd-theme').nth(ANORI_INDEX).locator('button', { hasText: 'Use' }).click();
+		testPage.check('a theme not drawn for icons offers nothing', (await testPage.dial().locator('#ThemeStatus button').count()) === 0);
+		const sourcesBefore = await testPage.inHost(tileSources, NodeType.bookmark);
+		await testPage.dial().locator('.qd-theme').nth(DESKTOP_INDEX).locator('button', { hasText: 'Use' }).click();
+		const offer = testPage.dial().locator('#ThemeStatus button', { hasText: 'Use site icons for new tiles' });
+		testPage.check('Desktop offers site icons for new tiles; the tiles keep their pictures', (await offer.count()) === 1
+			&& testPage.same(await testPage.inHost(tileSources, NodeType.bookmark), sourcesBefore), sourcesBefore);
+		await offer.click();
+		const chosen = await testPage.inDial(() => ({ value: GridNewTilePicture.value, dirty: !BtnApply.disabled, buttons: [...ThemeStatus.querySelectorAll('button')].map(button => button.textContent) }));
+		testPage.check('it chooses the site\'s icon under New tiles get, and offers Apply to tiles', chosen.value === String(TilePicture.siteIcon) && chosen.dirty
+			&& testPage.same(chosen.buttons, ['Apply to tiles…']), chosen);
+		await testPage.dial().locator('#ThemeStatus button').click();
+		const askedFirst = await testPage.answer();
+		await testPage.waitFor('the tiles\' new pictures', () => /Tiles with new pictures/.test(frameWindow('dial').ThemeStatus.textContent), null, ICONS_TIMEOUT);
+		const sourcesAfter = await testPage.inHost(tileSources, NodeType.bookmark);
+		testPage.check('Apply to tiles asks first, then every tile shows the site\'s icon (a letter tile: the test sites have none)', /Apply to your tiles/.test(askedFirst.title)
+			&& sourcesAfter.length > 0 && sourcesAfter.every(source => source === ImageSource.siteIcon), [askedFirst.title, sourcesAfter]);
+		await testPage.dial().locator('#BtnApply').click();
+		await testPage.waitFor('New tiles get to be applied', kind => backgroundPage().app.settings.grid.newTilePicture === kind, TilePicture.siteIcon);
+		await testPage.loadSettings('themes');
+		await testPage.dial().locator('.qd-theme').nth(CLASSIC_INDEX).locator('button', { hasText: 'Use' }).click(); // Desktop is in use: its Use button is off
+		await testPage.dial().locator('.qd-theme').nth(DESKTOP_INDEX).locator('button', { hasText: 'Use' }).click();
+		testPage.check('once new tiles get icons, nothing more is offered', (await testPage.dial().locator('#ThemeStatus button').count()) === 0);
 	}
 };

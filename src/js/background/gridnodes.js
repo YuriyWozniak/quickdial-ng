@@ -281,10 +281,64 @@ app.GridNodes.refreshNode = function(gridNode){
 				return { title: gridNode.title };
 			case NodeType.bookmark:
 				if(app.GridNodes._hasOwnPicture(gridNode)) return app.GridNodes._refreshFromSite(gridNode, false);
-				return app.SiteInfos.fromFrame(gridNode.url).then(infos => app.GridNodes._applySiteInfos(gridNode, infos));
+				if(!gridNode.image && gridNode.imageLocked != true) return app.GridNodes._makePicture(gridNode, app.GridNodes.newTilePicture()); // A new tile, or one whose picture went with its old address
+				return app.GridNodes._screenshot(gridNode);
 		}
 		return null;
 	});
+};
+app.GridNodes._screenshot = function(gridNode){ // Title and picture from the page downloaded in a frame
+	return app.SiteInfos.fromFrame(gridNode.url).then(infos => app.GridNodes._applySiteInfos(gridNode, infos));
+};
+/** The picture new tiles get (Settings › Tiles › New tiles get): one of QDCommon.TilePicture. @returns {number} */
+app.GridNodes.newTilePicture = function(){
+	const kind = app.settings && app.settings.grid && app.settings.grid.newTilePicture;
+	return QDCommon.isTilePicture(kind) ? kind : QDCommon.TilePicture.page;
+};
+// A bookmark tile's picture of the kind `kind` (QDCommon.TilePicture), with the title from the site: a screenshot, the
+// site's icon (a letter tile when it has none), or the icon with a screenshot when it has none. A tile that shows a
+// screenshot already keeps it then (resolves with null). Not for a kept picture (imageLocked): the caller checks.
+app.GridNodes._makePicture = async function(gridNode, kind){
+	const TilePicture = QDCommon.TilePicture, ImageSource = QDCommon.ImageSource;
+	if(kind == TilePicture.siteIcon || kind == TilePicture.siteIconOrPage){
+		const found = await app.SiteIcons.find(gridNode.url);
+		if(found.icons.length || kind == TilePicture.siteIcon){
+			gridNode.imageSource = ImageSource.siteIcon;
+			return app.GridNodes._refreshFromSite(gridNode, true, found);
+		}
+		if(gridNode.imageSource == null && gridNode.image == '1') return null;
+	}
+	delete gridNode.imageSource;
+	return app.GridNodes._screenshot(gridNode);
+};
+// Whether "Apply to tiles" gives a tile a new picture of the kind `kind`: not a folder, a kept picture (imageLocked) or the
+// user's own picture, nor a tile that has that kind already (a screenshot, or an icon or a letter tile for the icon kinds).
+app.GridNodes._takesPicture = function(gridNode, kind){
+	const ImageSource = QDCommon.ImageSource, source = gridNode.imageSource;
+	if(gridNode.type != QDCommon.NodeType.bookmark || gridNode.imageLocked == true) return false;
+	if(source == ImageSource.file && gridNode.image == '1') return false;
+	const isIcon = source == ImageSource.siteIcon || source == ImageSource.letter;
+	if(kind == QDCommon.TilePicture.page) return isIcon || gridNode.image != '1';
+	return !isIcon;
+};
+/** Settings › Tiles › Apply to tiles: every tile in every folder that takes a picture of the kind `kind` (see _takesPicture)
+ * gets one, a tile at a time; onTile() is called after each. Resolves with the number of those tiles.
+ * @param {number} kind one of QDCommon.TilePicture @param {() => void} [onTile] @returns {Promise<number>} */
+app.GridNodes.applyTilePicture = async function(kind, onTile){
+	if(!QDCommon.isTilePicture(kind)) return 0;
+	const tiles = [];
+	const collect = gridNode => {
+		for(const child of gridNode.children || []){
+			if(app.GridNodes._takesPicture(child, kind)) tiles.push(child);
+			collect(child);
+		}
+	};
+	collect(app.node);
+	for(const gridNode of tiles){
+		await app.GridNodes._loadOnce(gridNode, () => app.GridNodes._takesPicture(gridNode, kind) ? app.GridNodes._makePicture(gridNode, kind) : null); // It may have changed meanwhile
+		if(onTile) onTile();
+	}
+	return tiles.length;
 };
 /** "Use site icon": the tile's picture becomes the site's icon (a letter tile when the site has none), and Refresh
  * keeps it one. A kept picture (imageLocked) is left alone. @param {GridNode} gridNode @returns {Promise<object|null>} */
@@ -304,9 +358,10 @@ app.GridNodes._hasOwnPicture = function(gridNode){
 // Refresh of a tile with its own picture: the title from the page, and the same kind of picture again. A site icon
 // tile gets the site's best icon; when the site has none it keeps its picture, or gets a letter tile if it has no
 // picture yet or the icon was just asked for (isNewIcon). A letter tile is drawn again; the user's own picture is kept.
-app.GridNodes._refreshFromSite = async function(gridNode, isNewIcon){
+// found: the site's icons when they were looked for already (SiteIcons.find).
+app.GridNodes._refreshFromSite = async function(gridNode, isNewIcon, found){
 	const ImageSource = QDCommon.ImageSource;
-	const found = await app.SiteIcons.find(gridNode.url);
+	if(!found) found = await app.SiteIcons.find(gridNode.url);
 	let picture = null; // none: the picture stays as it is
 	if(gridNode.imageLocked != true){
 		if(found.title && gridNode.titleLocked != true) gridNode.title = found.title;
