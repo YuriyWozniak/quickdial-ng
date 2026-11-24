@@ -40,7 +40,7 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
   - other elements are `<Subject><Role>`: `ImageZone`, `GridBackPreview`, `TabGridButton`;
   - a form field is named after the setting it edits: `GridCellsTitleFont` for `grid.cells.titleFont`.
 
-  Only give an id to an element that needs one, and never two ids that differ only by case.
+  Only give an id to an element that needs one, and never the same id twice or two ids that differ only by case (`test/unit/pages.test.js` checks it).
 - **CSS classes** are kebab-case with the `qd-` prefix (`qd-grid`, `qd-dialog`, `qd-tile-slot`). States and variants are `is-*` classes (`is-loading`, `is-dirty`, `is-primary`).
 - **Custom properties** start with `--qd-`: `--qd-accent`. Colors, sizes and spacing use the tokens at the top of `css/ui.css`.
 - In the stylesheets ESLint checks the names above (`qdng/css-names`: classes, ids, custom properties; the `.qd` root class is the one class without a prefix) and the colours (`qdng/color-tokens`): a colour is written out only in a token's definition, and one that has no token yet gets one in `css/ui.css`. The rules are in [eslint-rules](eslint-rules/).
