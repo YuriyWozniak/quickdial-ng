@@ -69,6 +69,9 @@ The automatic "Refresh" capture uses `drawWindow`, which recent Firefox no longe
 The page that Refresh downloads is only drawn, never run: it goes into a sandboxed frame, so none of its scripts, forms or pop-ups run inside the extension. Only web addresses (`http`, `https`) are downloaded, and **New bookmark** refuses `javascript:` and `data:` addresses.
 **Capture in a new tab** takes a page that never finishes loading after 30 seconds, always closes its tab, and captures nothing if another tab is in front by then. If Firefox can't read the stored data at startup, Quick Dial NG tries again and then starts with the defaults, without saving them over your data.
 
+**Site icons and letter tiles.**
+A tile's picture can also be the site's own icon: right-click the tile → **Picture › Use site icon**, or in its Properties choose **Site icon** as the picture's source, where the site's icons (largest first, SVG before all) and a letter tile are shown side by side. The icons come only from the site itself: the icons its page links to, its web app manifest and `/favicon.ico`, never from a favicon service, so no other server learns the addresses on your dial. Each icon is drawn in the middle of a transparent picture, so the tile's own colour shows around it, which suits the icon themes; a small icon is enlarged by whole pixels and stays sharp. A site without an icon gets a letter tile: the first letter of its address on a colour of its own. **Refresh** makes the same kind of picture again: an icon stays an icon, a letter tile stays a letter tile, and a picture you chose yourself is kept. **Capture in a new tab** turns the tile back to a screenshot; if the capture fails, the icon stays.
+
 ## Permissions and privacy
 
 Quick Dial NG collects no data and sends nothing anywhere. Everything stays in your Firefox profile: settings and pictures in the extension's storage, tiles in your bookmarks.
@@ -76,9 +79,9 @@ Quick Dial NG collects no data and sends nothing anywhere. Everything stays in y
 | Permission | Why |
 |---|---|
 | Bookmarks | Tiles are the bookmarks of one folder ("Quick Dial" by default); adding, editing or deleting a tile changes that bookmark. |
-| Access your data for all websites | **Capture in a new tab** takes a screenshot of the site (as you see it, signed in), and **Refresh** downloads the page to read its title. |
+| Access your data for all websites | **Capture in a new tab** takes a screenshot of the site (as you see it, signed in), **Refresh** downloads the page to read its title, and **Site icon** downloads the site's own icons (signed in too). |
 | Tabs | Opens the site in a background tab for the capture and closes it afterwards; opens the dial or Settings from the toolbar button, and brings an open Settings tab forward. |
-| Menus | The right-click menu on the dial (new bookmark, properties, capture, settings…) and on the toolbar button. |
+| Menus | The right-click menu on the dial (new bookmark, properties, picture, settings…) and on the toolbar button. |
 | Storage | Settings, themes and tile pictures. |
 
 It also replaces the new tab page and sets itself as the home page. Firefox asks once whether to keep the home page; to use another one, go to Firefox Settings › Home.

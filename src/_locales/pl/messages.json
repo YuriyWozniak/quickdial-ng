@@ -44,6 +44,14 @@
     "description": "Text of capture menu item."
   },
 
+  "menuPicture": {
+    "message": "Obraz"
+  },
+
+  "menuUseSiteIcon": {
+    "message": "Użyj ikony witryny"
+  },
+
   "menuDeleteItem": {
     "message": "Usuń",
     "description": "Text of delete menu item."
@@ -1053,6 +1061,50 @@
 
   "propertiesPasteHint": {
     "message": "Przeciągnij obraz na podgląd lub wklej go skrótem Ctrl+V."
+  },
+
+  "propertiesSource": {
+    "message": "Źródło"
+  },
+
+  "propertiesSourcePage": {
+    "message": "Strona"
+  },
+
+  "propertiesSourcePageHint": {
+    "message": "Zrzut ekranu strony"
+  },
+
+  "propertiesSourceSiteIcon": {
+    "message": "Ikona witryny"
+  },
+
+  "propertiesSourceSiteIconHint": {
+    "message": "Własna ikona witryny"
+  },
+
+  "propertiesSourceFile": {
+    "message": "Plik"
+  },
+
+  "propertiesPageHint": {
+    "message": "Po zastosowaniu zrzut ekranu strony zastąpi ten obraz."
+  },
+
+  "propertiesIconsSearching": {
+    "message": "Wyszukiwanie ikon witryny…"
+  },
+
+  "propertiesIconsNone": {
+    "message": "Witryna nie ma ikony: zamiast niej jest litera."
+  },
+
+  "propertiesIconSize": {
+    "message": "$1 px"
+  },
+
+  "propertiesIconLetter": {
+    "message": "Litera"
   },
 
   "propertiesKeepPicture": {

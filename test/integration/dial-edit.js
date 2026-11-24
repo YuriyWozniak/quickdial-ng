@@ -1,5 +1,5 @@
 // Editing from the dial (js/dial.js, js/ui.js dialogs and popup frame): the commands of its context menu (new bookmark
-// or folder, delete, refresh, capture, properties), its dialogs by keyboard, and its Settings items.
+// or folder, delete, refresh, capture, use site icon, properties), its dialogs by keyboard, and its Settings items.
 // The menu itself lives in the background page (toolbar-menus.js); here its commands are sent to the
 // dial as the background page does, after a mousedown on the tile, as a right-click would.
 //
@@ -24,7 +24,7 @@ const menuCommand = (testPage, command, tileTitle) => testPage.inDial(([cmd, tit
 	return link && link.className;
 }, [command, tileTitle || null]);
 // The commands of the tile menu, as the background page sends them to the dial (js/dial.js)
-const MenuCommand = { createBookmark: 200, createFolder: 201, editProperties: 203, refresh: 204, capture: 206, delete: 207 };
+const MenuCommand = { createBookmark: 200, createFolder: 201, editProperties: 203, refresh: 204, capture: 206, delete: 207, useSiteIcon: 210 };
 // Addresses New bookmark refuses: scripts (js/dial.js, app.BLOCKED_SCHEMES)
 const SCRIPT_ADDRESSES = ['javascript:alert(1)', 'vbscript:msgbox(1)'];
 
@@ -100,15 +100,20 @@ module.exports = {
 		const loadingPicture = await testPage.inDial(() => dial.styles.grid.linkLoading.backgroundImage);
 		testPage.check('the loading picture is the built-in spinner', loadingPicture.includes('/img/loading.svg'), loadingPicture);
 
-		// ----- Capture page and Properties: the dial asks the background page / opens the popup for the tile under the mouse -----
+		// ----- Capture page, Use site icon and Properties: the dial asks the background page / opens the popup for the tile under the mouse -----
 		await testPage.inHost(() => {
 			const page = backgroundPage();
 			page.qdCaptured = [];
+			page.qdSiteIcons = [];
 			page.app.GridNodes.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
+			page.app.GridNodes.useSiteIcon = node => { page.qdSiteIcons.push(node.id); return Promise.resolve(null); };
 		});
 		await menuCommand(testPage, MenuCommand.capture, 'site2.example');
 		const capturedIds = await testPage.waitFor('the capture request', () => backgroundPage().qdCaptured.length && backgroundPage().qdCaptured);
 		testPage.check('Capture page asks for the tile under the mouse', testPage.same(capturedIds, ['b2']), capturedIds);
+		const classForSiteIcon = await menuCommand(testPage, MenuCommand.useSiteIcon, 'site4.example');
+		const siteIconIds = await testPage.waitFor('the site icon request', () => backgroundPage().qdSiteIcons.length && backgroundPage().qdSiteIcons);
+		testPage.check('Use site icon asks for the tile under the mouse, which shows the loading picture', testPage.same(siteIconIds, ['b4']) && classForSiteIcon === 'is-loading', [siteIconIds, classForSiteIcon]);
 		await menuCommand(testPage, MenuCommand.editProperties, 'site3.example');
 		const popupAddress = await testPage.waitFor('the Properties popup', () => { const popup = frameWindow('dial').document.querySelector('.qd-frame iframe'); return popup && popup.getAttribute('src'); });
 		testPage.check('Properties opens in a popup for that tile', popupAddress === '/html/properties.html?id=b3', popupAddress);

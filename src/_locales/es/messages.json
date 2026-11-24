@@ -44,6 +44,14 @@
     "description": "Text of capture menu item."
   },
 
+  "menuPicture": {
+    "message": "Imagen"
+  },
+
+  "menuUseSiteIcon": {
+    "message": "Usar el icono del sitio"
+  },
+
   "menuDeleteItem": {
     "message": "Eliminar",
     "description": "Text of delete menu item."
@@ -1041,6 +1049,50 @@
 
   "propertiesPasteHint": {
     "message": "Arrastra una imagen a la vista previa o pégala con Ctrl+V."
+  },
+
+  "propertiesSource": {
+    "message": "Origen"
+  },
+
+  "propertiesSourcePage": {
+    "message": "Página"
+  },
+
+  "propertiesSourcePageHint": {
+    "message": "Una captura de la página"
+  },
+
+  "propertiesSourceSiteIcon": {
+    "message": "Icono del sitio"
+  },
+
+  "propertiesSourceSiteIconHint": {
+    "message": "El icono propio del sitio"
+  },
+
+  "propertiesSourceFile": {
+    "message": "Archivo"
+  },
+
+  "propertiesPageHint": {
+    "message": "Al aplicar, una captura de la página sustituye esta imagen."
+  },
+
+  "propertiesIconsSearching": {
+    "message": "Buscando los iconos del sitio…"
+  },
+
+  "propertiesIconsNone": {
+    "message": "El sitio no tiene icono: en su lugar se usa una letra."
+  },
+
+  "propertiesIconSize": {
+    "message": "$1 px"
+  },
+
+  "propertiesIconLetter": {
+    "message": "Letra"
   },
 
   "propertiesKeepPicture": {

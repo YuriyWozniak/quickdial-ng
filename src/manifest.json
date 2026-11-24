@@ -37,6 +37,7 @@
       "js/background/menus.js",
       "js/background/bookmarks.js",
       "js/background/siteinfos.js",
+      "js/background/siteicons.js",
       "js/background/gridnodes.js",
       "js/background/main.js"
     ]

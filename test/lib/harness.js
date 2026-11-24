@@ -83,10 +83,10 @@ class TestPage {
 		testPage.context = await browser.newContext({ acceptDownloads: true, viewport: VIEWPORT });
 		// Tiles without a picture download their site (Refresh). Nothing leaves this computer: other sites
 		// answer with a stub page titled with their host, readable from the test pages as the extension's
-		// host permission allows.
+		// host permission allows, also when asked with the user's cookies (site icons).
 		const localOrigin = new URL(testPage.base).origin;
 		await testPage.context.route(url => /^https?:$/.test(url.protocol) && url.origin !== localOrigin, route => route.fulfill({
-			status: 200, contentType: 'text/html', headers: { 'access-control-allow-origin': '*' },
+			status: 200, contentType: 'text/html', headers: { 'access-control-allow-origin': localOrigin, 'access-control-allow-credentials': 'true' },
 			body: `<!doctype html><html><head><title>${new URL(route.request().url()).host}</title></head><body></body></html>` }));
 		testPage.page = await testPage.context.newPage();
 		testPage.page.on('console', message => {

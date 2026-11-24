@@ -44,6 +44,14 @@
     "description": "Text of capture menu item."
   },
 
+  "menuPicture": {
+    "message": "Слика"
+  },
+
+  "menuUseSiteIcon": {
+    "message": "Користи иконицу сајта"
+  },
+
   "menuDeleteItem": {
     "message": "Обриши",
     "description": "Text of delete menu item."
@@ -1041,6 +1049,50 @@
 
   "propertiesPasteHint": {
     "message": "Превуците слику на преглед или је налепите помоћу Ctrl+V."
+  },
+
+  "propertiesSource": {
+    "message": "Извор"
+  },
+
+  "propertiesSourcePage": {
+    "message": "Страница"
+  },
+
+  "propertiesSourcePageHint": {
+    "message": "Снимак странице"
+  },
+
+  "propertiesSourceSiteIcon": {
+    "message": "Иконица сајта"
+  },
+
+  "propertiesSourceSiteIconHint": {
+    "message": "Сопствена иконица сајта"
+  },
+
+  "propertiesSourceFile": {
+    "message": "Датотека"
+  },
+
+  "propertiesPageHint": {
+    "message": "Приликом примене, снимак странице замењује ову слику."
+  },
+
+  "propertiesIconsSearching": {
+    "message": "Тражење иконица сајта…"
+  },
+
+  "propertiesIconsNone": {
+    "message": "Сајт нема иконицу: уместо ње стоји слово."
+  },
+
+  "propertiesIconSize": {
+    "message": "$1 px"
+  },
+
+  "propertiesIconLetter": {
+    "message": "Слово"
   },
 
   "propertiesKeepPicture": {

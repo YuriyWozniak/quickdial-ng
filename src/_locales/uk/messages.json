@@ -54,6 +54,14 @@
     "description": "Text of capture menu item."
   },
 
+  "menuPicture": {
+    "message": "Зображення"
+  },
+
+  "menuUseSiteIcon": {
+    "message": "Використати значок сайту"
+  },
+
   "menuDeleteItem": {
     "message": "Видалити",
     "description": "Text of delete menu item."
@@ -1053,6 +1061,50 @@
 
   "propertiesPasteHint": {
     "message": "Перетягніть зображення на область перегляду або вставте його з буфера (Ctrl+V)."
+  },
+
+  "propertiesSource": {
+    "message": "Джерело"
+  },
+
+  "propertiesSourcePage": {
+    "message": "Сторінка"
+  },
+
+  "propertiesSourcePageHint": {
+    "message": "Знімок сторінки"
+  },
+
+  "propertiesSourceSiteIcon": {
+    "message": "Значок сайту"
+  },
+
+  "propertiesSourceSiteIconHint": {
+    "message": "Власний значок сайту"
+  },
+
+  "propertiesSourceFile": {
+    "message": "Файл"
+  },
+
+  "propertiesPageHint": {
+    "message": "Під час застосування знімок сторінки замінить це зображення."
+  },
+
+  "propertiesIconsSearching": {
+    "message": "Пошук значків сайту…"
+  },
+
+  "propertiesIconsNone": {
+    "message": "Сайт не має значка: замість нього буде літера."
+  },
+
+  "propertiesIconSize": {
+    "message": "$1 px"
+  },
+
+  "propertiesIconLetter": {
+    "message": "Літера"
   },
 
   "propertiesKeepPicture": {

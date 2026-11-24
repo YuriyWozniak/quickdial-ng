@@ -1,5 +1,6 @@
 // app.GridNodes (js/background/gridnodes.js): the tile tree, its sync with the bookmarks folder, and edits
-// (swap, new bookmark or folder, delete, Refresh and Properties).
+// (swap, new bookmark or folder, delete, Refresh and Properties), and where a tile's picture comes from (a screenshot,
+// the site's icon, a letter tile or the user's own picture), with SiteIcons and the screenshots stood in for.
 //
 // The tile tree mirrors the "Quick Dial" bookmarks folder: a folder's children are its cells in order,
 // with { type: 0 } for a gap; tiles keep their cells while bookmarks come and go. Here the bookmarks are
@@ -232,4 +233,128 @@ test('updateNode: a new address is refreshed first, then the bookmark gets its n
 	await sandbox.app.GridNodes.updateNode(tile, { title: 'Renamed' });
 	assert.equal(download.calls, 1, 'the same address: no refresh');
 	assert.deepEqual(bookmarkUpdates(), [['update', 'a', { title: 'Renamed' }]]);
+});
+
+// ----- where a tile's picture comes from (node.imageSource): Refresh makes the same kind again -----
+// The picture sources (QDCommon.ImageSource); `page` is never stored
+const ImageSource = { page: 0, siteIcon: 1, letter: 2, file: 3 };
+// Pictures that stand for a site's icon and a letter tile
+const ICON_PICTURE = 'data:image/webp;base64,SUNPTg==', LETTER_PICTURE = 'data:image/webp;base64,TEVUVA==';
+const SITE_ICONS = { title: 'Site A', icons: [{ picture: ICON_PICTURE, width: 180, height: 180, isVector: false }] };
+const NO_ICONS = { title: null, icons: [] };
+// Stand-ins for SiteIcons: find() answers with `found`, letter() with LETTER_PICTURE; the calls are counted
+const fakeSiteIcons = (sandbox, found) => {
+	const calls = { find: 0, letter: 0 };
+	sandbox.app.SiteIcons.find = () => { calls.find++; return Promise.resolve(found); };
+	sandbox.app.SiteIcons.letter = () => { calls.letter++; return LETTER_PICTURE; };
+	return calls;
+};
+// A stand-in for Capture page's screenshot: answers with `infos` (null: it failed); the calls are counted
+const fakeCapture = (sandbox, infos) => {
+	const capture = { calls: 0 };
+	sandbox.app.SiteInfos.fromNewTab = () => { capture.calls++; return Promise.resolve(infos); };
+	return capture;
+};
+// The picture stored for a tile
+const storedPicture = (sandbox, tile) => sandbox.app.Images._cache.get(tile.id);
+
+test('Use site icon: the best icon and the page\'s title; Refresh then makes an icon again, not a screenshot', async () => {
+	const sandbox = await setup([bookmark('a')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0];
+	const calls = fakeSiteIcons(sandbox, SITE_ICONS), download = pendingDownload(sandbox);
+	const infos = await GridNodes.useSiteIcon(tile);
+	assert.equal(infos.screenshot, ICON_PICTURE);
+	assert.equal(tile.imageSource, ImageSource.siteIcon);
+	assert.equal(tile.title, 'Site A');
+	assert.equal(storedPicture(sandbox, tile), ICON_PICTURE);
+	await GridNodes.refreshNode(tile);
+	assert.equal(calls.find, 2, 'Refresh looks for the icons again');
+	assert.equal(download.calls, 0, 'no screenshot');
+	assert.equal(tile.imageSource, ImageSource.siteIcon);
+	assert.equal(await GridNodes.useSiteIcon(sandbox.app.node), null, 'a folder has no site icon');
+});
+
+test('a site icon tile keeps its icon when the site has none or can\'t be reached; asked for anew, it gets a letter tile', async () => {
+	const sandbox = await setup([bookmark('a')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0];
+	fakeSiteIcons(sandbox, SITE_ICONS);
+	await GridNodes.useSiteIcon(tile);
+	const calls = fakeSiteIcons(sandbox, NO_ICONS);
+	await GridNodes.refreshNode(tile);
+	assert.equal(storedPicture(sandbox, tile), ICON_PICTURE, 'the icon stays');
+	assert.equal(tile.title, 'Site A', 'and so does the title');
+	assert.equal(calls.letter, 0);
+	await GridNodes.useSiteIcon(tile);
+	assert.equal(storedPicture(sandbox, tile), LETTER_PICTURE, 'asked for again: a letter tile');
+	assert.equal(tile.imageSource, ImageSource.siteIcon, 'still a site icon tile: Refresh looks for an icon again');
+});
+
+test('Refresh draws a letter tile again and keeps the user\'s own picture; a kept picture is left alone', async () => {
+	const sandbox = await setup([bookmark('a'), bookmark('b'), bookmark('c')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, [letterTile, fileTile, keptTile] = sandbox.app.node.children;
+	const calls = fakeSiteIcons(sandbox, SITE_ICONS), download = pendingDownload(sandbox);
+	await GridNodes.updateNode(letterTile, { image: WEBP_PICTURE, imageSource: ImageSource.letter });
+	await GridNodes.refreshNode(letterTile);
+	assert.equal(calls.letter, 1);
+	assert.equal(storedPicture(sandbox, letterTile), LETTER_PICTURE);
+	await GridNodes.updateNode(fileTile, { image: WEBP_PICTURE, imageSource: ImageSource.file });
+	await GridNodes.refreshNode(fileTile);
+	assert.equal(storedPicture(sandbox, fileTile), WEBP_PICTURE, 'the user\'s picture is kept');
+	assert.equal(fileTile.title, 'Site A', 'the title still comes from the page');
+	assert.equal(download.calls, 0, 'no screenshot for either');
+	keptTile.imageLocked = true;
+	assert.equal(await GridNodes.useSiteIcon(keptTile), null);
+	assert.equal(keptTile.imageSource, undefined);
+});
+
+test('a tile whose own picture went with its old address gets a screenshot again', async () => {
+	const sandbox = await setup([bookmark('a')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0];
+	await GridNodes.updateNode(tile, { image: WEBP_PICTURE, imageSource: ImageSource.file });
+	sandbox.browser.bookmarks.find('a').url = 'https://elsewhere.example/';
+	await sync(sandbox);
+	assert.equal(tile.image, undefined, 'the picture went with the address');
+	const download = pendingDownload(sandbox);
+	const refreshed = GridNodes.refreshNode(tile);
+	await settle();
+	assert.equal(download.calls, 1, 'downloaded for a screenshot');
+	download.finish({ url: tile.url, title: 'Elsewhere', icon: null, screenshot: WEBP_PICTURE });
+	await refreshed;
+	assert.equal(tile.imageSource, undefined, 'a screenshot now');
+});
+
+test('Capture page replaces an icon with a screenshot; a failed capture leaves the icon', async () => {
+	const sandbox = await setup([bookmark('a')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0];
+	fakeSiteIcons(sandbox, SITE_ICONS);
+	await GridNodes.useSiteIcon(tile);
+	fakeCapture(sandbox, null);
+	await GridNodes.capturePage(tile);
+	assert.equal(tile.image, '1');
+	assert.equal(storedPicture(sandbox, tile), ICON_PICTURE, 'the icon stays');
+	assert.equal(tile.imageSource, ImageSource.siteIcon);
+	fakeCapture(sandbox, { url: tile.url, title: 'Shot', icon: null, screenshot: WEBP_PICTURE });
+	await GridNodes.capturePage(tile);
+	assert.equal(storedPicture(sandbox, tile), WEBP_PICTURE);
+	assert.equal(tile.imageSource, undefined, 'a screenshot now');
+});
+
+test('updateNode saves the picture\'s source with it (Page is not stored), and captures the page when asked', async () => {
+	const sandbox = await setup([bookmark('a')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0];
+	await GridNodes.updateNode(tile, { image: ICON_PICTURE, imageSource: ImageSource.siteIcon });
+	assert.equal(tile.imageSource, ImageSource.siteIcon);
+	await GridNodes.updateNode(tile, { title: 'Renamed' });
+	assert.equal(tile.imageSource, ImageSource.siteIcon, 'left out: kept');
+	const capture = fakeCapture(sandbox, { url: tile.url, title: 'Shot', icon: null, screenshot: WEBP_PICTURE });
+	await GridNodes.updateNode(tile, { image: ICON_PICTURE, imageSource: ImageSource.page, capturePage: true });
+	assert.equal(capture.calls, 1, 'the page is captured once saved');
+	assert.equal(tile.imageSource, undefined);
+	assert.equal(storedPicture(sandbox, tile), WEBP_PICTURE);
 });

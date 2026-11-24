@@ -74,6 +74,13 @@ app.Messages.init = function(){
 				if(gridNode) GridNodes.capturePage(gridNode).then(loaded);
 				break;
 			}
+			case Commands.useSiteIcon: {
+				const gridNode = tileAt(request);
+				if(gridNode) GridNodes.useSiteIcon(gridNode).then(loaded);
+				break;
+			}
+			case Commands.findSiteIcons: // Properties: the icons to choose from, and a letter tile
+				return app.SiteIcons.find(request.url).then(found => Object.assign(found, { letter: app.SiteIcons.letter(request.url, request.title) }));
 			case Commands.getImages:
 				return app.Images.get(request.ids);
 			case Commands.exportData:

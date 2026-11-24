@@ -25,6 +25,8 @@ var QDCommon = Object.freeze({
 		getThemes: 14,
 		setThemes: 15,
 		openSettings: 16,
+		findSiteIcons: 17,
+		useSiteIcon: 18,
 		settingsChanged: 100,
 		gridNodesLoaded: 101,
 		menuCreateBookmark: 200,
@@ -33,7 +35,8 @@ var QDCommon = Object.freeze({
 		menuRefreshNode: 204,
 		menuCapturePage: 206,
 		menuDeleteNode: 207,
-		showSettingsSection: 209
+		showSettingsSection: 209,
+		menuUseSiteIcon: 210
 	}),
 	// Kinds of cell in the grid (node.type)
 	NodeType: Object.freeze({
@@ -55,6 +58,14 @@ var QDCommon = Object.freeze({
 		cover: 1,
 		contain: 2,
 		original: 3
+	}),
+	// Where a tile's picture comes from (node.imageSource): Refresh makes the same kind of picture again.
+	// A tile without one shows a screenshot of its page (`page` is never stored).
+	ImageSource: Object.freeze({
+		page: 0,
+		siteIcon: 1, // the site's own icon (js/background/siteicons.js)
+		letter: 2, // a letter tile, for a site without an icon
+		file: 3 // a picture the user chose, dropped or pasted: Refresh keeps it
 	}),
 
 	DIAL_PAGE: '/dial.html',
@@ -238,6 +249,7 @@ var QDClient = (function(){
 	const Commands = QDCommon.Commands;
 	/** @param {number} cmd @param {object} [fields] */
 	const send = (cmd, fields) => browser.runtime.sendMessage(Object.assign({ cmd }, fields));
+	const noIcons = () => ({ title: null, icons: [], letter: null }); // findSiteIcons when the background page can't answer
 	return Object.freeze({
 		send,
 		/**
@@ -270,6 +282,9 @@ var QDClient = (function(){
 		createFolder: (path, name) => send(Commands.createFolder, { path, name }),
 		deleteNode: (path, id) => send(Commands.deleteNode, { path, id }),
 		refreshNode: (path, id) => send(Commands.refreshNode, { path, id }),
-		capturePage: (path, id) => send(Commands.capturePage, { path, id })
+		capturePage: (path, id) => send(Commands.capturePage, { path, id }),
+		useSiteIcon: (path, id) => send(Commands.useSiteIcon, { path, id }),
+		// The icons of a site and a letter tile for it, as tile pictures: { title, icons: [{ picture, width, height, isVector }], letter }
+		findSiteIcons: (url, title) => send(Commands.findSiteIcons, { url, title }).then(found => found || noIcons(), noIcons)
 	});
 })();

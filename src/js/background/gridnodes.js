@@ -9,6 +9,7 @@
  * @property {GridNode[]} [children] folders only
  * @property {string} [image] '1': picture stored (see images.js), '0': none could be made
  * @property {number} [imageMode] how the picture fills the tile (dial.applyImageMode); none: the default
+ * @property {number} [imageSource] where the picture comes from (QDCommon.ImageSource); none: a screenshot of the page
  * @property {boolean} [titleLocked] Refresh and Capture keep the title
  * @property {boolean} [imageLocked] ...and the picture
  */
@@ -61,7 +62,7 @@ app.GridNodes._syncNode = function(gridNode, bookmarkItem){ // Copies a bookmark
 			gridNode.type = NodeType.bookmark;
 			if(gridNode.url != bookmarkItem.url){
 				gridNode.url = bookmarkItem.url;
-				app.Images.setNodeImage(gridNode, null);
+				app.Images.setNodeImage(gridNode, null); // An icon or a letter tile is made again for the new address; a screenshot replaces the user's picture
 			}
 			break;
 		case 'folder':
@@ -148,21 +149,27 @@ app.GridNodes.getNodeWithParents = function(id){
  * @property {string} [url]
  * @property {string|null} [image] data URL or url(...) of a picture, '0' or none (see Images.setNodeImage)
  * @property {number} [imageMode] QDCommon.ImageMode.inherit: back to the default
+ * @property {number} [imageSource] where the picture comes from (QDCommon.ImageSource), set with the picture
+ * @property {boolean} [capturePage] take a screenshot of the page once saved (Page chosen as the picture's source)
  * @property {boolean} [titleLocked]
  * @property {boolean} [imageLocked]
  */
 /** Changes from the Properties page. A new address gets its title and picture first (see refreshNode).
- * Resolves once the bookmark is updated too. @param {GridNode} gridNode @param {NodeChanges} value @returns {Promise<void>} */
+ * Resolves once the bookmark is updated too, and the page captured when asked. @param {GridNode} gridNode @param {NodeChanges} value @returns {Promise<void>} */
 app.GridNodes.updateNode = async function(gridNode, value){
 	const NodeType = QDCommon.NodeType;
 	if(!value) return;
+	const setPicture = () => {
+		app.Images.setNodeImage(gridNode, value.image);
+		if(value.imageSource != null) app.GridNodes._setImageSource(gridNode, value.imageSource);
+	};
 	if(value.title) gridNode.title = value.title;
 	if(value.titleLocked != null) gridNode.titleLocked = value.titleLocked;
 	if(value.imageLocked != null){
 		gridNode.imageLocked = value.imageLocked;
-		app.Images.setNodeImage(gridNode, value.image);
+		setPicture();
 	} else if(gridNode.imageLocked != true){
-		app.Images.setNodeImage(gridNode, value.image);
+		setPicture();
 	}
 	if(value.imageMode || value.imageMode == 0){
 		if(value.imageMode == QDCommon.ImageMode.inherit) delete gridNode.imageMode;
@@ -173,6 +180,11 @@ app.GridNodes.updateNode = async function(gridNode, value){
 	app.GridNodes.save();
 	if(urlChanged) await app.GridNodes.refreshNode(gridNode);
 	await app.Bookmarks.update(gridNode.id, urlChanged ? { title: gridNode.title, url: gridNode.url } : { title: gridNode.title });
+	if(value.capturePage && gridNode.type == NodeType.bookmark) await app.GridNodes.capturePage(gridNode);
+};
+app.GridNodes._setImageSource = function(gridNode, source){ // A screenshot of the page is the default: not stored
+	if(source == QDCommon.ImageSource.page) delete gridNode.imageSource;
+	else gridNode.imageSource = source;
 };
 app.GridNodes.setNodeIndex = function(gridNode, index, newIndex){ // Swap two cells (drag and drop)
 	const children = gridNode.children;
@@ -244,12 +256,13 @@ app.GridNodes._loadOnce = function(gridNode, load){
 	app.GridNodes._loading.set(gridNode, promise);
 	return promise;
 };
-app.GridNodes._applySiteInfos = function(gridNode, infos){
+app.GridNodes._applySiteInfos = function(gridNode, infos){ // A screenshot from Refresh or Capture page, or null when it failed
 	if(gridNode.imageLocked != true){
 		if(infos){
 			if(gridNode.titleLocked != true) gridNode.title = infos.title;
 			app.Images.setNodeImage(gridNode, infos.screenshot);
-		} else {
+			delete gridNode.imageSource; // A screenshot of the page now
+		} else if(gridNode.imageSource == null || gridNode.image != '1'){ // A failed capture leaves an icon or the user's own picture as it was
 			app.Images.setNodeImage(gridNode, '0');
 		}
 	}
@@ -267,10 +280,47 @@ app.GridNodes.refreshNode = function(gridNode){
 				app.GridNodes.save();
 				return { title: gridNode.title };
 			case NodeType.bookmark:
+				if(app.GridNodes._hasOwnPicture(gridNode)) return app.GridNodes._refreshFromSite(gridNode, false);
 				return app.SiteInfos.fromFrame(gridNode.url).then(infos => app.GridNodes._applySiteInfos(gridNode, infos));
 		}
 		return null;
 	});
+};
+/** "Use site icon": the tile's picture becomes the site's icon (a letter tile when the site has none), and Refresh
+ * keeps it one. A kept picture (imageLocked) is left alone. @param {GridNode} gridNode @returns {Promise<object|null>} */
+app.GridNodes.useSiteIcon = function(gridNode){
+	return app.GridNodes._loadOnce(gridNode, () => {
+		if(gridNode.type != QDCommon.NodeType.bookmark || gridNode.imageLocked == true) return null;
+		gridNode.imageSource = QDCommon.ImageSource.siteIcon;
+		return app.GridNodes._refreshFromSite(gridNode, true);
+	});
+};
+// Whether Refresh makes the tile's picture some other way than with a screenshot: an icon, a letter tile, or the
+// user's own picture (kept). A tile whose own picture is gone (its address changed) gets a screenshot again.
+app.GridNodes._hasOwnPicture = function(gridNode){
+	const ImageSource = QDCommon.ImageSource;
+	return gridNode.imageSource == ImageSource.siteIcon || gridNode.imageSource == ImageSource.letter || (gridNode.imageSource == ImageSource.file && gridNode.image == '1');
+};
+// Refresh of a tile with its own picture: the title from the page, and the same kind of picture again. A site icon
+// tile gets the site's best icon; when the site has none it keeps its picture, or gets a letter tile if it has no
+// picture yet or the icon was just asked for (isNewIcon). A letter tile is drawn again; the user's own picture is kept.
+app.GridNodes._refreshFromSite = async function(gridNode, isNewIcon){
+	const ImageSource = QDCommon.ImageSource;
+	const found = await app.SiteIcons.find(gridNode.url);
+	let picture = null; // none: the picture stays as it is
+	if(gridNode.imageLocked != true){
+		if(found.title && gridNode.titleLocked != true) gridNode.title = found.title;
+		if(gridNode.imageSource == ImageSource.siteIcon){
+			if(found.icons.length) picture = found.icons[0].picture;
+			else if(isNewIcon || gridNode.image != '1') picture = app.SiteIcons.letter(gridNode.url, gridNode.title);
+		} else if(gridNode.imageSource == ImageSource.letter){
+			picture = app.SiteIcons.letter(gridNode.url, gridNode.title);
+		}
+		if(picture) app.Images.setNodeImage(gridNode, picture);
+	}
+	app.GridNodes.save();
+	app.Bookmarks.update(gridNode.id, { title: gridNode.title, url: gridNode.url });
+	return { url: gridNode.url, title: gridNode.title, icon: null, screenshot: picture };
 };
 /** @param {GridNode} gridNode @returns {Promise<object|null>} */
 app.GridNodes.capturePage = function(gridNode){
