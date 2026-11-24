@@ -124,6 +124,10 @@ How the import links tiles to bookmarks: each tile is matched to a bookmark in t
 - Screenshots: `npm run screenshots` in `test/` remakes the pictures in [`screenshots/`](screenshots/) from the current code, with invented sites (see [test/screenshots/README.md](test/screenshots/README.md)).
 - Release: bump `version` in `src/manifest.json` and add its notes to [release/amo-listing.md](release/amo-listing.md) in a pull request; once it is merged, the **Release** workflow (Actions tab) tests the commit, builds the package and, after your approval, submits it to addons.mozilla.org and tags it. When Mozilla approves the version, the **Publish** workflow puts the same signed `.xpi` on GitHub Releases. `node release/release.js` is the manual way from a PC. See [release/README.md](release/README.md) for setup and options.
 
+## Feedback
+
+Bugs and ideas: [open an issue](https://github.com/YuriyWozniak/quickdial-ng/issues/new/choose). Security problems: see [SECURITY.md](SECURITY.md). Contributing: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 [Mozilla Public License 2.0](LICENSE), the same as the original Quick Dial.
