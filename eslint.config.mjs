@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import js from '@eslint/js';
 import css from '@eslint/css';
 import globals from 'globals';
-import descriptiveNames from './eslint-rules/descriptive-names.mjs';
+import qdng from './eslint-rules/index.mjs';
 
 // The physical properties and units prefer-logical-properties knows: allowed, except those for left and right,
 // which flip in a right-to-left language (top, width or vh are the same in every language the pages use)
@@ -16,10 +16,24 @@ const VIEWPORT_UNITS = logical.allowUnits.items.enum;
 // Settings and Properties reach their form elements by id (window.BtnApply...): those ids are globals there
 const idsOf = page => Object.fromEntries([...fs.readFileSync(new URL(page, import.meta.url), 'utf8').matchAll(/\sid="([A-Za-z_][\w]*)"/g)].map(m => [m[1], 'readonly']));
 
+// CODE_STYLE.md, for the extension's scripts and the tests alike: names that say what they hold (qdng/descriptive-names:
+// short ones only for loop indexes, events and one-line arrow functions), camelCase (UPPER_SNAKE constants are allowed),
+// semicolons, const where nothing reassigns, no var
+const CODE_STYLE_RULES = {
+	'qdng/descriptive-names': 'error',
+	camelcase: ['error', { properties: 'always' }],
+	semi: 'error',
+	'no-var': 'error',
+	'prefer-const': ['error', { destructuring: 'all' }],
+	'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }]
+};
+
 export default [
 	{ files: ['src/**/*.js', 'test/**/*.js'] },
 	{ ignores: ['*.mjs', 'release/**', 'node_modules/**', 'web-ext-artifacts/**', 'test/node_modules/**'] },
 	{ files: ['**/*.js'], ...js.configs.recommended },
+	// The project's own rules (eslint-rules/), for every script and stylesheet; each block below turns on those it needs
+	{ files: ['**/*.js', 'src/**/*.css'], plugins: { qdng } },
 
 	// Stylesheets: the recommended rules, and logical properties for left and right (CODE_STYLE.md: layout works right to left too)
 	{
@@ -33,7 +47,11 @@ export default [
 			// Baseline means every major browser, Safari included; the extension runs only in Firefox (140 and later).
 			// Newly available features are fine there, and so are these two, unprefixed in Firefox.
 			'css/use-baseline': ['error', { available: 'newly', allowProperties: ['user-select', 'accent-color'] }],
-			'css/prefer-logical-properties': ['error', { allowProperties: UP_DOWN_PROPERTIES, allowUnits: VIEWPORT_UNITS }]
+			'css/prefer-logical-properties': ['error', { allowProperties: UP_DOWN_PROPERTIES, allowUnits: VIEWPORT_UNITS }],
+			// CODE_STYLE.md: qd- and is-* classes (and the .qd root the base styles sit under), PascalCase ids,
+			// --qd- custom properties, and colours only from the tokens in css/ui.css
+			'qdng/css-names': ['error', { allow: ['qd'] }],
+			'qdng/color-tokens': 'error'
 		}
 	},
 	{
@@ -51,18 +69,15 @@ export default [
 			}
 		},
 		rules: {
-			'no-var': 'error',
-			'prefer-const': ['error', { destructuring: 'all' }],
-			'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }],
+			...CODE_STYLE_RULES,
+			// ...and the usual aliases in style code: s (settings), g (settings.grid), c (settings.grid.cells)
+			'qdng/descriptive-names': ['error', { allow: ['s', 'g', 'c'] }],
+			quotes: ['error', 'single', { avoidEscape: true }],
 			'no-empty': ['error', { allowEmptyCatch: true }],
 			'no-redeclare': ['error', { builtinGlobals: true }], // e.g. a page variable called Image
 			'no-implicit-globals': 'error',
 			'no-shadow-restricted-names': 'error',
-			'prefer-arrow-callback': ['error', { allowUnboundThis: false }],
-			// CODE_STYLE.md: camelCase names (UPPER_SNAKE constants are allowed), single quotes, semicolons
-			camelcase: ['error', { properties: 'always' }],
-			quotes: ['error', 'single', { avoidEscape: true }],
-			semi: 'error'
+			'prefer-arrow-callback': ['error', { allowUnboundThis: false }]
 		}
 	},
 	// The scripts that define those globals (with `var` and an /* exported */ comment, so they are window properties)
@@ -81,17 +96,10 @@ export default [
 	{
 		files: ['test/**/*.js'],
 		languageOptions: { ecmaVersion: 2024, sourceType: 'commonjs', globals: { ...globals.node } },
-		plugins: { qdng: { rules: { 'descriptive-names': descriptiveNames } } },
 		rules: {
-			// CODE_STYLE.md: names say what they hold; short ones only for loop indexes, events and one-line arrow functions
-			'qdng/descriptive-names': 'error',
-			'no-var': 'error',
-			'prefer-const': ['error', { destructuring: 'all' }],
-			'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }],
-			// CODE_STYLE.md holds for the tests too: camelCase names, single quotes, semicolons, Node spacing (if (x) {)
-			camelcase: ['error', { properties: 'always' }],
+			...CODE_STYLE_RULES,
+			// Single quotes (template literals too), and Node spacing (if (x) {)
 			quotes: ['error', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
-			semi: 'error',
 			'keyword-spacing': 'error',
 			'space-before-blocks': 'error'
 		}

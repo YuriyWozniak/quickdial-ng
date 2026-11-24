@@ -116,8 +116,8 @@ dial.updateGridLayout = function(){ // Cell and tile sizes for this window (norm
 	const parentWidth = dial.grid.parentElement.offsetWidth;
 	const parentHeight = dial.grid.parentElement.offsetHeight;
 	const px = v => v + 'px';
-	const layout = (h, cell, link, panel) => { // h: '' or 'Hover'
-		const margin = c['margin' + h], border = c['borderSize' + h], titleBorder = titleBelow ? c['titleBorderSize' + h] : 0;
+	const layout = (suffix, cell, link, panel) => { // suffix: '' or 'Hover'
+		const margin = c['margin' + suffix], border = c['borderSize' + suffix], titleBorder = titleBelow ? c['titleBorderSize' + suffix] : 0;
 		let cellWidth = (parentWidth - 2 * g.margin) / g.columns;
 		let cellHeight = (parentHeight - 2 * g.margin) / g.rows;
 		if(cellWidth <= cellHeight * g.ratioX / g.ratioY) cellHeight = cellWidth / g.ratioX * g.ratioY;
@@ -128,7 +128,7 @@ dial.updateGridLayout = function(){ // Cell and tile sizes for this window (norm
 		cell.height = px(cellHeight);
 		link.width = px(linkWidth);
 		link.height = px(linkHeight);
-		panel.height = px(titleBelow && c['title' + h] ? linkHeight - c['titleHeight' + h] - 1 - c['titleBorderSize' + h] : linkHeight);
+		panel.height = px(titleBelow && c['title' + suffix] ? linkHeight - c['titleHeight' + suffix] - 1 - c['titleBorderSize' + suffix] : linkHeight);
 	};
 	layout('', rules.cell, rules.link, rules.linkPanel);
 	layout('Hover', rules.cellHover, rules.linkHover, rules.linkPanelHover);
@@ -234,16 +234,16 @@ dial.populateGrid = function(){
 };
 // The pictures populateGrid left pending: images is { node id: data URL }. A tile that shows another node by now is left alone.
 dial.showImages = function(pending, images){
-	for(const r of pending){
-		if(r.link.gridNode != r.node || !images[r.node.id]) continue;
-		r.link._imageId = r.node.id;
-		r.link._imageSrc = images[r.node.id];
-		r.link.firstChild.style.backgroundImage = 'url("' + images[r.node.id] + '")';
+	for(const entry of pending){
+		if(entry.link.gridNode != entry.node || !images[entry.node.id]) continue;
+		entry.link._imageId = entry.node.id;
+		entry.link._imageSrc = images[entry.node.id];
+		entry.link.firstChild.style.backgroundImage = 'url("' + images[entry.node.id] + '")';
 	}
 };
-// The click effect of the settings on a tile (Back, a folder or a bookmark); x, y: the pointer, or none for the middle
-dial.showClick = function(link, x, y){
-	if(+app.settings.grid.cells.clickEffect && !link.classList.contains('is-empty')) QDThemes.playClickEffect(link, x, y);
+// The click effect of the settings on a tile (Back, a folder or a bookmark); pointerX, pointerY: the pointer, or none for the middle
+dial.showClick = function(link, pointerX, pointerY){
+	if(+app.settings.grid.cells.clickEffect && !link.classList.contains('is-empty')) QDThemes.playClickEffect(link, pointerX, pointerY);
 };
 dial.showLoading = function(link){ // A spinner until the background page sends the new picture
 	link.className = 'is-loading';

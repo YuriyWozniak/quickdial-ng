@@ -120,9 +120,9 @@ app.GridNodes._changed = function(node){
 
 // Draws the current page, then loads the pictures it left pending and has the missing ones made
 app.draw = function(){
-	const r = dial.populateGrid();
-	r.missing.forEach(link => { QDClient.refreshNode(app.path, link.gridNode.id); });
-	if(r.pending.length) app.getImages(r.pending.map(p => p.node.id)).then(images => { dial.showImages(r.pending, images); });
+	const drawn = dial.populateGrid();
+	drawn.missing.forEach(link => { QDClient.refreshNode(app.path, link.gridNode.id); });
+	if(drawn.pending.length) app.getImages(drawn.pending.map(p => p.node.id)).then(images => { dial.showImages(drawn.pending, images); });
 };
 app.turnPage = function(step){ // Mouse wheel, PageDown / PageUp
 	if(!app.settings || !app.node) return;
@@ -182,11 +182,11 @@ app.loadUI = function(){
 		const css = document.createElement('link');
 		css.rel = 'stylesheet'; css.href = '/css/ui.css';
 		css.onload = css.onerror = done;
-		const js = document.createElement('script');
-		js.src = '/js/ui.js';
-		js.onload = js.onerror = done;
+		const script = document.createElement('script');
+		script.src = '/js/ui.js';
+		script.onload = script.onerror = done;
 		document.head.appendChild(css);
-		document.head.appendChild(js);
+		document.head.appendChild(script);
 	});
 	return app._ui;
 };
@@ -196,15 +196,15 @@ app.createBookmark = function(){
 			title: QDCommon.text('dialogNewBookmark'),
 			message: QDCommon.text('dialogNewBookmarkPrompt'),
 			value: 'https://', placeholder: 'https://example.com', okText: QDCommon.text('dialogAdd'),
-			validate: function(v){
-				const u = /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v;
+			validate: function(address){
+				const url = /^[a-z][a-z0-9+.-]*:/i.test(address) ? address : 'https://' + address;
 				try { // web addresses need a host; other schemes (file:, about:...) are kept, except scripts and inline data
-					const p = new URL(u);
-					if(/^https?:$/.test(p.protocol) ? p.hostname : !/^(javascript|data):$/i.test(p.protocol)) return '';
+					const parsed = new URL(url);
+					if(/^https?:$/.test(parsed.protocol) ? parsed.hostname : !/^(javascript|data):$/i.test(parsed.protocol)) return '';
 				} catch(e) {}
 				return QDCommon.text('dialogInvalidAddress');
 			},
-			transform: function(v){ return /^[a-z][a-z0-9+.-]*:/i.test(v) ? v : 'https://' + v; }
+			transform: function(address){ return /^[a-z][a-z0-9+.-]*:/i.test(address) ? address : 'https://' + address; }
 		});
 	}).then(url => { if(url) QDClient.createBookmark(app.path, url, url); });
 };

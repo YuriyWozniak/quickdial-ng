@@ -183,8 +183,8 @@ var QDCommon = Object.freeze({
 	 */
 	fromCssUrl(image){
 		if(typeof image != 'string') return image;
-		const m = image.match(/^\s*url\(\s*["']?(.*?)["']?\s*\)\s*$/);
-		return m ? m[1] : image;
+		const match = image.match(/^\s*url\(\s*["']?(.*?)["']?\s*\)\s*$/);
+		return match ? match[1] : image;
 	},
 
 	/**
@@ -203,22 +203,22 @@ var QDCommon = Object.freeze({
 			}
 			const img = new Image();
 			img.onload = () => {
-				let w = img.naturalWidth || 300;
-				let h = img.naturalHeight || 150;
-				const tooBig = maxSize && Math.max(w, h) > maxSize;
+				let width = img.naturalWidth || 300;
+				let height = img.naturalHeight || 150;
+				const tooBig = maxSize && Math.max(width, height) > maxSize;
 				if(dataUrl.startsWith('data:image/webp') && !tooBig){ // Already WebP: don't re-encode
 					resolve(dataUrl);
 					return;
 				}
 				if(tooBig){
-					const ratio = maxSize / Math.max(w, h);
-					w = Math.round(w * ratio);
-					h = Math.round(h * ratio);
+					const ratio = maxSize / Math.max(width, height);
+					width = Math.round(width * ratio);
+					height = Math.round(height * ratio);
 				}
 				const canvas = document.createElement('canvas');
-				canvas.width = w;
-				canvas.height = h;
-				canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+				canvas.width = width;
+				canvas.height = height;
+				canvas.getContext('2d').drawImage(img, 0, 0, width, height);
 				const webp = canvas.toDataURL('image/webp', QDCommon.WEBP_QUALITY);
 				resolve(webp.startsWith('data:image/webp') && webp.length < dataUrl.length ? webp : dataUrl);
 			};

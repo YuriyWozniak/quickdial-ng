@@ -16,8 +16,8 @@ app.Backup._mergeDefaults = function(defaults, value){ // Imported values win; a
 	const isObject = v => v && typeof v == 'object' && !Array.isArray(v);
 	if(!isObject(defaults) || !isObject(value)) return value;
 	const result = {};
-	for(const k in defaults) result[k] = app.Backup._mergeDefaults(defaults[k], value[k]);
-	for(const k in value) if(!(k in defaults)) result[k] = value[k];
+	for(const key in defaults) result[key] = app.Backup._mergeDefaults(defaults[key], value[key]);
+	for(const key in value) if(!(key in defaults)) result[key] = value[key];
 	return result;
 };
 app.Backup._loadRoot = async function(rootPath){ // Promise<bookmark subtree of the Quick Dial root folder> (created if missing)
@@ -31,46 +31,46 @@ app.Backup._attachBookmarks = async function(gridNode, folder, idMap, stats){
 	const claimed = new Set();
 	const bookmarks = (folder.children || []).slice();
 	const pick = test => {
-		const b = bookmarks.find(b => !claimed.has(b.id) && test(b));
-		if(!b) return null;
-		claimed.add(b.id);
-		return b;
+		const bookmark = bookmarks.find(b => !claimed.has(b.id) && test(b));
+		if(!bookmark) return null;
+		claimed.add(bookmark.id);
+		return bookmark;
 	};
 	const children = gridNode.children || [];
-	for(const c of children){ // Pass 1: tiles whose bookmark still exists with the same id
-		if(!c || !c.id) continue;
-		const same = pick(b => b.id == c.id && (c.type == NodeType.folder ? b.type == 'folder' : b.url == c.url));
-		if(same) c.__match = same;
+	for(const child of children){ // Pass 1: tiles whose bookmark still exists with the same id
+		if(!child || !child.id) continue;
+		const same = pick(b => b.id == child.id && (child.type == NodeType.folder ? b.type == 'folder' : b.url == child.url));
+		if(same) child.__match = same;
 	}
 	for(let i = 0; i < children.length; i++){
-		const c = children[i];
-		if(!c || (c.type != NodeType.bookmark && c.type != NodeType.folder) || (c.type == NodeType.bookmark && !c.url)){
+		const child = children[i];
+		if(!child || (child.type != NodeType.bookmark && child.type != NodeType.folder) || (child.type == NodeType.bookmark && !child.url)){
 			children[i] = { type: NodeType.empty }; // Empty cell (or unusable entry): keeps the gap
 			continue;
 		}
-		const oldId = c.id;
-		let match = c.__match;
-		delete c.__match;
+		const oldId = child.id;
+		let match = child.__match;
+		delete child.__match;
 		if(!match){
-			match = c.type == NodeType.folder
-				? pick(b => b.type == 'folder' && b.title == c.title)
-				: pick(b => b.type == 'bookmark' && b.url == c.url);
+			match = child.type == NodeType.folder
+				? pick(b => b.type == 'folder' && b.title == child.title)
+				: pick(b => b.type == 'bookmark' && b.url == child.url);
 		}
 		if(match){
 			stats.matched++;
 		} else {
-			const info = { parentId: folder.id, title: c.title || c.url || 'Folder' };
-			if(c.type == NodeType.bookmark) info.url = c.url;
+			const info = { parentId: folder.id, title: child.title || child.url || 'Folder' };
+			if(child.type == NodeType.bookmark) info.url = child.url;
 			match = await browser.bookmarks.create(info);
-			if(c.type == NodeType.folder) match.children = [];
+			if(child.type == NodeType.folder) match.children = [];
 			stats.created++;
 		}
-		c.id = match.id;
+		child.id = match.id;
 		if(oldId) idMap[oldId] = match.id;
-		if(c.type == NodeType.folder){
+		if(child.type == NodeType.folder){
 			stats.folders++;
-			if(!c.children) c.children = [];
-			await app.Backup._attachBookmarks(c, match, idMap, stats);
+			if(!child.children) child.children = [];
+			await app.Backup._attachBookmarks(child, match, idMap, stats);
 		} else {
 			stats.tiles++;
 		}
