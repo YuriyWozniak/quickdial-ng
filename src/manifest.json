@@ -3,7 +3,7 @@
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
   "description": "__MSG_extensionDescription__",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "author": "YuriyWozniak (fork of Quick Dial by MatMoul)",
   "homepage_url": "https://github.com/YuriyWozniak/quickdial-ng",
   "developer": {
