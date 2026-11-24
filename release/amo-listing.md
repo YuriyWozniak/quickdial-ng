@@ -33,7 +33,7 @@ Quick Dial NG turns your new tab and home page into a grid of tiles. Each tile i
 
 - Switch the whole look at once: background, tile and title styles, and the accent colour of the settings.
 - Built in: Classic (the original Quick Dial look); Anori, inspired by the [Anori](https://anori.app/) extension; Plum, for a large grid with groups of sites; Dusk, glass tiles over a sunset; and Desktop, Retro PC and Retro Mono, which turn square tiles with icon pictures into a computer desktop.
-- Glass tiles with blur, shadows, smooth hover effects, title fonts, and titles over the picture.
+- Glass tiles with blur, shadows, smooth hover and click effects, title fonts, and titles over the picture.
 - Save your own themes, and export or import them as .json files.
 
 **Moving from Quick Dial**
@@ -58,7 +58,7 @@ No data is collected or sent anywhere. Settings and pictures stay in your Firefo
 - Menus: the right-click menu on the dial and on the toolbar button.
 - Storage: settings, themes and pictures.
 
-For Firefox on the desktop, version 140 or later. Available in English, German, Spanish, French, Hebrew, Italian, Polish, Portuguese (Brazil), Russian, Serbian and Ukrainian.
+For Firefox on the desktop, version 140 or later. Available in English, German, Spanish, French, Hebrew, Italian, Polish, Portuguese (Brazil), Russian, Serbian and Ukrainian: it follows Firefox's language, or the one you choose in Settings.
 
 Open source (MPL 2.0): [github.com/YuriyWozniak/quickdial-ng](https://github.com/YuriyWozniak/quickdial-ng)
 ```
@@ -93,6 +93,17 @@ The seven main pictures from [`screenshots/`](../screenshots/), in this order (t
 ## Release notes
 
 The "Release notes" field of each version on AMO; the same text goes to the GitHub release (`--notes`). Newest first.
+
+### 0.8.0
+
+```
+- Click effects for tiles: Settings › Tiles › Click effect plays Press, Bounce, Ripple, Flash or Pulse ring when you click a tile. The sample tiles show it right away. Themes you save or export keep it. No effect when your system is set to reduce motion.
+- Choose the language: Settings › Page › Language sets the language of the dial, Settings and the menus. By default it follows Firefox, as before.
+- Every text is translated now: Settings, Properties, dialogs and messages in all 11 languages, with each language's plural forms, and the wording is more natural throughout. Hebrew is shown right to left.
+- The picture controls in Properties and Settings move under the picture when a long label doesn't fit beside it.
+- Fixes: opening a dialog on the dial no longer changes the light or dark mode of the dial page's own scrollbars and controls; Apply keeps its width in a narrow Settings window.
+- Only for Firefox on the desktop: this version is no longer offered for Firefox for Android, which can't replace the new tab page.
+```
 
 ### 0.7.0
 
