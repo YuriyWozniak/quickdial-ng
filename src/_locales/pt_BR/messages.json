@@ -85,7 +85,7 @@
   },
 
   "extensionDescription": {
-    "message": "Discagem rápida para a nova aba e a página inicial, com blocos de uma pasta de favoritos. Fork independente e otimizado do Quick Dial de MatMoul.",
+    "message": "Discagem rápida na nova aba e na página inicial, com blocos tirados de uma pasta de favoritos. Fork independente e otimizado do Quick Dial de MatMoul.",
     "description": "The extension's description in Firefox's Add-ons manager"
   },
 
@@ -175,7 +175,7 @@
   },
 
   "tileHover": {
-    "message": "Ao passar o mouse",
+    "message": "Sob o ponteiro",
     "description": "A tile under the mouse pointer"
   },
 
@@ -205,11 +205,11 @@
   },
 
   "fitCover": {
-    "message": "Cobrir"
+    "message": "Preencher"
   },
 
   "fitContain": {
-    "message": "Conter"
+    "message": "Ajustar"
   },
 
   "fitCenter": {
@@ -266,11 +266,11 @@
   },
 
   "settingsBackgroundDropHint": {
-    "message": "Ou solte uma imagem na pré-visualização."
+    "message": "Ou arraste uma imagem para a pré-visualização."
   },
 
   "settingsGradientHint": {
-    "message": "O tema adiciona um degradê, exibido atrás da imagem."
+    "message": "O tema adiciona um degradê, visível atrás da imagem."
   },
 
   "settingsGradientRemove": {
@@ -286,7 +286,7 @@
   },
 
   "settingsAccentColorHint": {
-    "message": "Botões, chaves, abas e contornos de foco nas janelas e diálogos do Quick Dial NG"
+    "message": "Cor de botões, chaves, abas e contornos de foco no Quick Dial NG"
   },
 
   "settingsBehavior": {
@@ -306,7 +306,7 @@
   },
 
   "settingsToolbarButtonHint": {
-    "message": "O que o botão do Quick Dial NG na barra de ferramentas do Firefox abre. Seu menu de contexto tem as duas opções."
+    "message": "O que abre ao clicar no botão do Quick Dial NG na barra de ferramentas do Firefox. O menu de contexto do botão oferece as duas opções."
   },
 
   "settingsToolbarSettings": {
@@ -326,7 +326,7 @@
   },
 
   "settingsStartPageHint": {
-    "message": "O Quick Dial NG é a página inicial do Firefox: ele abre quando o Firefox inicia e com o botão Início. Para usar outra página, vá em Configurações do Firefox › Início."
+    "message": "O Quick Dial NG agora é a página inicial do Firefox: ele abre quando o navegador inicia e com o botão Início. Para escolher outra página, vá em Configurações do Firefox › Início."
   },
 
   "settingsLayout": {
@@ -350,11 +350,11 @@
   },
 
   "settingsRatioWidth": {
-    "message": "Proporção da largura"
+    "message": "Largura relativa"
   },
 
   "settingsRatioHeight": {
-    "message": "Proporção da altura"
+    "message": "Altura relativa"
   },
 
   "settingsTileShapeHint": {
@@ -439,11 +439,11 @@
   },
 
   "settingsBorderWidth": {
-    "message": "Largura da borda"
+    "message": "Espessura da borda"
   },
 
   "settingsCornerRadius": {
-    "message": "Raio dos cantos"
+    "message": "Arredondamento dos cantos"
   },
 
   "settingsBorderColor": {
@@ -455,11 +455,11 @@
   },
 
   "settingsGlassBlur": {
-    "message": "Desfoque de vidro"
+    "message": "Vidro fosco"
   },
 
   "settingsGlassBlurHint": {
-    "message": "Desfoca a página atrás do bloco"
+    "message": "Desfoca o fundo sob o bloco"
   },
 
   "settingsShadow": {
@@ -471,7 +471,7 @@
   },
 
   "shadowStrong": {
-    "message": "Forte"
+    "message": "Marcada"
   },
 
   "settingsHoverEffect": {
@@ -479,19 +479,19 @@
   },
 
   "hoverInstant": {
-    "message": "Mudança instantânea"
+    "message": "Instantâneo"
   },
 
   "hoverSmooth": {
-    "message": "Mudança suave"
+    "message": "Suave"
   },
 
   "hoverLift": {
-    "message": "Suave, o bloco se eleva"
+    "message": "Suave, com elevação"
   },
 
   "hoverGrow": {
-    "message": "Suave, o bloco cresce"
+    "message": "Suave, com aumento"
   },
 
   "settingsClickEffect": {
@@ -499,23 +499,23 @@
   },
 
   "settingsClickEffectHint": {
-    "message": "Clique em um bloco de exemplo para vê-lo de novo"
+    "message": "Clique em um bloco de exemplo para ver o efeito de novo"
   },
 
   "settingsClickToPreview": {
-    "message": "Clique para ver o efeito ao clicar"
+    "message": "Clique para ver o efeito"
   },
 
   "settingsReducedMotionHint": {
-    "message": "As animações estão desativadas nas configurações do sistema, então os blocos não se movem: os efeitos ao clicar piscam ou esmaecem em vez disso, e uma mudança suave ao passar o mouse só altera as cores, sem elevar nem crescer."
+    "message": "As animações estão desativadas nas configurações do sistema, então os blocos não se movem: os efeitos ao clicar piscam ou esmaecem, e a mudança suave ao passar o mouse só altera as cores, sem elevação nem aumento."
   },
 
   "clickPress": {
-    "message": "Pressionar"
+    "message": "Pressão"
   },
 
   "clickBounce": {
-    "message": "Quicar"
+    "message": "Quique"
   },
 
   "clickRipple": {
@@ -527,7 +527,7 @@
   },
 
   "clickRing": {
-    "message": "Anel pulsante"
+    "message": "Pulsação"
   },
 
   "settingsGroupTitle": {
@@ -578,7 +578,7 @@
   },
 
   "titleOver": {
-    "message": "Sobre a parte inferior da imagem"
+    "message": "Sobre a imagem, embaixo"
   },
 
   "settingsGroupThumbnails": {
@@ -586,7 +586,7 @@
   },
 
   "settingsCaptureDelay": {
-    "message": "Atraso da captura"
+    "message": "Espera antes da captura"
   },
 
   "settingsCaptureDelayUnit": {
@@ -598,7 +598,7 @@
   },
 
   "settingsDiscardHint": {
-    "message": "Mostrar as configurações que a discagem rápida usa agora"
+    "message": "Voltar às configurações que a discagem rápida usa agora"
   },
 
   "settingsApplyHint": {
@@ -606,12 +606,12 @@
   },
 
   "settingsThemesIntro": {
-    "message": "Um tema é a aparência da discagem rápida: cor de fundo, margem da página, estilos de blocos e títulos e a cor de destaque. Ele mantém sua imagem de fundo, linhas e colunas, formato dos blocos e os blocos. Escolha <b>Usar</b> para experimentar um tema aqui e depois <b>Aplicar</b> para colocá-lo na discagem rápida.",
+    "message": "Um tema define a aparência da discagem rápida: cor de fundo, margem da página, estilo de blocos e títulos e cor de destaque. Sua imagem de fundo, o número de linhas e colunas, o formato dos blocos e os próprios blocos não mudam. Escolha <b>Usar</b> para experimentar um tema aqui e depois <b>Aplicar</b> para ativá-lo na discagem rápida.",
     "description": "Keep <b> and </b> around the words of the buttons"
   },
 
   "themeSaveCurrent": {
-    "message": "Salvar o atual como tema…"
+    "message": "Salvar a aparência atual como tema…"
   },
 
   "themeSaveCurrentHint": {
@@ -619,7 +619,7 @@
   },
 
   "themeExportCurrent": {
-    "message": "Exportar o atual…"
+    "message": "Exportar a aparência atual…"
   },
 
   "themeExportCurrentHint": {
@@ -647,7 +647,7 @@
   },
 
   "themeUseHint": {
-    "message": "Mostrar este tema aqui; Aplicar o mantém"
+    "message": "Experimentar este tema aqui; “Aplicar” o mantém"
   },
 
   "themeExport": {
@@ -667,12 +667,12 @@
   },
 
   "themeShownHere": {
-    "message": "“$1” é exibido só aqui. Aplicar o coloca na discagem rápida; Descartar alterações mantém sua aparência anterior.",
+    "message": "“$1” aparece só aqui. “Aplicar” o ativa na discagem rápida; “Descartar alterações” volta à aparência anterior.",
     "description": "$1: the theme's name"
   },
 
   "themeDialogMessage": {
-    "message": "A partir das configurações atuais: cor de fundo, margem da página, estilos de blocos e títulos e a cor de destaque."
+    "message": "Usa das configurações atuais a cor de fundo, a margem da página, o estilo de blocos e títulos e a cor de destaque."
   },
 
   "themeName": {
@@ -688,7 +688,7 @@
   },
 
   "themeDescriptionPlaceholder": {
-    "message": "Como ele é"
+    "message": "Qual é a aparência dele"
   },
 
   "themeNameMissing": {
@@ -696,12 +696,12 @@
   },
 
   "themeNameTooLong": {
-    "message": "Use no máximo $1 caracteres.",
+    "message": "Nome longo demais (máximo de $1 caracteres).",
     "description": "$1: a number"
   },
 
   "themeNameBuiltIn": {
-    "message": "“$1” é um tema integrado. Escolha outro nome.",
+    "message": "“$1” já é um tema integrado. Escolha outro nome.",
     "description": "$1: the name typed"
   },
 
@@ -719,7 +719,7 @@
   },
 
   "themeSaveTitle": {
-    "message": "Salvar o atual como tema"
+    "message": "Salvar a aparência atual como tema"
   },
 
   "themeSave": {
@@ -732,7 +732,7 @@
   },
 
   "themeExportTitle": {
-    "message": "Exportar o atual como tema"
+    "message": "Exportar a aparência atual como tema"
   },
 
   "themeExportButton": {
@@ -740,7 +740,7 @@
   },
 
   "themeImported": {
-    "message": "“$1” importado. Escolha Usar para experimentá-lo.",
+    "message": "“$1” importado. Escolha “Usar” para experimentá-lo.",
     "description": "$1: the theme's name"
   },
 
@@ -755,11 +755,11 @@
   },
 
   "themeDeleteMessage": {
-    "message": "O tema é removido desta lista. Suas configurações atuais continuam como estão."
+    "message": "O tema será removido desta lista. Suas configurações atuais não mudam."
   },
 
   "themeFileIsBackup": {
-    "message": "Este é um backup completo do Quick Dial NG. Importe-o na aba Backup."
+    "message": "Este é um backup completo do Quick Dial NG. Restaure-o na aba “Backup”."
   },
 
   "themeFileInvalid": {
@@ -788,7 +788,7 @@
   },
 
   "themeAnoriDescription": {
-    "message": "Inspirado na extensão Anori (anori.app): uma página verde-escura, blocos de vidro fosco com grandes cantos arredondados e títulos sobre as imagens."
+    "message": "Inspirado na extensão Anori (anori.app): fundo verde-escuro, blocos de vidro fosco com cantos bem arredondados e títulos sobre as imagens."
   },
 
   "themePlumName": {
@@ -796,7 +796,7 @@
   },
 
   "themePlumDescription": {
-    "message": "Uma página cor de ameixa escura com bordas arredondadas cinza-claras e títulos sob as imagens. Feito para uma grade grande com grupos de sites e espaço entre eles."
+    "message": "Fundo ameixa-escuro, bordas arredondadas cinza-claras e títulos sob as imagens. Para uma grade grande com grupos de sites separados."
   },
 
   "themeDesktopName": {
@@ -804,7 +804,7 @@
   },
 
   "themeDesktopDescription": {
-    "message": "Ícones com seus nomes embaixo em uma página azul-noite ou no seu papel de parede, como a área de trabalho de um computador, com um destaque suave sob o ponteiro. Para blocos quadrados e imagens de ícones."
+    "message": "Ícones com o nome embaixo, sobre fundo azul-noite ou no seu papel de parede — como a área de trabalho de um computador, com um destaque suave sob o ponteiro. Para blocos quadrados e imagens de ícones."
   },
 
   "themeDuskName": {
@@ -812,7 +812,7 @@
   },
 
   "themeDuskDescription": {
-    "message": "Blocos de vidro violeta que crescem ao passar o mouse, sobre um céu de pôr do sol."
+    "message": "Blocos de vidro violeta sobre um céu de pôr do sol; o bloco sob o ponteiro cresce."
   },
 
   "themeRetroPcName": {
@@ -820,7 +820,7 @@
   },
 
   "themeRetroPcDescription": {
-    "message": "Uma área de trabalho de PC do fim dos anos 1990: uma página verde-azulada, ícones com nomes brancos e um destaque azul-marinho no nome sob o ponteiro. Para blocos quadrados e imagens de ícones."
+    "message": "Área de trabalho de PC do fim dos anos 1990: fundo verde-azulado, ícones com nomes brancos e o nome destacado em azul-marinho sob o ponteiro. Para blocos quadrados e imagens de ícones."
   },
 
   "themeRetroMonoName": {
@@ -828,7 +828,7 @@
   },
 
   "themeRetroMonoDescription": {
-    "message": "Uma das primeiras áreas de trabalho em preto e branco: um padrão cinza fino, nomes pretos em rótulos brancos, invertidos sob o ponteiro. Para blocos quadrados e imagens de ícones em preto e branco."
+    "message": "Uma das primeiras áreas de trabalho em preto e branco: padrão cinza fino, nomes pretos em rótulos brancos que se invertem sob o ponteiro. Para blocos quadrados e ícones em preto e branco."
   },
 
   "backupTitle": {
@@ -836,7 +836,7 @@
   },
 
   "backupIntro": {
-    "message": "Salva configurações, blocos, imagens e seus temas em um único arquivo. Restaure-o com <b>Importar de arquivo…</b> abaixo.",
+    "message": "Salva configurações, blocos, imagens e seus temas em um único arquivo. Para restaurá-los, use <b>Importar de arquivo…</b> abaixo.",
     "description": "Keep <b> and </b>; the words inside are the button's"
   },
 
@@ -853,7 +853,7 @@
   },
 
   "backupImportHint": {
-    "message": "Importar uma exportação do Quick Dial original ou um backup do Quick Dial NG"
+    "message": "Abrir uma exportação do Quick Dial original ou um backup do Quick Dial NG"
   },
 
   "backupOriginalTitle": {
@@ -861,7 +861,7 @@
   },
 
   "backupOriginalIntro": {
-    "message": "Traz seus blocos com suas posições exatas na grade, pastas, imagens e configurações de grade e estilo. Os favoritos que já estão na sua pasta do Quick Dial são reutilizados; os que faltam são criados."
+    "message": "Traz seus blocos (nas mesmas posições da grade), pastas, imagens e configurações de grade e estilo. Os favoritos que já estão na sua pasta do Quick Dial são reaproveitados, e os que faltam são criados."
   },
 
   "backupStep1": {
@@ -870,16 +870,16 @@
   },
 
   "backupStep2": {
-    "message": "Copie o trecho de exportação e cole-o na aba <b>Console</b> (digite <code>allow pasting</code> primeiro se o Firefox pedir). Ele salva <code>quickdial-export.json</code> em Downloads.",
+    "message": "Copie o código de exportação e cole-o na aba <b>Console</b> (se o Firefox pedir, digite antes <code>allow pasting</code>). O código salva <code>quickdial-export.json</code> em Downloads.",
     "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
   },
 
   "backupStep3": {
-    "message": "Escolha esse arquivo com <b>Importar de arquivo…</b> acima."
+    "message": "Abra esse arquivo com <b>Importar de arquivo…</b> acima."
   },
 
   "backupCopySnippet": {
-    "message": "Copiar trecho de exportação"
+    "message": "Copiar código de exportação"
   },
 
   "backupCopied": {
@@ -887,11 +887,11 @@
   },
 
   "backupCopyPrompt": {
-    "message": "Copie este trecho:"
+    "message": "Copie este código:"
   },
 
   "backupFileIsTheme": {
-    "message": "Isto é um tema. Importe-o na aba Temas."
+    "message": "Isto é um tema. Importe-o na aba “Temas”."
   },
 
   "backupFileInvalid": {
@@ -907,7 +907,7 @@
   },
 
   "backupImportMessage": {
-    "message": "Suas configurações atuais e o layout dos blocos serão substituídos. Os favoritos na pasta do Quick Dial são mantidos; os que faltam são criados."
+    "message": "Suas configurações atuais e o layout dos blocos serão substituídos. Os favoritos na pasta do Quick Dial são mantidos, e os que faltam são criados."
   },
 
   "backupImportButton": {
@@ -919,7 +919,7 @@
   },
 
   "backupImportResult": {
-    "message": "Importado: $1, $2, $3, além das configurações de grade e estilo. Favoritos reutilizados: $4, criados: $5.",
+    "message": "Importado: $1, $2, $3, além das configurações de grade e estilo. Favoritos existentes reaproveitados: $4, novos: $5.",
     "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
   },
 
@@ -1004,11 +1004,11 @@
   },
 
   "propertiesLockTitle": {
-    "message": "Bloquear título"
+    "message": "Fixar título"
   },
 
   "propertiesLockTitleHint": {
-    "message": "Bloquear o título: atualizar o bloco não vai renomeá-lo"
+    "message": "Fixar o título para que atualizar o bloco não o mude"
   },
 
   "propertiesAddress": {
@@ -1040,7 +1040,7 @@
   },
 
   "propertiesPasteHint": {
-    "message": "Solte uma imagem na pré-visualização ou cole uma com Ctrl+V."
+    "message": "Arraste uma imagem para a pré-visualização ou cole com Ctrl+V."
   },
 
   "propertiesKeepPicture": {
