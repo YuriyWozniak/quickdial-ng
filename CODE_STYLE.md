@@ -43,6 +43,7 @@ How the code of Quick Dial NG is written and named. `npm run check` ([ESLint](es
   Only give an id to an element that needs one, and never two ids that differ only by case.
 - **CSS classes** are kebab-case with the `qd-` prefix (`qd-grid`, `qd-dialog`, `qd-tile-slot`). States and variants are `is-*` classes (`is-loading`, `is-dirty`, `is-primary`).
 - **Custom properties** start with `--qd-`: `--qd-accent`. Colors, sizes and spacing use the tokens at the top of `css/ui.css`.
+- In the stylesheets ESLint checks the names above (`qdng/css-names`: classes, ids, custom properties; the `.qd` root class is the one class without a prefix) and the colours (`qdng/color-tokens`): a colour is written out only in a token's definition, and one that has no token yet gets one in `css/ui.css`. The rules are in [eslint-rules](eslint-rules/).
 - **Stylesheets** follow where they are loaded: `css/ui.css` (tokens, base text, controls, dialogs) on every page, and the only one the dial page loads; `css/page.css` (page frame, cards, form rows, image picker) on the Properties and Settings pages; `css/settings.css` on Settings only. Reusable pieces go in the file that every page using them loads; what only one section of a page has (the Tiles preview, the theme gallery) goes in that page's file.
 - **Attributes of our own** are `data-*` attributes (`cell.dataset.index`), never made-up attribute names.
 

@@ -168,8 +168,8 @@
 	font-weight: 600;
 	letter-spacing: .06em;
 	text-transform: uppercase;
-	color: #fff;
-	background: rgba(0, 0, 0, .45);
+	color: var(--qd-caption-text);
+	background: var(--qd-caption-bg);
 	border-radius: var(--qd-radius-pill);
 }
 .qd-tile-slot { display: flex; width: 152px; height: 128px; } /* SAMPLE_TILE_WIDTH in settings.js */

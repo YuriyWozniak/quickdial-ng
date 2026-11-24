@@ -32,8 +32,8 @@ export default [
 	{ files: ['src/**/*.js', 'test/**/*.js'] },
 	{ ignores: ['*.mjs', 'release/**', 'node_modules/**', 'web-ext-artifacts/**', 'test/node_modules/**'] },
 	{ files: ['**/*.js'], ...js.configs.recommended },
-	// The project's own rules (eslint-rules/), for every script; each block below turns on those it needs
-	{ files: ['**/*.js'], plugins: { qdng } },
+	// The project's own rules (eslint-rules/), for every script and stylesheet; each block below turns on those it needs
+	{ files: ['**/*.js', 'src/**/*.css'], plugins: { qdng } },
 
 	// Stylesheets: the recommended rules, and logical properties for left and right (CODE_STYLE.md: layout works right to left too)
 	{
@@ -47,7 +47,11 @@ export default [
 			// Baseline means every major browser, Safari included; the extension runs only in Firefox (140 and later).
 			// Newly available features are fine there, and so are these two, unprefixed in Firefox.
 			'css/use-baseline': ['error', { available: 'newly', allowProperties: ['user-select', 'accent-color'] }],
-			'css/prefer-logical-properties': ['error', { allowProperties: UP_DOWN_PROPERTIES, allowUnits: VIEWPORT_UNITS }]
+			'css/prefer-logical-properties': ['error', { allowProperties: UP_DOWN_PROPERTIES, allowUnits: VIEWPORT_UNITS }],
+			// CODE_STYLE.md: qd- and is-* classes (and the .qd root the base styles sit under), PascalCase ids,
+			// --qd- custom properties, and colours only from the tokens in css/ui.css
+			'qdng/css-names': ['error', { allow: ['qd'] }],
+			'qdng/color-tokens': 'error'
 		}
 	},
 	{
