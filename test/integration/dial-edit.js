@@ -13,114 +13,122 @@
 const { freshProfile, spyTabs, stubDrawWindow, sitePage } = require('../lib/fixtures');
 
 // The titles of the tiles the dial shows
-const shown = t => t.inDial(() => [...document.querySelectorAll('table.qd-grid a:not(.is-empty)')].map(a => a.lastChild.innerText));
+const shownTitles = testPage => testPage.inDial(() => [...document.querySelectorAll('table.qd-grid a:not(.is-empty)')].map(link => link.lastChild.innerText));
 // What the context menu does: the dial remembers the tile under the mouse, the background page sends the command.
 // Returns the tile's class right after the command (e.g. is-loading).
-const menu = (t, cmd, title) => t.inDial(([cmd, title]) => {
-	const link = title && [...document.querySelectorAll('table.qd-grid a:not(.is-empty)')].find(a => a.lastChild.innerText === title);
+const menuCommand = (testPage, command, tileTitle) => testPage.inDial(([cmd, title]) => {
+	const link = title && [...document.querySelectorAll('table.qd-grid a:not(.is-empty)')].find(tile => tile.lastChild.innerText === title);
 	if (title && !link) throw new Error('no tile "' + title + '"');
 	if (link) link.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-	top.fire('rt.onMessage.dial', { cmd }, {}, () => {});
+	top.fireEvent('rt.onMessage.dial', { cmd }, {}, () => {});
 	return link && link.className;
-}, [cmd, title || null]);
-const C = { createBookmark: 200, createFolder: 201, editProperties: 203, refresh: 204, capture: 206, delete: 207 };
+}, [command, tileTitle || null]);
+// The commands of the tile menu, as the background page sends them to the dial (js/dial.js)
+const MenuCommand = { createBookmark: 200, createFolder: 201, editProperties: 203, refresh: 204, capture: 206, delete: 207 };
 
 module.exports = {
 	title: 'Dial menu: new bookmark and folder, delete, refresh, capture, properties, Settings',
-	async run(t) {
-		await freshProfile(t);
-		await stubDrawWindow(t);
-		await t.loadDial();
-		await t.waitFor('the tiles to fetch their sites (titled with their host)', () => bg().app.node.children.filter(c => c.image === '1').length === 6);
-		const page = sitePage(t, 'news.html', '<!doctype html><html><head><title>News page</title></head><body><h1>News</h1></body></html>');
+	async run(testPage) {
+		await freshProfile(testPage);
+		await stubDrawWindow(testPage);
+		await testPage.loadDial();
+		await testPage.waitFor('the tiles to fetch their sites (titled with their host)', () => backgroundPage().app.node.children.filter(tile => tile.image === '1').length === 6);
+		const newsPage = sitePage(testPage, 'news.html', '<!doctype html><html><head><title>News page</title></head><body><h1>News</h1></body></html>');
 
 		// ----- New bookmark: the address is checked; the new tile fetches its title and picture -----
-		await menu(t, C.createBookmark);
-		let d = await t.answer({ values: ['javascript:alert(1)'] });
-		t.check('New bookmark refuses an address that isn\'t a web page', /web address/.test(d.error), d);
-		d = await t.answer({ ok: false });
-		await menu(t, C.createBookmark);
-		await t.answer({ values: [page] });
-		await t.waitFor('the new tile with its picture', () => { const n = bg().app.node.children.find(c => c.url && c.url.includes('news.html')); return n && n.image === '1'; });
-		await t.waitFor('the dial to show it', () => [...win('dial').document.querySelectorAll('table.qd-grid a.is-bookmark')].some(a => a.lastChild.innerText === 'News page' && a.firstChild.style.backgroundImage));
-		let st = await t.J(() => ({ tile: bg().app.node.children[7], bookmark: S.bm.children[0].children[0].children.find(c => c.url && c.url.includes('news.html')) }));
-		t.check('New bookmark adds a tile at the end and fetches its title and picture', st.tile && st.tile.title === 'News page' && st.bookmark && st.bookmark.title === 'News page', st);
-		await menu(t, C.createBookmark);
-		await t.answer({ values: ['example.org'] });
-		st = await t.waitFor('the tile', () => { const n = bg().app.node.children[8]; return n && n.url; });
-		t.check('an address without a scheme gets https://', st === 'https://example.org', st);
-		await t.J(() => bg().browser.bookmarks.removeTree(bg().app.node.children[8].id));
-		await t.idle();
+		await menuCommand(testPage, MenuCommand.createBookmark);
+		const refused = await testPage.answer({ values: ['javascript:alert(1)'] });
+		testPage.check('New bookmark refuses an address that isn\'t a web page', /web address/.test(refused.error), refused);
+		await testPage.answer({ ok: false });
+		await menuCommand(testPage, MenuCommand.createBookmark);
+		await testPage.answer({ values: [newsPage] });
+		await testPage.waitFor('the new tile with its picture', () => { const tile = backgroundPage().app.node.children.find(child => child.url && child.url.includes('news.html')); return tile && tile.image === '1'; });
+		await testPage.waitFor('the dial to show it', () => [...frameWindow('dial').document.querySelectorAll('table.qd-grid a.is-bookmark')].some(link => link.lastChild.innerText === 'News page' && link.firstChild.style.backgroundImage));
+		const newBookmark = await testPage.inHost(() => ({ tile: backgroundPage().app.node.children[7],
+			bookmark: dialFolderBookmarks().find(child => child.url && child.url.includes('news.html')) }));
+		testPage.check('New bookmark adds a tile at the end and fetches its title and picture', newBookmark.tile && newBookmark.tile.title === 'News page' && newBookmark.bookmark && newBookmark.bookmark.title === 'News page', newBookmark);
+		await menuCommand(testPage, MenuCommand.createBookmark);
+		await testPage.answer({ values: ['example.org'] });
+		const schemelessAddress = await testPage.waitFor('the tile', () => { const tile = backgroundPage().app.node.children[8]; return tile && tile.url; });
+		testPage.check('an address without a scheme gets https://', schemelessAddress === 'https://example.org', schemelessAddress);
+		await testPage.inHost(() => backgroundPage().browser.bookmarks.removeTree(backgroundPage().app.node.children[8].id));
+		await testPage.idle();
 
 		// ----- New folder, Delete -----
-		await menu(t, C.createFolder);
-		d = await t.answer();
-		await t.waitFor('the new folder', () => bg().app.node.children.some(c => c.title === 'New Folder'));
-		await t.waitFor('the dial to show it', () => win('dial').document.querySelectorAll('table.qd-grid a.is-folder').length === 2);
-		st = await t.J(() => S.bm.children[0].children[0].children.some(c => c.title === 'New Folder' && !c.url));
-		t.check('New folder adds a folder tile and its bookmarks folder', st && d.error === null);
+		await menuCommand(testPage, MenuCommand.createFolder);
+		const newFolderDialog = await testPage.answer();
+		await testPage.waitFor('the new folder', () => backgroundPage().app.node.children.some(tile => tile.title === 'New Folder'));
+		await testPage.waitFor('the dial to show it', () => frameWindow('dial').document.querySelectorAll('table.qd-grid a.is-folder').length === 2);
+		const folderBookmarked = await testPage.inHost(() => dialFolderBookmarks().some(child => child.title === 'New Folder' && !child.url));
+		testPage.check('New folder adds a folder tile and its bookmarks folder', folderBookmarked && newFolderDialog.error === null);
 
-		await menu(t, C.delete, 'New Folder');
-		d = await t.answer({ ok: false });
-		await t.idle();
-		t.check('Delete asks first; Cancel keeps the tile', d.title === 'Delete New Folder?' && (await shown(t)).includes('New Folder'), d);
-		await menu(t, C.delete, 'New Folder');
-		await t.answer();
-		await t.waitFor('the tile to go', () => !bg().app.node.children.some(c => c.title === 'New Folder'));
-		await t.waitFor('the dial to follow', () => ![...win('dial').document.querySelectorAll('table.qd-grid a:not(.is-empty)')].some(a => a.lastChild.innerText === 'New Folder'));
-		st = await t.J(() => S.bm.children[0].children[0].children.some(c => c.title === 'New Folder'));
-		t.check('Delete removes the tile and its bookmark', !st);
+		await menuCommand(testPage, MenuCommand.delete, 'New Folder');
+		const deleteDialog = await testPage.answer({ ok: false });
+		await testPage.idle();
+		testPage.check('Delete asks first; Cancel keeps the tile', deleteDialog.title === 'Delete New Folder?' && (await shownTitles(testPage)).includes('New Folder'), deleteDialog);
+		await menuCommand(testPage, MenuCommand.delete, 'New Folder');
+		await testPage.answer();
+		await testPage.waitFor('the tile to go', () => !backgroundPage().app.node.children.some(tile => tile.title === 'New Folder'));
+		await testPage.waitFor('the dial to follow', () => ![...frameWindow('dial').document.querySelectorAll('table.qd-grid a:not(.is-empty)')].some(link => link.lastChild.innerText === 'New Folder'));
+		const folderStillBookmarked = await testPage.inHost(() => dialFolderBookmarks().some(child => child.title === 'New Folder'));
+		testPage.check('Delete removes the tile and its bookmark', !folderStillBookmarked);
 
 		// ----- the dialogs by keyboard: Enter accepts, Escape cancels -----
-		await menu(t, C.createFolder);
-		await t.dial().locator('.qd-dialog input').fill('Keyboard');
-		await t.dial().locator('.qd-dialog input').press('Enter');
-		await t.waitFor('the folder', () => bg().app.node.children.some(c => c.title === 'Keyboard'));
-		await t.waitFor('the dial to show it', () => [...win('dial').document.querySelectorAll('table.qd-grid a.is-folder')].some(a => a.lastChild.innerText === 'Keyboard'));
-		await menu(t, C.delete, 'Keyboard');
-		await t.dial().locator('.qd-overlay:not(.is-closing) .qd-dialog').waitFor();
-		st = await t.inDial(() => document.activeElement.textContent);
-		await t.dial().locator('.qd-dialog .qd-btn').first().press('Escape');
-		await t.waitFor('the dialog to close', () => !win('dial').document.querySelector('.qd-overlay:not(.is-closing)'));
-		await t.idle();
-		t.check('dialogs: Enter accepts, Escape cancels; a delete has Cancel focused', (await t.J(() => bg().app.node.children.some(c => c.title === 'Keyboard'))) && st === 'Cancel', st);
+		await menuCommand(testPage, MenuCommand.createFolder);
+		await testPage.dial().locator('.qd-dialog input').fill('Keyboard');
+		await testPage.dial().locator('.qd-dialog input').press('Enter');
+		await testPage.waitFor('the folder', () => backgroundPage().app.node.children.some(tile => tile.title === 'Keyboard'));
+		await testPage.waitFor('the dial to show it', () => [...frameWindow('dial').document.querySelectorAll('table.qd-grid a.is-folder')].some(link => link.lastChild.innerText === 'Keyboard'));
+		await menuCommand(testPage, MenuCommand.delete, 'Keyboard');
+		await testPage.dial().locator('.qd-overlay:not(.is-closing) .qd-dialog').waitFor();
+		const focusedButton = await testPage.inDial(() => document.activeElement.textContent);
+		await testPage.dial().locator('.qd-dialog .qd-btn').first().press('Escape');
+		await testPage.waitFor('the dialog to close', () => !frameWindow('dial').document.querySelector('.qd-overlay:not(.is-closing)'));
+		await testPage.idle();
+		const keyboardFolderKept = await testPage.inHost(() => backgroundPage().app.node.children.some(tile => tile.title === 'Keyboard'));
+		testPage.check('dialogs: Enter accepts, Escape cancels; a delete has Cancel focused', keyboardFolderKept && focusedButton === 'Cancel', focusedButton);
 
 		// ----- Refresh: the page is fetched again (here with a new title); the tile shows the loading picture meanwhile -----
-		sitePage(t, 'news.html', '<!doctype html><html><head><title>News, updated</title></head><body></body></html>');
-		st = await menu(t, C.refresh, 'News page');
-		await t.waitFor('the new title', () => [...win('dial').document.querySelectorAll('table.qd-grid a')].some(a => a.lastChild.innerText === 'News, updated'));
-		t.check('Refresh shows the loading picture, then the new title', st === 'is-loading', st);
-		const spinner = await t.inDial(() => dial.styles.grid.linkLoading.backgroundImage);
-		t.check('the loading picture is the built-in spinner', spinner.includes('/img/loading.svg'), spinner);
+		sitePage(testPage, 'news.html', '<!doctype html><html><head><title>News, updated</title></head><body></body></html>');
+		const classWhileRefreshing = await menuCommand(testPage, MenuCommand.refresh, 'News page');
+		await testPage.waitFor('the new title', () => [...frameWindow('dial').document.querySelectorAll('table.qd-grid a')].some(link => link.lastChild.innerText === 'News, updated'));
+		testPage.check('Refresh shows the loading picture, then the new title', classWhileRefreshing === 'is-loading', classWhileRefreshing);
+		const loadingPicture = await testPage.inDial(() => dial.styles.grid.linkLoading.backgroundImage);
+		testPage.check('the loading picture is the built-in spinner', loadingPicture.includes('/img/loading.svg'), loadingPicture);
 
 		// ----- Capture page and Properties: the dial asks the background page / opens the popup for the tile under the mouse -----
-		await t.J(() => { const g = bg().app.GridNodes; bg().qdCaptured = []; g.capturePage = node => { bg().qdCaptured.push(node.id); return Promise.resolve(null); }; });
-		await menu(t, C.capture, 'site2.example');
-		st = await t.waitFor('the capture request', () => bg().qdCaptured.length && bg().qdCaptured);
-		t.check('Capture page asks for the tile under the mouse', t.same(st, ['b2']), st);
-		await menu(t, C.editProperties, 'site3.example');
-		st = await t.waitFor('the Properties popup', () => { const f = win('dial').document.querySelector('.qd-frame iframe'); return f && f.getAttribute('src'); });
-		t.check('Properties opens in a popup for that tile', st === '/html/properties.html?id=b3', st);
-		await t.waitFor('the popup to load', () => { const f = win('dial').document.querySelector('.qd-frame iframe'); return f && f.contentWindow.app && f.contentWindow.app.node; });
-		await t.dial().locator('body').press('Escape');
-		await t.waitFor('the popup to close', () => !win('dial').document.querySelector('.qd-overlay'));
-		t.check('Escape closes the popup', true);
+		await testPage.inHost(() => {
+			const page = backgroundPage();
+			page.qdCaptured = [];
+			page.app.GridNodes.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
+		});
+		await menuCommand(testPage, MenuCommand.capture, 'site2.example');
+		const capturedIds = await testPage.waitFor('the capture request', () => backgroundPage().qdCaptured.length && backgroundPage().qdCaptured);
+		testPage.check('Capture page asks for the tile under the mouse', testPage.same(capturedIds, ['b2']), capturedIds);
+		await menuCommand(testPage, MenuCommand.editProperties, 'site3.example');
+		const popupAddress = await testPage.waitFor('the Properties popup', () => { const popup = frameWindow('dial').document.querySelector('.qd-frame iframe'); return popup && popup.getAttribute('src'); });
+		testPage.check('Properties opens in a popup for that tile', popupAddress === '/html/properties.html?id=b3', popupAddress);
+		await testPage.waitFor('the popup to load', () => { const popup = frameWindow('dial').document.querySelector('.qd-frame iframe'); return popup && popup.contentWindow.app && popup.contentWindow.app.node; });
+		await testPage.dial().locator('body').press('Escape');
+		await testPage.waitFor('the popup to close', () => !frameWindow('dial').document.querySelector('.qd-overlay'));
+		testPage.check('Escape closes the popup', true);
 
 		// ----- the dial's Settings items open the Settings tab (0.5.0) -----
-		await spyTabs(t);
-		await t.inDial(() => { app.editSettings('backup'); app.editSettings(new MouseEvent('click')); });
-		st = await t.waitFor('the tabs', () => bg().qdTabs.length === 2 && bg().qdTabs);
-		t.check('the dial\'s Settings items open the Settings tab', t.same(st, [['create', { url: 'html/settings.html?tab=backup' }], ['create', { url: 'html/settings.html' }]]), st);
+		await spyTabs(testPage);
+		await testPage.inDial(() => { app.editSettings('backup'); app.editSettings(new MouseEvent('click')); });
+		const openedTabs = await testPage.waitFor('the tabs', () => backgroundPage().qdTabs.length === 2 && backgroundPage().qdTabs);
+		testPage.check('the dial\'s Settings items open the Settings tab', testPage.same(openedTabs, [['create', { url: 'html/settings.html?tab=backup' }], ['create', { url: 'html/settings.html' }]]), openedTabs);
 
 		// ----- the tile menu also opens on a folder's Back tile: its items do nothing there -----
-		await t.loadDial('?path=%2FFolder');
-		await t.J(() => { bg().qdCaptured = []; });
-		const classes = [];
-		for (const cmd of [C.refresh, C.capture, C.editProperties, C.delete]) classes.push(await menu(t, cmd, 'Back'));
-		await t.idle();
-		st = await t.inDial(() => ({ back: document.querySelector('table.qd-grid a').className, popup: !!document.querySelector('.qd-overlay') }));
-		st.classes = classes;
-		st.captured = await t.J(() => bg().qdCaptured.length);
-		t.check('Refresh, Capture, Properties and Delete on the Back tile change nothing', t.same(classes, ['is-back', 'is-back', 'is-back', 'is-back']) && st.back === 'is-back' && !st.popup && st.captured === 0, st);
+		await testPage.loadDial('?path=%2FFolder');
+		await testPage.inHost(() => { backgroundPage().qdCaptured = []; });
+		const classesAfterCommands = [];
+		for (const command of [MenuCommand.refresh, MenuCommand.capture, MenuCommand.editProperties, MenuCommand.delete]) classesAfterCommands.push(await menuCommand(testPage, command, 'Back'));
+		await testPage.idle();
+		const backTile = await testPage.inDial(() => ({ className: document.querySelector('table.qd-grid a').className, popup: !!document.querySelector('.qd-overlay') }));
+		backTile.classesAfterCommands = classesAfterCommands;
+		backTile.captured = await testPage.inHost(() => backgroundPage().qdCaptured.length);
+		testPage.check('Refresh, Capture, Properties and Delete on the Back tile change nothing', testPage.same(classesAfterCommands, ['is-back', 'is-back', 'is-back', 'is-back'])
+			&& backTile.className === 'is-back' && !backTile.popup && backTile.captured === 0, backTile);
 	}
 };

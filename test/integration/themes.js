@@ -12,54 +12,73 @@
 const { BUILTIN_THEMES, freshProfile } = require('../lib/fixtures');
 
 // Runs in the Settings page: is the Themes tab shown, the names of the theme cards, and those marked "In use"
-const themeCards = () => ({ tab: !document.getElementById('TabThemes').hidden, cards: [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(h => h.firstChild.textContent),
-	current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(h => h.firstChild.textContent) });
+const themeCards = () => ({ tab: !document.getElementById('TabThemes').hidden, cards: [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(heading => heading.firstChild.textContent),
+	current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(heading => heading.firstChild.textContent) });
+// Anori's values in the Settings form (its accent colour; the title over the picture; glass level 6)
+const ANORI = { accent: '#00794a', titlePosition: '1', glass: '6' };
+// The built-in themes by their place in QDThemes.BUILTIN
+const CLASSIC_INDEX = 0, ANORI_INDEX = 1;
 
 module.exports = {
 	title: 'Custom themes saved and reloaded; Use, Apply and Classic in Settings; the dial draws the theme',
-	async run(t) {
-		await freshProfile(t);
+	async run(testPage) {
+		await freshProfile(testPage);
 
 		// ----- custom themes stored by the background page -----
-		await t.J(() => bg().app.Themes.save([{ name: 'Mine', description: 'test', style: { backgroundColor: '#112233', grid: { cells: { borderRadius: 9 } } } },
+		await testPage.inHost(() => backgroundPage().app.Themes.save([{ name: 'Mine', description: 'test', style: { backgroundColor: '#112233', grid: { cells: { borderRadius: 9 } } } },
 			{ name: 'Classic', style: {} }, { name: 'mine', style: {} }, { nameless: true }]));
-		let st = await t.J(() => S.storage.themes);
-		t.check('custom themes saved; built-in names, duplicates and broken entries dropped', st.length === 1 && st[0].name === 'Mine' && st[0].style.grid.cells.borderRadius === 9 && st[0].style.grid.cells.margin === 4, st.map(x => x.name));
-		await t.loadBg();
-		st = await t.J(() => bg().app.Themes.list.map(x => x.name));
-		t.check('custom themes are loaded after a restart', t.same(st, ['Mine']), st);
-		await t.J(() => bg().app.Themes.save([]));
-		t.check('an empty list removes the stored key', !(await t.J(() => 'themes' in S.storage)));
-		await t.J(() => bg().app.Themes.save([{ name: 'Mine', style: { backgroundColor: '#112233' } }]));
+		const storedThemes = await testPage.inHost(() => mockState.storage.themes);
+		testPage.check('custom themes saved; built-in names, duplicates and broken entries dropped', storedThemes.length === 1 && storedThemes[0].name === 'Mine'
+			&& storedThemes[0].style.grid.cells.borderRadius === 9 && storedThemes[0].style.grid.cells.margin === 4, storedThemes.map(theme => theme.name));
+		await testPage.loadBg();
+		const reloadedNames = await testPage.inHost(() => backgroundPage().app.Themes.list.map(theme => theme.name));
+		testPage.check('custom themes are loaded after a restart', testPage.same(reloadedNames, ['Mine']), reloadedNames);
+		await testPage.inHost(() => backgroundPage().app.Themes.save([]));
+		testPage.check('an empty list removes the stored key', !(await testPage.inHost(() => 'themes' in mockState.storage)));
+		await testPage.inHost(() => backgroundPage().app.Themes.save([{ name: 'Mine', style: { backgroundColor: '#112233' } }]));
 
 		// ----- Settings › Themes: Use Anori, Apply, the dial follows; rows, columns and the background picture are kept -----
-		await t.J(() => { const s = bg().app.settings; s.backgroundImage = 'url(/img/back.svg)'; });
-		const layout = () => t.J(() => { const s = bg().app.settings; return { rows: s.grid.rows, cols: s.grid.columns, ratio: s.grid.ratioX + ':' + s.grid.ratioY, pic: s.backgroundImage }; });
-		const before = await layout();
-		await t.loadSettings('themes');
-		st = await t.inDial(themeCards);
-		t.check('the Themes tab lists the built-in and custom themes, Classic in use', st.tab && t.same(st.cards, [...BUILTIN_THEMES, 'Mine']) && t.same(st.current, ['Classic']), st);
-		await t.dial().locator('.qd-theme').nth(1).locator('button', { hasText: 'Use' }).click();
-		st = await t.inDial(() => ({ accent: AccentColor.value, pos: GridCellsTitlePosition.value, glass: GridCellsBackgroundOpacity.value, dirty: !BtnApply.disabled,
-			current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(h => h.firstChild.textContent),
+		await testPage.inHost(() => { backgroundPage().app.settings.backgroundImage = 'url(/img/back.svg)'; });
+		const layout = () => testPage.inHost(() => {
+			const settings = backgroundPage().app.settings;
+			return { rows: settings.grid.rows, columns: settings.grid.columns, ratio: settings.grid.ratioX + ':' + settings.grid.ratioY, picture: settings.backgroundImage };
+		});
+		const layoutBefore = await layout();
+		await testPage.loadSettings('themes');
+		const themesTab = await testPage.inDial(themeCards);
+		testPage.check('the Themes tab lists the built-in and custom themes, Classic in use', themesTab.tab && testPage.same(themesTab.cards, [...BUILTIN_THEMES, 'Mine']) && testPage.same(themesTab.current, ['Classic']), themesTab);
+		await testPage.dial().locator('.qd-theme').nth(ANORI_INDEX).locator('button', { hasText: 'Use' }).click();
+		const formWithAnori = await testPage.inDial(() => ({ accent: AccentColor.value, titlePosition: GridCellsTitlePosition.value, glass: GridCellsBackgroundOpacity.value, dirty: !BtnApply.disabled,
+			current: [...document.querySelectorAll('.qd-theme.is-current .qd-theme-name')].map(heading => heading.firstChild.textContent),
 			gradientRow: !BackgroundGradientRow.hidden, accented: document.documentElement.classList.contains('qd-accented') }));
-		t.check('"Use" fills the form with Anori', st.accent === '#00794a' && st.pos === '1' && st.glass === '6' && t.same(st.current, ['Anori']) && st.dirty && st.gradientRow && st.accented, st);
-		t.check('the dial is not changed before Apply', (await t.J(() => bg().app.settings.accentColor)) === null);
-		await t.dial().locator('#BtnApply').click();
-		await t.waitFor('the theme to be applied', () => bg().app.settings.accentColor);
-		await t.idle();
-		st = await t.J(() => { const s = bg().app.settings, T = bg().QDThemes; return { accent: s.accentColor, grad: !!s.backgroundGradient, anori: T.equal(T.extract(s), T.BUILTIN[1].style) }; });
-		const after = await layout();
-		t.check('Apply puts Anori on; layout and background picture are kept', st.accent === '#00794a' && st.grad && st.anori && t.same(after, before), [st, before, after]);
-
+		testPage.check('"Use" fills the form with Anori', formWithAnori.accent === ANORI.accent && formWithAnori.titlePosition === ANORI.titlePosition && formWithAnori.glass === ANORI.glass
+			&& testPage.same(formWithAnori.current, ['Anori']) && formWithAnori.dirty && formWithAnori.gradientRow && formWithAnori.accented, formWithAnori);
+		testPage.check('the dial is not changed before Apply', (await testPage.inHost(() => backgroundPage().app.settings.accentColor)) === null);
+		await testPage.dial().locator('#BtnApply').click();
+		await testPage.waitFor('the theme to be applied', () => backgroundPage().app.settings.accentColor);
+		await testPage.idle();
+		const applied = await testPage.inHost(anoriIndex => {
+			const settings = backgroundPage().app.settings, Themes = backgroundPage().QDThemes;
+			return { accent: settings.accentColor, gradient: !!settings.backgroundGradient, isAnori: Themes.equal(Themes.extract(settings), Themes.BUILTIN[anoriIndex].style) };
+		}, ANORI_INDEX);
+		const layoutAfter = await layout();
+		testPage.check('Apply puts Anori on; layout and background picture are kept', applied.accent === ANORI.accent && applied.gradient && applied.isAnori
+			&& testPage.same(layoutAfter, layoutBefore), [applied, layoutBefore, layoutAfter]);
 
 		// ----- the dial draws the theme; Classic brings the original look back -----
-		await t.loadDial();
-		st = await t.inDial(() => { const a = document.querySelector('table.qd-grid a:not(.is-empty)'), cs = getComputedStyle(a), title = getComputedStyle(a.lastChild);
-			return { bg: getComputedStyle(document.body).backgroundImage.slice(0, 40), radius: cs.borderTopLeftRadius, blur: cs.backdropFilter, shadow: cs.boxShadow !== 'none', titlePos: title.position, panelH: a.firstChild.offsetHeight, linkH: a.clientHeight }; });
-		t.check('the dial draws Anori: picture over the gradient, glass, shadow, title over the picture', st.bg.startsWith('url(') && st.bg.includes('back.svg') && st.radius === '14px' && st.blur === 'blur(14px)' && st.shadow && st.titlePos === 'absolute' && st.panelH === st.linkH, st);
-		st = await t.J(() => { const a = bg().app, T = bg().QDThemes, s = JSON.parse(JSON.stringify(a.settings)); T.apply(s, T.BUILTIN[0].style);
-			return a.Settings.update(s).then(() => T.equal(T.extract(a.settings), T.CLASSIC)); });
-		t.check('Classic brings the original look back', st);
+		await testPage.loadDial();
+		const drawn = await testPage.inDial(() => {
+			const link = document.querySelector('table.qd-grid a:not(.is-empty)'), linkStyle = getComputedStyle(link), titleStyle = getComputedStyle(link.lastChild);
+			return { background: getComputedStyle(document.body).backgroundImage.slice(0, 40), radius: linkStyle.borderTopLeftRadius, blur: linkStyle.backdropFilter, shadow: linkStyle.boxShadow !== 'none',
+				titlePosition: titleStyle.position, panelHeight: link.firstChild.offsetHeight, linkHeight: link.clientHeight };
+		});
+		testPage.check('the dial draws Anori: picture over the gradient, glass, shadow, title over the picture', drawn.background.startsWith('url(') && drawn.background.includes('back.svg')
+			&& drawn.radius === '14px' && drawn.blur === 'blur(14px)' && drawn.shadow && drawn.titlePosition === 'absolute' && drawn.panelHeight === drawn.linkHeight, drawn);
+		const classicBack = await testPage.inHost(classicIndex => {
+			const app = backgroundPage().app, Themes = backgroundPage().QDThemes, settings = JSON.parse(JSON.stringify(app.settings));
+			Themes.apply(settings, Themes.BUILTIN[classicIndex].style);
+			return app.Settings.update(settings).then(() => Themes.equal(Themes.extract(app.settings), Themes.CLASSIC));
+		}, CLASSIC_INDEX);
+		testPage.check('Classic brings the original look back', classicBack);
 	}
 };

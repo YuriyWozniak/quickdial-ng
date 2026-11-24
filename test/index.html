@@ -1,36 +1,55 @@
 <!doctype html><html><head><script src="mock.js"></script></head><body>
 <script>
 // The host page of the tests: extension pages run in frames of this page and share the API of mock.js.
-// Test code evaluated here can use S, fire, loadFrame, win, bg and bgIdle.
+// Test code evaluated here can use mockState, fireEvent, loadFrame, frameWindow, backgroundPage, dialFolderBookmarks
+// and waitForBackgroundIdle.
 
 // Opens an extension page in the frame for `role` ('bg' for the background page, 'dial' for the
 // other pages). Replacing a frame removes its old listeners, which simulates a restart.
-async function loadFrame(role, src){
-  if (window.qdBeforeFrameLoad) await window.qdBeforeFrameLoad(); // coverage: keep what the old frame ran
-  return new Promise(res => { const old = document.getElementById(role); if (old) { old.remove(); S.frames = S.frames.filter(f => f.role !== role); for (const k in S.listeners) S.listeners[k] = S.listeners[k].filter(fn => fn.__owner !== role); }
-  const f = document.createElement('iframe'); f.id = role; f.style.width = '1200px'; f.style.height = '700px'; f.onload = () => res(f.contentWindow); f.src = src; document.body.appendChild(f); });
+async function loadFrame(role, src) {
+	if (window.qdBeforeFrameLoad) await window.qdBeforeFrameLoad(); // coverage: keep what the old frame ran
+	return new Promise(resolve => {
+		const oldFrame = document.getElementById(role);
+		if (oldFrame) {
+			oldFrame.remove();
+			mockState.frames = mockState.frames.filter(frame => frame.role !== role);
+			for (const eventName in mockState.listeners) mockState.listeners[eventName] = mockState.listeners[eventName].filter(listener => listener.__owner !== role);
+		}
+		const frame = document.createElement('iframe');
+		frame.id = role;
+		frame.style.width = '1200px';
+		frame.style.height = '700px';
+		frame.onload = () => resolve(frame.contentWindow);
+		frame.src = src;
+		document.body.appendChild(frame);
+	});
 }
-function win(role){ const f = document.getElementById(role); return f && f.contentWindow; }
-function bg(){ return win('bg'); }
+// The window of an extension page's frame ('bg' or 'dial')
+function frameWindow(role) { const frame = document.getElementById(role); return frame && frame.contentWindow; }
+function backgroundPage() { return frameWindow('bg'); }
+// The bookmarks in the dial's folder ("Quick Dial", id qd, in the Bookmarks Menu: test/lib/fixtures.js)
+function dialFolderBookmarks() { return mockState.bookmarkTree.children[0].children.find(folder => folder.id === 'qd').children; }
 
+// How often, and how many times in a row, waitForBackgroundIdle finds nothing changing before it resolves
+const IDLE_POLL_INTERVAL = 30, IDLE_QUIET_POLLS = 4;
 // Resolves once the background page has nothing left to do: settings loaded, the first bookmark sync
 // done (its bookmark listeners are attached), nothing waiting to be saved, and storage and bookmarks
 // unchanged for four checks in a row (about 120 ms).
-function bgIdle(timeout = 10000){
-  return new Promise((resolve, reject) => {
-    const start = Date.now();
-    let quiet = 0, last = '';
-    (function poll(){
-      const a = bg() && bg().app;
-      const listening = ['onCreated', 'onChanged', 'onMoved', 'onRemoved'].every(e => (S.listeners['bm.' + e] || []).some(f => f.__owner === 'bg'));
-      const busy = !a || !a.settings || a.GridNodes._syncing || a.Settings._saveTimer || !listening;
-      const mark = S.writes.length + ',' + S.removes.length + ',' + S.nextId;
-      quiet = !busy && mark === last ? quiet + 1 : 0;
-      last = mark;
-      if (quiet >= 4) return resolve();
-      if (Date.now() - start > timeout) return reject(new Error('the background page is still busy after ' + timeout + ' ms'));
-      setTimeout(poll, 30);
-    })();
-  });
+function waitForBackgroundIdle(timeout = 10000) {
+	return new Promise((resolve, reject) => {
+		const startedAt = Date.now();
+		let quietPolls = 0, lastChangeMark = '';
+		(function poll() {
+			const app = backgroundPage() && backgroundPage().app;
+			const listening = ['onCreated', 'onChanged', 'onMoved', 'onRemoved'].every(eventName => (mockState.listeners['bm.' + eventName] || []).some(listener => listener.__owner === 'bg'));
+			const busy = !app || !app.settings || app.GridNodes._syncing || app.Settings._saveTimer || !listening;
+			const changeMark = mockState.writes.length + ',' + mockState.removes.length + ',' + mockState.nextBookmarkId;
+			quietPolls = !busy && changeMark === lastChangeMark ? quietPolls + 1 : 0;
+			lastChangeMark = changeMark;
+			if (quietPolls >= IDLE_QUIET_POLLS) return resolve();
+			if (Date.now() - startedAt > timeout) return reject(new Error('the background page is still busy after ' + timeout + ' ms'));
+			setTimeout(poll, IDLE_POLL_INTERVAL);
+		})();
+	});
 }
 </script></body></html>

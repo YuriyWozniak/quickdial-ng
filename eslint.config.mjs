@@ -97,13 +97,14 @@ export default [
 		languageOptions: {
 			globals: {
 				...globals.browser,
-				S: 'readonly', fire: 'readonly', loadFrame: 'readonly', win: 'readonly', bg: 'readonly', bgIdle: 'readonly', makeBrowser: 'readonly', tester: 'writable',
+				mockState: 'readonly', fireEvent: 'readonly', loadFrame: 'readonly', frameWindow: 'readonly', backgroundPage: 'readonly', dialFolderBookmarks: 'readonly',
+				waitForBackgroundIdle: 'readonly', makeBrowser: 'readonly', tester: 'writable',
 				dial: 'readonly', app: 'readonly',
 				...idsOf('./src/html/settings.html'), ...idsOf('./src/html/properties.html')
 			}
 		}
 	},
-	{ files: ['test/mock.js'], languageOptions: { sourceType: 'script', globals: { ...globals.browser, S: 'writable' } } },
+	{ files: ['test/mock.js'], languageOptions: { sourceType: 'script', globals: { ...globals.browser, mockState: 'writable' } } },
 	// Benchmarks (test/bench): the Node tools may leave a catch empty where a failure only means "not yet" or "already gone"
 	{ files: ['test/bench/*.js'], rules: { 'no-empty': ['error', { allowEmptyCatch: true }] } },
 	// ...and three scripts run inside the benchmark copy of the extension (build.js puts them there)

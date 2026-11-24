@@ -6,22 +6,28 @@
 const fs = require('fs'), path = require('path');
 const { SRC } = require('./harness');
 
-class Coverage {
-	constructor() { this.files = {}; } // js/x.js -> { src, hit: Uint8Array, fns: Map(name@offset -> calls) }
+// Lines that are no code of their own: comments, closing brackets, blank lines
+const NOT_CODE_LINE = /^\s*(\/\/|\/\*|\*|[})\];,]+\s*$|$)/;
 
-	// result: V8 ScriptCoverage entries; file(url) maps a script URL to js/x.js, or null to skip it
-	add(result, file) {
-		for (const e of result) {
-			const name = file(e.url);
+class Coverage {
+	constructor() { this.files = {}; } // js/x.js -> { source, hit: Uint8Array (per character), calls: Map(name@offset -> calls) }
+
+	// scripts: V8 ScriptCoverage entries; fileOf(url) maps a script URL to js/x.js, or null to skip it
+	add(scripts, fileOf) {
+		for (const script of scripts) {
+			const name = fileOf(script.url);
 			if (!name || !fs.existsSync(path.join(SRC, name))) continue;
-			const f = this.files[name] = this.files[name] || (() => { const src = fs.readFileSync(path.join(SRC, name), 'utf8'); return { src, hit: new Uint8Array(src.length), fns: new Map() }; })();
-			const counts = new Int32Array(f.src.length).fill(-1);
-			const ranges = e.functions.flatMap(fn => fn.ranges).sort((a, b) => a.startOffset - b.startOffset || b.endOffset - a.endOffset);
-			for (const r of ranges) counts.fill(r.count, r.startOffset, r.endOffset); // outer first, inner blocks override
-			for (let i = 0; i < counts.length; i++) if (counts[i] > 0) f.hit[i] = 1;
-			for (const fn of e.functions) if (fn.functionName) {
-				const key = fn.functionName + '@' + fn.ranges[0].startOffset;
-				f.fns.set(key, (f.fns.get(key) || 0) + fn.ranges[0].count);
+			const file = this.files[name] = this.files[name] || (() => {
+				const source = fs.readFileSync(path.join(SRC, name), 'utf8');
+				return { source, hit: new Uint8Array(source.length), calls: new Map() };
+			})();
+			const counts = new Int32Array(file.source.length).fill(-1);
+			const ranges = script.functions.flatMap(functionCoverage => functionCoverage.ranges).sort((a, b) => a.startOffset - b.startOffset || b.endOffset - a.endOffset);
+			for (const range of ranges) counts.fill(range.count, range.startOffset, range.endOffset); // outer first, inner blocks override
+			for (let i = 0; i < counts.length; i++) if (counts[i] > 0) file.hit[i] = 1;
+			for (const functionCoverage of script.functions) if (functionCoverage.functionName) {
+				const key = functionCoverage.functionName + '@' + functionCoverage.ranges[0].startOffset;
+				file.calls.set(key, (file.calls.get(key) || 0) + functionCoverage.ranges[0].count);
 			}
 		}
 	}
@@ -32,41 +38,43 @@ class Coverage {
 		const cdp = await page.context().newCDPSession(page);
 		await cdp.send('Profiler.enable');
 		await cdp.send('Profiler.startPreciseCoverage', { callCount: true, detailed: true });
-		const file = url => { const m = /^http:\/\/127\.0\.0\.1:\d+\/(js\/[^?#]*\.js)/.exec(url); return m && m[1]; };
-		const snapshot = async () => { try { this.add((await cdp.send('Profiler.takePreciseCoverage')).result, file); } catch { /* page closed */ } };
+		const fileOf = url => { const match = /^http:\/\/127\.0\.0\.1:\d+\/(js\/[^?#]*\.js)/.exec(url); return match && match[1]; };
+		const snapshot = async () => { try { this.add((await cdp.send('Profiler.takePreciseCoverage')).result, fileOf); } catch { /* page closed */ } };
 		await page.exposeFunction('qdBeforeFrameLoad', snapshot);
 		return { snapshot };
 	}
 
 	// Adds the files NODE_V8_COVERAGE wrote (unit tests load src/js files by their path)
-	addNodeDir(dir) {
-		const file = url => { const m = /[\\/]src[\\/](js[\\/].*\.js)$/.exec(url.replace(/^file:\/\/\/?/, '')); return m && m[1].replace(/\\/g, '/'); };
-		for (const f of fs.readdirSync(dir)) if (f.endsWith('.json')) this.add(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')).result, file);
+	addNodeDir(coverageDir) {
+		const fileOf = url => { const match = /[\\/]src[\\/](js[\\/].*\.js)$/.exec(url.replace(/^file:\/\/\/?/, '')); return match && match[1].replace(/\\/g, '/'); };
+		for (const fileName of fs.readdirSync(coverageDir)) {
+			if (fileName.endsWith('.json')) this.add(JSON.parse(fs.readFileSync(path.join(coverageDir, fileName), 'utf8')).result, fileOf);
+		}
 	}
 
 	report() {
 		const rows = [];
-		for (const [name, f] of Object.entries(this.files).sort()) {
-			let total = 0, covered = 0, off = 0;
-			for (const line of f.src.split('\n')) {
-				if (!/^\s*(\/\/|\/\*|\*|[})\];,]+\s*$|$)/.test(line.replace(/\r$/, ''))) {
+		for (const [name, file] of Object.entries(this.files).sort()) {
+			let total = 0, covered = 0, lineStart = 0;
+			for (const line of file.source.split('\n')) {
+				if (!NOT_CODE_LINE.test(line.replace(/\r$/, ''))) {
 					total++;
-					for (let i = 0; i < line.length; i++) if (line[i].trim() && f.hit[off + i]) { covered++; break; }
+					for (let i = 0; i < line.length; i++) if (line[i].trim() && file.hit[lineStart + i]) { covered++; break; }
 				}
-				off += line.length + 1;
+				lineStart += line.length + 1;
 			}
-			const never = [...new Set([...f.fns].filter(([, c]) => !c).map(([k]) => k.split('@')[0]))];
-			rows.push(`${name.padEnd(28)} ${(100 * covered / total).toFixed(0).padStart(3)}% of ${String(total).padStart(4)} lines` + (never.length ? `\n    never ran: ${never.join(', ')}` : ''));
+			const neverRan = [...new Set([...file.calls].filter(([, calls]) => !calls).map(([key]) => key.split('@')[0]))];
+			rows.push(`${name.padEnd(28)} ${(100 * covered / total).toFixed(0).padStart(3)}% of ${String(total).padStart(4)} lines` + (neverRan.length ? `\n    never ran: ${neverRan.join(', ')}` : ''));
 		}
-		const unseen = [];
+		const neverLoaded = [];
 		const walk = dir => {
-			for (const e of fs.readdirSync(path.join(SRC, dir), { withFileTypes: true })) {
-				const p = dir + '/' + e.name;
-				if (e.isDirectory()) walk(p); else if (p.endsWith('.js') && !this.files[p]) unseen.push(p);
+			for (const entry of fs.readdirSync(path.join(SRC, dir), { withFileTypes: true })) {
+				const entryPath = dir + '/' + entry.name;
+				if (entry.isDirectory()) walk(entryPath); else if (entryPath.endsWith('.js') && !this.files[entryPath]) neverLoaded.push(entryPath);
 			}
 		};
 		walk('js');
-		if (unseen.length) rows.push('never loaded: ' + unseen.join(', '));
+		if (neverLoaded.length) rows.push('never loaded: ' + neverLoaded.join(', '));
 		return rows.join('\n');
 	}
 }

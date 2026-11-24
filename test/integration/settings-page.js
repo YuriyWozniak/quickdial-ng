@@ -1,7 +1,7 @@
 // The Settings page (html/settings.html, js/settings.js; its own tab since 0.5.0): sections, Apply /
 // Discard / Ctrl+S, the background picture, and the buttons of the Backup and Themes sections.
-// It is used as the user would: clicks, typing, files chosen (setInputFiles), dialogs answered (t.answer),
-// downloads caught (t.download). The page is opened in the "dial" frame (t.loadSettings).
+// It is used as the user would: clicks, typing, files chosen (setInputFiles), dialogs answered (testPage.answer),
+// downloads caught (testPage.download). The page is opened in the "dial" frame (testPage.loadSettings).
 //
 // Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), Classic look, no themes.
 // The steps build on each other:
@@ -14,157 +14,186 @@
 'use strict';
 const { BUILTIN_THEMES, freshProfile, changeSettings, pictures } = require('../lib/fixtures');
 
-// A file for setInputFiles; the text of a status line (empty while hidden); the theme card names;
-// the card of a theme whose name starts with `name` (a regular expression)
-const json = (name, data) => ({ name, mimeType: 'application/json', buffer: Buffer.from(typeof data == 'string' ? data : JSON.stringify(data)) });
-const status = (t, id) => t.inDial(id => { const el = document.getElementById(id); return el.hidden ? '' : el.textContent; }, id);
-const themeNames = t => t.inDial(() => [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(h => h.firstChild.textContent));
-const card = (t, name) => t.dial().locator('.qd-theme', { has: t.dial().locator('.qd-theme-name', { hasText: new RegExp('^' + name) }) });
+// A JSON file for setInputFiles
+const jsonFile = (name, data) => ({ name, mimeType: 'application/json', buffer: Buffer.from(typeof data == 'string' ? data : JSON.stringify(data)) });
+// A PNG data URL as a file for setInputFiles
+const pngFile = (name, dataUrl) => ({ name, mimeType: 'image/png', buffer: Buffer.from(dataUrl.split(',')[1], 'base64') });
+// The text of a status line (empty while hidden)
+const statusText = (testPage, id) => testPage.inDial(elementId => { const line = document.getElementById(elementId); return line.hidden ? '' : line.textContent; }, id);
+// The theme card names
+const themeNames = testPage => testPage.inDial(() => [...document.querySelectorAll('.qd-theme .qd-theme-name')].map(heading => heading.firstChild.textContent));
+// The card of a theme whose name starts with `name` (a regular expression)
+const themeCard = (testPage, name) => testPage.dial().locator('.qd-theme', { has: testPage.dial().locator('.qd-theme-name', { hasText: new RegExp('^' + name) }) });
+// The size of a picture in a settings value (url("data:...")), as [width, height]
+const pictureSize = (testPage, cssValue) => testPage.inHost(value => new Promise(resolve => {
+	const image = new Image();
+	image.onload = () => resolve([image.naturalWidth, image.naturalHeight]);
+	image.onerror = () => resolve(null);
+	image.src = value.replace(/^url\("?|"?\)$/g, '');
+}), cssValue);
+
+// The click effect "Ripple" (QDThemes.ClickEffect), as the list's value
+const RIPPLE = '3';
+// The command the background page sends an open Settings page to show a section (js/settings.js)
+const SHOW_SETTINGS_TAB = 209;
+// A background picture larger than the limit (2560 pixels wide), and what it is made into
+const BIG_PICTURE = { width: 3200, height: 1600 }, BACKGROUND_LIMITED = [2560, 1280];
 
 module.exports = {
 	title: 'Settings: sections, Apply / Discard / Ctrl+S, backup and theme buttons',
-	async run(t) {
-		await freshProfile(t);
+	async run(testPage) {
+		await freshProfile(testPage);
 
 		// ----- sections and the form -----
-		await t.loadSettings('grid');
-		const form = () => t.inDial(() => ({ title: PanelTitle.textContent, grid: !TabGrid.hidden, rows: GridRows.value, toolbar: ToolbarAction.value,
+		await testPage.loadSettings('grid');
+		const form = () => testPage.inDial(() => ({ title: PanelTitle.textContent, grid: !TabGrid.hidden, rows: GridRows.value, toolbar: ToolbarAction.value,
 			apply: BtnApply.disabled, discard: BtnDiscard.disabled, url: location.search }));
-		let st = await form();
-		t.check('?tab= opens that section, with nothing to apply', st.title === 'Grid' && st.grid && st.toolbar === 'settings' && st.apply && st.discard, st);
-		const rows0 = st.rows;
-		await t.dial().locator('#GridRows').fill('9');
-		st = await form();
-		t.check('an edit enables Apply and Discard', !st.apply && !st.discard && st.rows === '9', st);
-		await t.dial().locator('#BtnDiscard').click();
-		st = await form();
-		t.check('Discard brings back what the dial uses', st.rows === rows0 && st.apply && st.discard && String(await t.J(() => bg().app.settings.grid.rows)) === rows0, st);
-		await t.dial().locator('#GridRows').fill('6');
-		await t.dial().locator('#GridRows').press('Control+s');
-		await t.waitFor('Ctrl+S to apply', () => bg().app.settings.grid.rows === 6);
-		t.check('Ctrl+S applies', (await form()).apply);
-		await changeSettings(t, { grid: { rows: 3 }, toolbarAction: 'current' });
-		await t.waitFor('the open Settings page to follow', () => win('dial').GridRows.value === '3');
-		st = await form();
-		t.check('settings applied elsewhere show up while nothing is pending', st.rows === '3' && st.toolbar === 'current', st);
-		await t.dial().locator('#TabTilesButton').click();
-		await t.J(() => fire('rt.onMessage.dial', { cmd: 209, tab: 'themes' }, {}, () => {}));
-		st = await t.inDial(() => ({ themes: !TabThemes.hidden, title: PanelTitle.textContent, url: location.search }));
-		t.check('an open Settings page switches to the section asked for', st.themes && st.title === 'Themes' && st.url === '?tab=themes', st);
-		await changeSettings(t, { toolbarAction: 'settings' });
+		const opened = await form();
+		testPage.check('?tab= opens that section, with nothing to apply', opened.title === 'Grid' && opened.grid && opened.toolbar === 'settings' && opened.apply && opened.discard, opened);
+		const rowsInUse = opened.rows;
+		await testPage.dial().locator('#GridRows').fill('9');
+		const edited = await form();
+		testPage.check('an edit enables Apply and Discard', !edited.apply && !edited.discard && edited.rows === '9', edited);
+		await testPage.dial().locator('#BtnDiscard').click();
+		const discarded = await form();
+		testPage.check('Discard brings back what the dial uses', discarded.rows === rowsInUse && discarded.apply && discarded.discard
+			&& String(await testPage.inHost(() => backgroundPage().app.settings.grid.rows)) === rowsInUse, discarded);
+		await testPage.dial().locator('#GridRows').fill('6');
+		await testPage.dial().locator('#GridRows').press('Control+s');
+		await testPage.waitFor('Ctrl+S to apply', () => backgroundPage().app.settings.grid.rows === 6);
+		testPage.check('Ctrl+S applies', (await form()).apply);
+		await changeSettings(testPage, { grid: { rows: 3 }, toolbarAction: 'current' });
+		await testPage.waitFor('the open Settings page to follow', () => frameWindow('dial').GridRows.value === '3');
+		const appliedElsewhere = await form();
+		testPage.check('settings applied elsewhere show up while nothing is pending', appliedElsewhere.rows === '3' && appliedElsewhere.toolbar === 'current', appliedElsewhere);
+		await testPage.dial().locator('#TabTilesButton').click();
+		await testPage.inHost(command => fireEvent('rt.onMessage.dial', { cmd: command, tab: 'themes' }, {}, () => {}), SHOW_SETTINGS_TAB);
+		const switched = await testPage.inDial(() => ({ themes: !TabThemes.hidden, title: PanelTitle.textContent, url: location.search }));
+		testPage.check('an open Settings page switches to the section asked for', switched.themes && switched.title === 'Themes' && switched.url === '?tab=themes', switched);
+		await changeSettings(testPage, { toolbarAction: 'settings' });
 
 		// ----- the click effect: picked from the list, it plays on the sample tile and is applied like the rest -----
-		const RIPPLE = '3';
-		await t.loadSettings('tiles');
-		await t.dial().locator('#GridCellsClickEffect').selectOption(RIPPLE);
-		st = await t.inDial(() => ({ playing: TileHover.classList.contains('is-clicked'), css: app.clickEffectStyle.textContent, apply: BtnApply.disabled }));
-		t.check('a click effect picked plays on the Hover sample, with its rules', st.playing && st.css.includes('qd-click-ripple') && !st.apply, st);
-		await t.waitFor('the effect to end', () => !win('dial').TileHover.classList.contains('is-clicked'));
-		await t.dial().locator('#TileNormal').click();
-		t.check('clicking a sample tile plays it again', await t.inDial(() => TileNormal.classList.contains('is-clicked')));
-		await t.dial().locator('#GridCellsClickEffect').press('Control+s');
-		await t.waitFor('Ctrl+S to apply', () => bg().app.settings.grid.cells.clickEffect === 3);
-		t.check('the click effect is applied to the dial settings', true);
-		await changeSettings(t, { grid: { cells: { clickEffect: 0 } } });
+		await testPage.loadSettings('tiles');
+		await testPage.dial().locator('#GridCellsClickEffect').selectOption(RIPPLE);
+		const picked = await testPage.inDial(() => ({ playing: TileHover.classList.contains('is-clicked'), css: app.clickEffectStyle.textContent, apply: BtnApply.disabled }));
+		testPage.check('a click effect picked plays on the Hover sample, with its rules', picked.playing && picked.css.includes('qd-click-ripple') && !picked.apply, picked);
+		await testPage.waitFor('the effect to end', () => !frameWindow('dial').TileHover.classList.contains('is-clicked'));
+		await testPage.dial().locator('#TileNormal').click();
+		testPage.check('clicking a sample tile plays it again', await testPage.inDial(() => TileNormal.classList.contains('is-clicked')));
+		await testPage.dial().locator('#GridCellsClickEffect').press('Control+s');
+		await testPage.waitFor('Ctrl+S to apply', effect => backgroundPage().app.settings.grid.cells.clickEffect === effect, +RIPPLE);
+		testPage.check('the click effect is applied to the dial settings', true);
+		await changeSettings(testPage, { grid: { cells: { clickEffect: 0 } } });
 
 		// ----- the background picture: from a file (made WebP and smaller), then cleared; a folder picture -----
-		await t.loadSettings('page');
-		const pngFile = (name, png) => ({ name, mimeType: 'image/png', buffer: Buffer.from(png.split(',')[1], 'base64') });
-		// The size of a picture in a settings value (url("data:...")), as [width, height]
-		const size = css => t.J(css => new Promise(resolve => {
-			const img = new Image();
-			img.onload = () => resolve([img.naturalWidth, img.naturalHeight]);
-			img.onerror = () => resolve(null);
-			img.src = css.replace(/^url\("?|"?\)$/g, '');
-		}), css);
-		const big = await t.J(() => { // 3200x1600, larger than the background limit (2560)
-			const c = document.createElement('canvas'); c.width = 3200; c.height = 1600; const x = c.getContext('2d');
-			const g = x.createLinearGradient(0, 0, 3200, 1600); g.addColorStop(0, '#246'); g.addColorStop(1, '#c84'); x.fillStyle = g; x.fillRect(0, 0, 3200, 1600);
-			return c.toDataURL('image/png');
-		});
-		await t.dial().locator('#BackgroundImageFile').setInputFiles(pngFile('bg.png', big));
-		await t.waitFor('the picture to be read', () => !win('dial').BtnApply.disabled);
-		await t.dial().locator('#BtnApply').click();
-		await t.waitFor('the picture to be applied', () => /^url\("?data:/.test(bg().app.settings.backgroundImage || ''));
-		let stored = await t.J(() => bg().app.settings.backgroundImage);
-		t.check('a background picture from a file is stored as WebP, at most 2560 pixels wide', stored.startsWith('url("data:image/webp') && t.same(await size(stored), [2560, 1280]), [stored.slice(0, 30), await size(stored)]);
-		await t.dial().locator('#BackgroundImageClear').click();
-		await t.dial().locator('#BtnApply').click();
-		await t.waitFor('the picture to be cleared', () => bg().app.settings.backgroundImage === null);
-		t.check('Clear removes the background picture', true);
-		await t.loadSettings('grid');
-		const [png] = await pictures(t, 1);
-		await t.dial().locator('#GridFolderImageFile').setInputFiles(pngFile('folder.png', png));
-		await t.waitFor('the picture to be read', () => !win('dial').BtnApply.disabled);
-		await t.dial().locator('#BtnApply').click();
-		await t.waitFor('the picture to be applied', () => /^url\("?data:/.test(bg().app.settings.grid.folderIcon || ''));
-		stored = await t.J(() => bg().app.settings.grid.folderIcon);
-		t.check('a folder picture from a file is stored as WebP', stored.startsWith('url("data:image/webp') && t.same(await size(stored), [320, 240]), [stored.slice(0, 30), await size(stored)]);
-		await t.dial().locator('#GridFolderImageReset').click();
-		await t.dial().locator('#BtnApply').click();
-		await t.waitFor('the built-in folder picture', () => bg().app.settings.grid.folderIcon === 'url(/img/folder.svg)');
+		await testPage.loadSettings('page');
+		const bigPicture = await testPage.inHost(({ width, height }) => {
+			const canvas = document.createElement('canvas');
+			canvas.width = width; canvas.height = height;
+			const context = canvas.getContext('2d'), gradient = context.createLinearGradient(0, 0, width, height);
+			gradient.addColorStop(0, '#246'); gradient.addColorStop(1, '#c84');
+			context.fillStyle = gradient; context.fillRect(0, 0, width, height);
+			return canvas.toDataURL('image/png');
+		}, BIG_PICTURE);
+		await testPage.dial().locator('#BackgroundImageFile').setInputFiles(pngFile('bg.png', bigPicture));
+		await testPage.waitFor('the picture to be read', () => !frameWindow('dial').BtnApply.disabled);
+		await testPage.dial().locator('#BtnApply').click();
+		await testPage.waitFor('the picture to be applied', () => /^url\("?data:/.test(backgroundPage().app.settings.backgroundImage || ''));
+		const backgroundPicture = await testPage.inHost(() => backgroundPage().app.settings.backgroundImage);
+		const backgroundSize = await pictureSize(testPage, backgroundPicture);
+		testPage.check('a background picture from a file is stored as WebP, at most 2560 pixels wide', backgroundPicture.startsWith('url("data:image/webp')
+			&& testPage.same(backgroundSize, BACKGROUND_LIMITED), [backgroundPicture.slice(0, 30), backgroundSize]);
+		await testPage.dial().locator('#BackgroundImageClear').click();
+		await testPage.dial().locator('#BtnApply').click();
+		await testPage.waitFor('the picture to be cleared', () => backgroundPage().app.settings.backgroundImage === null);
+		testPage.check('Clear removes the background picture', true);
+		await testPage.loadSettings('grid');
+		const [png] = await pictures(testPage, 1);
+		await testPage.dial().locator('#GridFolderImageFile').setInputFiles(pngFile('folder.png', png));
+		await testPage.waitFor('the picture to be read', () => !frameWindow('dial').BtnApply.disabled);
+		await testPage.dial().locator('#BtnApply').click();
+		await testPage.waitFor('the picture to be applied', () => /^url\("?data:/.test(backgroundPage().app.settings.grid.folderIcon || ''));
+		const folderPicture = await testPage.inHost(() => backgroundPage().app.settings.grid.folderIcon);
+		const folderPictureSize = await pictureSize(testPage, folderPicture);
+		testPage.check('a folder picture from a file is stored as WebP', folderPicture.startsWith('url("data:image/webp') && testPage.same(folderPictureSize, [320, 240]), [folderPicture.slice(0, 30), folderPictureSize]);
+		await testPage.dial().locator('#GridFolderImageReset').click();
+		await testPage.dial().locator('#BtnApply').click();
+		await testPage.waitFor('the built-in folder picture', () => backgroundPage().app.settings.grid.folderIcon === 'url(/img/folder.svg)');
 
 		// ----- Backup -----
-		await t.loadSettings('backup');
-		st = await t.inDial(() => ({ tab: !TabBackup.hidden, selected: TabBackupButton.getAttribute('aria-selected'), imp: !!document.getElementById('BtnImport'), copy: !!document.getElementById('BtnCopySnippet') }));
-		t.check('?tab=backup opens the Backup section with its buttons', st.tab && st.selected === 'true' && st.imp && st.copy, st);
-		const file = await t.download(() => t.dial().locator('#BtnExport').click());
-		const backup = JSON.parse(file.text);
-		t.check('Export downloads a dated backup file', /^quickdial-ng-backup-\d{4}-\d\d-\d\d\.json$/.test(file.name) && backup.format === 'quickdial-ng' && backup.node.children.length === 7, [file.name, backup.format]);
-		await t.dial().locator('#ImportFile').setInputFiles(json('x.json', '{"not": "a backup"}'));
-		await t.waitFor('the import message', () => !win('dial').ImportStatus.hidden);
-		t.check('importing another file says what is wrong', /not a Quick Dial export/.test(await status(t, 'ImportStatus')), await status(t, 'ImportStatus'));
-		await t.dial().locator('#ImportFile').setInputFiles(json('t.json', { format: 'quickdial-ng-theme', version: 1, name: 'T', style: {} }));
-		await t.waitFor('the import message', () => /theme/.test(win('dial').ImportStatus.textContent));
-		t.check('importing a theme file here points to the Themes tab', /Themes tab/.test(await status(t, 'ImportStatus')), await status(t, 'ImportStatus'));
+		await testPage.loadSettings('backup');
+		const backupSection = await testPage.inDial(() => ({ shown: !TabBackup.hidden, selected: TabBackupButton.getAttribute('aria-selected'),
+			importButton: !!document.getElementById('BtnImport'), copyButton: !!document.getElementById('BtnCopySnippet') }));
+		testPage.check('?tab=backup opens the Backup section with its buttons', backupSection.shown && backupSection.selected === 'true' && backupSection.importButton && backupSection.copyButton, backupSection);
+		const exportFile = await testPage.download(() => testPage.dial().locator('#BtnExport').click());
+		const backup = JSON.parse(exportFile.text);
+		testPage.check('Export downloads a dated backup file', /^quickdial-ng-backup-\d{4}-\d\d-\d\d\.json$/.test(exportFile.name) && backup.format === 'quickdial-ng'
+			&& backup.node.children.length === 7, [exportFile.name, backup.format]);
+		await testPage.dial().locator('#ImportFile').setInputFiles(jsonFile('x.json', '{"not": "a backup"}'));
+		await testPage.waitFor('the import message', () => !frameWindow('dial').ImportStatus.hidden);
+		const wrongFileStatus = await statusText(testPage, 'ImportStatus');
+		testPage.check('importing another file says what is wrong', /not a Quick Dial export/.test(wrongFileStatus), wrongFileStatus);
+		await testPage.dial().locator('#ImportFile').setInputFiles(jsonFile('t.json', { format: 'quickdial-ng-theme', version: 1, name: 'T', style: {} }));
+		await testPage.waitFor('the import message', () => /theme/.test(frameWindow('dial').ImportStatus.textContent));
+		const themeFileStatus = await statusText(testPage, 'ImportStatus');
+		testPage.check('importing a theme file here points to the Themes tab', /Themes tab/.test(themeFileStatus), themeFileStatus);
 		backup.settings.grid.rows = 2;
-		await t.dial().locator('#ImportFile').setInputFiles(json('b.json', backup));
-		let d = await t.answer({ ok: false });
-		await t.idle();
-		t.check('the import asks first; Cancel imports nothing', /Import this Quick Dial NG backup/.test(d.title) && (await t.J(() => bg().app.settings.grid.rows)) === 3, d.title);
-		await t.dial().locator('#ImportFile').setInputFiles(json('b.json', backup));
-		await t.answer();
-		await t.waitFor('Settings to reload after the import', () => { const w = win('dial'); return w.app && w.app.settings && /^Imported/.test(w.ImportStatus.textContent); });
-		await t.idle();
-		st = await status(t, 'ImportStatus');
-		t.check('the import replaces the settings and reports what it did', (await t.J(() => bg().app.settings.grid.rows)) === 2 && /^Imported 7 tiles in 2 folders/.test(st), st);
-		await t.context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: t.base.slice(0, -1) });
-		await t.loadSettings('backup');
-		await t.dial().locator('#BtnCopySnippet').click();
-		await t.waitFor('the snippet to be copied', () => /Copied/.test(win('dial').BtnCopySnippet.textContent));
-		st = await t.inDial(() => navigator.clipboard.readText());
-		t.check('Copy export snippet puts the snippet on the clipboard', st === (await t.inDial(() => app.Backup.exportSnippet)), st.slice(0, 40));
+		await testPage.dial().locator('#ImportFile').setInputFiles(jsonFile('b.json', backup));
+		const importDialog = await testPage.answer({ ok: false });
+		await testPage.idle();
+		testPage.check('the import asks first; Cancel imports nothing', /Import this Quick Dial NG backup/.test(importDialog.title)
+			&& (await testPage.inHost(() => backgroundPage().app.settings.grid.rows)) === 3, importDialog.title);
+		await testPage.dial().locator('#ImportFile').setInputFiles(jsonFile('b.json', backup));
+		await testPage.answer();
+		await testPage.waitFor('Settings to reload after the import', () => { const settingsWindow = frameWindow('dial'); return settingsWindow.app && settingsWindow.app.settings && /^Imported/.test(settingsWindow.ImportStatus.textContent); });
+		await testPage.idle();
+		const importedStatus = await statusText(testPage, 'ImportStatus');
+		testPage.check('the import replaces the settings and reports what it did', (await testPage.inHost(() => backgroundPage().app.settings.grid.rows)) === 2
+			&& /^Imported 7 tiles in 2 folders/.test(importedStatus), importedStatus);
+		await testPage.context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: testPage.base.slice(0, -1) });
+		await testPage.loadSettings('backup');
+		await testPage.dial().locator('#BtnCopySnippet').click();
+		await testPage.waitFor('the snippet to be copied', () => /Copied/.test(frameWindow('dial').BtnCopySnippet.textContent));
+		const clipboardText = await testPage.inDial(() => navigator.clipboard.readText());
+		testPage.check('Copy export snippet puts the snippet on the clipboard', clipboardText === (await testPage.inDial(() => app.Backup.exportSnippet)), clipboardText.slice(0, 40));
 
 		// ----- Themes -----
-		await t.loadSettings('themes');
-		await t.dial().locator('#BtnThemeSave').click();
-		d = await t.answer({ values: ['Anori'] });
-		t.check('a theme can\'t be saved under a built-in name', /built-in theme/.test(d.error), d);
-		await t.answer({ ok: false });
-		await t.dial().locator('#BtnThemeSave').click();
-		await t.answer({ values: ['Saved one', 'my look'] });
-		await t.waitFor('the theme to be saved', () => (bg().app.Themes.list || []).some(x => x.name === 'Saved one'));
-		t.check('Save current as theme adds it, in use', t.same(await themeNames(t), [...BUILTIN_THEMES, 'Saved one']) && /Saved "Saved one"/.test(await status(t, 'ThemeStatus')), await themeNames(t));
-		await t.dial().locator('#BtnThemeSave').click();
-		d = await t.answer({ values: ['Saved one'] }); // the form matches Classic, so the name field starts at "My theme"
-		const replace = await t.answer();
-		t.check('saving under an existing name asks before replacing it', d.error === null && /Replace "Saved one"/.test(replace.title) && (await t.J(() => bg().app.Themes.list.length)) === 1, replace);
-		let f = await t.download(async () => { await t.dial().locator('#BtnThemeExport').click(); await t.answer({ values: ['Shared look'] }); });
-		let data = JSON.parse(f.text);
-		t.check('Export current as theme downloads a theme file', f.name === 'quickdial-ng-theme-shared-look.json' && data.format === 'quickdial-ng-theme' && data.name === 'Shared look', [f.name, data.name]);
-		f = await t.download(() => card(t, 'Anori').locator('button', { hasText: 'Export' }).click());
-		data = JSON.parse(f.text);
-		t.check('a theme\'s Export… downloads that theme', f.name === 'quickdial-ng-theme-anori.json' && data.style.accentColor === '#00794a', f.name);
-		await t.dial().locator('#ThemeFile').setInputFiles(json('c.json', { format: 'quickdial-ng-theme', version: 1, name: 'Classic', style: { backgroundColor: '#222222' } }));
-		await t.waitFor('the theme to be imported', () => (bg().app.Themes.list || []).some(x => x.name === 'Classic (imported)'));
-		t.check('Import theme adds it (a built-in name gets "(imported)")', (await themeNames(t)).includes('Classic (imported)'), await themeNames(t));
-		await t.dial().locator('#ThemeFile').setInputFiles(json('b.json', backup));
-		await t.waitFor('the theme message', () => /backup/.test(win('dial').ThemeStatus.textContent));
-		t.check('importing a backup there says it is a backup', /full Quick Dial NG backup/.test(await status(t, 'ThemeStatus')), await status(t, 'ThemeStatus'));
-		t.check('built-in themes have no Delete', (await card(t, 'Anori').locator('button', { hasText: 'Delete' }).count()) === 0);
-		await card(t, 'Classic \\(imported\\)').locator('button', { hasText: 'Delete' }).click();
-		await t.answer();
-		await t.waitFor('the theme to be deleted', () => !bg().app.Themes.list.some(x => x.name === 'Classic (imported)'));
-		t.check('Delete removes the theme after asking', t.same(await themeNames(t), [...BUILTIN_THEMES, 'Saved one']), await themeNames(t));
+		const themeSaved = (what, name) => testPage.waitFor(what, themeName => (backgroundPage().app.Themes.list || []).some(theme => theme.name === themeName), name);
+		await testPage.loadSettings('themes');
+		await testPage.dial().locator('#BtnThemeSave').click();
+		const builtInName = await testPage.answer({ values: ['Anori'] });
+		testPage.check('a theme can\'t be saved under a built-in name', /built-in theme/.test(builtInName.error), builtInName);
+		await testPage.answer({ ok: false });
+		await testPage.dial().locator('#BtnThemeSave').click();
+		await testPage.answer({ values: ['Saved one', 'my look'] });
+		await themeSaved('the theme to be saved', 'Saved one');
+		const namesAfterSave = await themeNames(testPage);
+		testPage.check('Save current as theme adds it, in use', testPage.same(namesAfterSave, [...BUILTIN_THEMES, 'Saved one']) && /Saved "Saved one"/.test(await statusText(testPage, 'ThemeStatus')), namesAfterSave);
+		await testPage.dial().locator('#BtnThemeSave').click();
+		const sameNameDialog = await testPage.answer({ values: ['Saved one'] }); // the form matches Classic, so the name field starts at "My theme"
+		const replaceDialog = await testPage.answer();
+		testPage.check('saving under an existing name asks before replacing it', sameNameDialog.error === null && /Replace "Saved one"/.test(replaceDialog.title)
+			&& (await testPage.inHost(() => backgroundPage().app.Themes.list.length)) === 1, replaceDialog);
+		const currentThemeFile = await testPage.download(async () => { await testPage.dial().locator('#BtnThemeExport').click(); await testPage.answer({ values: ['Shared look'] }); });
+		const currentTheme = JSON.parse(currentThemeFile.text);
+		testPage.check('Export current as theme downloads a theme file', currentThemeFile.name === 'quickdial-ng-theme-shared-look.json' && currentTheme.format === 'quickdial-ng-theme'
+			&& currentTheme.name === 'Shared look', [currentThemeFile.name, currentTheme.name]);
+		const anoriFile = await testPage.download(() => themeCard(testPage, 'Anori').locator('button', { hasText: 'Export' }).click());
+		const anoriTheme = JSON.parse(anoriFile.text);
+		testPage.check('a theme\'s Export… downloads that theme', anoriFile.name === 'quickdial-ng-theme-anori.json' && anoriTheme.style.accentColor === '#00794a', anoriFile.name);
+		await testPage.dial().locator('#ThemeFile').setInputFiles(jsonFile('c.json', { format: 'quickdial-ng-theme', version: 1, name: 'Classic', style: { backgroundColor: '#222222' } }));
+		await themeSaved('the theme to be imported', 'Classic (imported)');
+		const namesAfterImport = await themeNames(testPage);
+		testPage.check('Import theme adds it (a built-in name gets "(imported)")', namesAfterImport.includes('Classic (imported)'), namesAfterImport);
+		await testPage.dial().locator('#ThemeFile').setInputFiles(jsonFile('b.json', backup));
+		await testPage.waitFor('the theme message', () => /backup/.test(frameWindow('dial').ThemeStatus.textContent));
+		const backupAsThemeStatus = await statusText(testPage, 'ThemeStatus');
+		testPage.check('importing a backup there says it is a backup', /full Quick Dial NG backup/.test(backupAsThemeStatus), backupAsThemeStatus);
+		testPage.check('built-in themes have no Delete', (await themeCard(testPage, 'Anori').locator('button', { hasText: 'Delete' }).count()) === 0);
+		await themeCard(testPage, 'Classic \\(imported\\)').locator('button', { hasText: 'Delete' }).click();
+		await testPage.answer();
+		await testPage.waitFor('the theme to be deleted', () => !backgroundPage().app.Themes.list.some(theme => theme.name === 'Classic (imported)'));
+		const namesAfterDelete = await themeNames(testPage);
+		testPage.check('Delete removes the theme after asking', testPage.same(namesAfterDelete, [...BUILTIN_THEMES, 'Saved one']), namesAfterDelete);
 	}
 };
