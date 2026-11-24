@@ -601,6 +601,66 @@
     "message": "מ״ש אחרי טעינת הדף"
   },
 
+  "settingsNewTilePicture": {
+    "message": "אריחים חדשים מקבלים"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "תמונות שבחרת בעצמך לעולם אינן מוחלפות."
+  },
+
+  "tilePicturePage": {
+    "message": "צילום של הדף"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "סמל האתר (אות אם אין לו)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "סמל האתר, או צילום אם אין לו"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "האריחים הקיימים"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "החלה על האריחים…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "לתת לאריחים הקיימים תמונות שנוצרות בדרך שנבחרה למעלה"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "להחיל על האריחים שלך?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "האריחים שלך יקבלו תמונות חדשות: $1. תמונות שבחרת בעצמך ותמונות שמורות יישארו כמו שהן. עם אריחים רבים זה לוקח זמן."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "החלה על האריחים"
+  },
+
+  "tilePictureApplying": {
+    "message": "יוצר את התמונות החדשות…"
+  },
+
+  "tilePictureApplied": {
+    "message": "אריחים עם תמונות חדשות: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "לכל האריחים כבר יש תמונה כזאת."
+  },
+
+  "tilePictureFailed": {
+    "message": "לא ניתן היה ליצור את התמונות."
+  },
+
   "settingsDiscard": {
     "message": "ביטול השינויים"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "\"$1\" מוצגת כאן בלבד. \"החלה\" תפעיל אותה בחיוג המהיר, ו\"ביטול השינויים\" יחזיר את המראה הקודם.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "היא נועדה לתמונות של סמלים."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "שימוש בסמלי אתרים לאריחים חדשים"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "אריחים חדשים יקבלו את סמל האתר לאחר ההחלה. האריחים הקיימים ישמרו על התמונות שלהם, אלא אם תחיל גם עליהם את הסמלים."
   },
 
   "themeDialogMessage": {

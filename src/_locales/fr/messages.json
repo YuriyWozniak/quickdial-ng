@@ -601,6 +601,66 @@
     "message": "ms après le chargement de la page"
   },
 
+  "settingsNewTilePicture": {
+    "message": "Les nouvelles vignettes reçoivent"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Les images que vous avez choisies vous-même ne sont jamais remplacées."
+  },
+
+  "tilePicturePage": {
+    "message": "Une capture de la page"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "L’icône du site (une lettre s’il n’en a pas)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "L’icône du site, ou une capture s’il n’en a pas"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Vignettes existantes"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Appliquer aux vignettes…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Donner aux vignettes existantes des images faites comme choisi ci-dessus"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Appliquer à vos vignettes ?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Vos vignettes reçoivent de nouvelles images : $1. Les images choisies par vous et les images conservées restent telles quelles. Avec beaucoup de vignettes, cela prend un moment."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Appliquer aux vignettes"
+  },
+
+  "tilePictureApplying": {
+    "message": "Création des nouvelles images…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Vignettes avec de nouvelles images : $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Chaque vignette a déjà une telle image."
+  },
+
+  "tilePictureFailed": {
+    "message": "Les images n’ont pas pu être créées."
+  },
+
   "settingsDiscard": {
     "message": "Abandonner les modifications"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "« $1 » n’est affiché qu’ici. « Appliquer » l’active dans l’accès rapide ; « Abandonner les modifications » rétablit l’apparence précédente.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "Il est conçu pour des images d’icônes."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Utiliser les icônes des sites pour les nouvelles vignettes"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "Les nouvelles vignettes recevront l’icône du site après application. Les vignettes existantes gardent leurs images, sauf si vous leur appliquez aussi les icônes."
   },
 
   "themeDialogMessage": {

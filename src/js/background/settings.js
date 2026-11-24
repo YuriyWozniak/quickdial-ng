@@ -27,6 +27,7 @@ app.Settings.defaults = function(){ // Default settings of a new install: layout
 			folderIconMode: ImageMode.stretch,
 			openBookmarkMethod: OpenIn.thisTab,
 			openFolderMethod: OpenIn.thisTab,
+			newTilePicture: QDCommon.TilePicture.page,
 			cells: {
 				snapshotDelay: app.Settings.SNAPSHOT_DELAY
 			},
@@ -82,6 +83,7 @@ app.Settings._read = function(){
 		if(app.Settings.dropObsolete(app.settings)) migrated = true;
 		if(app.Settings.migrateToolbar(app.settings)) migrated = true;
 		if(app.Settings.migrateIcons(app.settings)) migrated = true;
+		if(app.Settings.addMissing(app.settings)) migrated = true;
 		QDThemes.complete(app.settings); // Style settings added in later versions (0.4.0: glass, shadows, title font...) start at their Classic values
 		if(data.version == 4){ // Upgrade Data Version: move inline images out of the node tree into their own keys (WebP)
 			return app.Images.extractFromTree(app.node)
@@ -203,8 +205,18 @@ app.Settings.dropObsolete = function(settings){
 	return changed;
 };
 
+// Behaviour settings added in later versions start at their defaults: the picture new tiles get (0.9.0;
+// a value this version doesn't know is replaced too). Returns true when `settings` changed.
+app.Settings.addMissing = function(settings){
+	const grid = settings && settings.grid;
+	if(!grid || QDCommon.isTilePicture(grid.newTilePicture)) return false;
+	grid.newTilePicture = QDCommon.TilePicture.page;
+	return true;
+};
+
 app.Settings.update = function(settings){ // Save new settings: the user's own, so saved even after a failed load. Promise: see save
 	app.settings = settings;
+	app.Settings.addMissing(settings);
 	delete app.Settings._loadFailed;
 	return app.Settings.save();
 };

@@ -601,6 +601,66 @@
     "message": "ms após a página carregar"
   },
 
+  "settingsNewTilePicture": {
+    "message": "Novos blocos recebem"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Imagens que você escolheu nunca são substituídas."
+  },
+
+  "tilePicturePage": {
+    "message": "Uma captura da página"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "O ícone do site (uma letra se não houver)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "O ícone do site, ou uma captura se não houver"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Blocos existentes"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Aplicar aos blocos…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Dar aos blocos existentes imagens feitas do jeito escolhido acima"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Aplicar aos seus blocos?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Seus blocos recebem imagens novas: $1. As imagens que você escolheu e as mantidas ficam como estão. Com muitos blocos, isso demora um pouco."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Aplicar aos blocos"
+  },
+
+  "tilePictureApplying": {
+    "message": "Criando as imagens novas…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Blocos com imagens novas: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Todos os blocos já têm uma imagem assim."
+  },
+
+  "tilePictureFailed": {
+    "message": "Não foi possível criar as imagens."
+  },
+
   "settingsDiscard": {
     "message": "Descartar alterações"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "“$1” aparece só aqui. “Aplicar” o ativa na discagem rápida; “Descartar alterações” volta à aparência anterior.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "Ele foi feito para imagens de ícones."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Usar ícones dos sites nos novos blocos"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "Os novos blocos receberão o ícone do site ao aplicar. Os blocos existentes mantêm suas imagens, a menos que você aplique os ícones a eles também."
   },
 
   "themeDialogMessage": {

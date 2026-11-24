@@ -121,6 +121,13 @@
 
 /* ========== sections and their cards ========== */
 .qd-panel { animation: qd-fade .16s var(--qd-ease); }
+/* a section's status banner (Themes, Backup) stays in view while the cards scroll under it: "Use" on a theme
+   far down the gallery shows its message, and what it offers, up there */
+.qd-panel > .qd-banner {
+	position: sticky;
+	top: calc(-1 * var(--qd-pad-y, 0px));
+	z-index: 2;
+}
 .qd-settings .qd-card { padding: 16px 18px; }
 
 /* cards side by side, while the content area is wide enough for two columns */

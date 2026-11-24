@@ -601,6 +601,66 @@
     "message": "ms po załadowaniu strony"
   },
 
+  "settingsNewTilePicture": {
+    "message": "Nowe kafelki dostają"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Obrazy wybrane przez Ciebie nigdy nie są zastępowane."
+  },
+
+  "tilePicturePage": {
+    "message": "Zrzut ekranu strony"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "Ikonę witryny (literę, jeśli jej nie ma)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "Ikonę witryny albo zrzut ekranu, jeśli jej nie ma"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Obecne kafelki"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Zastosuj do kafelków…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Nadaj obecnym kafelkom obrazy tworzone w sposób wybrany powyżej"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "Zastosować do Twoich kafelków?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Twoje kafelki dostaną nowe obrazy: $1. Obrazy wybrane przez Ciebie i zachowane pozostaną bez zmian. Przy wielu kafelkach trwa to chwilę."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Zastosuj do kafelków"
+  },
+
+  "tilePictureApplying": {
+    "message": "Tworzenie nowych obrazów…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Kafelki z nowymi obrazami: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Każdy kafelek ma już taki obraz."
+  },
+
+  "tilePictureFailed": {
+    "message": "Nie udało się utworzyć obrazów."
+  },
+
   "settingsDiscard": {
     "message": "Odrzuć zmiany"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "„$1” jest widoczny tylko tutaj. „Zastosuj” włączy go na panelu, a „Odrzuć zmiany” przywróci poprzedni wygląd.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "Jest stworzony dla obrazów ikon."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Używaj ikon witryn dla nowych kafelków"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "Po zastosowaniu nowe kafelki dostaną ikonę witryny. Obecne kafelki zachowają swoje obrazy, chyba że zastosujesz ikony także do nich."
   },
 
   "themeDialogMessage": {

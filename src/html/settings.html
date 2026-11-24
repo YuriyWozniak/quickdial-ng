@@ -355,6 +355,18 @@
 								<td data-i18n="settingsCaptureDelay"></td>
 								<td colspan="2"><span class="qd-unit"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000" step="100"> <span data-i18n="settingsCaptureDelayUnit"></span></span></td>
 							</tr>
+							<tr>
+								<td><label for="GridNewTilePicture" data-i18n="settingsNewTilePicture"></label><br><small class="qd-hint" data-i18n="settingsNewTilePictureHint"></small></td>
+								<td colspan="2"><select id="GridNewTilePicture">
+									<option value="0" data-i18n="tilePicturePage"></option>
+									<option value="1" data-i18n="tilePictureSiteIcon"></option>
+									<option value="2" data-i18n="tilePictureSiteIconOrPage"></option>
+								</select></td>
+							</tr>
+							<tr>
+								<td><span data-i18n="settingsTilesYouHave"></span><br><small class="qd-hint" id="TilePictureStatus" role="status"></small></td>
+								<td colspan="2"><button type="button" class="qd-btn" id="BtnApplyTilePicture" data-no-dirty data-i18n-title="settingsApplyTilePictureHint" data-i18n="settingsApplyTilePicture"></button></td>
+							</tr>
 						</tbody>
 					</table>
 				</section>

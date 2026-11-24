@@ -601,6 +601,66 @@
     "message": "ms después de cargar la página"
   },
 
+  "settingsNewTilePicture": {
+    "message": "Las nuevas fichas reciben"
+  },
+
+  "settingsNewTilePictureHint": {
+    "message": "Las imágenes que elegiste tú nunca se sustituyen."
+  },
+
+  "tilePicturePage": {
+    "message": "Una captura de la página"
+  },
+
+  "tilePictureSiteIcon": {
+    "message": "El icono del sitio (una letra si no tiene)"
+  },
+
+  "tilePictureSiteIconOrPage": {
+    "message": "El icono del sitio, o una captura si no tiene"
+  },
+
+  "settingsTilesYouHave": {
+    "message": "Fichas que ya tienes"
+  },
+
+  "settingsApplyTilePicture": {
+    "message": "Aplicar a las fichas…"
+  },
+
+  "settingsApplyTilePictureHint": {
+    "message": "Dar a las fichas que ya tienes imágenes hechas de la forma elegida arriba"
+  },
+
+  "tilePictureApplyTitle": {
+    "message": "¿Aplicar a tus fichas?"
+  },
+
+  "tilePictureApplyMessage": {
+    "message": "Tus fichas reciben imágenes nuevas: $1. Las imágenes que elegiste tú y las conservadas se quedan como están. Con muchas fichas tarda un rato."
+  },
+
+  "tilePictureApplyButton": {
+    "message": "Aplicar a las fichas"
+  },
+
+  "tilePictureApplying": {
+    "message": "Creando las imágenes nuevas…"
+  },
+
+  "tilePictureApplied": {
+    "message": "Fichas con imágenes nuevas: $1."
+  },
+
+  "tilePictureNothing": {
+    "message": "Todas las fichas ya tienen una imagen así."
+  },
+
+  "tilePictureFailed": {
+    "message": "No se pudieron crear las imágenes."
+  },
+
   "settingsDiscard": {
     "message": "Descartar cambios"
   },
@@ -677,6 +737,18 @@
   "themeShownHere": {
     "message": "«$1» solo se ve aquí. «Aplicar» lo activa en la marcación rápida; «Descartar cambios» vuelve al aspecto anterior.",
     "description": "$1: the theme's name"
+  },
+
+  "themeSuitsIcons": {
+    "message": "Está pensado para imágenes de iconos."
+  },
+
+  "themeUseSiteIcons": {
+    "message": "Usar iconos del sitio para las fichas nuevas"
+  },
+
+  "themeSiteIconsChosen": {
+    "message": "Las fichas nuevas recibirán el icono del sitio al aplicar. Las fichas que ya tienes conservan sus imágenes, salvo que también les apliques los iconos."
   },
 
   "themeDialogMessage": {

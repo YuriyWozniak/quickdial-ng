@@ -79,6 +79,8 @@ app.Messages.init = function(){
 				if(gridNode) GridNodes.useSiteIcon(gridNode).then(loaded);
 				break;
 			}
+			case Commands.applyTilePicture: // Settings: the dial pages show each tile's new picture as soon as it is made
+				return GridNodes.applyTilePicture(Number(request.kind), loaded);
 			case Commands.findSiteIcons: // Properties: the icons to choose from, and a letter tile
 				return app.SiteIcons.find(request.url).then(found => Object.assign(found, { letter: app.SiteIcons.letter(request.url, request.title) }));
 			case Commands.getImages:

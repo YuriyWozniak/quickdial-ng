@@ -10,6 +10,7 @@
 //   3. Backup: export; wrong files refused; the export imported (with rows changed to 2), first
 //      cancelled, then done; the export snippet copied
 //   4. Themes: "Saved one" saved (and replaced), exports, "Classic (imported)" imported then deleted
+//   5. Tiles: New tiles get starts at a screenshot; Apply to tiles asks first, and Cancel changes nothing
 // Related: what the import itself does is in backup.js; Use / Apply of a theme is in themes.js.
 'use strict';
 const { BUILTIN_THEMES, freshProfile, changeSettings, pictures } = require('../lib/fixtures');
@@ -34,6 +35,8 @@ const pictureSize = (testPage, cssValue) => testPage.inHost(value => new Promise
 
 // The click effect "Ripple" (QDThemes.ClickEffect), as the list's value
 const RIPPLE = '3';
+// What new tiles get (QDCommon.TilePicture), as the list's values, and how many choices the list has
+const TILE_PICTURE = { page: '0', siteIconOrPage: '2' }, TILE_PICTURE_CHOICES = 3;
 // The command the background page sends an open Settings page to show a section (js/settings.js)
 const SHOW_SETTINGS_TAB = 209;
 // A background picture larger than the limit (2560 pixels wide), and what it is made into
@@ -195,5 +198,19 @@ module.exports = {
 		await testPage.waitFor('the theme to be deleted', () => !backgroundPage().app.Themes.list.some(theme => theme.name === 'Classic (imported)'));
 		const namesAfterDelete = await themeNames(testPage);
 		testPage.check('Delete removes the theme after asking', testPage.same(namesAfterDelete, [...BUILTIN_THEMES, 'Saved one']), namesAfterDelete);
+
+		// ----- Tiles › Thumbnails: New tiles get; Apply to tiles asks first -----
+		await testPage.loadSettings('tiles');
+		const newTiles = await testPage.inDial(() => ({ value: GridNewTilePicture.value, choices: GridNewTilePicture.options.length }));
+		testPage.check('New tiles get starts at a screenshot of the page, of three choices', newTiles.value === TILE_PICTURE.page && newTiles.choices === TILE_PICTURE_CHOICES, newTiles);
+		await testPage.dial().locator('#GridNewTilePicture').selectOption(TILE_PICTURE.siteIconOrPage);
+		const sourcesBefore = await testPage.inHost(() => JSON.stringify(backgroundPage().app.node.children.map(tile => tile.imageSource)));
+		await testPage.dial().locator('#BtnApplyTilePicture').click();
+		const applyDialog = await testPage.answer({ ok: false });
+		const afterCancel = { status: await testPage.inDial(() => TilePictureStatus.textContent), dirty: await testPage.inDial(() => !BtnApply.disabled),
+			sources: await testPage.inHost(() => JSON.stringify(backgroundPage().app.node.children.map(tile => tile.imageSource))) };
+		testPage.check('Apply to tiles asks first; Cancel changes no tile; the choice waits for Apply', /Apply to your tiles/.test(applyDialog.title) && afterCancel.status === ''
+			&& afterCancel.sources === sourcesBefore && afterCancel.dirty, [applyDialog.title, afterCancel]);
+		await testPage.dial().locator('#BtnDiscard').click();
 	}
 };

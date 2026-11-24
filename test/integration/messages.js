@@ -7,7 +7,7 @@
 // messages come from a sender made in the host page (makeBrowser), as from any extension page.
 // The steps build on each other: b1 ends up "Mine" (locked) at https://moved.example/, b2 "two.example";
 // b1 and b2 swap cells; a bookmark is added in the folder (f1); a folder "Sub" is made and deleted;
-// the root folder is switched to "Other" and back.
+// b3 becomes a site icon tile, then every tile but the locked b1 does; the root folder is switched to "Other" and back.
 'use strict';
 const { freshProfile, spyTabs, stubDrawWindow, pictures } = require('../lib/fixtures');
 
@@ -18,9 +18,9 @@ const ask = (testPage, message) => testPage.inHost(sentMessage => {
 }, message);
 // The command numbers used here (QDCommon.Commands)
 const Commands = { getSettings: 0, setSettings: 1, getNode: 2, getNodeById: 3, updateNode: 4, setNodeIndex: 5, createBookmark: 6, createFolder: 7, deleteNode: 8,
-	refreshNode: 9, getImages: 11, exportData: 12, importData: 13, getThemes: 14, setThemes: 15, openSettings: 16, findSiteIcons: 17, useSiteIcon: 18 };
-// The picture source of a site icon tile (QDCommon.ImageSource)
-const ImageSource = { siteIcon: 1 };
+	refreshNode: 9, getImages: 11, exportData: 12, importData: 13, getThemes: 14, setThemes: 15, openSettings: 16, findSiteIcons: 17, useSiteIcon: 18, applyTilePicture: 19 };
+// The picture source of a site icon tile (QDCommon.ImageSource), and the kind of picture "site icon" (QDCommon.TilePicture)
+const ImageSource = { siteIcon: 1 }, TilePicture = { siteIcon: 1 };
 // How a picture fills its tile (QDCommon.ImageMode): inherit is the "Default" fit
 const ImageMode = { inherit: -1, original: 3 };
 // A node by id in the background page; a bookmark by id
@@ -119,6 +119,17 @@ module.exports = {
 		await testPage.waitFor('b3 to get its letter tile', () => { const tile = backgroundPage().app.GridNodes.getNodeById('b3'); return tile.image === '1' && !tile.__isLoading; });
 		const iconTile = await nodeById(testPage, 'b3');
 		testPage.check('useSiteIcon makes the tile a site icon tile', iconTile.imageSource === ImageSource.siteIcon, iconTile);
+		const notAKind = await ask(testPage, { cmd: Commands.applyTilePicture, kind: 'icons' });
+		const takers = await testPage.inHost(kind => { // the tiles that take a site icon, in every folder
+			const GridNodes = backgroundPage().app.GridNodes, ids = [];
+			const collect = folder => (folder.children || []).forEach(tile => { if (GridNodes._takesPicture(tile, kind)) ids.push(tile.id); collect(tile); });
+			collect(backgroundPage().app.node);
+			return ids;
+		}, TilePicture.siteIcon);
+		const applied = await ask(testPage, { cmd: Commands.applyTilePicture, kind: TilePicture.siteIcon });
+		const appliedSources = await testPage.inHost(ids => ids.map(id => backgroundPage().app.GridNodes.getNodeById(id).imageSource), takers);
+		testPage.check('applyTilePicture answers how many tiles it gave the kind of picture asked for (none for a kind it doesn\'t know)', notAKind === 0 && takers.length > 0
+			&& applied === takers.length && appliedSources.every(source => source === ImageSource.siteIcon), { notAKind, takers, applied, appliedSources });
 
 		// ----- setSettings: a new root folder brings its own tiles (pictures of the old ones go), then back -----
 		const settings = await ask(testPage, { cmd: Commands.getSettings });
