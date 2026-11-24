@@ -34,29 +34,33 @@ const BACKGROUND_COVER = 1;                            // settings.backgroundMod
 const SPLIT_TOP = 56, SPLIT_BOTTOM = 44;        // where the light and dark halves of settings.png meet at the top and bottom edge, in % of the width
 const SETTINGS_URL = 'moz-extension://7c1e9a52-4b0d-4f3e-9a61-2d8b5f0c3e17/html/settings.html';
 const EXTENSION_NAME = 'Quick Dial NG';
-// Waits, in ms, for pages to draw; the background page is waited for with bgIdle()
+// Waits, in ms, for pages to draw; the background page is waited for with waitForBackgroundIdle()
 const DIAL_WAIT = 1800, SETTINGS_WAIT = 1300, HOVER_WAIT = 500, SHOT_WAIT = 500, CLICK_WAIT = 300;
-const wait = ms => new Promise(r => setTimeout(r, ms));
+// How long the background page may take to settle (ms): after a settings change, and after loading a whole layout
+const SETTLE_TIMEOUT = 20000, LOAD_TIMEOUT = 30000;
+// JPEG quality of the tile pictures and of the wallpapers
+const TILE_JPEG_QUALITY = 88, WALLPAPER_JPEG_QUALITY = 90;
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // ---------- a temporary copy of the extension, served over HTTP ----------
 // The test harness (../lib/harness.js): the pages run in frames of index.html, which provides the mock API.
 // Here the pages also get the real version number and English texts (the test mock returns message keys),
 // the host page draws the browser window, the page frame fills the rest of it and the background frame is hidden.
 const messages = JSON.parse(fs.readFileSync(path.join(SRC, '_locales', 'en', 'messages.json'), 'utf8'));
-const H = prepare({ prefix: 'qdng-shots-', pageScript: `
+const extensionCopy = prepare({ prefix: 'qdng-shots-', pageScript: `
 	browser.runtime.getManifest = () => ({ version: ${JSON.stringify(VERSION)} });
-	browser.i18n.getMessage = (function(messages){ return function(key, subs){
-		const m = messages[key]; if (!m) return key;
-		subs = [].concat(subs === undefined ? [] : subs);
-		return m.message.replace(/\\$(\\w+)\\$/g, (_, name) => ((m.placeholders || {})[name.toLowerCase()] || {}).content || '')
-			.replace(/\\$(\\d)/g, (_, n) => subs[n - 1] === undefined ? '' : subs[n - 1]);
+	browser.i18n.getMessage = (function(messages){ return function(key, substitutions){
+		const entry = messages[key]; if (!entry) return key;
+		substitutions = [].concat(substitutions === undefined ? [] : substitutions);
+		return entry.message.replace(/\\$(\\w+)\\$/g, (placeholder, name) => ((entry.placeholders || {})[name.toLowerCase()] || {}).content || '')
+			.replace(/\\$(\\d)/g, (placeholder, number) => substitutions[number - 1] === undefined ? '' : substitutions[number - 1]);
 	}; })(${JSON.stringify(messages)});` });
 {
-	const index = fs.readFileSync(path.join(H, 'index.html'), 'utf8');
-	const size = "f.style.width = '1200px'; f.style.height = '700px';";
-	if (!index.includes(size) || !index.includes('<body>')) throw new Error('test/index.html changed: frame size or body not found');
-	fs.writeFileSync(path.join(H, 'index.html'), index.replace(size,
-		`f.style.width = '${WINDOW.width}px'; f.style.height = role === 'bg' ? '0' : '${WINDOW.height - FRAME_HEIGHT}px'; f.style.border = '0'; f.style.display = 'block';`)
+	const index = fs.readFileSync(path.join(extensionCopy, 'index.html'), 'utf8');
+	const frameSize = /frame\.style\.width = '1200px';\s*frame\.style\.height = '700px';/;
+	if (!frameSize.test(index) || !index.includes('<body>')) throw new Error('test/index.html changed: frame size or body not found');
+	fs.writeFileSync(path.join(extensionCopy, 'index.html'), index.replace(frameSize,
+		`frame.style.width = '${WINDOW.width}px'; frame.style.height = role === 'bg' ? '0' : '${WINDOW.height - FRAME_HEIGHT}px'; frame.style.border = '0'; frame.style.display = 'block';`)
 		.replace('<body>', '<body style="margin:0;overflow:hidden">' + frameHtml()));
 }
 let server;
@@ -74,7 +78,7 @@ const OWN_THEMES = {
 // A cell: { at: [row, column] (1-based; omitted: the next free cell), title, url, picture (key in the pictures),
 // imageMode } or a folder { at, title, children: [cells] }. Cells without `at` fill the cells left free.
 const site = (key, at) => ({ at, title: DARK_SITES[key].title, url: DARK_SITES[key].url, picture: 'dark:' + key });
-const lightSite = title => { const s = SITES.find(x => x.title === title); return { title, url: s.url, picture: 'light:' + title }; };
+const lightSite = title => ({ title, url: SITES.find(lightPage => lightPage.title === title).url, picture: 'light:' + title });
 const folder = (title, at, children = []) => ({ at, title, children });
 const plain = (title, host) => ({ title, url: `https://${host}.example/` }); // a bookmark whose tile is never shown
 // Icon bookmarks: the dark sites, plus a few apps that are only icons
@@ -117,23 +121,23 @@ LAYOUTS.categoryIcons = { ...LAYOUTS.categories, rows: 8, columns: 14, ratioX: 1
 		.map(c => ({ ...c, at: [c.at[0], c.at[1] > LAYOUTS.categories.columns / 2 ? c.at[1] + 2 : c.at[1]] })) };
 
 // The desktop with the retro icons, in colour and in black and white; titles: changed with the icons (key -> title)
-const withIcons = (layout, set, titles = {}) => ({ ...layout, cells: layout.cells.map(c => {
-	if (!c.picture) return c;
-	const key = c.picture.slice(c.picture.indexOf(':') + 1);
-	return { ...c, title: titles[key] || c.title, picture: set + ':' + key };
+const withIcons = (layout, set, titles = {}) => ({ ...layout, cells: layout.cells.map(cell => {
+	if (!cell.picture) return cell;
+	const key = cell.picture.slice(cell.picture.indexOf(':') + 1);
+	return { ...cell, title: titles[key] || cell.title, picture: set + ':' + key };
 }) });
 LAYOUTS.retroDesktop = withIcons(LAYOUTS.desktop, 'retro', RETRO_TITLES);
 LAYOUTS.monoDesktop = withIcons(LAYOUTS.desktop, 'mono');
 
 /**
  * The bookmarks and the tile tree of a layout. Ids are given in order (b1, b2...).
- * @returns {{ bookmarks: object[], nodes: object[] }} bookmarks for the mock (S.bm), nodes as original Quick Dial
+ * @returns {{ bookmarks: object[], nodes: object[] }} bookmarks for the mock (mockState.bookmarkTree), nodes as original Quick Dial
  * data: a folder's children are its cells, with gaps; pictures inline, as Quick Dial kept them
  */
 function buildTree(cells, columns, parentId, pictures, counter = { next: 1 }) {
 	const bookmarks = [], nodes = [];
-	const place = (at, node) => {
-		let index = at ? (at[0] - 1) * columns + at[1] - 1 : nodes.findIndex(n => !n);
+	const place = (position, node) => {
+		let index = position ? (position[0] - 1) * columns + position[1] - 1 : nodes.findIndex(taken => !taken);
 		if (index < 0) index = nodes.length;
 		if (nodes[index]) throw new Error('two tiles in the same cell: ' + node.title);
 		nodes[index] = node;
@@ -158,32 +162,33 @@ function buildTree(cells, columns, parentId, pictures, counter = { next: 1 }) {
 
 // ---------- pictures: tile captures, icons and backgrounds ----------
 async function renderPictures(browser) {
-	const pg = await browser.newPage({ viewport: CAPTURE, deviceScaleFactor: 1 });
+	const capturePage = await browser.newPage({ viewport: CAPTURE, deviceScaleFactor: 1 });
 	const pictures = {};
-	const jpeg = async quality => 'data:image/jpeg;base64,' + (await pg.screenshot({ type: 'jpeg', quality })).toString('base64');
-	for (const s of SITES) { await pg.setContent(s.html); pictures['light:' + s.title] = await jpeg(88); }
-	for (const [key, s] of Object.entries(DARK_SITES)) { await pg.setContent(s.html); pictures['dark:' + key] = await jpeg(88); }
-	await pg.setViewportSize(ICON_CAPTURE);
+	const jpeg = async quality => 'data:image/jpeg;base64,' + (await capturePage.screenshot({ type: 'jpeg', quality })).toString('base64');
+	const transparentPng = async () => 'data:image/png;base64,' + (await capturePage.screenshot({ type: 'png', omitBackground: true })).toString('base64');
+	for (const lightPage of SITES) { await capturePage.setContent(lightPage.html); pictures['light:' + lightPage.title] = await jpeg(TILE_JPEG_QUALITY); }
+	for (const [key, darkPage] of Object.entries(DARK_SITES)) { await capturePage.setContent(darkPage.html); pictures['dark:' + key] = await jpeg(TILE_JPEG_QUALITY); }
+	await capturePage.setViewportSize(ICON_CAPTURE);
 	for (const [key, html] of Object.entries(ICONS)) {
-		await pg.setContent(html);
-		pictures['icon:' + key] = 'data:image/png;base64,' + (await pg.screenshot({ type: 'png', omitBackground: true })).toString('base64');
+		await capturePage.setContent(html);
+		pictures['icon:' + key] = await transparentPng();
 	}
 	for (const [set, icons] of [['retro', RETRO_ICONS], ['mono', MONO_ICONS]]) {
 		for (const [key, html] of Object.entries(icons)) {
-			await pg.setContent(html);
-			pictures[set + ':' + key] = 'data:image/png;base64,' + (await pg.screenshot({ type: 'png', omitBackground: true })).toString('base64');
+			await capturePage.setContent(html);
+			pictures[set + ':' + key] = await transparentPng();
 		}
 	}
 	for (const [name, html] of [['retroFolder', RETRO_FOLDER], ['monoFolder', MONO_FOLDER]]) {
-		await pg.setContent(html); pictures[name] = 'url(data:image/png;base64,' + (await pg.screenshot({ type: 'png', omitBackground: true })).toString('base64') + ')';
+		await capturePage.setContent(html); pictures[name] = 'url(' + await transparentPng() + ')';
 	}
-	await pg.setViewportSize(DUSK_SIZE); await pg.setContent(WALLPAPER); pictures.dusk = `url(${await jpeg(90)})`;
-	await pg.setViewportSize(WALLPAPER_SIZE);
-	await pg.setContent(DESKTOP_WALLPAPER); pictures.night = `url(${await jpeg(90)})`;
-	await pg.setContent(DAY_WALLPAPER); pictures.day = `url(${await jpeg(90)})`;
-	await pg.setContent(MONO_PATTERN(WALLPAPER_SIZE.width, WALLPAPER_SIZE.height));
-	pictures.monoPattern = 'url(data:image/png;base64,' + (await pg.screenshot({ type: 'png' })).toString('base64') + ')';
-	await pg.close();
+	await capturePage.setViewportSize(DUSK_SIZE); await capturePage.setContent(WALLPAPER); pictures.dusk = `url(${await jpeg(WALLPAPER_JPEG_QUALITY)})`;
+	await capturePage.setViewportSize(WALLPAPER_SIZE);
+	await capturePage.setContent(DESKTOP_WALLPAPER); pictures.night = `url(${await jpeg(WALLPAPER_JPEG_QUALITY)})`;
+	await capturePage.setContent(DAY_WALLPAPER); pictures.day = `url(${await jpeg(WALLPAPER_JPEG_QUALITY)})`;
+	await capturePage.setContent(MONO_PATTERN(WALLPAPER_SIZE.width, WALLPAPER_SIZE.height));
+	pictures.monoPattern = 'url(data:image/png;base64,' + (await capturePage.screenshot({ type: 'png' })).toString('base64') + ')';
+	await capturePage.close();
 	return pictures;
 }
 
@@ -194,102 +199,115 @@ async function renderPictures(browser) {
  * Returns helpers for the window.
  */
 async function openDial(browser, port, scheme, layout, look, pictures, errors) {
-	const ctx = await browser.newContext({ viewport: WINDOW, deviceScaleFactor: SCALE, colorScheme: scheme });
-	const pg = await ctx.newPage();
-	pg.on('pageerror', e => errors.push(String(e)));
-	pg.on('console', m => { if (m.type() === 'error' && !m.text().startsWith('Failed to load resource')) errors.push(m.text()); });
-	await pg.goto(`http://127.0.0.1:${port}/index.html`);
-	const BG = "document.getElementById('bg').contentWindow";
+	const context = await browser.newContext({ viewport: WINDOW, deviceScaleFactor: SCALE, colorScheme: scheme });
+	const page = await context.newPage();
+	page.on('pageerror', error => errors.push(String(error)));
+	page.on('console', message => { if (message.type() === 'error' && !message.text().startsWith('Failed to load resource')) errors.push(message.text()); });
+	await page.goto(`http://127.0.0.1:${port}/index.html`);
 	const tree = buildTree(layout.cells, layout.columns, 'qd', pictures);
+	const backgroundIdle = timeout => page.evaluate(ms => waitForBackgroundIdle(ms), timeout);
 
-	await pg.evaluate(bookmarks => {
-		const menu = S.bm.children[0]; S.bm.type = 'folder'; menu.type = 'folder'; S.bm.children[1].type = 'folder';
+	await page.evaluate(bookmarks => {
+		const root = mockState.bookmarkTree, menu = root.children[0];
+		root.type = 'folder'; menu.type = 'folder'; root.children[1].type = 'folder';
 		menu.children.push({ id: 'qd', type: 'folder', title: 'Quick Dial', parentId: menu.id, children: bookmarks });
 	}, tree.bookmarks);
-	await pg.evaluate("loadFrame('bg', 'bg.html')"); await pg.evaluate('bgIdle(20000)');
+	await page.evaluate(() => loadFrame('bg', 'bg.html')); await backgroundIdle(SETTLE_TIMEOUT);
 	// The tiles go in as original Quick Dial data (pictures inside the tree), so they take the normal migration path into storage
-	await pg.evaluate(([nodes, grid]) => {
-		const data = { version: 4, settings: S.storage.settings, node: JSON.parse(JSON.stringify(S.storage.node)) };
+	await page.evaluate(([nodes, grid]) => {
+		const data = { version: 4, settings: mockState.storage.settings, node: JSON.parse(JSON.stringify(mockState.storage.node)) };
 		Object.assign(data.settings.grid, grid);
 		data.node.children = nodes;
-		S.storage = JSON.parse(JSON.stringify(data));
+		mockState.storage = JSON.parse(JSON.stringify(data));
 	}, [tree.nodes, { rows: layout.rows, columns: layout.columns, ratioX: layout.ratioX, ratioY: layout.ratioY, folderIconMode: layout.ratioX === layout.ratioY ? ImageMode.fit : ImageMode.stretch }]);
-	await pg.evaluate("loadFrame('bg', 'bg.html')"); await pg.evaluate('bgIdle(30000)');
+	await page.evaluate(() => loadFrame('bg', 'bg.html')); await backgroundIdle(LOAD_TIMEOUT);
 
-	const s = {
-		ctx, pg,
-		/** Changes the settings in the background page: fn(settings, QDThemes, arg) edits them in place. */
-		settings: async (fn, arg) => { await pg.evaluate(`(() => { const bg = ${BG}; const s = JSON.parse(JSON.stringify(bg.app.settings));
-			(${fn})(s, bg.QDThemes, ${JSON.stringify(arg === undefined ? null : arg)}); return bg.app.Settings.update(s); })()`); await pg.evaluate('bgIdle(20000)'); },
+	const dialWindow = {
+		context, page,
+		/** Changes the settings in the background page: editSettings(settings, QDThemes, arg) edits them in place.
+		 *  It runs in the page, so it can use only its arguments. */
+		settings: async (editSettings, arg) => {
+			await page.evaluate(`(() => { const background = backgroundPage(); const settings = JSON.parse(JSON.stringify(background.app.settings));
+				(${editSettings})(settings, background.QDThemes, ${JSON.stringify(arg === undefined ? null : arg)}); return background.app.Settings.update(settings); })()`);
+			await backgroundIdle(SETTLE_TIMEOUT);
+		},
 		/** Applies a look: a theme (a built-in id or an OWN_THEMES key), a background picture or none, and a folder picture
 		 *  or the default one (all pictures are keys in the pictures). */
 		look: async ({ theme, wallpaper, folder }) => {
 			const own = OWN_THEMES[theme];
-			await s.settings((st, T, a) => {
-				const merge = (base, over) => { for (const k in over) base[k] = over[k] && typeof over[k] == 'object' ? merge(base[k] || {}, over[k]) : over[k]; return base; };
-				const style = JSON.parse(JSON.stringify(T.BUILTIN.find(t => t.id === a.base).style));
-				T.apply(st, a.changes ? merge(style, a.changes) : style);
-				st.backgroundImage = a.wallpaper;
-				if (a.wallpaper) st.backgroundMode = a.cover;
-				if (a.folder) st.grid.folderIcon = a.folder;
+			await dialWindow.settings((settings, Themes, wanted) => {
+				const merge = (base, changes) => {
+					for (const key in changes) base[key] = changes[key] && typeof changes[key] == 'object' ? merge(base[key] || {}, changes[key]) : changes[key];
+					return base;
+				};
+				const style = JSON.parse(JSON.stringify(Themes.BUILTIN.find(builtIn => builtIn.id === wanted.base).style));
+				Themes.apply(settings, wanted.changes ? merge(style, wanted.changes) : style);
+				settings.backgroundImage = wanted.wallpaper;
+				if (wanted.wallpaper) settings.backgroundMode = wanted.cover;
+				if (wanted.folder) settings.grid.folderIcon = wanted.folder;
 			}, { base: own ? own.base : theme, changes: own ? own.changes : null, wallpaper: wallpaper ? pictures[wallpaper] : null, folder: folder ? pictures[folder] : null, cover: BACKGROUND_COVER });
 		},
 		/** Saves the user's own themes (OWN_THEMES keys) as they look when applied. */
 		saveThemes: async keys => {
 			const list = [];
 			for (const key of keys) {
-				await s.look({ theme: key });
-				list.push({ name: OWN_THEMES[key].name, description: OWN_THEMES[key].description, style: await pg.evaluate(`${BG}.QDThemes.extract(${BG}.app.settings)`) });
+				await dialWindow.look({ theme: key });
+				const style = await page.evaluate(() => backgroundPage().QDThemes.extract(backgroundPage().app.settings));
+				list.push({ name: OWN_THEMES[key].name, description: OWN_THEMES[key].description, style });
 			}
-			await pg.evaluate(`${BG}.app.Themes.save(${JSON.stringify(list)})`);
+			await page.evaluate(themes => backgroundPage().app.Themes.save(themes), list);
 		},
 		/** Draws the browser window: tabs before the active one, then the active one; url and identity as setBrowser(). */
-		browser: (tabs, url, identity) => pg.evaluate(o => setBrowser(o), { tabs, url, identity }),
+		browser: (tabs, url, identity) => page.evaluate(windowLook => setBrowser(windowLook), { tabs, url, identity }),
 		/** (Re)loads the dial page, shows it as the New Tab and returns its frame. */
 		dial: async (others = []) => {
-			await pg.evaluate("loadFrame('dial', 'dial.html')"); await wait(DIAL_WAIT);
-			const frame = pg.frame({ url: /dial\.html/ });
-			await s.browser([...others, { title: (await frame.title()) || 'New Tab', icon: 'qd', active: true }], '');
+			await page.evaluate(() => loadFrame('dial', 'dial.html')); await wait(DIAL_WAIT);
+			const frame = page.frame({ url: /dial\.html/ });
+			await dialWindow.browser([...others, { title: (await frame.title()) || 'New Tab', icon: 'qd', active: true }], '');
 			return frame;
 		},
 		/** Opens Settings (optionally on a section) in the window, as its own tab, and returns its frame. */
 		openSettings: async tab => {
-			await pg.evaluate(`loadFrame('dial', 'html/settings.html${tab ? '?tab=' + tab.toLowerCase() : ''}')`); await wait(SETTINGS_WAIT);
-			const frame = pg.frame({ url: /settings\.html/ });
-			await s.browser([{ title: 'New Tab', icon: 'qd' }, { title: (await frame.title()) || EXTENSION_NAME + ' Settings', icon: 'qd', active: true }], SETTINGS_URL, EXTENSION_NAME);
+			await page.evaluate(src => loadFrame('dial', src), 'html/settings.html' + (tab ? '?tab=' + tab.toLowerCase() : '')); await wait(SETTINGS_WAIT);
+			const frame = page.frame({ url: /settings\.html/ });
+			await dialWindow.browser([{ title: 'New Tab', icon: 'qd' }, { title: (await frame.title()) || EXTENSION_NAME + ' Settings', icon: 'qd', active: true }], SETTINGS_URL, EXTENSION_NAME);
 			return frame;
 		},
 		/** Moves the mouse over the tile with this title (hover state), or away when no title is given. */
 		hover: async (dial, title) => {
-			if (!title) return pg.mouse.move(2, 2);
+			if (!title) return page.mouse.move(2, 2);
 			const box = await dial.locator('table.qd-grid a', { hasText: title }).first().boundingBox();
-			await pg.mouse.move(box.x + box.width / 2, box.y + box.height / 3); await wait(HOVER_WAIT);
+			await page.mouse.move(box.x + box.width / 2, box.y + box.height / 3); await wait(HOVER_WAIT);
 		},
 		/** The window as a PNG buffer. */
-		capture: async () => { await wait(SHOT_WAIT); return pg.screenshot(); },
+		capture: async () => { await wait(SHOT_WAIT); return page.screenshot(); },
 		/** Saves the window as <name>.png in the folder. */
-		shot: async (name, folderPath = OUT) => { fs.writeFileSync(path.join(folderPath, name + '.png'), await s.capture()); console.log('saved', path.relative(OUT, path.join(folderPath, name + '.png'))); }
+		shot: async (name, folderPath = OUT) => {
+			const file = path.join(folderPath, name + '.png');
+			fs.writeFileSync(file, await dialWindow.capture());
+			console.log('saved', path.relative(OUT, file));
+		}
 	};
-	await s.look(look);
-	return s;
+	await dialWindow.look(look);
+	return dialWindow;
 }
 
 // Scrolls the Settings content so `selector` sits just below the top edge (below a sticky table header if there is one)
-const scrollTo = (frame, selector, offset = 16) => frame.evaluate(([sel, off]) => {
-	const content = document.getElementById('Content'), el = document.querySelector(sel);
-	content.scrollTop += el.getBoundingClientRect().top - content.getBoundingClientRect().top - off;
+const scrollTo = (frame, selector, offset = 16) => frame.evaluate(([cssSelector, gap]) => {
+	const content = document.getElementById('Content'), element = document.querySelector(cssSelector);
+	content.scrollTop += element.getBoundingClientRect().top - content.getBoundingClientRect().top - gap;
 }, [selector, offset]);
 
 // Two pictures of the same size as one: the left part of `left` and the right part of `right`, split on a slant (SPLIT_TOP to SPLIT_BOTTOM)
 async function combine(browser, left, right, file) {
-	const pg = await browser.newPage({ viewport: WINDOW, deviceScaleFactor: SCALE });
-	const img = (buf, clip) => `<img src="data:image/png;base64,${buf.toString('base64')}" style="position:absolute;inset:0;width:100%;height:100%;${clip}">`;
-	await pg.setContent(`<body style="margin:0;position:relative;width:${WINDOW.width}px;height:${WINDOW.height}px;overflow:hidden">${img(left, '')}
+	const page = await browser.newPage({ viewport: WINDOW, deviceScaleFactor: SCALE });
+	const img = (buffer, clip) => `<img src="data:image/png;base64,${buffer.toString('base64')}" style="position:absolute;inset:0;width:100%;height:100%;${clip}">`;
+	await page.setContent(`<body style="margin:0;position:relative;width:${WINDOW.width}px;height:${WINDOW.height}px;overflow:hidden">${img(left, '')}
 		${img(right, `clip-path:polygon(${SPLIT_TOP}% 0,100% 0,100% 100%,${SPLIT_BOTTOM}% 100%)`)}
 		<svg style="position:absolute;inset:0" width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="${SPLIT_TOP}" y1="0" x2="${SPLIT_BOTTOM}" y2="100" stroke="#8f8f9d" stroke-width="2" vector-effect="non-scaling-stroke"/></svg></body>`);
-	await pg.waitForLoadState('load');
-	await pg.screenshot({ path: file }); console.log('saved', path.relative(OUT, file));
-	await pg.close();
+	await page.waitForLoadState('load');
+	await page.screenshot({ path: file }); console.log('saved', path.relative(OUT, file));
+	await page.close();
 }
 
 // The tabs open next to the dial in each scene, so the window looks used
@@ -301,46 +319,46 @@ const TABS = {
 // ---------- the screenshots ----------
 async function main() {
 	fs.mkdirSync(WEBSITE_OUT, { recursive: true });
-	server = await serve(H);
+	server = await serve(extensionCopy);
 	const port = server.port;
 	const browser = await launch(port);
 	const errors = [];
 	const pictures = await renderPictures(browser);
 	const open = (scheme, layout, look) => openDial(browser, port, scheme, LAYOUTS[layout], look, pictures, errors);
-	let s, dial;
+	let dialWindow, dial;
 
 	// ===== Main set: README and addons.mozilla.org =====
 	// 1. Desktop icons on a wallpaper
-	s = await open('dark', 'desktop', { theme: 'desktop', wallpaper: 'night' });
-	dial = await s.dial([TABS.mail, TABS.repo]); await s.hover(dial, 'Photos'); await s.shot('dial-desktop');
-	await s.ctx.close();
+	dialWindow = await open('dark', 'desktop', { theme: 'desktop', wallpaper: 'night' });
+	dial = await dialWindow.dial([TABS.mail, TABS.repo]); await dialWindow.hover(dial, 'Photos'); await dialWindow.shot('dial-desktop');
+	await dialWindow.context.close();
 
 	// 2. Zones: groups in the corners of a large grid, the look of a real dial
-	s = await open('dark', 'zones', { theme: 'plum' });
-	dial = await s.dial([TABS.mail]); await s.hover(dial, 'Photos'); await s.shot('dial-zones');
-	await dial.evaluate(() => app.editProperties([...document.querySelectorAll('.qd-grid a')].find(a => a.gridNode && a.gridNode.title === 'Photos')));
-	await wait(SETTINGS_WAIT); await s.shot('properties');                                                  // 7. Properties, dark
-	await s.ctx.close();
+	dialWindow = await open('dark', 'zones', { theme: 'plum' });
+	dial = await dialWindow.dial([TABS.mail]); await dialWindow.hover(dial, 'Photos'); await dialWindow.shot('dial-zones');
+	await dial.evaluate(() => app.editProperties([...document.querySelectorAll('.qd-grid a')].find(link => link.gridNode && link.gridNode.title === 'Photos')));
+	await wait(SETTINGS_WAIT); await dialWindow.shot('properties');                                                  // 7. Properties, dark
+	await dialWindow.context.close();
 
 	// 3. Categories with folders, then 4. one folder opened
-	s = await open('dark', 'categories', { theme: 'plum' });
-	dial = await s.dial([TABS.music]); await s.hover(dial, 'Servers'); await s.shot('dial-categories');
+	dialWindow = await open('dark', 'categories', { theme: 'plum' });
+	dial = await dialWindow.dial([TABS.music]); await dialWindow.hover(dial, 'Servers'); await dialWindow.shot('dial-categories');
 	await dial.locator('table.qd-grid a', { hasText: 'Servers' }).first().click(); await wait(DIAL_WAIT);
-	dial = s.pg.frame({ url: /dial\.html/ }); await s.hover(dial, 'Monitoring'); await s.shot('dial-folder');
-	await s.ctx.close();
+	dial = dialWindow.page.frame({ url: /dial\.html/ }); await dialWindow.hover(dial, 'Monitoring'); await dialWindow.shot('dial-folder');
+	await dialWindow.context.close();
 
 	// 5. The usual speed dial in Anori
-	s = await open('light', 'speedDial', { theme: 'anori' });
-	dial = await s.dial([TABS.wiki]); await s.hover(dial, 'Streamly'); await s.shot('dial-anori');
-	await s.ctx.close();
+	dialWindow = await open('light', 'speedDial', { theme: 'anori' });
+	dial = await dialWindow.dial([TABS.wiki]); await dialWindow.hover(dial, 'Streamly'); await dialWindow.shot('dial-anori');
+	await dialWindow.context.close();
 
 	// 6. Settings › Themes, light on the left and dark on the right
 	const themesShot = async scheme => {
-		const w = await open(scheme, 'zones', { theme: 'plum' });
-		await w.saveThemes(['desktopDay']); await w.look({ theme: 'plum' });
-		const settings = await w.openSettings('Themes');
+		const themesWindow = await open(scheme, 'zones', { theme: 'plum' });
+		await themesWindow.saveThemes(['desktopDay']); await themesWindow.look({ theme: 'plum' });
+		const settings = await themesWindow.openSettings('Themes');
 		await scrollTo(settings, '#TabThemes .qd-card');
-		const shot = await w.capture(); await w.ctx.close();
+		const shot = await themesWindow.capture(); await themesWindow.context.close();
 		return shot;
 	};
 	await combine(browser, await themesShot('light'), await themesShot('dark'), path.join(OUT, 'settings.png'));
@@ -356,26 +374,26 @@ async function main() {
 		['dial-retro-mono', 'light', 'monoDesktop', { theme: 'retro-mono', wallpaper: 'monoPattern', folder: 'monoFolder' }, 'Photos'],
 		['dial-classic', 'light', 'speedDial', { theme: 'classic' }, 'Weather'],
 		['dial-picture', 'light', 'speedDial', { theme: 'dusk', wallpaper: 'dusk' }, 'Photos']]) {
-		s = await open(scheme, layout, look);
-		dial = await s.dial([TABS.mail]); await s.hover(dial, hovered); await s.shot(name, WEBSITE_OUT);
-		await s.ctx.close();
+		dialWindow = await open(scheme, layout, look);
+		dial = await dialWindow.dial([TABS.mail]); await dialWindow.hover(dial, hovered); await dialWindow.shot(name, WEBSITE_OUT);
+		await dialWindow.context.close();
 	}
 	// Every Settings section, light; Themes also dark; Properties light
 	for (const scheme of ['light', 'dark']) {
-		s = await open(scheme, 'zones', { theme: 'plum' });
-		await s.saveThemes(['desktopDay']); await s.look({ theme: 'plum' });
-		const settings = await s.openSettings('Themes');
-		await scrollTo(settings, '#TabThemes .qd-card'); await s.shot(scheme === 'light' ? 'settings-themes' : 'settings-themes-dark', WEBSITE_OUT);
+		dialWindow = await open(scheme, 'zones', { theme: 'plum' });
+		await dialWindow.saveThemes(['desktopDay']); await dialWindow.look({ theme: 'plum' });
+		const settings = await dialWindow.openSettings('Themes');
+		await scrollTo(settings, '#TabThemes .qd-card'); await dialWindow.shot(scheme === 'light' ? 'settings-themes' : 'settings-themes-dark', WEBSITE_OUT);
 		if (scheme === 'light') {
-			await settings.click('#TabTilesButton'); await wait(CLICK_WAIT); await s.shot('settings-tiles', WEBSITE_OUT);
-			await scrollTo(settings, 'tr:has(#GridCellsBackgroundColor)', 44); await s.shot('settings-tiles-glass', WEBSITE_OUT);
-			await settings.click('#TabPageButton'); await wait(CLICK_WAIT); await s.shot('settings-page', WEBSITE_OUT);
-			await settings.click('#TabGridButton'); await wait(CLICK_WAIT); await s.shot('settings-grid', WEBSITE_OUT);
-			dial = await s.dial();
-			await dial.evaluate(() => app.editProperties([...document.querySelectorAll('.qd-grid a')].find(a => a.gridNode && a.gridNode.title === 'Photos')));
-			await wait(SETTINGS_WAIT); await s.shot('properties', WEBSITE_OUT);
+			await settings.click('#TabTilesButton'); await wait(CLICK_WAIT); await dialWindow.shot('settings-tiles', WEBSITE_OUT);
+			await scrollTo(settings, 'tr:has(#GridCellsBackgroundColor)', 44); await dialWindow.shot('settings-tiles-glass', WEBSITE_OUT);
+			await settings.click('#TabPageButton'); await wait(CLICK_WAIT); await dialWindow.shot('settings-page', WEBSITE_OUT);
+			await settings.click('#TabGridButton'); await wait(CLICK_WAIT); await dialWindow.shot('settings-grid', WEBSITE_OUT);
+			dial = await dialWindow.dial();
+			await dial.evaluate(() => app.editProperties([...document.querySelectorAll('.qd-grid a')].find(link => link.gridNode && link.gridNode.title === 'Photos')));
+			await wait(SETTINGS_WAIT); await dialWindow.shot('properties', WEBSITE_OUT);
 		}
-		await s.ctx.close();
+		await dialWindow.context.close();
 	}
 
 	await browser.close();
@@ -385,5 +403,5 @@ async function main() {
 
 main().catch(e => { console.error(e); process.exitCode = 1; }).finally(async () => {
 	if (server) await server.close();
-	fs.rmSync(H, { recursive: true, force: true });
+	fs.rmSync(extensionCopy, { recursive: true, force: true });
 });

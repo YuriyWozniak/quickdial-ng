@@ -55,11 +55,11 @@ const table = (colors, head, rows) => `<div class="card" style="overflow:hidden;
 
 /** A small line chart in a card. */
 const chart = (colors, accent, title, seed, height = 200) => {
-	let d = '';
-	for (let x = 0; x <= 600; x += 20) d += `${x ? 'L' : 'M'}${x} ${(height * .55 + Math.sin(x / 47 + seed) * height * .2 + Math.sin(x / 13 + seed * 3) * height * .08).toFixed(1)} `;
+	let linePath = '';
+	for (let pointX = 0; pointX <= 600; pointX += 20) linePath += `${pointX ? 'L' : 'M'}${pointX} ${(height * .55 + Math.sin(pointX / 47 + seed) * height * .2 + Math.sin(pointX / 13 + seed * 3) * height * .08).toFixed(1)} `;
 	return `<div class="card" style="padding:14px 16px;margin-bottom:18px"><div style="font-weight:600;margin-bottom:6px">${title}</div><svg viewBox="0 0 600 ${height}" style="width:100%;height:${height}px;display:block">
 		${repeat(4, i => `<line x1="0" x2="600" y1="${(i + 1) * height / 5}" y2="${(i + 1) * height / 5}" stroke="${colors.line}"/>`)}
-		<path d="${d}L600 ${height} L0 ${height}Z" fill="${accent}" opacity=".18"/><path d="${d}" fill="none" stroke="${accent}" stroke-width="2.5"/></svg></div>`;
+		<path d="${linePath}L600 ${height} L0 ${height}Z" fill="${accent}" opacity=".18"/><path d="${linePath}" fill="none" stroke="${accent}" stroke-width="2.5"/></svg></div>`;
 };
 
 const MAILS = [[210, 'Ana Kovač', 'Photos from the weekend — the light on the lake was amazing on Sunday', '09:41'], [150, 'Hiking Club', 'Saturday route: Mosor ridge — we meet at 7:30 at the usual place', '08:15'],

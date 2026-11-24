@@ -12,107 +12,138 @@
 'use strict';
 const { freshProfile, stubDrawWindow, sitePage, changeSettings } = require('../lib/fixtures');
 
-// A tabs API that opens a "tab", reports it loaded and captures a screenshot; the calls are kept in bg().qdTabs.
+// The id of the pretend tab fakeTabs opens; the size of its page and screenshot
+const FAKE_TAB_ID = 7, FAKE_TAB_SIZE = { width: 1200, height: 1600 };
+// A tabs API that opens a "tab", reports it loaded and captures a screenshot; the calls are kept in backgroundPage().qdTabs.
 // Options: fail (the screenshot fails), loading (the tab never finishes loading), switched (another tab is
 // shown by the time of the screenshot), noShow (the tab can't be shown).
-const fakeTabs = (t, options) => t.J(o => {
-	const w = bg(); w.qdTabs = [];
-	let active = false, polls = 0;
-	w.browser.tabs.create = c => { w.qdTabs.push(['create', c.url, c.active]); return Promise.resolve({ id: 7 }); };
-	w.browser.tabs.update = (id, u) => {
-		w.qdTabs.push(['update', Object.keys(u).join()]);
-		if (u.active && o.noShow) return Promise.reject(new Error('no'));
-		if (u.active) active = !o.switched;
+const fakeTabs = (testPage, options) => testPage.inHost(([failure, tabId, tabSize]) => {
+	const page = backgroundPage();
+	page.qdTabs = [];
+	let active = false, statusPolls = 0;
+	page.browser.tabs.create = properties => { page.qdTabs.push(['create', properties.url, properties.active]); return Promise.resolve({ id: tabId }); };
+	page.browser.tabs.update = (id, changes) => {
+		page.qdTabs.push(['update', Object.keys(changes).join()]);
+		if (changes.active && failure.noShow) return Promise.reject(new Error('no'));
+		if (changes.active) active = !failure.switched;
 		return Promise.resolve({ id });
 	};
-	w.browser.tabs.get = id => Promise.resolve({ id, windowId: 1, active, status: polls++ && !o.loading ? 'complete' : 'loading', width: 1200, height: 1600, url: 'https://shot.example/', title: 'Captured title', favIconUrl: null });
-	w.browser.tabs.captureVisibleTab = () => { if (o.fail) return Promise.reject(new Error('no')); const c = w.document.createElement('canvas'); c.width = 1200; c.height = 1600; return Promise.resolve(c.toDataURL('image/png')); };
-	w.browser.tabs.remove = id => { w.qdTabs.push(['remove', id]); return Promise.resolve(); };
-}, options || {});
+	page.browser.tabs.get = id => Promise.resolve({ id, windowId: 1, active, status: statusPolls++ && !failure.loading ? 'complete' : 'loading', ...tabSize,
+		url: 'https://shot.example/', title: 'Captured title', favIconUrl: null });
+	page.browser.tabs.captureVisibleTab = () => {
+		if (failure.fail) return Promise.reject(new Error('no'));
+		const canvas = page.document.createElement('canvas');
+		canvas.width = tabSize.width; canvas.height = tabSize.height;
+		return Promise.resolve(canvas.toDataURL('image/png'));
+	};
+	page.browser.tabs.remove = id => { page.qdTabs.push(['remove', id]); return Promise.resolve(); };
+}, [options || {}, FAKE_TAB_ID, FAKE_TAB_SIZE]);
 // Capture page / Refresh for a tile by id; both resolve with the site infos (title, picture) or null
-const capture = (t, id) => t.J(id => { const g = bg().app.GridNodes; return g.capturePage(g.getNodeById(id)); }, id);
-const refresh = (t, id) => t.J(id => { const g = bg().app.GridNodes; return g.refreshNode(g.getNodeById(id)); }, id);
+const capture = (testPage, id) => testPage.inHost(nodeId => { const GridNodes = backgroundPage().app.GridNodes; return GridNodes.capturePage(GridNodes.getNodeById(nodeId)); }, id);
+const refresh = (testPage, id) => testPage.inHost(nodeId => { const GridNodes = backgroundPage().app.GridNodes; return GridNodes.refreshNode(GridNodes.getNodeById(nodeId)); }, id);
+// A node of the background page by id
+const nodeById = (testPage, id) => testPage.inHost(nodeId => backgroundPage().app.GridNodes.getNodeById(nodeId), id);
+// The last call made to the tabs API
+const lastTabCall = testPage => testPage.inHost(() => backgroundPage().qdTabs.slice(-1));
+// How often and how long SiteInfos checks whether a tab has loaded (ms): shortened for the test, and as shipped
+const SHORT_LOAD_WAIT = { poll: 20, timeout: 200 }, SHIPPED_LOAD_WAIT = { poll: 300, timeout: 30000 };
+const setLoadWait = (testPage, wait) => testPage.inHost(({ poll, timeout }) => { const SiteInfos = backgroundPage().app.SiteInfos; SiteInfos.LOAD_POLL = poll; SiteInfos.LOAD_TIMEOUT = timeout; }, wait);
 
 module.exports = {
 	title: 'Refresh (sandboxed download) and Capture page (screenshot of a tab)',
-	async run(t) {
-		await freshProfile(t);
+	async run(testPage) {
+		await freshProfile(testPage);
 
 		// ----- Refresh: the page is drawn in a sandboxed frame; its own scripts never run -----
-		const page = sitePage(t, 'page.html', '<!doctype html><html><head><title>Sandboxed page</title>' +
+		const pageAddress = sitePage(testPage, 'page.html', '<!doctype html><html><head><title>Sandboxed page</title>' +
 			'<script>top.qdRan = "script";</script></head><body onload="top.qdRan = \'onload\'"><h1>Hello</h1></body></html>');
-		await stubDrawWindow(t);
-		let st = await t.J(url => bg().app.SiteInfos.fromFrame(url).then(infos => ({ infos: infos && { title: infos.title, pic: !!infos.screenshot },
-			drawn: bg().qdDrawn, ran: window.qdRan || bg().qdRan || null, frames: bg().document.querySelectorAll('iframe').length })), page + '?a=1&b="2"');
-		t.check('Refresh draws the page in a sandbox without scripts, reads its title, removes the frame', st.infos && st.infos.title === 'Sandboxed page' && st.infos.pic && st.drawn.sandbox === 'allow-same-origin' &&
-			st.drawn.base.endsWith('/site/page.html?a=1&b=%222%22') && st.ran === null && st.frames === 0, st);
-		st = await t.J(() => Promise.all(['javascript:alert(1)', 'place:sort=8', 'file:///C:/x.html', 'http://a b/'].map(u => bg().app.SiteInfos.fromFrame(u).then(i => i === null))));
-		t.check('addresses that aren\'t web pages are not downloaded', st.every(Boolean), st);
-		await t.J(() => { delete bg().CanvasRenderingContext2D.prototype.drawWindow; });
-		st = await t.J(url => bg().app.SiteInfos.fromFrame(url), page);
-		t.check('without drawWindow (refused in recent Firefox) Refresh gives up cleanly', st === null, st);
-		st = await refresh(t, 'b1');
-		await t.idle();
-		st = await t.J(() => bg().app.GridNodes.getNodeById('b1'));
-		t.check('...and the tile is marked as having no picture', st.image === '0' && !st.__isLoading, st);
+		await stubDrawWindow(testPage);
+		const sandboxed = await testPage.inHost(url => backgroundPage().app.SiteInfos.fromFrame(url).then(infos => ({ infos: infos && { title: infos.title, picture: !!infos.screenshot },
+			drawn: backgroundPage().qdDrawn, ran: window.qdRan || backgroundPage().qdRan || null, frames: backgroundPage().document.querySelectorAll('iframe').length })), pageAddress + '?a=1&b="2"');
+		testPage.check('Refresh draws the page in a sandbox without scripts, reads its title, removes the frame', sandboxed.infos && sandboxed.infos.title === 'Sandboxed page' && sandboxed.infos.picture
+			&& sandboxed.drawn.sandbox === 'allow-same-origin' && sandboxed.drawn.base.endsWith('/site/page.html?a=1&b=%222%22') && sandboxed.ran === null && sandboxed.frames === 0, sandboxed);
+		const notDownloaded = await testPage.inHost(() => Promise.all(['javascript:alert(1)', 'place:sort=8', 'file:///C:/x.html', 'http://a b/']
+			.map(address => backgroundPage().app.SiteInfos.fromFrame(address).then(infos => infos === null))));
+		testPage.check('addresses that aren\'t web pages are not downloaded', notDownloaded.every(Boolean), notDownloaded);
+		await testPage.inHost(() => { delete backgroundPage().CanvasRenderingContext2D.prototype.drawWindow; });
+		const withoutDrawWindow = await testPage.inHost(url => backgroundPage().app.SiteInfos.fromFrame(url), pageAddress);
+		testPage.check('without drawWindow (refused in recent Firefox) Refresh gives up cleanly', withoutDrawWindow === null, withoutDrawWindow);
+		await refresh(testPage, 'b1');
+		await testPage.idle();
+		const refreshedTile = await nodeById(testPage, 'b1');
+		testPage.check('...and the tile is marked as having no picture', refreshedTile.image === '0' && !refreshedTile.__isLoading, refreshedTile);
 
 		// ----- Capture page: a background tab, shown once loaded, captured after the snapshot delay, then closed -----
-		await changeSettings(t, { grid: { cells: { snapshotDelay: 50 } } });
-		await fakeTabs(t);
-		st = await capture(t, 'b2');
-		await t.idle();
-		const tabs = await t.J(() => bg().qdTabs);
-		const node = await t.J(() => bg().app.GridNodes.getNodeById('b2'));
-		const stored = await t.J(() => (S.storage.img_b2 || '').slice(0, 15));
-		t.check('Capture opens the page in a background tab, shows it, captures it and closes it', t.same(tabs, [['create', 'https://site2.example/', false], ['update', 'muted'], ['update', 'active'], ['remove', 7]]), tabs);
-		t.check('...and the tile gets the tab\'s title and a WebP picture', st && st.title === 'Captured title' && node.title === 'Captured title' && node.image === '1' && stored === 'data:image/webp', [node, stored]);
-		await t.J(() => { const n = bg().app.GridNodes.getNodeById('b3'); n.titleLocked = true; });
-		await fakeTabs(t);
-		await capture(t, 'b3');
-		await t.idle();
-		st = await t.J(() => bg().app.GridNodes.getNodeById('b3'));
-		t.check('a locked title is kept', st.title === 'Site 3' && st.image === '1', st);
-		await t.J(() => { const n = bg().app.GridNodes.getNodeById('b2'); n.imageLocked = true; });
-		await fakeTabs(t);
-		const before = await t.J(() => S.storage.img_b2.length);
-		await capture(t, 'b2');
-		await t.idle();
-		t.check('a kept picture is not replaced', (await t.J(() => S.storage.img_b2.length)) === before);
-		await fakeTabs(t);
-		await capture(t, 'f1');
-		await t.idle();
-		st = { tabs: await t.J(() => bg().qdTabs[0]), image: await t.J(() => bg().app.GridNodes.getNodeById('f1').image) };
-		t.check('capturing a folder takes a picture of its own dial page', t.same(st.tabs, ['create', '/dial.html?path=%2FFolder', false]) && st.image === '1', st);
-		await t.J(() => { bg().app.GridNodes.getNodeById('f1').title = 'R&D #1?'; });
-		await fakeTabs(t);
-		await capture(t, 'f1');
-		await t.idle();
-		st = await t.J(() => { const url = bg().qdTabs[0][1]; bg().app.GridNodes.getNodeById('f1').title = 'Folder'; return { url, path: new URL(url, 'moz-extension://x/').searchParams.get('path') }; });
-		t.check('...whose path keeps a folder name with & # ? in it', st.path === '/R&D #1?', st);
-		await fakeTabs(t, { fail: true });
-		st = await capture(t, 'b4');
-		await t.idle();
-		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)), node: await t.J(() => bg().app.GridNodes.getNodeById('b4')) };
-		t.check('a failed capture closes the tab and marks the tile as having no picture', st.infos == null && t.same(st.tabs, [['remove', 7]]) && st.node.image === '0', st);
-		await fakeTabs(t, { switched: true });
-		st = await capture(t, 'b4');
-		await t.idle();
-		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)), node: await t.J(() => bg().app.GridNodes.getNodeById('b4')) };
-		t.check('when another tab is shown at the moment of the screenshot, nothing is captured and the tab is closed', st.infos == null && t.same(st.tabs, [['remove', 7]]) && st.node.image === '0' && !st.node.__isLoading, st);
-		await fakeTabs(t, { noShow: true });
-		st = await capture(t, 'b4');
-		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)) };
-		t.check('a tab that can\'t be shown is closed too', st.infos == null && t.same(st.tabs, [['remove', 7]]), st);
-		await t.J(() => { const s = bg().app.SiteInfos; s.LOAD_POLL = 20; s.LOAD_TIMEOUT = 200; });
-		await fakeTabs(t, { loading: true });
-		st = await capture(t, 'b4');
-		await t.idle();
-		st = { infos: st, tabs: await t.J(() => bg().qdTabs.slice(-1)), node: await t.J(() => bg().app.GridNodes.getNodeById('b4')) };
-		t.check('a page that never finishes loading is captured once the waiting time is over', st.infos && st.infos.title === 'Captured title' && t.same(st.tabs, [['remove', 7]]) && st.node.image === '1', st);
-		await t.J(() => { const s = bg().app.SiteInfos; s.LOAD_POLL = 300; s.LOAD_TIMEOUT = 30000; });
-		await fakeTabs(t);
-		st = await t.J(() => { const g = bg().app.GridNodes, n = g.getNodeById('b5'), first = g.capturePage(n), again = [g.capturePage(n), g.refreshNode(n)];
-			return Promise.all([first].concat(again)).then(r => ({ same: again.every(p => p === first), title: r[0] && r[0].title, opened: bg().qdTabs.filter(c => c[0] === 'create').length, loading: !!n.__isLoading })); });
-		t.check('a tile already loading is not loaded twice: asked again, the load under way answers', st.same && st.title === 'Captured title' && st.opened === 1 && !st.loading, st);
+		await changeSettings(testPage, { grid: { cells: { snapshotDelay: 50 } } });
+		await fakeTabs(testPage);
+		const captured = await capture(testPage, 'b2');
+		await testPage.idle();
+		const tabCalls = await testPage.inHost(() => backgroundPage().qdTabs);
+		const capturedTile = await nodeById(testPage, 'b2');
+		const storedPicture = await testPage.inHost(() => (mockState.storage.img_b2 || '').slice(0, 15));
+		testPage.check('Capture opens the page in a background tab, shows it, captures it and closes it', testPage.same(tabCalls,
+			[['create', 'https://site2.example/', false], ['update', 'muted'], ['update', 'active'], ['remove', FAKE_TAB_ID]]), tabCalls);
+		testPage.check('...and the tile gets the tab\'s title and a WebP picture', captured && captured.title === 'Captured title' && capturedTile.title === 'Captured title'
+			&& capturedTile.image === '1' && storedPicture === 'data:image/webp', [capturedTile, storedPicture]);
+		await testPage.inHost(() => { backgroundPage().app.GridNodes.getNodeById('b3').titleLocked = true; });
+		await fakeTabs(testPage);
+		await capture(testPage, 'b3');
+		await testPage.idle();
+		const titleLockedTile = await nodeById(testPage, 'b3');
+		testPage.check('a locked title is kept', titleLockedTile.title === 'Site 3' && titleLockedTile.image === '1', titleLockedTile);
+		await testPage.inHost(() => { backgroundPage().app.GridNodes.getNodeById('b2').imageLocked = true; });
+		await fakeTabs(testPage);
+		const storedPictureSize = () => testPage.inHost(() => mockState.storage.img_b2.length);
+		const sizeBefore = await storedPictureSize();
+		await capture(testPage, 'b2');
+		await testPage.idle();
+		testPage.check('a kept picture is not replaced', (await storedPictureSize()) === sizeBefore);
+		await fakeTabs(testPage);
+		await capture(testPage, 'f1');
+		await testPage.idle();
+		const folderCapture = { firstTabCall: await testPage.inHost(() => backgroundPage().qdTabs[0]), image: (await nodeById(testPage, 'f1')).image };
+		testPage.check('capturing a folder takes a picture of its own dial page', testPage.same(folderCapture.firstTabCall, ['create', '/dial.html?path=%2FFolder', false]) && folderCapture.image === '1', folderCapture);
+		await testPage.inHost(() => { backgroundPage().app.GridNodes.getNodeById('f1').title = 'R&D #1?'; });
+		await fakeTabs(testPage);
+		await capture(testPage, 'f1');
+		await testPage.idle();
+		const folderAddress = await testPage.inHost(() => {
+			const url = backgroundPage().qdTabs[0][1];
+			backgroundPage().app.GridNodes.getNodeById('f1').title = 'Folder';
+			return { url, path: new URL(url, 'moz-extension://x/').searchParams.get('path') };
+		});
+		testPage.check('...whose path keeps a folder name with & # ? in it', folderAddress.path === '/R&D #1?', folderAddress);
+
+		// ----- failed captures -----
+		// Captures b4 with a failing tabs API; what it answered, the last tab call and the tile
+		const failedCapture = async failure => {
+			await fakeTabs(testPage, failure);
+			const infos = await capture(testPage, 'b4');
+			await testPage.idle();
+			return { infos, lastTabCall: await lastTabCall(testPage), node: await nodeById(testPage, 'b4') };
+		};
+		const tabClosed = outcome => testPage.same(outcome.lastTabCall, [['remove', FAKE_TAB_ID]]);
+		const screenshotFailed = await failedCapture({ fail: true });
+		testPage.check('a failed capture closes the tab and marks the tile as having no picture', screenshotFailed.infos == null && tabClosed(screenshotFailed) && screenshotFailed.node.image === '0', screenshotFailed);
+		const tabSwitched = await failedCapture({ switched: true });
+		testPage.check('when another tab is shown at the moment of the screenshot, nothing is captured and the tab is closed', tabSwitched.infos == null && tabClosed(tabSwitched)
+			&& tabSwitched.node.image === '0' && !tabSwitched.node.__isLoading, tabSwitched);
+		const notShown = await failedCapture({ noShow: true });
+		testPage.check('a tab that can\'t be shown is closed too', notShown.infos == null && tabClosed(notShown), notShown);
+		await setLoadWait(testPage, SHORT_LOAD_WAIT);
+		const neverLoaded = await failedCapture({ loading: true });
+		testPage.check('a page that never finishes loading is captured once the waiting time is over', neverLoaded.infos && neverLoaded.infos.title === 'Captured title'
+			&& tabClosed(neverLoaded) && neverLoaded.node.image === '1', neverLoaded);
+		await setLoadWait(testPage, SHIPPED_LOAD_WAIT);
+
+		// ----- a tile already loading -----
+		await fakeTabs(testPage);
+		const loadedOnce = await testPage.inHost(() => {
+			const GridNodes = backgroundPage().app.GridNodes, tile = GridNodes.getNodeById('b5');
+			const firstLoad = GridNodes.capturePage(tile), askedAgain = [GridNodes.capturePage(tile), GridNodes.refreshNode(tile)];
+			return Promise.all([firstLoad].concat(askedAgain)).then(results => ({ same: askedAgain.every(load => load === firstLoad), title: results[0] && results[0].title,
+				opened: backgroundPage().qdTabs.filter(call => call[0] === 'create').length, loading: !!tile.__isLoading }));
+		});
+		testPage.check('a tile already loading is not loaded twice: asked again, the load under way answers', loadedOnce.same && loadedOnce.title === 'Captured title' && loadedOnce.opened === 1 && !loadedOnce.loading, loadedOnce);
 	}
 };

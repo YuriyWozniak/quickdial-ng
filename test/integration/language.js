@@ -9,73 +9,73 @@
 //   4. back to Firefox's language: English again, nothing kept for the pages
 // Related: the texts of every language are checked in unit/locales.test.js, the language logic in unit/language.test.js.
 'use strict';
-const fs = require('fs'), path = require('path');
-const { freshProfile, englishText } = require('../lib/fixtures');
+const { freshProfile, messagesOf, englishText } = require('../lib/fixtures');
 
-const texts = lang => {
-	const file = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'src', '_locales', lang, 'messages.json'), 'utf8'));
-	return Object.fromEntries(Object.entries(file).map(([k, v]) => [k, v.message]));
-};
-const UK = texts('uk');
+const UKRAINIAN = messagesOf('uk');
 
 // What the open Settings page shows
-const page = t => t.inDial(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir, title: PanelTitle.textContent,
+const settingsPageState = testPage => testPage.inDial(() => ({ lang: document.documentElement.lang, dir: document.documentElement.dir, title: PanelTitle.textContent,
 	apply: BtnApply.textContent.trim(), language: Language.value, section: location.search }));
-// Picks a language in the open Settings page, applies it (Ctrl+S) and waits for the page to come back in it
-async function choose(t, value, lang) {
-	await t.dial().locator('#Language').selectOption(value);
-	await t.dial().locator('#Language').press('Control+s');
-	await t.waitFor('the setting to be applied', v => bg().app.settings.language === v, value);
-	await t.waitFor('Settings to come back in ' + lang, l => { // the page may be between two documents while it reloads
-		const w = win('dial'), html = w && w.document && w.document.documentElement;
-		return !!html && html.lang === l && !!w.app && !!w.app.settings;
+// Picks a language in the open Settings page (value: its Language setting), applies it (Ctrl+S) and
+// waits for the page to come back in it (lang: the page's language tag)
+async function chooseLanguage(testPage, value, lang) {
+	await testPage.dial().locator('#Language').selectOption(value);
+	await testPage.dial().locator('#Language').press('Control+s');
+	await testPage.waitFor('the setting to be applied', language => backgroundPage().app.settings.language === language, value);
+	await testPage.waitFor('Settings to come back in ' + lang, languageTag => { // the page may be between two documents while it reloads
+		const settingsWindow = frameWindow('dial'), html = settingsWindow && settingsWindow.document && settingsWindow.document.documentElement;
+		return !!html && html.lang === languageTag && !!settingsWindow.app && !!settingsWindow.app.settings;
 	}, lang);
 }
+// Waits until the context menus include a title; the menu titles, or null if they never do
+const menusWith = (testPage, what, title) => testPage.waitFor(what, menuTitle => mockState.menus.includes(menuTitle) && mockState.menus, title).catch(() => null);
 
 module.exports = {
 	title: 'Language: Firefox\'s by default, or one chosen in Settings',
-	async run(t) {
-		await freshProfile(t);
+	async run(testPage) {
+		await freshProfile(testPage);
 
 		// ----- the list -----
-		await t.loadSettings('page');
-		let st = await t.inDial(() => [...Language.options].map(o => [o.value, o.text, o.lang]));
-		t.check('the list starts with "Same as Firefox" and its language, which is chosen', st[0][0] === '' && st[0][1] === englishText('settingsLanguageBrowser') + ' (English)'
-			&& (await t.inDial(() => Language.value)) === '', st[0]);
-		t.check('then the 11 languages, each in its own name and language, in alphabetical order', st.length === 12
-			&& t.same(st.slice(1).map(o => o[0]), ['de', 'en', 'es', 'fr', 'it', 'pl', 'pt_BR', 'ru', 'sr', 'uk', 'he_IL'])
-			&& t.same(st.find(o => o[0] === 'he_IL'), ['he_IL', 'עברית', 'he-IL']) && t.same(st.find(o => o[0] === 'uk'), ['uk', 'Українська', 'uk']), st.slice(1));
-		t.check('a new install uses Firefox\'s language', (await t.J(() => bg().app.settings.language)) === '' && (await page(t)).lang === 'en');
+		await testPage.loadSettings('page');
+		const options = await testPage.inDial(() => [...Language.options].map(option => [option.value, option.text, option.lang]));
+		const [firefoxOption, ...languageOptions] = options;
+		testPage.check('the list starts with "Same as Firefox" and its language, which is chosen', firefoxOption[0] === '' && firefoxOption[1] === englishText('settingsLanguageBrowser') + ' (English)'
+			&& (await testPage.inDial(() => Language.value)) === '', firefoxOption);
+		const optionFor = value => languageOptions.find(option => option[0] === value);
+		testPage.check('then the 11 languages, each in its own name and language, in alphabetical order', options.length === 12
+			&& testPage.same(languageOptions.map(option => option[0]), ['de', 'en', 'es', 'fr', 'it', 'pl', 'pt_BR', 'ru', 'sr', 'uk', 'he_IL'])
+			&& testPage.same(optionFor('he_IL'), ['he_IL', 'עברית', 'he-IL']) && testPage.same(optionFor('uk'), ['uk', 'Українська', 'uk']), languageOptions);
+		testPage.check('a new install uses Firefox\'s language', (await testPage.inHost(() => backgroundPage().app.settings.language)) === '' && (await settingsPageState(testPage)).lang === 'en');
 
 		// ----- Ukrainian -----
-		await choose(t, 'uk', 'uk');
-		st = await page(t);
-		t.check('Ukrainian applied: Settings is built again in Ukrainian, on the same section', st.title === UK.settingsTabPage && st.apply === UK.buttonApply
-			&& st.language === 'uk' && st.dir === 'ltr' && st.section === '?tab=page', st);
-		st = await t.J(() => JSON.parse(localStorage.getItem('language')));
-		t.check('the background page keeps the Ukrainian texts for the pages', st && st.language === 'uk' && st.messages.buttonApply === UK.buttonApply, st && st.language);
-		st = await t.waitFor('the menus in Ukrainian', title => S.menus.includes(title) && S.menus, UK.menuProperties).catch(() => null);
-		t.check('the menus are in Ukrainian', !!st && st.includes(UK.menuSettings) && !st.includes(englishText('menuSettings')), st);
-		await t.loadDial();
-		st = await t.inDial(() => { const C = window.QDCommon; return [C.language(), C.countText('countTiles', 5), C.countText('countTiles', 22)]; });
-		t.check('the dial uses Ukrainian too, with its plural forms', t.same(st, ['uk', '5 плиток', '22 плитки']), st);
-		await t.J(() => { S.menus = []; S.menuItems = []; });
-		await t.loadBg();
-		st = await t.J(() => [bg().QDCommon.language(), S.menus]);
-		t.check('after a restart of the background page the menus are Ukrainian again', st[0] === 'uk' && st[1].includes(UK.menuSettings), st);
+		await chooseLanguage(testPage, 'uk', 'uk');
+		const inUkrainian = await settingsPageState(testPage);
+		testPage.check('Ukrainian applied: Settings is built again in Ukrainian, on the same section', inUkrainian.title === UKRAINIAN.settingsTabPage && inUkrainian.apply === UKRAINIAN.buttonApply
+			&& inUkrainian.language === 'uk' && inUkrainian.dir === 'ltr' && inUkrainian.section === '?tab=page', inUkrainian);
+		const keptForPages = await testPage.inHost(() => JSON.parse(localStorage.getItem('language')));
+		testPage.check('the background page keeps the Ukrainian texts for the pages', keptForPages && keptForPages.language === 'uk' && keptForPages.messages.buttonApply === UKRAINIAN.buttonApply, keptForPages && keptForPages.language);
+		const ukrainianMenus = await menusWith(testPage, 'the menus in Ukrainian', UKRAINIAN.menuProperties);
+		testPage.check('the menus are in Ukrainian', !!ukrainianMenus && ukrainianMenus.includes(UKRAINIAN.menuSettings) && !ukrainianMenus.includes(englishText('menuSettings')), ukrainianMenus);
+		await testPage.loadDial();
+		const dialTexts = await testPage.inDial(() => { const Common = window.QDCommon; return [Common.language(), Common.countText('countTiles', 5), Common.countText('countTiles', 22)]; });
+		testPage.check('the dial uses Ukrainian too, with its plural forms', testPage.same(dialTexts, ['uk', '5 плиток', '22 плитки']), dialTexts);
+		await testPage.inHost(() => { mockState.menus = []; mockState.menuItems = []; });
+		await testPage.loadBg();
+		const afterRestart = await testPage.inHost(() => ({ language: backgroundPage().QDCommon.language(), menus: mockState.menus }));
+		testPage.check('after a restart of the background page the menus are Ukrainian again', afterRestart.language === 'uk' && afterRestart.menus.includes(UKRAINIAN.menuSettings), afterRestart);
 
 		// ----- Hebrew -----
-		await t.loadSettings('page');
-		await choose(t, 'he_IL', 'he-IL');
-		st = await page(t);
-		t.check('Hebrew: right to left', st.dir === 'rtl' && st.language === 'he_IL' && st.apply === texts('he_IL').buttonApply, st);
+		await testPage.loadSettings('page');
+		await chooseLanguage(testPage, 'he_IL', 'he-IL');
+		const inHebrew = await settingsPageState(testPage);
+		testPage.check('Hebrew: right to left', inHebrew.dir === 'rtl' && inHebrew.language === 'he_IL' && inHebrew.apply === messagesOf('he_IL').buttonApply, inHebrew);
 
 		// ----- back to Firefox's language -----
-		await choose(t, '', 'en');
-		st = await page(t);
-		t.check('Same as Firefox: English again', st.dir === 'ltr' && st.language === '' && st.apply === englishText('buttonApply'), st);
-		st = await t.waitFor('the menus in English', title => S.menus.includes(title) && S.menus, englishText('menuProperties')).catch(() => null);
-		t.check('the menus are in English again, and nothing is kept for the pages', !!st && !st.includes(UK.menuSettings)
-			&& (await t.J(() => localStorage.getItem('language'))) === null, st);
+		await chooseLanguage(testPage, '', 'en');
+		const inEnglish = await settingsPageState(testPage);
+		testPage.check('Same as Firefox: English again', inEnglish.dir === 'ltr' && inEnglish.language === '' && inEnglish.apply === englishText('buttonApply'), inEnglish);
+		const englishMenus = await menusWith(testPage, 'the menus in English', englishText('menuProperties'));
+		testPage.check('the menus are in English again, and nothing is kept for the pages', !!englishMenus && !englishMenus.includes(UKRAINIAN.menuSettings)
+			&& (await testPage.inHost(() => localStorage.getItem('language'))) === null, englishMenus);
 	}
 };

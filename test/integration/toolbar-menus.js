@@ -4,7 +4,7 @@
 //
 // Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js). The tabs API is replaced by
 // one that records the calls (spyTabs), so "what opens" is a list like [['create', { url }]].
-// The mock keeps every menu item Firefox would show (S.menuItems, with its onclick), so a click is a call
+// The mock keeps every menu item Firefox would show (mockState.menuItems, with its onclick), so a click is a call
 // of that onclick. Items meant for the dial page only send it a command: what the dial does with them is
 // in dial-edit.js.
 // The steps build on each other: "Add to Quick Dial" adds a tile at the end; the last step turns
@@ -12,64 +12,86 @@
 'use strict';
 const { freshProfile, spyTabs, englishText } = require('../lib/fixtures');
 
+// The tab a click comes from, unless a test gives one
+const CLICKED_TAB = { id: 3 };
+// The background page's command for new settings (QDCommon.Commands.setSettings); the dial's command to show a Settings section
+const SET_SETTINGS = 1, SHOW_SETTINGS_TAB = 209;
 // Clicks the menu item with the text of this key (and parent menu, if given), as Firefox would; the tabs record starts empty
-const click = (t, key, parentId, info, tab) => t.J(([title, parentId, info, tab]) => {
-	const item = (S.menuItems || []).find(m => m.title === title && (!parentId || m.parentId === parentId));
-	if (!item) throw new Error('no menu item ' + title + (parentId ? ' in ' + parentId : ''));
-	bg().qdTabs = [];
-	item.onclick(info || {}, tab || { id: 3 });
-}, [englishText(key), parentId || null, info || null, tab || null]);
+const clickMenu = (testPage, key, parentId, clickInfo, tab) => testPage.inHost(([title, parent, info, clickedTab]) => {
+	const item = (mockState.menuItems || []).find(menuItem => menuItem.title === title && (!parent || menuItem.parentId === parent));
+	if (!item) throw new Error('no menu item ' + title + (parent ? ' in ' + parent : ''));
+	backgroundPage().qdTabs = [];
+	item.onclick(info || {}, clickedTab);
+}, [englishText(key), parentId || null, clickInfo || null, tab || CLICKED_TAB]);
 // What the background page asked the tabs API for since then
-const tabs = t => t.J(() => bg().qdTabs);
+const tabCalls = testPage => testPage.inHost(() => backgroundPage().qdTabs);
 
 module.exports = {
 	title: 'Toolbar button, the Settings tab, and every context menu item',
-	async run(t) {
-		await freshProfile(t);
-		await spyTabs(t);
+	async run(testPage) {
+		await freshProfile(testPage);
+		await spyTabs(testPage);
 
 		// ----- the toolbar button -----
-		const clicks = {};
+		const opensFor = {};
 		for (const action of ['settings', 'newtab', 'current']) {
-			await t.J(action => { bg().app.settings.toolbarAction = action; bg().qdTabs = []; fire('ba.onClicked', { id: 3 }); }, action);
-			clicks[action] = await t.waitFor('the tab', () => bg().qdTabs.length && bg().qdTabs);
+			await testPage.inHost(([toolbarAction, tab]) => {
+				backgroundPage().app.settings.toolbarAction = toolbarAction;
+				backgroundPage().qdTabs = [];
+				fireEvent('ba.onClicked', tab);
+			}, [action, CLICKED_TAB]);
+			opensFor[action] = await testPage.waitFor('the tab', () => backgroundPage().qdTabs.length && backgroundPage().qdTabs);
 		}
-		t.check('the toolbar button opens Settings, the dial in a new tab, or the dial in this tab', t.same(clicks, { settings: [['create', { url: 'html/settings.html' }]], newtab: [['create', {}]], current: [['update', 3, { url: '/dial.html' }]] }), clicks);
-		await t.J(() => { bg().app.settings.toolbarAction = 'settings'; bg().qdTabs = []; bg().qdOpen = [{ id: 9, windowId: 1, url: 'html/settings.html?tab=grid' }]; return bg().app.openSettings('backup'); });
-		let st = await tabs(t);
-		t.check('Settings already open: that tab comes forward and shows the section', t.same(st, [['message', 9, 209, 'backup'], ['update', 9, { active: true }]]), st);
-		await t.J(() => { bg().qdTabs = []; return bg().app.openSettings('../../x'); });
-		st = await tabs(t);
-		t.check('a section name that isn\'t one is ignored', t.same(st, [['update', 9, { active: true }]]), st);
-		await t.J(() => { bg().qdOpen = []; });
+		testPage.check('the toolbar button opens Settings, the dial in a new tab, or the dial in this tab', testPage.same(opensFor,
+			{ settings: [['create', { url: 'html/settings.html' }]], newtab: [['create', {}]], current: [['update', CLICKED_TAB.id, { url: '/dial.html' }]] }), opensFor);
+		const SETTINGS_TAB_ID = 9;
+		await testPage.inHost(tabId => {
+			const page = backgroundPage();
+			page.app.settings.toolbarAction = 'settings';
+			page.qdTabs = [];
+			page.qdOpen = [{ id: tabId, windowId: 1, url: 'html/settings.html?tab=grid' }];
+			return page.app.openSettings('backup');
+		}, SETTINGS_TAB_ID);
+		const broughtForward = await tabCalls(testPage);
+		testPage.check('Settings already open: that tab comes forward and shows the section', testPage.same(broughtForward,
+			[['message', SETTINGS_TAB_ID, SHOW_SETTINGS_TAB, 'backup'], ['update', SETTINGS_TAB_ID, { active: true }]]), broughtForward);
+		await testPage.inHost(() => { backgroundPage().qdTabs = []; return backgroundPage().app.openSettings('../../x'); });
+		const unknownSection = await tabCalls(testPage);
+		testPage.check('a section name that isn\'t one is ignored', testPage.same(unknownSection, [['update', SETTINGS_TAB_ID, { active: true }]]), unknownSection);
+		await testPage.inHost(() => { backgroundPage().qdOpen = []; });
 
 		// ----- the menus: every item there, and what each one does -----
-		st = await t.J(() => S.menus);
-		t.check('the menus are all there', ['menuAddToQuickDial', 'menuNewBookmark', 'menuNewFolder', 'menuSettings', 'menuImportQuickDial', 'menuProperties', 'menuRefreshItem', 'menuCapturePage', 'menuDeleteItem', 'menuOpenDial'].every(key => st.includes(englishText(key))), st);
-		await click(t, 'menuAddToQuickDial', null, { menuItemId: 'AddToQuickDial', pageUrl: 'https://added.example/page' }, { id: 4, title: 'Added page' });
-		st = await t.waitFor('the new tile', () => bg().app.node.children.find(c => c.url === 'https://added.example/page'));
-		const bookmark = await t.J(() => S.bm.children[0].children[0].children.find(c => c.url === 'https://added.example/page'));
-		t.check('Add to Quick Dial (on a web page) adds a tile and its bookmark', st.title === 'Added page' && bookmark && bookmark.title === 'Added page', [st, bookmark]);
-		const sent = {};
-		for (const [title, parent] of [['menuNewBookmark', 'pagemenunew'], ['menuNewFolder', 'itemmenunew'], ['menuProperties'], ['menuRefreshItem'], ['menuCapturePage'], ['menuDeleteItem']]) {
-			await click(t, title, parent);
-			sent[title] = (await tabs(t)).map(c => c[2]).join();
+		const menuTitles = await testPage.inHost(() => mockState.menus);
+		testPage.check('the menus are all there', ['menuAddToQuickDial', 'menuNewBookmark', 'menuNewFolder', 'menuSettings', 'menuImportQuickDial', 'menuProperties', 'menuRefreshItem',
+			'menuCapturePage', 'menuDeleteItem', 'menuOpenDial'].every(key => menuTitles.includes(englishText(key))), menuTitles);
+		await clickMenu(testPage, 'menuAddToQuickDial', null, { menuItemId: 'AddToQuickDial', pageUrl: 'https://added.example/page' }, { id: 4, title: 'Added page' });
+		const addedTile = await testPage.waitFor('the new tile', () => backgroundPage().app.node.children.find(tile => tile.url === 'https://added.example/page'));
+		const addedBookmark = await testPage.inHost(() => dialFolderBookmarks().find(bookmark => bookmark.url === 'https://added.example/page'));
+		testPage.check('Add to Quick Dial (on a web page) adds a tile and its bookmark', addedTile.title === 'Added page' && addedBookmark && addedBookmark.title === 'Added page', [addedTile, addedBookmark]);
+		const commandsSent = {};
+		for (const [key, parentId] of [['menuNewBookmark', 'pagemenunew'], ['menuNewFolder', 'itemmenunew'], ['menuProperties'], ['menuRefreshItem'], ['menuCapturePage'], ['menuDeleteItem']]) {
+			await clickMenu(testPage, key, parentId);
+			commandsSent[key] = (await tabCalls(testPage)).map(call => call[2]).join(); // ['message', tab id, command, section]
 		}
-		t.check('the dial\'s items ask that dial page to act (on the tile under the mouse)', t.same(sent, { menuNewBookmark: '200', menuNewFolder: '201', menuProperties: '203', menuRefreshItem: '204', menuCapturePage: '206', menuDeleteItem: '207' }), sent);
-		await click(t, 'menuSettings', 'pagemenu');
-		st = await tabs(t);
-		await click(t, 'menuImportQuickDial', 'pagemenu');
-		st = st.concat(await tabs(t));
-		await click(t, 'menuSettings', 'itemmenu');
-		st = st.concat(await tabs(t));
-		await click(t, 'menuOpenDial');
-		st = st.concat(await tabs(t));
-		t.check('Settings, Import from Quick Dial and Open the dial open their tabs', t.same(st, [['create', { url: 'html/settings.html' }], ['create', { url: 'html/settings.html?tab=backup' }], ['create', { url: 'html/settings.html' }], ['create', { url: '/dial.html' }]]), st);
+		testPage.check('the dial\'s items ask that dial page to act (on the tile under the mouse)', testPage.same(commandsSent,
+			{ menuNewBookmark: '200', menuNewFolder: '201', menuProperties: '203', menuRefreshItem: '204', menuCapturePage: '206', menuDeleteItem: '207' }), commandsSent);
+		const tabsOpened = [];
+		for (const [key, parentId] of [['menuSettings', 'pagemenu'], ['menuImportQuickDial', 'pagemenu'], ['menuSettings', 'itemmenu'], ['menuOpenDial']]) {
+			await clickMenu(testPage, key, parentId);
+			tabsOpened.push(...await tabCalls(testPage));
+		}
+		testPage.check('Settings, Import from Quick Dial and Open the dial open their tabs', testPage.same(tabsOpened, [['create', { url: 'html/settings.html' }],
+			['create', { url: 'html/settings.html?tab=backup' }], ['create', { url: 'html/settings.html' }], ['create', { url: '/dial.html' }]]), tabsOpened);
 
 		// ----- a settings change builds the menus again: without "Add to Quick Dial" when it is turned off -----
-		await t.J(() => { const s = JSON.parse(JSON.stringify(bg().app.settings)); s.menuShowAdd = false; fire('rt.onMessage.bg', { cmd: 1, settings: s }, {}, () => {}); });
-		await t.idle();
-		st = await t.J(() => S.menus);
-		t.check('turning "Add to Quick Dial" off removes it from the page menu, once', !st.includes(englishText('menuAddToQuickDial')) && st.filter(m => m === englishText('menuOpenDial')).length === 1, st);
+		await testPage.inHost(command => {
+			const settings = JSON.parse(JSON.stringify(backgroundPage().app.settings));
+			settings.menuShowAdd = false;
+			fireEvent('rt.onMessage.bg', { cmd: command, settings }, {}, () => {});
+		}, SET_SETTINGS);
+		await testPage.idle();
+		const menusWithoutAdd = await testPage.inHost(() => mockState.menus);
+		testPage.check('turning "Add to Quick Dial" off removes it from the page menu, once', !menusWithoutAdd.includes(englishText('menuAddToQuickDial'))
+			&& menusWithoutAdd.filter(title => title === englishText('menuOpenDial')).length === 1, menusWithoutAdd);
 	}
 };

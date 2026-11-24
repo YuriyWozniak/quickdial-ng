@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import js from '@eslint/js';
 import css from '@eslint/css';
 import globals from 'globals';
+import descriptiveNames from './eslint-rules/descriptive-names.mjs';
 
 // The physical properties and units prefer-logical-properties knows: allowed, except those for left and right,
 // which flip in a right-to-left language (top, width or vh are the same in every language the pages use)
@@ -17,7 +18,7 @@ const idsOf = page => Object.fromEntries([...fs.readFileSync(new URL(page, impor
 
 export default [
 	{ files: ['src/**/*.js', 'test/**/*.js'] },
-	{ ignores: ['*.mjs', 'release/**', 'node_modules/**', 'web-ext-artifacts/**', 'test/node_modules/**', 'test/screenshots/**'] },
+	{ ignores: ['*.mjs', 'release/**', 'node_modules/**', 'web-ext-artifacts/**', 'test/node_modules/**'] },
 	{ files: ['**/*.js'], ...js.configs.recommended },
 
 	// Stylesheets: the recommended rules, and logical properties for left and right (CODE_STYLE.md: layout works right to left too)
@@ -80,7 +81,10 @@ export default [
 	{
 		files: ['test/**/*.js'],
 		languageOptions: { ecmaVersion: 2024, sourceType: 'commonjs', globals: { ...globals.node } },
+		plugins: { qdng: { rules: { 'descriptive-names': descriptiveNames } } },
 		rules: {
+			// CODE_STYLE.md: names say what they hold; short ones only for loop indexes, events and one-line arrow functions
+			'qdng/descriptive-names': 'error',
 			'no-var': 'error',
 			'prefer-const': ['error', { destructuring: 'all' }],
 			'no-unused-vars': ['error', { args: 'none', caughtErrors: 'none' }],
@@ -93,17 +97,20 @@ export default [
 		}
 	},
 	{
-		files: ['test/integration/*.js', 'test/lib/*.js'],
+		files: ['test/integration/*.js', 'test/lib/*.js', 'test/screenshots/*.js'],
 		languageOptions: {
 			globals: {
 				...globals.browser,
-				S: 'readonly', fire: 'readonly', loadFrame: 'readonly', win: 'readonly', bg: 'readonly', bgIdle: 'readonly', makeBrowser: 'readonly', tester: 'writable',
+				mockState: 'readonly', fireEvent: 'readonly', loadFrame: 'readonly', frameWindow: 'readonly', backgroundPage: 'readonly', dialFolderBookmarks: 'readonly',
+				waitForBackgroundIdle: 'readonly', makeBrowser: 'readonly', tester: 'writable',
 				dial: 'readonly', app: 'readonly',
 				...idsOf('./src/html/settings.html'), ...idsOf('./src/html/properties.html')
 			}
 		}
 	},
-	{ files: ['test/mock.js'], languageOptions: { sourceType: 'script', globals: { ...globals.browser, S: 'writable' } } },
+	// The screenshots draw a browser window around the pages: its host page has setBrowser (screenshots/browser-frame.js)
+	{ files: ['test/screenshots/make-screenshots.js'], languageOptions: { globals: { setBrowser: 'readonly' } } },
+	{ files: ['test/mock.js'], languageOptions: { sourceType: 'script', globals: { ...globals.browser, mockState: 'writable' } } },
 	// Benchmarks (test/bench): the Node tools may leave a catch empty where a failure only means "not yet" or "already gone"
 	{ files: ['test/bench/*.js'], rules: { 'no-empty': ['error', { allowEmptyCatch: true }] } },
 	// ...and three scripts run inside the benchmark copy of the extension (build.js puts them there)

@@ -12,63 +12,69 @@ const fs = require('fs'), os = require('os'), path = require('path');
 const { spawnSync } = require('child_process');
 const { prepare, serve, launch, TestPage } = require('./lib/harness');
 
-const SUITES = path.join(__dirname, 'integration');
-const all = fs.readdirSync(SUITES).filter(f => f.endsWith('.js')).sort().map(f => f.slice(0, -3));
+const SUITES_DIR = path.join(__dirname, 'integration');
+const MAX_JOBS = 4;
+const allSuites = fs.readdirSync(SUITES_DIR).filter(fileName => fileName.endsWith('.js')).sort().map(fileName => fileName.slice(0, -'.js'.length));
 const args = process.argv.slice(2);
-const flag = name => { const i = args.indexOf(name); if (i < 0) return false; args.splice(i, 1); return true; };
-const option = (name, def) => { const i = args.indexOf(name); if (i < 0) return def; const v = args[i + 1]; args.splice(i, 2); return v; };
-const list = flag('--list'), withCoverage = flag('--coverage');
-const jobs = Math.max(1, +option('--jobs', Math.min(4, os.cpus().length)) || 1);
-const unknown = args.filter(a => !all.includes(a));
-if (unknown.length) { console.error(`Unknown suite: ${unknown.join(', ')}. Suites: ${all.join(', ')}`); process.exit(2); }
-const chosen = args.length ? all.filter(s => args.includes(s)) : all;
+// Takes a flag (--list) out of the arguments; whether it was there
+const takeFlag = name => { const index = args.indexOf(name); if (index < 0) return false; args.splice(index, 1); return true; };
+// Takes an option with its value (--jobs 2) out of the arguments; its value, or defaultValue
+const takeOption = (name, defaultValue) => { const index = args.indexOf(name); if (index < 0) return defaultValue; const value = args[index + 1]; args.splice(index, 2); return value; };
+const listOnly = takeFlag('--list'), withCoverage = takeFlag('--coverage');
+const jobs = Math.max(1, +takeOption('--jobs', Math.min(MAX_JOBS, os.cpus().length)) || 1);
+const unknown = args.filter(arg => !allSuites.includes(arg));
+if (unknown.length) { console.error(`Unknown suite: ${unknown.join(', ')}. Suites: ${allSuites.join(', ')}`); process.exit(2); }
+const chosen = args.length ? allSuites.filter(suiteName => args.includes(suiteName)) : allSuites;
 
-if (list) {
-	for (const s of all) console.log(s.padEnd(16) + require(path.join(SUITES, s)).title);
+if (listOnly) {
+	for (const suiteName of allSuites) console.log(suiteName.padEnd(16) + require(path.join(SUITES_DIR, suiteName)).title);
 	process.exit(0);
 }
 
+const seconds = ms => (ms / 1000).toFixed(1);
+
 async function main() {
-	const started = Date.now();
-	const dir = prepare();
-	const server = await serve(dir);
+	const startedAt = Date.now();
+	const extensionCopy = prepare();
+	const server = await serve(extensionCopy);
 	const browser = await launch(server.port);
 	const coverage = withCoverage ? new (require('./lib/coverage').Coverage)() : null;
 	const results = [];
 	const queue = chosen.slice();
 	const worker = async () => {
-		for (let name; (name = queue.shift());) {
-			const suite = require(path.join(SUITES, name)), t0 = Date.now();
-			const t = await TestPage.open(browser, server.port, { dir, coverage });
-			try { await suite.run(t); }
-			catch (e) { t.check('suite stopped: ' + String(e && e.message || e).split('\n')[0], false); }
-			await t.close();
-			const r = { name, title: suite.title, passed: t.passed, failed: t.failed, ms: Date.now() - t0 };
-			results.push(r);
-			console.log(`\n== ${name}: ${suite.title} (${(r.ms / 1000).toFixed(1)} s)\n` + t.lines.join('\n'));
+		for (let suiteName; (suiteName = queue.shift());) {
+			const suite = require(path.join(SUITES_DIR, suiteName)), suiteStartedAt = Date.now();
+			const testPage = await TestPage.open(browser, server.port, { dir: extensionCopy, coverage });
+			try { await suite.run(testPage); }
+			catch (e) { testPage.check('suite stopped: ' + String(e && e.message || e).split('\n')[0], false); }
+			await testPage.close();
+			const result = { name: suiteName, title: suite.title, passed: testPage.passed, failed: testPage.failed, ms: Date.now() - suiteStartedAt };
+			results.push(result);
+			console.log(`\n== ${suiteName}: ${suite.title} (${seconds(result.ms)} s)\n` + testPage.lines.join('\n'));
 		}
 	};
 	try { await Promise.all(Array.from({ length: Math.min(jobs, chosen.length) }, worker)); }
 	finally {
 		await browser.close();
 		await server.close();
-		fs.rmSync(dir, { recursive: true, force: true });
+		fs.rmSync(extensionCopy, { recursive: true, force: true });
 	}
 
 	if (coverage) {
-		const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-cov-'));
-		spawnSync(process.execPath, ['--test', '--test-reporter=dot', 'unit/*.test.js'], { cwd: __dirname, env: { ...process.env, NODE_V8_COVERAGE: tmp }, stdio: 'ignore' });
-		coverage.addNodeDir(tmp);
-		fs.rmSync(tmp, { recursive: true, force: true });
+		const coverageDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qdng-cov-'));
+		spawnSync(process.execPath, ['--test', '--test-reporter=dot', 'unit/*.test.js'], { cwd: __dirname, env: { ...process.env, NODE_V8_COVERAGE: coverageDir }, stdio: 'ignore' });
+		coverage.addNodeDir(coverageDir);
+		fs.rmSync(coverageDir, { recursive: true, force: true });
 		console.log('\n== Coverage of src/js (page suites run: ' + chosen.join(', ') + '; unit tests)\n' + coverage.report());
 	}
 
-	const failed = results.filter(r => r.failed);
-	const passed = results.reduce((n, r) => n + r.passed, 0), checks = passed + results.reduce((n, r) => n + r.failed, 0);
-	console.log(`\n${passed}/${checks} checks passed in ${results.length} suite(s), ${((Date.now() - started) / 1000).toFixed(1)} s`);
-	if (failed.length) console.log('Failed: ' + failed.map(r => `${r.name} (${r.failed})`).join(', '));
-	console.log(failed.length ? 'SOME FAILED' : 'ALL PASS');
-	return failed.length ? 1 : 0;
+	const failedSuites = results.filter(result => result.failed);
+	const passedChecks = results.reduce((sum, result) => sum + result.passed, 0);
+	const allChecks = passedChecks + results.reduce((sum, result) => sum + result.failed, 0);
+	console.log(`\n${passedChecks}/${allChecks} checks passed in ${results.length} suite(s), ${seconds(Date.now() - startedAt)} s`);
+	if (failedSuites.length) console.log('Failed: ' + failedSuites.map(result => `${result.name} (${result.failed})`).join(', '));
+	console.log(failedSuites.length ? 'SOME FAILED' : 'ALL PASS');
+	return failedSuites.length ? 1 : 0;
 }
 
-main().then(code => process.exit(code), e => { console.error(e); console.log('SOME FAILED'); process.exit(1); });
+main().then(exitCode => process.exit(exitCode), e => { console.error(e); console.log('SOME FAILED'); process.exit(1); });

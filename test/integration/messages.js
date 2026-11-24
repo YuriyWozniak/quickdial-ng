@@ -12,102 +12,115 @@
 const { freshProfile, spyTabs, stubDrawWindow, pictures } = require('../lib/fixtures');
 
 // Sends a message to the background page as an extension page would, and returns the answer
-const ask = (t, msg) => t.J(msg => {
+const ask = (testPage, message) => testPage.inHost(sentMessage => {
 	window.tester = window.tester || makeBrowser(window, 'tester');
-	return tester.runtime.sendMessage(msg);
-}, msg);
-// The command numbers used here (QDCommon.Commands); a node by id in the background page; a bookmark by id
-const C = { getSettings: 0, setSettings: 1, getNode: 2, getNodeById: 3, updateNode: 4, setNodeIndex: 5, createBookmark: 6, createFolder: 7, deleteNode: 8,
+	return tester.runtime.sendMessage(sentMessage);
+}, message);
+// The command numbers used here (QDCommon.Commands)
+const Commands = { getSettings: 0, setSettings: 1, getNode: 2, getNodeById: 3, updateNode: 4, setNodeIndex: 5, createBookmark: 6, createFolder: 7, deleteNode: 8,
 	refreshNode: 9, getImages: 11, exportData: 12, importData: 13, getThemes: 14, setThemes: 15, openSettings: 16 };
-const node = (t, id) => t.J(id => bg().app.GridNodes.getNodeById(id), id);
-const bookmark = (t, id) => t.J(id => { const f = n => n.id === id ? n : (n.children || []).map(f).find(Boolean); return f(S.bm); }, id);
+// How a picture fills its tile (QDCommon.ImageMode): inherit is the "Default" fit
+const ImageMode = { inherit: -1, original: 3 };
+// A node by id in the background page; a bookmark by id
+const nodeById = (testPage, id) => testPage.inHost(nodeId => backgroundPage().app.GridNodes.getNodeById(nodeId), id);
+const bookmarkById = (testPage, id) => testPage.inHost(bookmarkId => {
+	const find = bookmark => bookmark.id === bookmarkId ? bookmark : (bookmark.children || []).map(find).find(Boolean);
+	return find(mockState.bookmarkTree);
+}, id);
 
 module.exports = {
 	title: 'Messages from the pages: read and change tiles, settings, pictures, themes, backups',
-	async run(t) {
-		await freshProfile(t);
-		await stubDrawWindow(t);
-		const [pic] = await pictures(t, 1);
+	async run(testPage) {
+		await freshProfile(testPage);
+		await stubDrawWindow(testPage);
+		const [picture] = await pictures(testPage, 1);
 
 		// ----- reading: settings, folders, tiles -----
-		let st = await ask(t, { cmd: C.getSettings });
-		t.check('getSettings', st.grid.rows === 4 && st.toolbarAction === 'settings', st.grid);
-		st = [await ask(t, { cmd: C.getNode, path: '/' }), await ask(t, { cmd: C.getNode, path: '/Folder/' }), await ask(t, { cmd: C.getNode, path: '/Nope/' })];
-		t.check('getNode: the root, a folder, a missing folder', st[0].children.length === 7 && st[1].children[0].id === 'b7' && st[2] === null, st.map(n => n && n.title));
-		st = await ask(t, { cmd: C.getNodeById, id: 'b7' });
-		t.check('getNodeById', st.title === 'Site 7', st);
+		const settingsAnswer = await ask(testPage, { cmd: Commands.getSettings });
+		testPage.check('getSettings', settingsAnswer.grid.rows === 4 && settingsAnswer.toolbarAction === 'settings', settingsAnswer.grid);
+		const [rootNode, folderNode, missingNode] = [await ask(testPage, { cmd: Commands.getNode, path: '/' }), await ask(testPage, { cmd: Commands.getNode, path: '/Folder/' }),
+			await ask(testPage, { cmd: Commands.getNode, path: '/Nope/' })];
+		testPage.check('getNode: the root, a folder, a missing folder', rootNode.children.length === 7 && folderNode.children[0].id === 'b7' && missingNode === null,
+			[rootNode, folderNode, missingNode].map(node => node && node.title));
+		const nodeAnswer = await ask(testPage, { cmd: Commands.getNodeById, id: 'b7' });
+		testPage.check('getNodeById', nodeAnswer.title === 'Site 7', nodeAnswer);
 
 		// ----- updateNode: what the Properties page sends -----
-		const found = await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', titleLocked: true, imageLocked: true, image: pic, imageMode: 3, url: 'https://site1.example/' } });
-		await t.idle();
-		st = { node: await node(t, 'b1'), bookmark: await bookmark(t, 'b1'), stored: await t.J(() => (S.storage.img_b1 || '').slice(0, 15)) };
-		t.check('updateNode sets the title, locks, fit and picture, and renames the bookmark', found === true && st.node.title === 'Mine' && st.node.titleLocked && st.node.imageLocked && st.node.imageMode === 3 && st.node.image === '1' && st.stored === 'data:image/png;' && st.bookmark.title === 'Mine', st);
-		st = await ask(t, { cmd: C.updateNode, id: 'gone', value: { title: 'X' } });
-		t.check('updateNode for a tile that is gone answers false (the Properties page shows it was deleted)', st === false, st);
-		await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', image: null, imageMode: -1 } });
-		await t.idle();
-		st = await node(t, 'b1');
-		t.check('a kept picture stays when the page sends none; fit -1 goes back to the default', st.image === '1' && !('imageMode' in st), st);
-		await ask(t, { cmd: C.updateNode, id: 'b1', value: { title: 'Mine', url: 'https://moved.example/' } });
-		await t.waitFor('the new address to be fetched', () => !bg().app.GridNodes.getNodeById('b1').__isLoading && S.bm.children[0].children[0].children[0].url === 'https://moved.example/');
-		st = { node: await node(t, 'b1'), bookmark: await bookmark(t, 'b1') };
-		t.check('a new address is saved to the bookmark; a locked title and picture are kept', st.node.url === 'https://moved.example/' && st.node.title === 'Mine' && st.node.image === '1' && st.bookmark.url === 'https://moved.example/' && st.bookmark.title === 'Mine', st);
-		await ask(t, { cmd: C.updateNode, id: 'b2', value: { title: 'Two', url: 'https://two.example/', image: null } });
-		await t.waitFor('the new address to be fetched', () => bg().app.GridNodes.getNodeById('b2').image === '1');
-		st = await node(t, 'b2');
-		t.check('...an unlocked tile takes the new page\'s title and picture', st.title === 'two.example' && st.url === 'https://two.example/', st);
+		const found = await ask(testPage, { cmd: Commands.updateNode, id: 'b1', value: { title: 'Mine', titleLocked: true, imageLocked: true, image: picture, imageMode: ImageMode.original, url: 'https://site1.example/' } });
+		await testPage.idle();
+		const updated = { node: await nodeById(testPage, 'b1'), bookmark: await bookmarkById(testPage, 'b1'), stored: await testPage.inHost(() => (mockState.storage.img_b1 || '').slice(0, 15)) };
+		testPage.check('updateNode sets the title, locks, fit and picture, and renames the bookmark', found === true && updated.node.title === 'Mine' && updated.node.titleLocked
+			&& updated.node.imageLocked && updated.node.imageMode === ImageMode.original && updated.node.image === '1' && updated.stored === 'data:image/png;' && updated.bookmark.title === 'Mine', updated);
+		const goneAnswer = await ask(testPage, { cmd: Commands.updateNode, id: 'gone', value: { title: 'X' } });
+		testPage.check('updateNode for a tile that is gone answers false (the Properties page shows it was deleted)', goneAnswer === false, goneAnswer);
+		await ask(testPage, { cmd: Commands.updateNode, id: 'b1', value: { title: 'Mine', image: null, imageMode: ImageMode.inherit } });
+		await testPage.idle();
+		const keptPicture = await nodeById(testPage, 'b1');
+		testPage.check('a kept picture stays when the page sends none; fit -1 goes back to the default', keptPicture.image === '1' && !('imageMode' in keptPicture), keptPicture);
+		await ask(testPage, { cmd: Commands.updateNode, id: 'b1', value: { title: 'Mine', url: 'https://moved.example/' } });
+		await testPage.waitFor('the new address to be fetched', () => !backgroundPage().app.GridNodes.getNodeById('b1').__isLoading && dialFolderBookmarks()[0].url === 'https://moved.example/');
+		const moved = { node: await nodeById(testPage, 'b1'), bookmark: await bookmarkById(testPage, 'b1') };
+		testPage.check('a new address is saved to the bookmark; a locked title and picture are kept', moved.node.url === 'https://moved.example/' && moved.node.title === 'Mine'
+			&& moved.node.image === '1' && moved.bookmark.url === 'https://moved.example/' && moved.bookmark.title === 'Mine', moved);
+		await ask(testPage, { cmd: Commands.updateNode, id: 'b2', value: { title: 'Two', url: 'https://two.example/', image: null } });
+		await testPage.waitFor('the new address to be fetched', () => backgroundPage().app.GridNodes.getNodeById('b2').image === '1');
+		const unlocked = await nodeById(testPage, 'b2');
+		testPage.check('...an unlocked tile takes the new page\'s title and picture', unlocked.title === 'two.example' && unlocked.url === 'https://two.example/', unlocked);
 
 		// ----- tiles: swap, create, delete, refresh a folder -----
-		await ask(t, { cmd: C.setNodeIndex, path: '/', index: 0, newIndex: 1 });
-		await t.idle();
-		st = await t.J(() => S.storage.node.children.slice(0, 2).map(c => c.id));
-		t.check('setNodeIndex swaps two tiles', t.same(st, ['b2', 'b1']), st);
-		await ask(t, { cmd: C.createBookmark, path: '/Folder/', url: 'folder-site.example', title: 'folder-site.example' });
-		await ask(t, { cmd: C.createFolder, path: '/', name: 'Sub' });
-		await t.idle();
-		st = await t.J(() => ({ folder: bg().app.node.children[6].children.map(c => c.url), root: bg().app.node.children.map(c => c.title).slice(-1),
-			bms: S.bm.children[0].children[0].children.map(c => c.title).slice(-1) }));
-		t.check('createBookmark (in a folder, http:// added) and createFolder', t.same(st.folder, ['https://site7.example/', 'http://folder-site.example']) && t.same(st.root, ['Sub']) && t.same(st.bms, ['Sub']), st);
-		const sub = await t.J(() => bg().app.node.children[7].id);
-		await ask(t, { cmd: C.deleteNode, path: '/', id: sub });
-		await t.idle();
-		st = await t.J(sub => [bg().app.node.children.length, !!S.bm.children[0].children[0].children.find(c => c.id === sub)], sub);
-		t.check('deleteNode removes the tile and the bookmarks folder', t.same(st, [7, false]), st);
-		await ask(t, { cmd: C.updateNode, id: 'f1', value: { title: 'Folder', image: pic } });
-		await t.idle();
-		await ask(t, { cmd: C.refreshNode, path: '/', id: 'f1' });
-		await t.idle();
-		st = { node: await node(t, 'f1'), key: await t.J(() => 'img_f1' in S.storage) };
-		t.check('refreshNode on a folder clears its picture (back to the folder icon)', !st.node.image && !st.key, st);
+		await ask(testPage, { cmd: Commands.setNodeIndex, path: '/', index: 0, newIndex: 1 });
+		await testPage.idle();
+		const swappedIds = await testPage.inHost(() => mockState.storage.node.children.slice(0, 2).map(tile => tile.id));
+		testPage.check('setNodeIndex swaps two tiles', testPage.same(swappedIds, ['b2', 'b1']), swappedIds);
+		await ask(testPage, { cmd: Commands.createBookmark, path: '/Folder/', url: 'folder-site.example', title: 'folder-site.example' });
+		await ask(testPage, { cmd: Commands.createFolder, path: '/', name: 'Sub' });
+		await testPage.idle();
+		const created = await testPage.inHost(() => ({ folder: backgroundPage().app.node.children[6].children.map(tile => tile.url), root: backgroundPage().app.node.children.map(tile => tile.title).slice(-1),
+			bookmarks: dialFolderBookmarks().map(bookmark => bookmark.title).slice(-1) }));
+		testPage.check('createBookmark (in a folder, http:// added) and createFolder', testPage.same(created.folder, ['https://site7.example/', 'http://folder-site.example'])
+			&& testPage.same(created.root, ['Sub']) && testPage.same(created.bookmarks, ['Sub']), created);
+		const subfolderId = await testPage.inHost(() => backgroundPage().app.node.children[7].id);
+		await ask(testPage, { cmd: Commands.deleteNode, path: '/', id: subfolderId });
+		await testPage.idle();
+		const afterDelete = await testPage.inHost(id => ({ tiles: backgroundPage().app.node.children.length, bookmarked: !!dialFolderBookmarks().find(bookmark => bookmark.id === id) }), subfolderId);
+		testPage.check('deleteNode removes the tile and the bookmarks folder', afterDelete.tiles === 7 && !afterDelete.bookmarked, afterDelete);
+		await ask(testPage, { cmd: Commands.updateNode, id: 'f1', value: { title: 'Folder', image: picture } });
+		await testPage.idle();
+		await ask(testPage, { cmd: Commands.refreshNode, path: '/', id: 'f1' });
+		await testPage.idle();
+		const refreshedFolder = { node: await nodeById(testPage, 'f1'), key: await testPage.inHost(() => 'img_f1' in mockState.storage) };
+		testPage.check('refreshNode on a folder clears its picture (back to the folder icon)', !refreshedFolder.node.image && !refreshedFolder.key, refreshedFolder);
 
 		// ----- pictures, backups, themes, the Settings tab -----
-		st = await ask(t, { cmd: C.getImages, ids: ['b1', 'b3'] });
-		t.check('getImages answers the pictures there are', Object.keys(st).join() === 'b1' && st.b1.startsWith('data:image/'), Object.keys(st));
-		const backup = await ask(t, { cmd: C.exportData });
-		t.check('exportData', backup.format === 'quickdial-ng' && backup.images.b1, Object.keys(backup));
-		st = await ask(t, { cmd: C.importData, data: backup });
-		await t.idle();
-		t.check('importData answers what it did', st.ok && st.matched === 9 && st.created === 0, st);
-		st = await ask(t, { cmd: C.importData, data: { nothing: true } }).catch(e => 'refused: ' + e.message.split('\n')[0]);
-		t.check('importData refuses what isn\'t a backup', /Not a Quick Dial backup/.test(st), st);
-		st = await ask(t, { cmd: C.setThemes, themes: [{ name: 'Mine', style: {} }, { name: 'Anori', style: {} }] });
-		const listed = await ask(t, { cmd: C.getThemes });
-		t.check('setThemes answers the cleaned list; getThemes', t.same(st.map(x => x.name), ['Mine']) && t.same(listed.map(x => x.name), ['Mine']), [st, listed]);
-		await spyTabs(t);
-		await ask(t, { cmd: C.openSettings, tab: 'themes' });
-		st = await t.J(() => bg().qdTabs);
-		t.check('openSettings', t.same(st, [['create', { url: 'html/settings.html?tab=themes' }]]), st);
+		const imagesAnswer = await ask(testPage, { cmd: Commands.getImages, ids: ['b1', 'b3'] });
+		testPage.check('getImages answers the pictures there are', Object.keys(imagesAnswer).join() === 'b1' && imagesAnswer.b1.startsWith('data:image/'), Object.keys(imagesAnswer));
+		const backup = await ask(testPage, { cmd: Commands.exportData });
+		testPage.check('exportData', backup.format === 'quickdial-ng' && backup.images.b1, Object.keys(backup));
+		const importReport = await ask(testPage, { cmd: Commands.importData, data: backup });
+		await testPage.idle();
+		testPage.check('importData answers what it did', importReport.ok && importReport.matched === 9 && importReport.created === 0, importReport);
+		const refusal = await ask(testPage, { cmd: Commands.importData, data: { nothing: true } }).catch(error => 'refused: ' + error.message.split('\n')[0]);
+		testPage.check('importData refuses what isn\'t a backup', /Not a Quick Dial backup/.test(refusal), refusal);
+		const savedThemes = await ask(testPage, { cmd: Commands.setThemes, themes: [{ name: 'Mine', style: {} }, { name: 'Anori', style: {} }] });
+		const listedThemes = await ask(testPage, { cmd: Commands.getThemes });
+		testPage.check('setThemes answers the cleaned list; getThemes', testPage.same(savedThemes.map(theme => theme.name), ['Mine']) && testPage.same(listedThemes.map(theme => theme.name), ['Mine']), [savedThemes, listedThemes]);
+		await spyTabs(testPage);
+		await ask(testPage, { cmd: Commands.openSettings, tab: 'themes' });
+		const openedTabs = await testPage.inHost(() => backgroundPage().qdTabs);
+		testPage.check('openSettings', testPage.same(openedTabs, [['create', { url: 'html/settings.html?tab=themes' }]]), openedTabs);
 
 		// ----- setSettings: a new root folder brings its own tiles (pictures of the old ones go), then back -----
-		const settings = await ask(t, { cmd: C.getSettings });
+		const settings = await ask(testPage, { cmd: Commands.getSettings });
 		settings.grid.root = 'Other';
-		st = await ask(t, { cmd: C.setSettings, settings });
-		await t.idle();
-		const other = await t.J(() => ({ id: bg().app.node.id, tiles: bg().app.node.children.length, images: Object.keys(S.storage).filter(k => k.startsWith('img_')).length }));
+		const setAnswer = await ask(testPage, { cmd: Commands.setSettings, settings });
+		await testPage.idle();
+		const otherRoot = await testPage.inHost(() => ({ id: backgroundPage().app.node.id, tiles: backgroundPage().app.node.children.length,
+			images: Object.keys(mockState.storage).filter(key => key.startsWith('img_')).length }));
 		settings.grid.root = 'Quick Dial';
-		await ask(t, { cmd: C.setSettings, settings });
-		await t.idle();
-		const back = await t.J(() => ({ id: bg().app.node.id, tiles: bg().app.node.children.length }));
-		t.check('setSettings with another root folder shows that folder\'s tiles, and back', st.grid.root === 'Other' && other.id === 'other' && other.tiles === 0 && other.images === 0 && back.id === 'qd' && back.tiles === 7, [other, back]);
+		await ask(testPage, { cmd: Commands.setSettings, settings });
+		await testPage.idle();
+		const rootAgain = await testPage.inHost(() => ({ id: backgroundPage().app.node.id, tiles: backgroundPage().app.node.children.length }));
+		testPage.check('setSettings with another root folder shows that folder\'s tiles, and back', setAnswer.grid.root === 'Other' && otherRoot.id === 'other' && otherRoot.tiles === 0
+			&& otherRoot.images === 0 && rootAgain.id === 'qd' && rootAgain.tiles === 7, [otherRoot, rootAgain]);
 	}
 };

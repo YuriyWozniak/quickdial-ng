@@ -14,145 +14,173 @@
 const { freshProfile, makeVersion4, changeSettings } = require('../lib/fixtures');
 
 // The tiles the dial shows, in cell order: "bookmark:Site 1", "folder:Folder", "back:Back", "-" for an empty cell
-const shown = t => t.inDial(() => [...document.querySelectorAll('table.qd-grid a')].map(a => a.className === 'is-empty' ? '-' : a.className.slice(3) + ':' + a.lastChild.innerText));
+const shownTiles = testPage => testPage.inDial(() => [...document.querySelectorAll('table.qd-grid a')]
+	.map(link => link.className === 'is-empty' ? '-' : link.className.slice('is-'.length) + ':' + link.lastChild.innerText));
 // The top folder's tiles in the background page, by bookmark id ('-' for a gap)
-const ids = t => t.J(() => bg().app.node.children.map(c => c.id || '-'));
+const tileIds = testPage => testPage.inHost(() => backgroundPage().app.node.children.map(tile => tile.id || '-'));
 // A drag from one cell to another (or with the given drag data), as synthetic drag events.
 // Returns the drop effect the target cell offers while dragging over it ('move' or 'none'): read
 // from the dial's dragover handler, since synthetic events don't keep it.
-const drag = (t, from, to, data) => t.inDial(([from, to, data]) => {
-	const cells = document.querySelectorAll('table.qd-grid td'), dt = new DataTransfer();
-	if (data) dt.setData('text/plain', JSON.stringify(data));
-	else cells[from].firstChild.dispatchEvent(new DragEvent('dragstart', { dataTransfer: dt, bubbles: true, cancelable: true }));
-	const probe = { getData: k => dt.getData(k), dropEffect: '' };
-	app._onDragOver({ target: cells[to].firstChild, dataTransfer: probe, preventDefault() {} });
-	cells[to].firstChild.dispatchEvent(new DragEvent('dragover', { dataTransfer: dt, bubbles: true, cancelable: true }));
-	cells[to].firstChild.dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+const drag = (testPage, fromCell, toCell, dragData) => testPage.inDial(([fromIndex, toIndex, data]) => {
+	const cells = document.querySelectorAll('table.qd-grid td'), dataTransfer = new DataTransfer();
+	if (data) dataTransfer.setData('text/plain', JSON.stringify(data));
+	else cells[fromIndex].firstChild.dispatchEvent(new DragEvent('dragstart', { dataTransfer, bubbles: true, cancelable: true }));
+	const probe = { getData: format => dataTransfer.getData(format), dropEffect: '' };
+	app._onDragOver({ target: cells[toIndex].firstChild, dataTransfer: probe, preventDefault() {} });
+	cells[toIndex].firstChild.dispatchEvent(new DragEvent('dragover', { dataTransfer, bubbles: true, cancelable: true }));
+	cells[toIndex].firstChild.dispatchEvent(new DragEvent('drop', { dataTransfer, bubbles: true, cancelable: true }));
 	return probe.dropEffect;
-}, [from, to, data || null]);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+}, [fromCell, toCell, dragData || null]);
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// Values of settings that are a choice from a list (QDThemes.ClickEffect, QDThemes.HoverEffect)
+const ClickEffect = { none: 0, pulseRing: 5 }, HoverEffect = { none: 0, smoothLift: 2 };
+// Mouse buttons (MouseEvent.button)
+const MouseButton = { left: 0, middle: 1, right: 2 };
+// The dial's safety net: it loads again if the background page hasn't answered after 500 ms (js/dial.js)
+const PAST_SAFETY_NET = 700;
+// A picture's data URL longer than this is one of the large test screenshots, shorter the small new one
+const LARGE_PICTURE = 1000;
 
 module.exports = {
 	title: 'Dial: pictures, early colour, pages, folders and Back, drag and drop',
-	async run(t) {
-		await freshProfile(t);
-		await makeVersion4(t);
-		await t.loadBg();
-		let st;
+	async run(testPage) {
+		await freshProfile(testPage);
+		await makeVersion4(testPage);
+		await testPage.loadBg();
 
 		// ----- tiles and pictures -----
-		await t.loadDial();
-		await t.waitFor('the pictures', () => [...win('dial').document.querySelectorAll('table.qd-grid a.is-bookmark')].filter(a => a.firstChild.style.backgroundImage.includes('data:image/webp')).length === 6);
-		t.check('the dial shows 6 tiles with their WebP pictures and the folder', t.same((await shown(t)).slice(0, 7), ['Site 1', 'Site 2', 'Site 3', 'Site 4', 'Site 5', 'Site 6'].map(s => 'bookmark:' + s).concat('folder:Folder')), await shown(t));
-		const before = await t.inDial(() => document.querySelector('table.qd-grid a').firstChild.style.backgroundImage.length);
-		await t.J(() => { const a = bg().app, c = document.createElement('canvas'); c.width = 40; c.height = 30;
-			return a.Images.setNodeImage(a.node.children[0], c.toDataURL('image/webp')).then(() => a.Messages.broadcast(a.Messages.Commands.gridNodesLoaded)); });
-		const after = await t.waitFor('the new picture', () => { const l = win('dial').document.querySelector('table.qd-grid a').firstChild.style.backgroundImage.length; return l < 1000 && l; });
-		t.check('a changed picture (refresh, capture) shows up', before > 1000 && after > 0, [before, after]);
-		st = await t.inDial(() => document.title);
-		t.check('the page title is the folder\'s', st === 'Quick Dial', st);
+		await testPage.loadDial();
+		await testPage.waitFor('the pictures', () => [...frameWindow('dial').document.querySelectorAll('table.qd-grid a.is-bookmark')].filter(link => link.firstChild.style.backgroundImage.includes('data:image/webp')).length === 6);
+		const tilesShown = await shownTiles(testPage);
+		testPage.check('the dial shows 6 tiles with their WebP pictures and the folder', testPage.same(tilesShown.slice(0, 7), ['Site 1', 'Site 2', 'Site 3', 'Site 4', 'Site 5', 'Site 6'].map(title => 'bookmark:' + title).concat('folder:Folder')), tilesShown);
+		const pictureSizeBefore = await testPage.inDial(() => document.querySelector('table.qd-grid a').firstChild.style.backgroundImage.length);
+		await testPage.inHost(() => {
+			const app = backgroundPage().app, canvas = document.createElement('canvas');
+			canvas.width = 40; canvas.height = 30;
+			return app.Images.setNodeImage(app.node.children[0], canvas.toDataURL('image/webp')).then(() => app.Messages.broadcast(app.Messages.Commands.gridNodesLoaded));
+		});
+		const pictureSizeAfter = await testPage.waitFor('the new picture', maxSize => { const size = frameWindow('dial').document.querySelector('table.qd-grid a').firstChild.style.backgroundImage.length; return size < maxSize && size; }, LARGE_PICTURE);
+		testPage.check('a changed picture (refresh, capture) shows up', pictureSizeBefore > LARGE_PICTURE && pictureSizeAfter > 0, [pictureSizeBefore, pictureSizeAfter]);
+		const pageTitle = await testPage.inDial(() => document.title);
+		testPage.check('the page title is the folder\'s', pageTitle === 'Quick Dial', pageTitle);
 
 		// ----- the background colour, painted before the background page answers -----
-		let ls = await t.J(() => bg().localStorage.getItem('dialBackgroundColor'));
-		t.check('the background colour is remembered for the dial', ls === (await t.J(() => bg().app.settings.backgroundColor)), ls);
-		await changeSettings(t, { backgroundColor: '#123456' });
-		ls = await t.J(() => bg().localStorage.getItem('dialBackgroundColor'));
-		t.check('a changed colour is remembered', ls === '#123456', ls);
-		await t.J(() => { bg().app.ready = new Promise(r => { window.releaseBg = r; }); }); // the background page is still loading
-		await t.J(() => loadFrame('dial', 'dial.html'));
-		await sleep(700); // past the dial's 500 ms safety net, which must not start a second load
-		st = await t.J(() => { const w = win('dial'); return { html: w.document.documentElement.style.backgroundColor, drawn: !!w.app.settings, listeners: (S.listeners['rt.onMessage.dial'] || []).length }; });
-		t.check('while the background page loads: its colour, nothing drawn, no retry', st.html === 'rgb(18, 52, 86)' && !st.drawn && st.listeners === 0, st);
-		await t.J(() => window.releaseBg());
-		st = await t.waitFor('the dial to draw', () => { const w = win('dial'); const tiles = w.document.querySelectorAll('table.qd-grid a:not(.Empty)').length;
-			return tiles && { html: w.document.documentElement.style.backgroundColor, body: w.getComputedStyle(w.document.body).backgroundColor, tiles, listeners: (S.listeners['rt.onMessage.dial'] || []).length }; });
-		t.check('the dial draws once the background page is ready, listening once', st.html === '' && st.body === 'rgb(18, 52, 86)' && st.listeners === 1, st);
+		const rememberedColor = () => testPage.inHost(() => backgroundPage().localStorage.getItem('dialBackgroundColor'));
+		const initialColor = await rememberedColor();
+		testPage.check('the background colour is remembered for the dial', initialColor === (await testPage.inHost(() => backgroundPage().app.settings.backgroundColor)), initialColor);
+		await changeSettings(testPage, { backgroundColor: '#123456' });
+		const changedColor = await rememberedColor();
+		testPage.check('a changed colour is remembered', changedColor === '#123456', changedColor);
+		await testPage.inHost(() => { backgroundPage().app.ready = new Promise(resolve => { window.releaseBackgroundPage = resolve; }); }); // the background page is still loading
+		await testPage.inHost(() => loadFrame('dial', 'dial.html'));
+		await sleep(PAST_SAFETY_NET); // past the dial's safety net, which must not start a second load
+		const whileLoading = await testPage.inHost(() => {
+			const dialWindow = frameWindow('dial');
+			return { html: dialWindow.document.documentElement.style.backgroundColor, drawn: !!dialWindow.app.settings, listeners: (mockState.listeners['rt.onMessage.dial'] || []).length };
+		});
+		testPage.check('while the background page loads: its colour, nothing drawn, no retry', whileLoading.html === 'rgb(18, 52, 86)' && !whileLoading.drawn && whileLoading.listeners === 0, whileLoading);
+		await testPage.inHost(() => window.releaseBackgroundPage());
+		const onceReady = await testPage.waitFor('the dial to draw', () => {
+			const dialWindow = frameWindow('dial'), tiles = dialWindow.document.querySelectorAll('table.qd-grid a:not(.is-empty)').length;
+			return tiles && { html: dialWindow.document.documentElement.style.backgroundColor, body: dialWindow.getComputedStyle(dialWindow.document.body).backgroundColor,
+				tiles, listeners: (mockState.listeners['rt.onMessage.dial'] || []).length };
+		});
+		testPage.check('the dial draws once the background page is ready, listening once', onceReady.html === '' && onceReady.body === 'rgb(18, 52, 86)' && onceReady.listeners === 1, onceReady);
 
 		// ----- folders and Back -----
-		st = await t.inDial(() => document.querySelector('table.qd-grid a.is-folder').getAttribute('href'));
-		t.check('a folder tile opens the dial on that folder', st === '?bg=%23123456&path=%2FFolder', st);
-		await t.loadDial('?path=%2FFolder');
-		st = { tiles: (await shown(t)).filter(s => s !== '-'), title: await t.inDial(() => document.title) };
-		t.check('a folder\'s dial: Back first, then its tiles', t.same(st.tiles, ['back:Back', 'bookmark:Site 7']) && st.title === 'Folder', st);
-		await changeSettings(t, { grid: { backNode: false } });
-		await t.waitFor('the dial to follow', () => !win('dial').document.querySelector('table.qd-grid a.is-back'));
-		t.check('without the Back tile setting, no Back tile', t.same((await shown(t)).filter(s => s !== '-'), ['bookmark:Site 7']), await shown(t));
-		await changeSettings(t, { grid: { backNode: true } });
+		const folderLink = await testPage.inDial(() => document.querySelector('table.qd-grid a.is-folder').getAttribute('href'));
+		testPage.check('a folder tile opens the dial on that folder', folderLink === '?bg=%23123456&path=%2FFolder', folderLink);
+		await testPage.loadDial('?path=%2FFolder');
+		const folderDial = { tiles: (await shownTiles(testPage)).filter(tile => tile !== '-'), title: await testPage.inDial(() => document.title) };
+		testPage.check('a folder\'s dial: Back first, then its tiles', testPage.same(folderDial.tiles, ['back:Back', 'bookmark:Site 7']) && folderDial.title === 'Folder', folderDial);
+		await changeSettings(testPage, { grid: { backNode: false } });
+		await testPage.waitFor('the dial to follow', () => !frameWindow('dial').document.querySelector('table.qd-grid a.is-back'));
+		const tilesWithoutBack = (await shownTiles(testPage)).filter(tile => tile !== '-');
+		testPage.check('without the Back tile setting, no Back tile', testPage.same(tilesWithoutBack, ['bookmark:Site 7']), tilesWithoutBack);
+		await changeSettings(testPage, { grid: { backNode: true } });
 
 		// ----- the click effect: on a left or middle mouse down on a tile, never on an empty cell or a right click -----
-		const PULSE_RING = 5, RIGHT_BUTTON = 2;
 		// Mouse down with a button on the cell's tile; whether the tile then plays the effect
-		const pressTile = (t, cellIndex, button) => t.inDial(([cellIndex, button]) => {
-			const link = document.querySelectorAll('table.qd-grid td')[cellIndex].firstChild;
-			link.dispatchEvent(new MouseEvent('mousedown', { button, bubbles: true }));
+		const pressTile = (cellIndex, button) => testPage.inDial(([cell, pressedButton]) => {
+			const link = document.querySelectorAll('table.qd-grid td')[cell].firstChild;
+			link.dispatchEvent(new MouseEvent('mousedown', { button: pressedButton, bubbles: true }));
 			const playing = link.classList.contains('is-clicked');
-			link.classList.remove('is-clicked'); // the tile list (shown) reads the class names
+			link.classList.remove('is-clicked'); // the tile list (shownTiles) reads the class names
 			return playing;
 		}, [cellIndex, button]);
-		t.check('no click effect by default', !(await pressTile(t, 1, 0)));
-		await changeSettings(t, { grid: { cells: { clickEffect: PULSE_RING } } });
-		await t.waitFor('the dial to follow', () => [...win('dial').document.styleSheets].some(s => [...s.cssRules].some(r => r.name === 'qd-click-ring')));
-		st = [await pressTile(t, 0, 0), await pressTile(t, 1, 1), await pressTile(t, 1, RIGHT_BUTTON), await pressTile(t, 5, 0)];
-		t.check('the click effect plays on Back and a tile, left or middle button only, not on an empty cell', t.same(st, [true, true, false, false]), st);
-		await changeSettings(t, { grid: { cells: { clickEffect: 0 } } });
+		testPage.check('no click effect by default', !(await pressTile(1, MouseButton.left)));
+		await changeSettings(testPage, { grid: { cells: { clickEffect: ClickEffect.pulseRing } } });
+		await testPage.waitFor('the dial to follow', () => [...frameWindow('dial').document.styleSheets].some(sheet => [...sheet.cssRules].some(rule => rule.name === 'qd-click-ring')));
+		const effectPlayed = [await pressTile(0, MouseButton.left), await pressTile(1, MouseButton.middle), await pressTile(1, MouseButton.right), await pressTile(5, MouseButton.left)];
+		testPage.check('the click effect plays on Back and a tile, left or middle button only, not on an empty cell', testPage.same(effectPlayed, [true, true, false, false]), effectPlayed);
+		await changeSettings(testPage, { grid: { cells: { clickEffect: ClickEffect.none } } });
 
 		// ----- reduced motion (Windows' "Show animations" off): a smooth hover still fades colours, nothing moves -----
-		const SMOOTH_LIFT = 2;
 		// What a tile and its title fade on hover (computed transition properties)
-		const motionStyle = t => t.inDial(() => {
+		const hoverTransitions = () => testPage.inDial(() => {
 			const link = document.querySelector('table.qd-grid a.is-bookmark');
 			return { link: getComputedStyle(link).transitionProperty, title: getComputedStyle(link.lastChild).transitionProperty };
 		});
-		await changeSettings(t, { grid: { cells: { hoverEffect: SMOOTH_LIFT } } });
-		await t.waitFor('the dial to follow', () => win('dial').getComputedStyle(win('dial').document.querySelector('table.qd-grid a.is-bookmark')).transitionProperty.includes('transform'));
-		await t.page.emulateMedia({ reducedMotion: 'reduce' });
-		st = await motionStyle(t);
-		t.check('with reduced motion the hover fades colours and borders, without lifting or resizing',
-			st.link === 'border-color, opacity, box-shadow, backdrop-filter' && st.title === 'color, background-color, border-color'
-			&& (await t.inDial(() => matchMedia('(prefers-reduced-motion: reduce)').matches)), st);
-		await t.page.emulateMedia({ reducedMotion: 'no-preference' });
-		await changeSettings(t, { grid: { cells: { hoverEffect: 0 } } });
+		await changeSettings(testPage, { grid: { cells: { hoverEffect: HoverEffect.smoothLift } } });
+		await testPage.waitFor('the dial to follow', () => frameWindow('dial').getComputedStyle(frameWindow('dial').document.querySelector('table.qd-grid a.is-bookmark')).transitionProperty.includes('transform'));
+		await testPage.page.emulateMedia({ reducedMotion: 'reduce' });
+		const reducedTransitions = await hoverTransitions();
+		testPage.check('with reduced motion the hover fades colours and borders, without lifting or resizing',
+			reducedTransitions.link === 'border-color, opacity, box-shadow, backdrop-filter' && reducedTransitions.title === 'color, background-color, border-color'
+			&& (await testPage.inDial(() => matchMedia('(prefers-reduced-motion: reduce)').matches)), reducedTransitions);
+		await testPage.page.emulateMedia({ reducedMotion: 'no-preference' });
+		await changeSettings(testPage, { grid: { cells: { hoverEffect: HoverEffect.none } } });
 
 		// ----- pages (mouse wheel, Page Down / Page Up) -----
-		await t.loadDial();
-		await changeSettings(t, { grid: { rows: 1, columns: 3 } });
-		await t.waitFor('the 3-cell grid', () => win('dial').document.querySelectorAll('table.qd-grid td').length === 3);
-		const page = () => t.inDial(() => [dial.page, dial.maxPage, ...[...document.querySelectorAll('table.qd-grid a')].map(a => a.className === 'is-empty' ? '-' : a.lastChild.innerText)]);
-		st = [await page()];
-		const pageDown = () => t.inDial(() => window.dispatchEvent(new KeyboardEvent('keyup', { key: 'PageDown' })));
-		await pageDown(); st.push(await page());
-		await t.inDial(() => window.dispatchEvent(new WheelEvent('wheel', { deltaY: 100 }))); st.push(await page());
-		await pageDown(); st.push(await page());
-		await t.inDial(() => window.dispatchEvent(new WheelEvent('wheel', { deltaY: -100 }))); st.push(await page());
-		t.check('Page Down and the wheel turn pages, and stop at the last one', t.same(st, [[1, 3, 'Site 1', 'Site 2', 'Site 3'], [2, 3, 'Site 4', 'Site 5', 'Site 6'], [3, 3, 'Folder', '-', '-'], [3, 3, 'Folder', '-', '-'], [2, 3, 'Site 4', 'Site 5', 'Site 6']]), st);
-		await t.loadDial('?path=%2FFolder');
-		st = await page();
-		t.check('in a folder, Back takes a cell on every page', t.same(st, [1, 1, 'Back', 'Site 7', '-']), st);
+		await testPage.loadDial();
+		await changeSettings(testPage, { grid: { rows: 1, columns: 3 } });
+		await testPage.waitFor('the 3-cell grid', () => frameWindow('dial').document.querySelectorAll('table.qd-grid td').length === 3);
+		// [page, last page, then the titles on the page ('-' for an empty cell)]
+		const currentPage = () => testPage.inDial(() => [dial.page, dial.maxPage, ...[...document.querySelectorAll('table.qd-grid a')].map(link => link.className === 'is-empty' ? '-' : link.lastChild.innerText)]);
+		const pageDown = () => testPage.inDial(() => window.dispatchEvent(new KeyboardEvent('keyup', { key: 'PageDown' })));
+		const wheel = deltaY => testPage.inDial(delta => window.dispatchEvent(new WheelEvent('wheel', { deltaY: delta })), deltaY);
+		const WHEEL_STEP = 100;
+		const pagesSeen = [await currentPage()];
+		await pageDown(); pagesSeen.push(await currentPage());
+		await wheel(WHEEL_STEP); pagesSeen.push(await currentPage());
+		await pageDown(); pagesSeen.push(await currentPage());
+		await wheel(-WHEEL_STEP); pagesSeen.push(await currentPage());
+		testPage.check('Page Down and the wheel turn pages, and stop at the last one', testPage.same(pagesSeen, [[1, 3, 'Site 1', 'Site 2', 'Site 3'], [2, 3, 'Site 4', 'Site 5', 'Site 6'],
+			[3, 3, 'Folder', '-', '-'], [3, 3, 'Folder', '-', '-'], [2, 3, 'Site 4', 'Site 5', 'Site 6']]), pagesSeen);
+		await testPage.loadDial('?path=%2FFolder');
+		const folderPage = await currentPage();
+		testPage.check('in a folder, Back takes a cell on every page', testPage.same(folderPage, [1, 1, 'Back', 'Site 7', '-']), folderPage);
 
 		// ----- drag and drop: tiles swap places -----
-		await changeSettings(t, { grid: { rows: 2, columns: 4 } });
-		await t.loadDial();
-		await drag(t, 0, 7);
-		await t.waitFor('the swap', () => bg().app.node.children[7] && bg().app.node.children[7].id === 'b1');
-		await t.idle();
-		await t.waitFor('the dial to follow', () => win('dial').document.querySelectorAll('table.qd-grid a')[7].className === 'is-bookmark');
-		st = { ids: await ids(t), stored: await t.J(() => S.storage.node.children.map(c => c.id || '-')), shown: await shown(t) };
-		t.check('a tile dragged to an empty cell moves there, saved and shown', t.same(st.ids, ['-', 'b2', 'b3', 'b4', 'b5', 'b6', 'f1', 'b1']) && t.same(st.stored, st.ids) && st.shown[0] === '-' && st.shown[7] === 'bookmark:Site 1', st);
-		st = await drag(t, 7, 0);
-		await t.waitFor('the swap back', () => bg().app.node.children[0].id === 'b1');
-		t.check('dragged back: the gap at the end is trimmed', t.same(await ids(t), ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'f1']) && st === 'move', [st, await ids(t)]);
-		await drag(t, 1, 2);
-		await t.waitFor('the swap', () => bg().app.node.children[1].id === 'b3');
-		t.check('two tiles swap places', t.same((await ids(t)).slice(0, 3), ['b1', 'b3', 'b2']), await ids(t));
-		st = await drag(t, null, 4, { parentId: 'other', index: 0 });
-		await t.idle();
-		t.check('a drag from another folder is refused', st === 'none' && t.same((await ids(t)).slice(0, 5), ['b1', 'b3', 'b2', 'b4', 'b5']), st);
-		await t.loadDial('?path=%2FFolder');
-		st = await drag(t, 1, 0);
-		await t.idle();
-		t.check('the Back cell takes no drop (and a drop there changes nothing)', st === 'none' && (await t.J(() => bg().app.node.children[6].children[0].id)) === 'b7', st);
-		st = await drag(t, 1, 2);
-		await t.waitFor('the move in the folder', () => bg().app.node.children[6].children[1] && bg().app.node.children[6].children[1].id === 'b7');
-		t.check('in a folder, cells count after Back', t.same(await t.J(() => bg().app.node.children[6].children.map(c => c.id || '-')), ['-', 'b7']), st);
+		const folderTileIds = () => testPage.inHost(() => backgroundPage().app.node.children[6].children.map(tile => tile.id || '-'));
+		await changeSettings(testPage, { grid: { rows: 2, columns: 4 } });
+		await testPage.loadDial();
+		await drag(testPage, 0, 7);
+		await testPage.waitFor('the swap', () => backgroundPage().app.node.children[7] && backgroundPage().app.node.children[7].id === 'b1');
+		await testPage.idle();
+		await testPage.waitFor('the dial to follow', () => frameWindow('dial').document.querySelectorAll('table.qd-grid a')[7].className === 'is-bookmark');
+		const afterMove = { ids: await tileIds(testPage), stored: await testPage.inHost(() => mockState.storage.node.children.map(tile => tile.id || '-')), shown: await shownTiles(testPage) };
+		testPage.check('a tile dragged to an empty cell moves there, saved and shown', testPage.same(afterMove.ids, ['-', 'b2', 'b3', 'b4', 'b5', 'b6', 'f1', 'b1'])
+			&& testPage.same(afterMove.stored, afterMove.ids) && afterMove.shown[0] === '-' && afterMove.shown[7] === 'bookmark:Site 1', afterMove);
+		const dropEffectBack = await drag(testPage, 7, 0);
+		await testPage.waitFor('the swap back', () => backgroundPage().app.node.children[0].id === 'b1');
+		const idsAfterMoveBack = await tileIds(testPage);
+		testPage.check('dragged back: the gap at the end is trimmed', testPage.same(idsAfterMoveBack, ['b1', 'b2', 'b3', 'b4', 'b5', 'b6', 'f1']) && dropEffectBack === 'move', [dropEffectBack, idsAfterMoveBack]);
+		await drag(testPage, 1, 2);
+		await testPage.waitFor('the swap', () => backgroundPage().app.node.children[1].id === 'b3');
+		const idsAfterSwap = await tileIds(testPage);
+		testPage.check('two tiles swap places', testPage.same(idsAfterSwap.slice(0, 3), ['b1', 'b3', 'b2']), idsAfterSwap);
+		const dropEffectOtherFolder = await drag(testPage, null, 4, { parentId: 'other', index: 0 });
+		await testPage.idle();
+		testPage.check('a drag from another folder is refused', dropEffectOtherFolder === 'none' && testPage.same((await tileIds(testPage)).slice(0, 5), ['b1', 'b3', 'b2', 'b4', 'b5']), dropEffectOtherFolder);
+		await testPage.loadDial('?path=%2FFolder');
+		const dropEffectOnBack = await drag(testPage, 1, 0);
+		await testPage.idle();
+		testPage.check('the Back cell takes no drop (and a drop there changes nothing)', dropEffectOnBack === 'none' && (await folderTileIds())[0] === 'b7', dropEffectOnBack);
+		const dropEffectInFolder = await drag(testPage, 1, 2);
+		await testPage.waitFor('the move in the folder', () => backgroundPage().app.node.children[6].children[1] && backgroundPage().app.node.children[6].children[1].id === 'b7');
+		const idsInFolder = await folderTileIds();
+		testPage.check('in a folder, cells count after Back', testPage.same(idsInFolder, ['-', 'b7']), [dropEffectInFolder, idsInFolder]);
 	}
 };

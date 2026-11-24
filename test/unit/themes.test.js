@@ -12,160 +12,172 @@ const assert = require('node:assert/strict');
 const { load, plain } = require('./load');
 const { BUILTIN_THEMES } = require('../lib/fixtures');
 
-const { QDThemes: T } = load('js/themes.js');
-const cells = style => plain(T.normalize(style)).grid.cells;
+const { QDThemes: Themes } = load('js/themes.js');
+// The tile style (grid.cells) a style comes out of normalize() with
+const normalizedCells = style => plain(Themes.normalize(style)).grid.cells;
+const CLASSIC = Themes.BUILTIN[0], ANORI = Themes.BUILTIN[1];
+// Classic's values that the tests below expect a bad value to be replaced by
+const CLASSIC_MARGIN = 4, CLASSIC_BORDER_COLOR = '#333333', CLASSIC_FONT = 'Arial, Verdana, Sans-serif', CLASSIC_PAGE_COLOR = '#3c4048';
+// The largest blur a tile may have (normalize clamps to it)
+const MAX_BLUR = 40;
 
 test('the built-in themes: Classic first, as the normalized CLASSIC style; each valid and with its own id', () => {
-	assert.deepEqual(plain(T.BUILTIN.map(t => t.name)), BUILTIN_THEMES);
-	assert.equal(new Set(T.BUILTIN.map(t => t.id)).size, T.BUILTIN.length);
-	for (const theme of T.BUILTIN) assert.deepEqual(plain(T.normalize(theme.style)), plain(theme.style), theme.name);
-	assert.deepEqual(plain(T.BUILTIN[0].style), plain(T.normalize(T.CLASSIC)));
-	assert.ok(T.equal(T.CLASSIC, {}), 'an empty style is Classic');
+	assert.deepEqual(plain(Themes.BUILTIN.map(theme => theme.name)), BUILTIN_THEMES);
+	assert.equal(new Set(Themes.BUILTIN.map(theme => theme.id)).size, Themes.BUILTIN.length);
+	for (const theme of Themes.BUILTIN) assert.deepEqual(plain(Themes.normalize(theme.style)), plain(theme.style), theme.name);
+	assert.deepEqual(plain(CLASSIC.style), plain(Themes.normalize(Themes.CLASSIC)));
+	assert.ok(Themes.equal(Themes.CLASSIC, {}), 'an empty style is Classic');
 });
 
 test('numbers are clamped to their range and rounded to their step', () => {
-	const c = cells({ grid: { cells: { blur: 999, margin: '7', opacity: 0.333, titleFontSize: 10.3, borderRadius: -5, shadow: 1.6 } } });
-	assert.equal(c.blur, 40);
-	assert.equal(c.margin, 7);
-	assert.equal(c.opacity, 0.33);
-	assert.equal(c.titleFontSize, 10.5);
-	assert.equal(c.borderRadius, 0);
-	assert.equal(c.shadow, 2);
-	assert.equal(cells({ grid: { cells: { blur: 'x', margin: '', opacity: NaN } } }).margin, 4, 'not a number: the Classic value');
+	const cells = normalizedCells({ grid: { cells: { blur: 999, margin: '7', opacity: 0.333, titleFontSize: 10.3, borderRadius: -5, shadow: 1.6 } } });
+	assert.equal(cells.blur, MAX_BLUR);
+	assert.equal(cells.margin, 7);
+	assert.equal(cells.opacity, 0.33);
+	assert.equal(cells.titleFontSize, 10.5);
+	assert.equal(cells.borderRadius, 0);
+	assert.equal(cells.shadow, 2);
+	assert.equal(normalizedCells({ grid: { cells: { blur: 'x', margin: '', opacity: NaN } } }).margin, CLASSIC_MARGIN, 'not a number: the Classic value');
 });
 
 test('colours, switches and fonts: valid values kept, others replaced by Classic', () => {
-	const c = cells({ grid: { cells: { titleColor: '#AABBCC', borderColor: 'red', backgroundColor: null, titleBackgroundColor: 'nope', title: 'yes', titleBold: true, titleFont: 'Georgia, "Times New Roman", serif' } } });
-	assert.equal(c.titleColor, '#aabbcc');
-	assert.equal(c.borderColor, '#333333');
-	assert.equal(c.backgroundColor, null, 'null is allowed where a colour is optional');
-	assert.equal(c.titleBackgroundColor, null);
-	assert.equal(c.title, true);
-	assert.equal(c.titleBold, true);
-	assert.equal(c.titleFont, 'Georgia, "Times New Roman", serif');
-	assert.equal(cells({ grid: { cells: { titleFont: 'x;} body{display:none' } } }).titleFont, 'Arial, Verdana, Sans-serif');
-	assert.equal(plain(T.normalize({ backgroundColor: null })).backgroundColor, '#3c4048', 'the page colour is required');
+	const cells = normalizedCells({ grid: { cells: { titleColor: '#AABBCC', borderColor: 'red', backgroundColor: null, titleBackgroundColor: 'nope', title: 'yes', titleBold: true,
+		titleFont: 'Georgia, "Times New Roman", serif' } } });
+	assert.equal(cells.titleColor, '#aabbcc');
+	assert.equal(cells.borderColor, CLASSIC_BORDER_COLOR);
+	assert.equal(cells.backgroundColor, null, 'null is allowed where a colour is optional');
+	assert.equal(cells.titleBackgroundColor, null);
+	assert.equal(cells.title, true);
+	assert.equal(cells.titleBold, true);
+	assert.equal(cells.titleFont, 'Georgia, "Times New Roman", serif');
+	assert.equal(normalizedCells({ grid: { cells: { titleFont: 'x;} body{display:none' } } }).titleFont, CLASSIC_FONT);
+	assert.equal(plain(Themes.normalize({ backgroundColor: null })).backgroundColor, CLASSIC_PAGE_COLOR, 'the page colour is required');
 });
 
 test('gradients only: no url(), nothing that ends a CSS declaration', () => {
-	const g = v => T.normalize({ backgroundGradient: v }).backgroundGradient;
-	assert.equal(g('linear-gradient(red, blue)'), 'linear-gradient(red, blue)');
-	assert.equal(g(' repeating-radial-gradient(red, blue) '), 'repeating-radial-gradient(red, blue)');
-	assert.equal(g(null), null);
-	for (const bad of ['linear-gradient(red, blue), url(https://evil.example/x.png)', 'linear-gradient(red, blue); color: red', 'url(x.png)', 'red', 'linear-gradient(red, blue) }', 'linear-gradient(' + 'a'.repeat(2000) + ')'])
-		assert.equal(g(bad), null, bad);
+	const normalizedGradient = value => Themes.normalize({ backgroundGradient: value }).backgroundGradient;
+	assert.equal(normalizedGradient('linear-gradient(red, blue)'), 'linear-gradient(red, blue)');
+	assert.equal(normalizedGradient(' repeating-radial-gradient(red, blue) '), 'repeating-radial-gradient(red, blue)');
+	assert.equal(normalizedGradient(null), null);
+	const TOO_LONG = 'linear-gradient(' + 'a'.repeat(2000) + ')';
+	for (const bad of ['linear-gradient(red, blue), url(https://evil.example/x.png)', 'linear-gradient(red, blue); color: red', 'url(x.png)', 'red', 'linear-gradient(red, blue) }', TOO_LONG])
+		assert.equal(normalizedGradient(bad), null, bad);
 });
 
 test('extract and apply touch the style only; unknown keys are dropped', () => {
 	const settings = { backgroundImage: 'url(x)', grid: { rows: 3, root: 'Dial', cells: { margin: 9, previewWidth: 1200 } }, backgroundColor: '#010203' };
-	const style = plain(T.extract(settings));
+	const style = plain(Themes.extract(settings));
 	assert.equal(style.grid.rows, undefined);
 	assert.equal(style.grid.cells.previewWidth, undefined);
 	assert.equal(style.backgroundImage, undefined);
 	assert.equal(style.grid.cells.margin, 9);
-	T.apply(settings, T.BUILTIN[1].style);
+	Themes.apply(settings, ANORI.style);
 	assert.equal(settings.grid.rows, 3);
 	assert.equal(settings.grid.root, 'Dial');
 	assert.equal(settings.backgroundImage, 'url(x)');
 	assert.equal(settings.accentColor, '#00794a');
-	assert.ok(T.equal(T.extract(settings), T.BUILTIN[1].style));
+	assert.ok(Themes.equal(Themes.extract(settings), ANORI.style));
 });
 
 test('complete adds the style keys older settings lack, once', () => {
-	const s = { backgroundColor: '#000000', grid: { cells: { margin: 2 } } };
-	assert.equal(T.complete(s), true);
-	assert.equal(s.grid.cells.margin, 2);
-	assert.equal(s.grid.cells.hoverEffect, 0);
-	assert.equal(s.grid.cells.clickEffect, 0, 'no click effect for settings from before 0.8.0');
-	assert.equal(s.accentColor, null);
-	assert.equal(T.complete(s), false);
+	const settings = { backgroundColor: '#000000', grid: { cells: { margin: 2 } } };
+	assert.equal(Themes.complete(settings), true);
+	assert.equal(settings.grid.cells.margin, 2);
+	assert.equal(settings.grid.cells.hoverEffect, Themes.HoverEffect.instant);
+	assert.equal(settings.grid.cells.clickEffect, Themes.ClickEffect.none, 'no click effect for settings from before 0.8.0');
+	assert.equal(settings.accentColor, null);
+	assert.equal(Themes.complete(settings), false);
 });
 
 test('choices from a list (hover effect, click effect, title position, shadow) accept just the listed values', () => {
-	const choices = { hoverEffect: T.HoverEffect, clickEffect: T.ClickEffect, titlePosition: T.TitlePosition, shadow: T.Shadow };
+	const choices = { hoverEffect: Themes.HoverEffect, clickEffect: Themes.ClickEffect, titlePosition: Themes.TitlePosition, shadow: Themes.Shadow };
 	for (const [key, list] of Object.entries(choices)) {
 		const values = Object.values(list), highest = Math.max(...values);
-		for (const value of values) assert.equal(cells({ grid: { cells: { [key]: value } } })[key], value, key + ' ' + value);
-		assert.equal(cells({ grid: { cells: { [key]: highest + 1 } } })[key], highest, key + ': above the list, its last value');
+		for (const value of values) assert.equal(normalizedCells({ grid: { cells: { [key]: value } } })[key], value, key + ' ' + value);
+		assert.equal(normalizedCells({ grid: { cells: { [key]: highest + 1 } } })[key], highest, key + ': above the list, its last value');
 	}
 });
 
 test('the hover transform: lift and grow move the tile, the others don\'t', () => {
-	assert.match(T.hoverTransform(T.HoverEffect.lift), /translateY\(-\d+px\)/);
-	assert.match(T.hoverTransform(T.HoverEffect.grow), /scale\(1\.\d+\)/);
-	assert.equal(T.hoverTransform(T.HoverEffect.smooth), '');
-	assert.equal(T.hoverTransform(T.HoverEffect.instant), '');
-	assert.equal(T.hoverTransform(String(T.HoverEffect.grow)), T.hoverTransform(T.HoverEffect.grow), 'a form value works too');
+	const HoverEffect = Themes.HoverEffect;
+	assert.match(Themes.hoverTransform(HoverEffect.lift), /translateY\(-\d+px\)/);
+	assert.match(Themes.hoverTransform(HoverEffect.grow), /scale\(1\.\d+\)/);
+	assert.equal(Themes.hoverTransform(HoverEffect.smooth), '');
+	assert.equal(Themes.hoverTransform(HoverEffect.instant), '');
+	assert.equal(Themes.hoverTransform(String(HoverEffect.grow)), Themes.hoverTransform(HoverEffect.grow), 'a form value works too');
 });
 
 test('click effects: one of the listed ones, with CSS for each and none for None', () => {
+	const ClickEffect = Themes.ClickEffect;
 	const TILE_SELECTOR = '.qd-tile';
 	const EFFECT_COLOR = '#33ccff';
-	assert.equal(cells({ grid: { cells: { clickEffect: 9 } } }).clickEffect, T.ClickEffect.ring, 'above the range: the last one');
-	assert.equal(cells({ grid: { cells: { clickEffect: 'ripple' } } }).clickEffect, T.ClickEffect.none, 'not a number: none');
-	assert.deepEqual(plain(T.clickEffectRules(TILE_SELECTOR, T.ClickEffect.none, EFFECT_COLOR)), []);
-	for (const [name, effect] of Object.entries(T.ClickEffect)) {
-		if (effect === T.ClickEffect.none) continue;
-		const css = plain(T.clickEffectRules(TILE_SELECTOR, effect, EFFECT_COLOR)).join('\n');
+	assert.equal(normalizedCells({ grid: { cells: { clickEffect: 9 } } }).clickEffect, ClickEffect.ring, 'above the range: the last one');
+	assert.equal(normalizedCells({ grid: { cells: { clickEffect: 'ripple' } } }).clickEffect, ClickEffect.none, 'not a number: none');
+	assert.deepEqual(plain(Themes.clickEffectRules(TILE_SELECTOR, ClickEffect.none, EFFECT_COLOR)), []);
+	for (const [name, effect] of Object.entries(ClickEffect)) {
+		if (effect === ClickEffect.none) continue;
+		const css = plain(Themes.clickEffectRules(TILE_SELECTOR, effect, EFFECT_COLOR)).join('\n');
 		assert.match(css, /@keyframes qd-click-/, name);
 		assert.ok(css.includes(TILE_SELECTOR + '.is-clicked'), name);
-		const reduced = (css.match(/@media \(prefers-reduced-motion: reduce\).*/) || [''])[0];
-		if (effect === T.ClickEffect.flash) assert.equal(reduced, '', 'flash: nothing moves, the same with reduced motion');
-		else assert.match(reduced, /qd-click-flash|qd-click-ring-fade/, name + ': with reduced motion, a flash or a fade instead');
+		const reducedMotionRule = (css.match(/@media \(prefers-reduced-motion: reduce\).*/) || [''])[0];
+		if (effect === ClickEffect.flash) assert.equal(reducedMotionRule, '', 'flash: nothing moves, the same with reduced motion');
+		else assert.match(reducedMotionRule, /qd-click-flash|qd-click-ring-fade/, name + ': with reduced motion, a flash or a fade instead');
 	}
-	assert.ok(plain(T.clickEffectRules(TILE_SELECTOR, T.ClickEffect.ripple, EFFECT_COLOR)).join('').includes(EFFECT_COLOR), 'the ripple has the given colour');
+	assert.ok(plain(Themes.clickEffectRules(TILE_SELECTOR, ClickEffect.ripple, EFFECT_COLOR)).join('').includes(EFFECT_COLOR), 'the ripple has the given colour');
 });
 
 test('theme files round-trip; descriptions and names are cleaned', () => {
-	for (const theme of T.BUILTIN) {
-		const back = T.fromFile(JSON.parse(JSON.stringify(T.toFile(theme))));
-		assert.equal(back.name, theme.name);
-		assert.ok(T.equal(back.style, theme.style), theme.name);
+	const MAX_NAME_LENGTH = 60;
+	for (const theme of Themes.BUILTIN) {
+		const readBack = Themes.fromFile(JSON.parse(JSON.stringify(Themes.toFile(theme))));
+		assert.equal(readBack.name, theme.name);
+		assert.ok(Themes.equal(readBack.style, theme.style), theme.name);
 	}
-	const f = T.toFile({ name: ' Line\nbreak ' + 'x'.repeat(80), description: 'a\tb', style: {} });
-	assert.equal(f.format, 'quickdial-ng-theme');
-	assert.equal(f.version, 1);
-	assert.equal(f.name.length, 60);
-	assert.ok(f.name.startsWith('Line break'));
-	assert.equal(f.description, 'a b');
+	const themeFile = Themes.toFile({ name: ' Line\nbreak ' + 'x'.repeat(80), description: 'a\tb', style: {} });
+	assert.equal(themeFile.format, 'quickdial-ng-theme');
+	assert.equal(themeFile.version, 1);
+	assert.equal(themeFile.name.length, MAX_NAME_LENGTH);
+	assert.ok(themeFile.name.startsWith('Line break'));
+	assert.equal(themeFile.description, 'a b');
 });
 
 test('fromFile says what is wrong with a file (the key of the text Settings shows)', () => {
-	const err = data => { try { T.fromFile(data); return 'no error'; } catch (e) { return e.message; } };
-	assert.equal(err({ format: 'quickdial-ng', settings: {} }), 'themeFileIsBackup');
-	assert.equal(err({ hello: 1 }), 'themeFileInvalid');
-	assert.equal(err(null), 'themeFileInvalid');
-	assert.equal(err({ format: 'quickdial-ng-theme', version: 2, name: 'x', style: {} }), 'themeFileNewer');
-	assert.equal(err({ format: 'quickdial-ng-theme', version: 1, name: '  ', style: {} }), 'themeFileNoName');
-	assert.equal(err({ format: 'quickdial-ng-theme', version: 1, name: 'x', style: 'red' }), 'themeFileInvalid');
+	const errorKeyFor = data => { try { Themes.fromFile(data); return 'no error'; } catch (e) { return e.message; } };
+	assert.equal(errorKeyFor({ format: 'quickdial-ng', settings: {} }), 'themeFileIsBackup');
+	assert.equal(errorKeyFor({ hello: 1 }), 'themeFileInvalid');
+	assert.equal(errorKeyFor(null), 'themeFileInvalid');
+	assert.equal(errorKeyFor({ format: 'quickdial-ng-theme', version: 2, name: 'x', style: {} }), 'themeFileNewer');
+	assert.equal(errorKeyFor({ format: 'quickdial-ng-theme', version: 1, name: '  ', style: {} }), 'themeFileNoName');
+	assert.equal(errorKeyFor({ format: 'quickdial-ng-theme', version: 1, name: 'x', style: 'red' }), 'themeFileInvalid');
 });
 
 test('cleanList keeps valid custom themes once; built-in names and broken entries go', () => {
-	assert.deepEqual(plain(T.cleanList('nope')), []);
-	const list = T.cleanList([{ name: 'Mine', style: {} }, { name: ' mine ', style: {} }, { name: 'classic', style: {} }, { name: 'ANORI', style: {} }, { nameless: true }, null, { name: 'Other', style: { grid: { cells: { blur: 5 } } } }]);
-	assert.deepEqual(plain(list.map(t => t.name)), ['Mine', 'Other']);
+	assert.deepEqual(plain(Themes.cleanList('nope')), []);
+	const list = Themes.cleanList([{ name: 'Mine', style: {} }, { name: ' mine ', style: {} }, { name: 'classic', style: {} }, { name: 'ANORI', style: {} }, { nameless: true }, null,
+		{ name: 'Other', style: { grid: { cells: { blur: 5 } } } }]);
+	assert.deepEqual(plain(list.map(theme => theme.name)), ['Mine', 'Other']);
 	assert.equal(list[1].style.grid.cells.blur, 5);
-	assert.ok(T.isBuiltinName(' anori '));
-	assert.ok(!T.isBuiltinName('Mine'));
+	assert.ok(Themes.isBuiltinName(' anori '));
+	assert.ok(!Themes.isBuiltinName('Mine'));
 });
 
 test('file names', () => {
-	assert.equal(T.fileName('My Theme!'), 'quickdial-ng-theme-my-theme.json');
-	assert.equal(T.fileName('!!!'), 'quickdial-ng-theme-custom.json');
-	assert.equal(T.fileName(''), 'quickdial-ng-theme-custom.json');
+	assert.equal(Themes.fileName('My Theme!'), 'quickdial-ng-theme-my-theme.json');
+	assert.equal(Themes.fileName('!!!'), 'quickdial-ng-theme-custom.json');
+	assert.equal(Themes.fileName(''), 'quickdial-ng-theme-custom.json');
 });
 
 test('CSS helpers: rgba, background layers, shadows', () => {
-	assert.equal(T.rgba('#ff8000', 0.5), 'rgba(255, 128, 0, 0.5)');
-	assert.equal(T.rgba('#ff8000', 1), '#ff8000');
-	assert.equal(T.rgba('#ff8000'), '#ff8000');
-	assert.equal(T.rgba(null, 0.5), 'transparent');
-	assert.equal(T.rgba('#000000', -1), 'rgba(0, 0, 0, 0)');
-	assert.equal(T.background(null, null), 'none');
-	assert.equal(T.background('url(a.png)', 'linear-gradient(red, blue)'), 'url(a.png), linear-gradient(red, blue)', 'the picture lies on top');
-	assert.equal(T.background(null, 'linear-gradient(red, blue)'), 'linear-gradient(red, blue)');
-	assert.equal(T.shadow(0), 'none');
-	assert.match(T.shadow(1), /^0 2px 8px/);
-	assert.match(T.shadow('2'), /^0 10px 28px/);
-	assert.equal(T.shadow(9), 'none');
+	assert.equal(Themes.rgba('#ff8000', 0.5), 'rgba(255, 128, 0, 0.5)');
+	assert.equal(Themes.rgba('#ff8000', 1), '#ff8000');
+	assert.equal(Themes.rgba('#ff8000'), '#ff8000');
+	assert.equal(Themes.rgba(null, 0.5), 'transparent');
+	assert.equal(Themes.rgba('#000000', -1), 'rgba(0, 0, 0, 0)');
+	assert.equal(Themes.background(null, null), 'none');
+	assert.equal(Themes.background('url(a.png)', 'linear-gradient(red, blue)'), 'url(a.png), linear-gradient(red, blue)', 'the picture lies on top');
+	assert.equal(Themes.background(null, 'linear-gradient(red, blue)'), 'linear-gradient(red, blue)');
+	assert.equal(Themes.shadow(0), 'none');
+	assert.match(Themes.shadow(1), /^0 2px 8px/);
+	assert.match(Themes.shadow('2'), /^0 10px 28px/);
+	assert.equal(Themes.shadow(9), 'none');
 });

@@ -1,53 +1,148 @@
-// Simulated Firefox WebExtension API shared by all frames (state lives in the top window)
-window.S = { storage: {}, writes: [], removes: [], frames: [], nextId: 100, listeners: {} };
-S.bm = { id: 'root________', title: '', children: [
-  { id: 'menu________', title: 'menu', children: [] },
-  { id: 'toolbar_____', title: 'toolbar', children: [] } ] };
-const clone = o => o === undefined ? undefined : JSON.parse(JSON.stringify(o));
-function findNode(id, n = S.bm, parent = null) { if (n.id === id) return { node: n, parent }; for (const c of n.children || []) { const r = findNode(id, c, n); if (r) return r; } return null; }
-function evt(name, owner) { S.listeners[name] = S.listeners[name] || []; return { addListener: f => { f.__owner = owner; if (!S.listeners[name].includes(f)) S.listeners[name].push(f); }, removeListener: f => { S.listeners[name] = S.listeners[name].filter(x => x !== f); }, hasListener: f => S.listeners[name].includes(f) }; }
-function fire(name, ...a) { for (const f of [...(S.listeners[name] || [])]) try { f(...a); } catch (e) { console.error('listener', name, e); } }
-window.fire = fire;
-// browser.i18n: the English texts (_locales/en/messages.json, read once), $1..$9 filled in as Firefox does
-let messages = null;
-function getMessage(key, substitutions) {
-  if (key === '@@bidi_dir') return 'ltr';
-  if (!messages) { const xhr = new XMLHttpRequest(); xhr.open('GET', '/_locales/en/messages.json', false); xhr.send(); messages = JSON.parse(xhr.responseText); }
-  const entry = messages[key], values = substitutions == null ? [] : [].concat(substitutions);
-  return entry ? entry.message.replace(/\$(\d|\$)/g, (all, n) => n === '$' ? '$' : String(values[n - 1] ?? '')) : '';
+// Simulated Firefox WebExtension API shared by all frames (state lives in the top window, in mockState):
+//   storage       browser.storage.local
+//   writes        every key written to storage, with the size of its value: { key, size }
+//   removes       every key removed from storage
+//   bookmarkTree  the bookmarks (root > menu, toolbar)
+//   listeners     the event listeners, by event name ('bm.onCreated', 'rt.onMessage.dial'...)
+//   menus         the context menu titles; menuItems: everything passed to contextMenus.create
+window.mockState = { storage: {}, writes: [], removes: [], frames: [], nextBookmarkId: 100, listeners: {} };
+mockState.bookmarkTree = { id: 'root________', title: '', children: [
+	{ id: 'menu________', title: 'menu', children: [] },
+	{ id: 'toolbar_____', title: 'toolbar', children: [] } ] };
+// A deep copy, as the real API gives (nothing shared between the caller and the stored data)
+const copyOf = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+// The bookmark with that id and its parent folder ({ node, parent }), or null
+function findBookmark(id, node = mockState.bookmarkTree, parent = null) {
+	if (node.id === id) return { node, parent };
+	for (const child of node.children || []) { const found = findBookmark(id, child, node); if (found) return found; }
+	return null;
 }
-window.makeBrowser = function (win, role) {
-  S.frames.push({ win, role });
-  return {
-    storage: { local: {
-      get: keys => { const ks = keys == null ? Object.keys(S.storage) : (typeof keys === 'string' ? [keys] : keys); const r = {}; for (const k of ks) if (k in S.storage) r[k] = clone(S.storage[k]); return Promise.resolve(r); },
-      set: o => { for (const k in o) { S.storage[k] = clone(o[k]); S.writes.push({ k, len: JSON.stringify(o[k]).length }); } return Promise.resolve(); },
-      remove: ks => { for (const k of [].concat(ks)) { delete S.storage[k]; S.removes.push(k); } return Promise.resolve(); },
-      clear: () => { S.storage = {}; return Promise.resolve(); } } },
-    bookmarks: {
-      // Like Firefox, a bookmark id that doesn't exist (any more) rejects
-      getSubTree: id => findNode(id) ? Promise.resolve([clone(findNode(id).node)]) : Promise.reject(new Error('no bookmark ' + id)),
-      create: ({ parentId, title, url }) => { const p = findNode(parentId).node; const n = { id: 'n' + (S.nextId++), title, parentId, type: url ? 'bookmark' : 'folder' }; if (url) n.url = url; else n.children = []; p.children.push(n); setTimeout(() => fire('bm.onCreated', n.id, clone(n)), 0); const r = clone(n); delete r.children; return Promise.resolve(r); }, // Firefox returns new folders without a children list
-      update: (id, ch) => { if (!findNode(id)) return Promise.reject(new Error('no bookmark ' + id)); const n = findNode(id).node; Object.assign(n, ch); setTimeout(() => fire('bm.onChanged', id, ch), 0); return Promise.resolve(clone(n)); },
-      move: (id, { parentId, index }) => { if (!findNode(id) || !findNode(parentId)) return Promise.reject(new Error('no bookmark ' + id)); const f = findNode(id); const oldParentId = f.parent.id, oldIndex = f.parent.children.indexOf(f.node); f.parent.children.splice(oldIndex, 1);
-        const p = findNode(parentId).node; p.children.splice(index == null ? p.children.length : index, 0, f.node); f.node.parentId = parentId;
-        setTimeout(() => fire('bm.onMoved', id, { parentId, oldParentId, index: p.children.indexOf(f.node), oldIndex }), 0); return Promise.resolve(clone(f.node)); },
-      removeTree: id => { const f = findNode(id); if (!f) return Promise.reject(new Error('no bookmark ' + id)); f.parent.children = f.parent.children.filter(c => c.id !== id); setTimeout(() => fire('bm.onRemoved', id, { parentId: f.parent.id }), 0); return Promise.resolve(); },
-      onCreated: evt('bm.onCreated', role), onChanged: evt('bm.onChanged', role), onMoved: evt('bm.onMoved', role), onRemoved: evt('bm.onRemoved', role), onImportBegan: evt('bm.onImportBegan', role), onImportEnded: evt('bm.onImportEnded', role) },
-    runtime: {
-      onMessage: evt('rt.onMessage.' + role, role),
-      sendMessage: msg => {
-        const target = role === 'bg' ? 'dial' : 'bg';
-        const ls = S.listeners['rt.onMessage.' + target] || [];
-        if (!ls.length) return Promise.reject(new Error('no receiver'));
-        return new Promise((resolve, reject) => { let done = false; for (const f of ls) { const r = f(clone(msg), {}, v => { done = true; resolve(clone(v)); }); if (r && r.then) { done = true; r.then(v => resolve(clone(v)), reject); } } setTimeout(() => { if (!done) resolve(undefined); }, 50); }); },
-      getBackgroundPage: () => Promise.resolve((S.frames.filter(f => f.role === 'bg').pop() || {}).win),
-      getURL: p => p,
-      getManifest: () => ({ version: '0.0.0' }) },
-    tabs: { query: () => Promise.resolve([]), update: () => Promise.resolve({}), create: () => Promise.resolve({ id: 1 }), remove: () => Promise.resolve(), getCurrent: () => Promise.resolve({ id: 1 }), sendMessage: () => Promise.resolve(), captureVisibleTab: () => Promise.reject(new Error('n/a')), get: () => Promise.resolve({ status: 'complete' }) },
-    // S.menus: the titles; S.menuItems: everything passed to create (onclick included), so tests can click an item
-    contextMenus: { create: o => { (S.menus = S.menus || []).push(o.title); (S.menuItems = S.menuItems || []).push(o); return o.id || S.menuItems.length; },
-      removeAll: () => { S.menus = []; S.menuItems = []; return Promise.resolve(); }, onClicked: evt('cm.onClicked', role) },
-    browserAction: { onClicked: evt('ba.onClicked', role) },
-    i18n: { getMessage, getUILanguage: () => 'en' } };
+// An event of the API (onCreated...): its listeners are kept in mockState.listeners[eventName], marked
+// with the role of the frame that added them, so replacing a frame removes them (index.html, loadFrame)
+function mockEvent(eventName, ownerRole) {
+	mockState.listeners[eventName] = mockState.listeners[eventName] || [];
+	return {
+		addListener: listener => { listener.__owner = ownerRole; if (!mockState.listeners[eventName].includes(listener)) mockState.listeners[eventName].push(listener); },
+		removeListener: listener => { mockState.listeners[eventName] = mockState.listeners[eventName].filter(added => added !== listener); },
+		hasListener: listener => mockState.listeners[eventName].includes(listener) };
+}
+// Calls every listener of an event, as Firefox does; a listener that throws doesn't stop the others
+function fireEvent(eventName, ...eventArgs) {
+	for (const listener of [...(mockState.listeners[eventName] || [])]) {
+		try { listener(...eventArgs); } catch (e) { console.error('listener', eventName, e); }
+	}
+}
+window.fireEvent = fireEvent;
+// browser.i18n: the English texts (_locales/en/messages.json, read once), $1..$9 filled in as Firefox does
+let englishMessages = null;
+function getMessage(key, substitutions) {
+	if (key === '@@bidi_dir') return 'ltr';
+	if (!englishMessages) {
+		const request = new XMLHttpRequest();
+		request.open('GET', '/_locales/en/messages.json', false);
+		request.send();
+		englishMessages = JSON.parse(request.responseText);
+	}
+	const entry = englishMessages[key], values = substitutions == null ? [] : [].concat(substitutions);
+	return entry ? entry.message.replace(/\$(\d|\$)/g, (placeholder, number) => number === '$' ? '$' : String(values[number - 1] ?? '')) : '';
+}
+// How long a sent message waits for an answer before it resolves with nothing, as when no listener answers
+const MESSAGE_ANSWER_TIMEOUT = 50;
+
+// The browser object of one frame: role is 'bg' for the background page, 'dial' for the other pages
+window.makeBrowser = function (frameWindow, role) {
+	mockState.frames.push({ win: frameWindow, role });
+	const storage = { local: {
+		get: keys => {
+			const wanted = keys == null ? Object.keys(mockState.storage) : (typeof keys === 'string' ? [keys] : keys);
+			const result = {};
+			for (const key of wanted) if (key in mockState.storage) result[key] = copyOf(mockState.storage[key]);
+			return Promise.resolve(result);
+		},
+		set: items => {
+			for (const key in items) { mockState.storage[key] = copyOf(items[key]); mockState.writes.push({ key, size: JSON.stringify(items[key]).length }); }
+			return Promise.resolve();
+		},
+		remove: keys => {
+			for (const key of [].concat(keys)) { delete mockState.storage[key]; mockState.removes.push(key); }
+			return Promise.resolve();
+		},
+		clear: () => { mockState.storage = {}; return Promise.resolve(); } } };
+
+	// Like Firefox, a bookmark id that doesn't exist (any more) rejects; changes fire their events afterwards
+	const later = (eventName, ...eventArgs) => setTimeout(() => fireEvent(eventName, ...eventArgs), 0);
+	const missing = id => Promise.reject(new Error('no bookmark ' + id));
+	const bookmarks = {
+		getSubTree: id => findBookmark(id) ? Promise.resolve([copyOf(findBookmark(id).node)]) : missing(id),
+		create: ({ parentId, title, url }) => {
+			const parentFolder = findBookmark(parentId).node;
+			const created = { id: 'n' + (mockState.nextBookmarkId++), title, parentId, type: url ? 'bookmark' : 'folder' };
+			if (url) created.url = url; else created.children = [];
+			parentFolder.children.push(created);
+			later('bm.onCreated', created.id, copyOf(created));
+			const answer = copyOf(created);
+			delete answer.children; // Firefox returns new folders without a children list
+			return Promise.resolve(answer);
+		},
+		update: (id, changes) => {
+			if (!findBookmark(id)) return missing(id);
+			const bookmark = findBookmark(id).node;
+			Object.assign(bookmark, changes);
+			later('bm.onChanged', id, changes);
+			return Promise.resolve(copyOf(bookmark));
+		},
+		move: (id, { parentId, index }) => {
+			if (!findBookmark(id) || !findBookmark(parentId)) return missing(id);
+			const moved = findBookmark(id);
+			const oldParentId = moved.parent.id, oldIndex = moved.parent.children.indexOf(moved.node);
+			moved.parent.children.splice(oldIndex, 1);
+			const newParent = findBookmark(parentId).node;
+			newParent.children.splice(index == null ? newParent.children.length : index, 0, moved.node);
+			moved.node.parentId = parentId;
+			later('bm.onMoved', id, { parentId, oldParentId, index: newParent.children.indexOf(moved.node), oldIndex });
+			return Promise.resolve(copyOf(moved.node));
+		},
+		removeTree: id => {
+			const removed = findBookmark(id);
+			if (!removed) return missing(id);
+			removed.parent.children = removed.parent.children.filter(child => child.id !== id);
+			later('bm.onRemoved', id, { parentId: removed.parent.id });
+			return Promise.resolve();
+		},
+		onCreated: mockEvent('bm.onCreated', role), onChanged: mockEvent('bm.onChanged', role), onMoved: mockEvent('bm.onMoved', role),
+		onRemoved: mockEvent('bm.onRemoved', role), onImportBegan: mockEvent('bm.onImportBegan', role), onImportEnded: mockEvent('bm.onImportEnded', role) };
+
+	// Messages go from the background page to the dial and from any other page to the background page
+	const sendMessage = message => {
+		const receiverRole = role === 'bg' ? 'dial' : 'bg';
+		const receivers = mockState.listeners['rt.onMessage.' + receiverRole] || [];
+		if (!receivers.length) return Promise.reject(new Error('no receiver'));
+		return new Promise((resolve, reject) => {
+			let answered = false;
+			for (const receiver of receivers) {
+				const returned = receiver(copyOf(message), {}, answer => { answered = true; resolve(copyOf(answer)); });
+				if (returned && returned.then) { answered = true; returned.then(answer => resolve(copyOf(answer)), reject); }
+			}
+			setTimeout(() => { if (!answered) resolve(undefined); }, MESSAGE_ANSWER_TIMEOUT);
+		});
+	};
+	const runtime = {
+		onMessage: mockEvent('rt.onMessage.' + role, role),
+		sendMessage,
+		getBackgroundPage: () => Promise.resolve((mockState.frames.filter(frame => frame.role === 'bg').pop() || {}).win),
+		getURL: extensionPath => extensionPath,
+		getManifest: () => ({ version: '0.0.0' }) };
+
+	const tabs = { query: () => Promise.resolve([]), update: () => Promise.resolve({}), create: () => Promise.resolve({ id: 1 }), remove: () => Promise.resolve(),
+		getCurrent: () => Promise.resolve({ id: 1 }), sendMessage: () => Promise.resolve(), captureVisibleTab: () => Promise.reject(new Error('n/a')),
+		get: () => Promise.resolve({ status: 'complete' }) };
+	// mockState.menus: the titles; mockState.menuItems: everything passed to create (onclick included), so tests can click an item
+	const contextMenus = {
+		create: item => { (mockState.menus = mockState.menus || []).push(item.title); (mockState.menuItems = mockState.menuItems || []).push(item); return item.id || mockState.menuItems.length; },
+		removeAll: () => { mockState.menus = []; mockState.menuItems = []; return Promise.resolve(); },
+		onClicked: mockEvent('cm.onClicked', role) };
+
+	return { storage, bookmarks, runtime, tabs, contextMenus,
+		browserAction: { onClicked: mockEvent('ba.onClicked', role) },
+		i18n: { getMessage, getUILanguage: () => 'en' } };
 };

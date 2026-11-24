@@ -14,77 +14,96 @@
 'use strict';
 const { freshProfile, makeVersion4, pictures } = require('../lib/fixtures');
 
+// The node types of the original Quick Dial's data (QDCommon.NodeType)
+const NodeType = { empty: 0, folder: 1, bookmark: 2 };
+// What the background page imports from a backup; its answer
+const importBackup = (testPage, backup) => testPage.inHost(data => backgroundPage().app.Backup.import(data), backup);
+// The stored picture keys (one per tile with a picture)
+const storedPictureKeys = testPage => testPage.inHost(() => Object.keys(mockState.storage).filter(key => key.startsWith('img_')).sort());
+
 module.exports = {
 	title: 'Export, import, original Quick Dial exports, themes in backups',
-	async run(t) {
-		await freshProfile(t);
-		await makeVersion4(t);
-		await t.loadBg();
+	async run(testPage) {
+		await freshProfile(testPage);
+		await makeVersion4(testPage);
+		await testPage.loadBg();
 
 		// ----- export, then import into an empty profile -----
-		const background = 'url(' + (await pictures(t, 1))[0] + ')'; // a picture picked in Settings: stored under its own key
-		await t.J(p => bg().app.Settings.update(Object.assign(JSON.parse(JSON.stringify(bg().app.settings)), { backgroundImage: p })), background);
-		const exp = await t.J(() => bg().app.Backup.export());
-		t.check('an export has the 7 pictures', Object.keys(exp.images).length === 7, Object.keys(exp.images));
-		t.check('and the background picture inline in its settings', exp.settings.backgroundImage === background);
-		await t.J(() => { S.storage = {}; });
-		await t.loadBg();
-		let r = await t.J(data => bg().app.Backup.import(data), exp);
-		await t.idle();
-		let st = await t.J(() => Object.keys(S.storage).filter(k => k.startsWith('img_')).length);
-		t.check('importing it into an empty profile restores the 7 pictures', st === 7 && r.matched === 8 && r.created === 0, [st, r]);
-		st = await t.J(() => ({ key: S.storage.picture_background, stored: S.storage.settings.backgroundImage, shown: bg().app.settings.backgroundImage }));
-		t.check('and the background under its own key', st.key === background && st.stored === '1' && st.shown === background, [st.stored, !!st.key, (st.shown || '').slice(0, 30)]);
-		st = await t.J(() => bg().app.Backup.import({ settings: {} }).then(() => 'imported', e => e.message));
-		t.check('data that is not a backup is refused', st === 'Not a Quick Dial backup', st);
+		const background = 'url(' + (await pictures(testPage, 1))[0] + ')'; // a picture picked in Settings: stored under its own key
+		await testPage.inHost(picture => backgroundPage().app.Settings.update(Object.assign(JSON.parse(JSON.stringify(backgroundPage().app.settings)), { backgroundImage: picture })), background);
+		const exported = await testPage.inHost(() => backgroundPage().app.Backup.export());
+		testPage.check('an export has the 7 pictures', Object.keys(exported.images).length === 7, Object.keys(exported.images));
+		testPage.check('and the background picture inline in its settings', exported.settings.backgroundImage === background);
+		await testPage.inHost(() => { mockState.storage = {}; });
+		await testPage.loadBg();
+		const restoreReport = await importBackup(testPage, exported);
+		await testPage.idle();
+		const restoredPictures = await storedPictureKeys(testPage);
+		testPage.check('importing it into an empty profile restores the 7 pictures', restoredPictures.length === 7 && restoreReport.matched === 8 && restoreReport.created === 0, [restoredPictures, restoreReport]);
+		const restoredBackground = await testPage.inHost(() => ({ key: mockState.storage.picture_background, stored: mockState.storage.settings.backgroundImage, shown: backgroundPage().app.settings.backgroundImage }));
+		testPage.check('and the background under its own key', restoredBackground.key === background && restoredBackground.stored === '1' && restoredBackground.shown === background,
+			[restoredBackground.stored, !!restoredBackground.key, (restoredBackground.shown || '').slice(0, 30)]);
+		const notBackupOutcome = await testPage.inHost(() => backgroundPage().app.Backup.import({ settings: {} }).then(() => 'imported', error => error.message));
+		testPage.check('data that is not a backup is refused', notBackupOutcome === 'Not a Quick Dial backup', notBackupOutcome);
 
 		// ----- an original Quick Dial export from another profile: its bookmark ids don't exist here -----
-		await t.J(() => bg().browser.bookmarks.removeTree('f1'));
-		await t.idle();
-		const settings = await t.J(() => S.storage.settings);
+		await testPage.inHost(() => backgroundPage().browser.bookmarks.removeTree('f1'));
+		await testPage.idle();
+		const settings = await testPage.inHost(() => mockState.storage.settings);
 		settings.startpageTimeout = 500; // the obsolete start page timer: dropped on import
 		settings.grid = { ...settings.grid, columns: 7, cells: { ...settings.grid.cells, titleColor: '#ff0000', previewWidth: 1200, previewHeight: 710 } }; // the fixed picture size: dropped too
 		delete settings.grid.cells.snapshotDelay;
-		const [img1, img2, img3] = await pictures(t, 3);
-		const original = { version: 4, settings, node: { id: 'oldroot', type: 1, title: 'Quick Dial', children: [
-			{ id: 'x1', type: 2, title: 'Site 1', url: 'https://site1.example/', image: img1, imageLocked: true, imageMode: 2 },
-			{ type: 0 }, null,
-			{ id: 'x9', type: 2, title: 'New 9', url: 'https://new9.example/', image: 'url(' + img2 + ')', __isLoading: true },
-			{ id: 'xf', type: 1, title: 'Folder', children: [{ type: 0 }, { id: 'x7', type: 2, title: 'Site 7', url: 'https://site7.example/', image: img3 }, { id: 'x10', type: 2, title: 'New 10', url: 'https://new10.example/' }] },
-			{ id: 'xg', type: 1, title: 'Brand new', children: [{ id: 'x11', type: 2, title: 'New 11', url: 'https://new11.example/' }] }] } };
-		r = await t.J(data => bg().app.Backup.import(data), original);
-		await t.idle();
-		t.check('the import reports what it did', r && r.ok && r.tiles === 5 && r.folders === 2 && r.matched === 1 && r.created === 6 && r.images === 3, r);
-		st = await t.J(() => {
-			const qd = S.bm.children[0].children.find(c => c.id === 'qd'), n = S.storage.node;
-			const urls = f => (f.children || []).map(c => c.url || ('[' + c.title + ']'));
-			return { rootId: n.id, c0: n.children[0], c3: n.children[3], c4: n.children[4], c5: n.children[5],
-				qd: urls(qd), f: urls(qd.children.find(c => c.title === 'Folder') || {}), g: urls(qd.children.find(c => c.title === 'Brand new') || {}),
-				imgs: Object.keys(S.storage).filter(k => k.startsWith('img_')).sort(), s: S.storage.settings };
+		const [picture1, picture2, picture3] = await pictures(testPage, 3);
+		const originalExport = { version: 4, settings, node: { id: 'oldroot', type: NodeType.folder, title: 'Quick Dial', children: [
+			{ id: 'x1', type: NodeType.bookmark, title: 'Site 1', url: 'https://site1.example/', image: picture1, imageLocked: true, imageMode: 2 },
+			{ type: NodeType.empty }, null,
+			{ id: 'x9', type: NodeType.bookmark, title: 'New 9', url: 'https://new9.example/', image: 'url(' + picture2 + ')', __isLoading: true },
+			{ id: 'xf', type: NodeType.folder, title: 'Folder', children: [{ type: NodeType.empty }, { id: 'x7', type: NodeType.bookmark, title: 'Site 7', url: 'https://site7.example/', image: picture3 },
+				{ id: 'x10', type: NodeType.bookmark, title: 'New 10', url: 'https://new10.example/' }] },
+			{ id: 'xg', type: NodeType.folder, title: 'Brand new', children: [{ id: 'x11', type: NodeType.bookmark, title: 'New 11', url: 'https://new11.example/' }] }] } };
+		const originalReport = await importBackup(testPage, originalExport);
+		await testPage.idle();
+		testPage.check('the import reports what it did', originalReport && originalReport.ok && originalReport.tiles === 5 && originalReport.folders === 2
+			&& originalReport.matched === 1 && originalReport.created === 6 && originalReport.images === 3, originalReport);
+		const imported = await testPage.inHost(() => {
+			const dialFolder = mockState.bookmarkTree.children[0].children.find(child => child.id === 'qd'), storedRoot = mockState.storage.node;
+			// The addresses in a bookmarks folder, with [title] for a folder
+			const addressesIn = folder => (folder.children || []).map(child => child.url || ('[' + child.title + ']'));
+			const subfolder = title => dialFolder.children.find(child => child.title === title) || {};
+			return { rootId: storedRoot.id, tiles: storedRoot.children.slice(0, 6),
+				dialFolder: addressesIn(dialFolder), folder: addressesIn(subfolder('Folder')), brandNew: addressesIn(subfolder('Brand new')),
+				pictureKeys: Object.keys(mockState.storage).filter(key => key.startsWith('img_')).sort(), settings: mockState.storage.settings };
 		});
-		t.check('a matching tile reuses bookmark b1 at cell 0 with its options', st.c0.id === 'b1' && st.c0.imageLocked && st.c0.imageMode === 2 && st.c0.image === '1', st.c0);
-		t.check('a missing bookmark is created at cell 3', st.c3.url === 'https://new9.example/' && st.qd.includes('https://new9.example/') && st.c3.image === '1' && !('__isLoading' in st.c3), st.c3);
-		t.check('a folder is recreated at cell 4, keeping its inner gap', st.c4.type === 1 && st.c4.children[0].type === 0 && st.c4.children[1].url === 'https://site7.example/' && t.same(st.f, ['https://site7.example/', 'https://new10.example/']), [st.c4, st.f]);
-		t.check('a new folder at cell 5 with its bookmark', st.c5.title === 'Brand new' && t.same(st.g, ['https://new11.example/']), st.g);
-		t.check('the tiles are linked to the Quick Dial folder', st.rootId === 'qd', st.rootId);
-		t.check('the pictures follow their tiles (3, under the new ids)', st.imgs.length === 3 && st.imgs.includes('img_b1') && st.imgs.includes('img_' + st.c3.id) && st.imgs.includes('img_' + st.c4.children[1].id), st.imgs);
-		t.check('style and grid imported, missing fields defaulted, obsolete ones dropped', st.s.grid.columns === 7 && st.s.grid.cells.titleColor === '#ff0000' && st.s.grid.cells.snapshotDelay === 2000 && !('startpageTimeout' in st.s) && !('previewWidth' in st.s.grid.cells) && !('previewHeight' in st.s.grid.cells), st.s.grid);
-		st = await t.J(() => ({ stored: S.storage.settings.backgroundImage, key: 'picture_background' in S.storage }));
-		t.check('a stored-picture mark without its picture (copied from storage) imports as no background', st.stored === null && !st.key, st);
-		r = await t.J(data => bg().app.Backup.import(data), original);
-		await t.idle();
-		t.check('importing the same export again matches everything and creates nothing', r.created === 0 && r.matched === 7, r);
+		const [matchedTile, , , createdTile, folderTile, newFolderTile] = imported.tiles;
+		testPage.check('a matching tile reuses bookmark b1 at cell 0 with its options', matchedTile.id === 'b1' && matchedTile.imageLocked && matchedTile.imageMode === 2 && matchedTile.image === '1', matchedTile);
+		testPage.check('a missing bookmark is created at cell 3', createdTile.url === 'https://new9.example/' && imported.dialFolder.includes('https://new9.example/') && createdTile.image === '1' && !('__isLoading' in createdTile), createdTile);
+		testPage.check('a folder is recreated at cell 4, keeping its inner gap', folderTile.type === NodeType.folder && folderTile.children[0].type === NodeType.empty
+			&& folderTile.children[1].url === 'https://site7.example/' && testPage.same(imported.folder, ['https://site7.example/', 'https://new10.example/']), [folderTile, imported.folder]);
+		testPage.check('a new folder at cell 5 with its bookmark', newFolderTile.title === 'Brand new' && testPage.same(imported.brandNew, ['https://new11.example/']), imported.brandNew);
+		testPage.check('the tiles are linked to the Quick Dial folder', imported.rootId === 'qd', imported.rootId);
+		testPage.check('the pictures follow their tiles (3, under the new ids)', imported.pictureKeys.length === 3 && imported.pictureKeys.includes('img_b1')
+			&& imported.pictureKeys.includes('img_' + createdTile.id) && imported.pictureKeys.includes('img_' + folderTile.children[1].id), imported.pictureKeys);
+		const importedGrid = imported.settings.grid;
+		testPage.check('style and grid imported, missing fields defaulted, obsolete ones dropped', importedGrid.columns === 7 && importedGrid.cells.titleColor === '#ff0000'
+			&& importedGrid.cells.snapshotDelay === 2000 && !('startpageTimeout' in imported.settings) && !('previewWidth' in importedGrid.cells) && !('previewHeight' in importedGrid.cells), importedGrid);
+		const importedBackground = await testPage.inHost(() => ({ stored: mockState.storage.settings.backgroundImage, key: 'picture_background' in mockState.storage }));
+		testPage.check('a stored-picture mark without its picture (copied from storage) imports as no background', importedBackground.stored === null && !importedBackground.key, importedBackground);
+		const againReport = await importBackup(testPage, originalExport);
+		await testPage.idle();
+		testPage.check('importing the same export again matches everything and creates nothing', againReport.created === 0 && againReport.matched === 7, againReport);
 
 		// ----- themes travel with backups; style values from a backup are cleaned -----
-		await t.J(() => bg().app.Themes.save([{ name: 'Mine', style: { backgroundColor: '#112233' } }]));
-		const bk = await t.J(() => bg().app.Backup.export());
-		t.check('a backup carries the custom themes', bk.themes && bk.themes.length === 1 && bk.themes[0].name === 'Mine', bk.themes);
-		bk.themes.push({ name: 'From backup', style: { accentColor: '#aa0000' } });
-		bk.settings.backgroundGradient = 'url(https://evil.example/)';
-		await t.J(() => bg().app.Themes.save([{ name: 'mine', description: 'changed here', style: {} }, { name: 'Local only', style: {} }]));
-		await t.J(data => bg().app.Backup.import(data), bk);
-		await t.idle();
-		st = await t.J(() => ({ themes: bg().app.Themes.list.map(t => t.name + ':' + (t.description || '')), grad: bg().app.settings.backgroundGradient, stored: S.storage.themes.length }));
-		t.check('importing it adds its themes (the same name: replaced) and cleans style values', t.same(st.themes.sort(), ['From backup:', 'Local only:', 'Mine:']) && st.grad === null && st.stored === 3, st);
+		await testPage.inHost(() => backgroundPage().app.Themes.save([{ name: 'Mine', style: { backgroundColor: '#112233' } }]));
+		const backupWithThemes = await testPage.inHost(() => backgroundPage().app.Backup.export());
+		testPage.check('a backup carries the custom themes', backupWithThemes.themes && backupWithThemes.themes.length === 1 && backupWithThemes.themes[0].name === 'Mine', backupWithThemes.themes);
+		backupWithThemes.themes.push({ name: 'From backup', style: { accentColor: '#aa0000' } });
+		backupWithThemes.settings.backgroundGradient = 'url(https://evil.example/)';
+		await testPage.inHost(() => backgroundPage().app.Themes.save([{ name: 'mine', description: 'changed here', style: {} }, { name: 'Local only', style: {} }]));
+		await importBackup(testPage, backupWithThemes);
+		await testPage.idle();
+		const themesAfter = await testPage.inHost(() => ({ themes: backgroundPage().app.Themes.list.map(theme => theme.name + ':' + (theme.description || '')),
+			gradient: backgroundPage().app.settings.backgroundGradient, stored: mockState.storage.themes.length }));
+		testPage.check('importing it adds its themes (the same name: replaced) and cleans style values', testPage.same(themesAfter.themes.sort(), ['From backup:', 'Local only:', 'Mine:'])
+			&& themesAfter.gradient === null && themesAfter.stored === 3, themesAfter);
 	}
 };

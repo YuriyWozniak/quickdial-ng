@@ -93,12 +93,12 @@ No test reaches the internet: an address other than the test server gets a stub 
 | File | Purpose |
 |---|---|
 | `run.js` | Runs the integration suites: copies `src/` to a temporary folder, serves it over a local HTTP server, starts the browser, and gives each suite a fresh page. |
-| `integration/*.js` | One suite per area: `module.exports = { title, run(t) }`. |
-| `lib/harness.js` | What suites use through `t` (each method is described there): `check`, `same`, `log`; `J` (run code in the host page), `waitFor` (wait for a condition there); `loadBg`, `idle`, `loadDial`, `loadSettings`; `frame`, `inFrame`, `inDial`, `dial` (a page's frame); `answer` (a dialog), `download`. Also used by the screenshot maker. |
+| `integration/*.js` | One suite per area: `module.exports = { title, run(testPage) }`. |
+| `lib/harness.js` | What suites use through `testPage` (each method is described there): `check`, `same`, `log`; `inHost` (run code in the host page), `waitFor` (wait for a condition there); `loadBg`, `idle`, `loadDial`, `loadSettings`; `frame`, `inFrame`, `inDial`, `dial` (a page's frame); `answer` (a dialog), `download`. Also used by the screenshot maker. |
 | `lib/fixtures.js` | Shared test data and stand-ins: the bookmarks, original Quick Dial data, pictures, settings changes, a recording tabs API, a stand-in for Firefox's `drawWindow`, local web pages. |
 | `lib/coverage.js` | Coverage for `--coverage` (V8's, from the browser and from Node). |
-| `mock.js` | The simulated Firefox API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the host page as `S`: storage, the bookmark tree, listeners, logs of storage writes and removals, and the menu items. It mirrors Firefox where it matters: e.g. a new folder comes without `children`, and a missing bookmark id rejects. |
-| `index.html` | The host page: loads `mock.js` and provides `loadFrame()` (opens an extension page in a frame; replacing a frame removes its listeners, which simulates a restart), `bg()`, `win()` and `bgIdle()`. |
+| `mock.js` | The simulated Firefox API (`storage.local`, `bookmarks`, `runtime` messaging, `tabs`, `contextMenus`, …) shared by every frame. State lives in the host page as `mockState`: storage, the bookmark tree, listeners, logs of storage writes and removals, and the menu items. It mirrors Firefox where it matters: e.g. a new folder comes without `children`, and a missing bookmark id rejects. |
+| `index.html` | The host page: loads `mock.js` and provides `loadFrame()` (opens an extension page in a frame; replacing a frame removes its listeners, which simulates a restart), `backgroundPage()`, `frameWindow()`, `dialFolderBookmarks()`, `fireEvent()` and `waitForBackgroundIdle()`. |
 | `unit/*.test.js` | The unit tests; `unit/load.js` loads scripts from `src/js` into a sandbox with a minimal fake of the API. |
 
 ## Writing tests
@@ -116,20 +116,21 @@ const { freshProfile } = require('../lib/fixtures');
 
 module.exports = {
 	title: '<shown in the report and by --list>',
-	async run(t) {
-		await freshProfile(t);
+	async run(testPage) {
+		await freshProfile(testPage);
 
 		// ----- <a group of steps> -----
-		await t.J(() => bg().browser.bookmarks.update('b1', { title: 'Renamed' }));
-		await t.idle();
-		const st = await t.J(() => S.storage.node.children[0].title);
-		t.check('a renamed bookmark renames its tile', st === 'Renamed', st);
+		await testPage.inHost(() => backgroundPage().browser.bookmarks.update('b1', { title: 'Renamed' }));
+		await testPage.idle();
+		const storedTitle = await testPage.inHost(() => mockState.storage.node.children[0].title);
+		testPage.check('a renamed bookmark renames its tile', storedTitle === 'Renamed', storedTitle);
 	}
 };
 ```
 
 - Name a check by what should be true, as a statement ("a renamed bookmark renames its tile"); pass what you got as the third argument, so a failure shows it.
-- Code passed to `t.J`, `t.waitFor` and `t.inDial` runs in the browser, not in Node: it can't use the suite's variables; pass what it needs as the argument.
-- Wait for what you expect, not for a fixed time: `await t.idle()` after a change in the background page, `await t.waitFor('what', () => condition)` for anything else. A fixed pause is only right where the check is that something does *not* happen within a time.
+- Give each result its own name after what it holds (`storedTitle`, `openedTabs`), not one short variable reused for every check: the lint rule `qdng/descriptive-names` ([eslint-rules](../eslint-rules/descriptive-names.mjs)) refuses names of one or two letters, except loop indexes, `e` and the parameters of one-line arrow functions. Name fixed values too: command numbers, picture modes and effects as small lookup objects (`MenuCommand.refresh`), sizes and times as constants.
+- Code passed to `testPage.inHost`, `testPage.waitFor` and `testPage.inDial` runs in the browser, not in Node: it can't use the suite's variables; pass what it needs as the argument.
+- Wait for what you expect, not for a fixed time: `await testPage.idle()` after a change in the background page, `await testPage.waitFor('what', () => condition)` for anything else. A fixed pause is only right where the check is that something does *not* happen within a time.
 - When a step changes what later steps see, say so in the file's comment.
 - Run `npm run check` at the top of the repository: ESLint checks the test code too.

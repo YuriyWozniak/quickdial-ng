@@ -16,88 +16,94 @@ const SRC = path.join(__dirname, '..', '..', 'src');
 const LOCALES = path.join(SRC, '_locales');
 const PLURAL_FORMS = ['Zero', 'One', 'Two', 'Few', 'Many', 'Other'];
 const PLURAL_KEY = /^(\w+?)(Zero|One|Two|Few|Many|Other)$/;
-const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+// The texts the code is expected to name at least (a sign the search found them)
+const MIN_USED_KEYS = 200;
+const capitalize = word => word.charAt(0).toUpperCase() + word.slice(1);
 
-const read = file => fs.readFileSync(path.join(SRC, file), 'utf8');
-const files = dir => fs.readdirSync(path.join(SRC, dir), { recursive: true }).map(f => path.join(dir, f)).filter(f => /\.(js|html)$/.test(f));
-const messages = lang => JSON.parse(fs.readFileSync(path.join(LOCALES, lang, 'messages.json'), 'utf8'));
-const languages = fs.readdirSync(LOCALES).filter(d => d !== 'en');
-const en = messages('en');
-const all = (text, re) => [...text.matchAll(re)].map(m => m[1]);
+const readSource = file => fs.readFileSync(path.join(SRC, file), 'utf8');
+// The .js and .html files under a folder of src
+const sourceFiles = dir => fs.readdirSync(path.join(SRC, dir), { recursive: true }).map(file => path.join(dir, file)).filter(file => /\.(js|html)$/.test(file));
+const messagesOf = lang => JSON.parse(fs.readFileSync(path.join(LOCALES, lang, 'messages.json'), 'utf8'));
+const otherLanguages = fs.readdirSync(LOCALES).filter(lang => lang !== 'en');
+const english = messagesOf('en');
+// The first group of every match of a regular expression
+const allMatches = (text, pattern) => [...text.matchAll(pattern)].map(match => match[1]);
 
-// The first argument of each call to `name` in js, e.g. "cond ? 'a' : 'b'" for text(cond ? 'a' : 'b', x).
-function firstArguments(js, name) {
+// The first argument of each call to `name` in a script, e.g. "cond ? 'a' : 'b'" for text(cond ? 'a' : 'b', x).
+function firstArguments(script, name) {
 	const found = [];
-	for (const m of js.matchAll(new RegExp('\\b' + name + '\\(', 'g'))) {
-		let depth = 0, i = m.index + m[0].length;
-		for (; i < js.length; i++) {
-			const c = js[i];
-			if (c === '(' || c === '[' || c === '{') depth++;
-			else if ((c === ')' || c === ']' || c === '}') && depth-- === 0) break;
-			else if (c === ',' && depth === 0) break;
+	for (const call of script.matchAll(new RegExp('\\b' + name + '\\(', 'g'))) {
+		const start = call.index + call[0].length;
+		let depth = 0, end = start;
+		for (; end < script.length; end++) {
+			const character = script[end];
+			if (character === '(' || character === '[' || character === '{') depth++;
+			else if ((character === ')' || character === ']' || character === '}') && depth-- === 0) break;
+			else if (character === ',' && depth === 0) break;
 		}
-		found.push(js.slice(m.index + m[0].length, i));
+		found.push(script.slice(start, end));
 	}
 	return found;
 }
-const literals = code => all(code, /'([a-z]\w*)'/g);
+// The string literals in code that look like message keys ('settingsVersion')
+const keyLiterals = code => allMatches(code, /'([a-z]\w*)'/g);
 
 // The keys the code names, and the countText bases among them.
 function usedKeys() {
 	const keys = new Set(), plurals = new Set();
-	all(read('manifest.json'), /__MSG_(\w+)__/g).forEach(k => keys.add(k));
-	for (const file of files('html')) all(read(file), /data-i18n(?:-[\w-]+)?="(\w+)"/g).forEach(k => keys.add(k));
-	for (const file of files('js')) {
-		const js = read(file);
-		for (const name of ['text', 'getMessage', 'new Error']) firstArguments(js, name).forEach(arg => literals(arg).forEach(k => keys.add(k)));
-		all(js, /\b(?:nameKey|descriptionKey):\s*'(\w+)'/g).forEach(k => keys.add(k));
-		firstArguments(js, 'countText').forEach(arg => literals(arg).forEach(k => plurals.add(k)));
+	allMatches(readSource('manifest.json'), /__MSG_(\w+)__/g).forEach(key => keys.add(key));
+	for (const file of sourceFiles('html')) allMatches(readSource(file), /data-i18n(?:-[\w-]+)?="(\w+)"/g).forEach(key => keys.add(key));
+	for (const file of sourceFiles('js')) {
+		const script = readSource(file);
+		for (const name of ['text', 'getMessage', 'new Error']) firstArguments(script, name).forEach(arg => keyLiterals(arg).forEach(key => keys.add(key)));
+		allMatches(script, /\b(?:nameKey|descriptionKey):\s*'(\w+)'/g).forEach(key => keys.add(key));
+		firstArguments(script, 'countText').forEach(arg => keyLiterals(arg).forEach(key => plurals.add(key)));
 	}
 	return { keys, plurals };
 }
 
 test('locales: every text the code uses is in English', () => {
 	const { keys, plurals } = usedKeys();
-	assert.ok(keys.size > 200, 'found the texts in the code');
-	assert.deepEqual([...keys].filter(k => !(k in en)), []);
-	assert.deepEqual([...plurals].filter(k => !(k + 'Other' in en) || !(k + 'One' in en)), []);
+	assert.ok(keys.size > MIN_USED_KEYS, 'found the texts in the code');
+	assert.deepEqual([...keys].filter(key => !(key in english)), []);
+	assert.deepEqual([...plurals].filter(base => !(base + 'Other' in english) || !(base + 'One' in english)), []);
 });
 
 test('locales: every English text is used', () => {
 	const { keys, plurals } = usedKeys();
-	const unused = Object.keys(en).filter(k => {
-		if (keys.has(k)) return false;
-		const plural = PLURAL_KEY.exec(k);
+	const unused = Object.keys(english).filter(key => {
+		if (keys.has(key)) return false;
+		const plural = PLURAL_KEY.exec(key);
 		return !(plural && plurals.has(plural[1]));
 	});
 	assert.deepEqual(unused, []);
 });
 
 test('locales: every language has every English text with the same placeholders and markup', () => {
-	const markup = s => (s.match(/<\/?(?:b|code)>|<br>/g) || []).join('');
-	const placeholders = s => (s.match(/\$\d/g) || []).sort().join(',');
-	for (const lang of languages) {
-		const m = messages(lang);
-		assert.deepEqual(Object.keys(en).filter(k => !(k in m)), [], `${lang}: missing`);
-		for (const [key, { message }] of Object.entries(m)) {
+	const markup = message => (message.match(/<\/?(?:b|code)>|<br>/g) || []).join('');
+	const placeholders = message => (message.match(/\$\d/g) || []).sort().join(',');
+	for (const lang of otherLanguages) {
+		const translated = messagesOf(lang);
+		assert.deepEqual(Object.keys(english).filter(key => !(key in translated)), [], `${lang}: missing`);
+		for (const [key, { message }] of Object.entries(translated)) {
 			const plural = PLURAL_KEY.exec(key);
-			if (!(key in en)) {
-				assert.ok(plural && plural[1] + 'Other' in en, `${lang}: ${key} is not an English text`);
+			if (!(key in english)) {
+				assert.ok(plural && plural[1] + 'Other' in english, `${lang}: ${key} is not an English text`);
 				continue;
 			}
-			assert.equal(markup(message), markup(en[key].message), `${lang}: ${key} markup`);
-			if (!plural) assert.equal(placeholders(message), placeholders(en[key].message), `${lang}: ${key} placeholders`);
+			assert.equal(markup(message), markup(english[key].message), `${lang}: ${key} markup`);
+			if (!plural) assert.equal(placeholders(message), placeholders(english[key].message), `${lang}: ${key} placeholders`);
 		}
 	}
 });
 
 test('locales: every plural form a language needs is there', () => {
 	const { plurals } = usedKeys();
-	for (const lang of ['en', ...languages]) {
-		const m = messages(lang), forms = new Intl.PluralRules(lang.replace('_', '-')).resolvedOptions().pluralCategories;
+	for (const lang of ['en', ...otherLanguages]) {
+		const translated = messagesOf(lang), forms = new Intl.PluralRules(lang.replace('_', '-')).resolvedOptions().pluralCategories;
 		for (const base of plurals) for (const form of forms) {
 			assert.ok(PLURAL_FORMS.includes(capitalize(form)), form);
-			assert.ok(base + capitalize(form) in m, `${lang}: ${base}${capitalize(form)}`);
+			assert.ok(base + capitalize(form) in translated, `${lang}: ${base}${capitalize(form)}`);
 		}
 	}
 });
