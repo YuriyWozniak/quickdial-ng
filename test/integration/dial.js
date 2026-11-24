@@ -21,14 +21,14 @@ const tileIds = testPage => testPage.inHost(() => backgroundPage().app.node.chil
 // A drag from one cell to another (or with the given drag data), as synthetic drag events.
 // Returns the drop effect the target cell offers while dragging over it ('move' or 'none'): read
 // from the dial's dragover handler, since synthetic events don't keep it.
-const drag = (testPage, fromCell, toCell, dragData) => testPage.inDial(([from, to, data]) => {
+const drag = (testPage, fromCell, toCell, dragData) => testPage.inDial(([fromIndex, toIndex, data]) => {
 	const cells = document.querySelectorAll('table.qd-grid td'), dataTransfer = new DataTransfer();
 	if (data) dataTransfer.setData('text/plain', JSON.stringify(data));
-	else cells[from].firstChild.dispatchEvent(new DragEvent('dragstart', { dataTransfer, bubbles: true, cancelable: true }));
+	else cells[fromIndex].firstChild.dispatchEvent(new DragEvent('dragstart', { dataTransfer, bubbles: true, cancelable: true }));
 	const probe = { getData: format => dataTransfer.getData(format), dropEffect: '' };
-	app._onDragOver({ target: cells[to].firstChild, dataTransfer: probe, preventDefault() {} });
-	cells[to].firstChild.dispatchEvent(new DragEvent('dragover', { dataTransfer, bubbles: true, cancelable: true }));
-	cells[to].firstChild.dispatchEvent(new DragEvent('drop', { dataTransfer, bubbles: true, cancelable: true }));
+	app._onDragOver({ target: cells[toIndex].firstChild, dataTransfer: probe, preventDefault() {} });
+	cells[toIndex].firstChild.dispatchEvent(new DragEvent('dragover', { dataTransfer, bubbles: true, cancelable: true }));
+	cells[toIndex].firstChild.dispatchEvent(new DragEvent('drop', { dataTransfer, bubbles: true, cancelable: true }));
 	return probe.dropEffect;
 }, [fromCell, toCell, dragData || null]);
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));

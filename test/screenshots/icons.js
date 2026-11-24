@@ -49,9 +49,9 @@ const ICON_COLORS = {
 
 /** The page of one icon. */
 function icon(key) {
-	const [from, to] = ICON_COLORS[key], side = ICON_SIZE - 2 * ICON_MARGIN;
+	const [startColor, endColor] = ICON_COLORS[key], side = ICON_SIZE - 2 * ICON_MARGIN;
 	return `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0}html,body{background:transparent;width:${ICON_SIZE}px;height:${ICON_SIZE}px;overflow:hidden}</style></head><body>
-		<svg width="${ICON_SIZE}" height="${ICON_SIZE}" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient>
+		<svg width="${ICON_SIZE}" height="${ICON_SIZE}" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${startColor}"/><stop offset="1" stop-color="${endColor}"/></linearGradient>
 		<filter id="s" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="6" flood-opacity=".35"/></filter></defs>
 		<rect x="${ICON_MARGIN}" y="${ICON_MARGIN}" width="${side}" height="${side}" rx="${side * .23}" fill="url(#g)" filter="url(#s)"/>
 		<rect x="${ICON_MARGIN}" y="${ICON_MARGIN}" width="${side}" height="${side / 2}" rx="${side * .23}" fill="#fff" opacity=".08"/>
@@ -63,13 +63,13 @@ const ICONS = Object.fromEntries(Object.keys(GLYPHS).map(key => [key, icon(key)]
 // colors: sky (centre, middle, edge) and the five waves; the night one goes with white titles, the day one with dark titles.
 function wallpaper({ sky, waves }) {
 	const WIDTH = 2560, HEIGHT = 1600;
-	const wave = (y, amplitude, length, phase, thickness, color, opacity) => {
+	const wave = (centerY, amplitude, length, phase, thickness, color, opacity) => {
 		let top = '', bottom = '';
-		for (let x = 0; x <= WIDTH; x += 40) {
-			const center = y + Math.sin(x / length + phase) * amplitude + Math.sin(x / (length * .37) + phase * 2) * amplitude * .18;
-			const width = thickness * (.55 + .45 * Math.sin(x / (length * .8) + phase));
-			top += `${x ? 'L' : 'M'}${x} ${(center - width).toFixed(1)} `;
-			bottom = `L${x} ${(center + width).toFixed(1)} ` + bottom;
+		for (let pointX = 0; pointX <= WIDTH; pointX += 40) {
+			const center = centerY + Math.sin(pointX / length + phase) * amplitude + Math.sin(pointX / (length * .37) + phase * 2) * amplitude * .18;
+			const width = thickness * (.55 + .45 * Math.sin(pointX / (length * .8) + phase));
+			top += `${pointX ? 'L' : 'M'}${pointX} ${(center - width).toFixed(1)} `;
+			bottom = `L${pointX} ${(center + width).toFixed(1)} ` + bottom;
 		}
 		return `<path d="${top}${bottom}Z" fill="${color}" opacity="${opacity}" filter="url(#soft)"/>`;
 	};

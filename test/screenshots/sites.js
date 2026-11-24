@@ -14,20 +14,20 @@
 
 /**
  * A soft stand-in for a photo: sky gradient, sun and three layers of hills, as inline SVG that fills its box.
- * @param {number} h      hue of the sky (0–360)
- * @param {number} g      hue of the land
- * @param {number} seed   varies the hill shapes and sun position; also makes the gradient id unique
- * @param {string} extra  more SVG drawn on top (in the 400×300 view box), e.g. a lighthouse
+ * @param {number} skyHue   hue of the sky (0–360)
+ * @param {number} landHue  hue of the land
+ * @param {number} seed     varies the hill shapes and sun position; also makes the gradient id unique
+ * @param {string} extra    more SVG drawn on top (in the 400×300 view box), e.g. a lighthouse
  */
-function photo(h, g, seed = 1, extra = '') {
-	const hill = (y, amp, light, k) => {
-		let d = `M0 ${y}`;
-		for (let x = 0; x <= 400; x += 25) d += ` L${x} ${(y + Math.sin(x / (40 + k * 13) + seed * k) * amp + Math.sin(x / 17 + seed) * amp * .25).toFixed(1)}`;
-		return `<path d="${d} L400 300 L0 300Z" fill="hsl(${g},${18 + k * 4}%,${light}%)"/>`;
+function photo(skyHue, landHue, seed = 1, extra = '') {
+	const hill = (baseY, amplitude, lightness, layer) => {
+		let outline = `M0 ${baseY}`;
+		for (let pointX = 0; pointX <= 400; pointX += 25) outline += ` L${pointX} ${(baseY + Math.sin(pointX / (40 + layer * 13) + seed * layer) * amplitude + Math.sin(pointX / 17 + seed) * amplitude * .25).toFixed(1)}`;
+		return `<path d="${outline} L400 300 L0 300Z" fill="hsl(${landHue},${18 + layer * 4}%,${lightness}%)"/>`;
 	};
 	return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" style="width:100%;height:100%;display:block">
-		<defs><linearGradient id="s${seed}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${h},38%,78%)"/><stop offset="1" stop-color="hsl(${h + 25},45%,90%)"/></linearGradient></defs>
-		<rect width="400" height="300" fill="url(#s${seed})"/><circle cx="${90 + seed * 47 % 220}" cy="${95 + seed * 13 % 40}" r="26" fill="hsl(${h + 30},70%,95%)" opacity=".8"/>
+		<defs><linearGradient id="s${seed}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="hsl(${skyHue},38%,78%)"/><stop offset="1" stop-color="hsl(${skyHue + 25},45%,90%)"/></linearGradient></defs>
+		<rect width="400" height="300" fill="url(#s${seed})"/><circle cx="${90 + seed * 47 % 220}" cy="${95 + seed * 13 % 40}" r="26" fill="hsl(${skyHue + 30},70%,95%)" opacity=".8"/>
 		${hill(170, 22, 66, 1)}${hill(205, 18, 52, 2)}${hill(245, 14, 40, 3)}${extra}</svg>`;
 }
 
@@ -156,9 +156,10 @@ const SITES = [
 		.e{position:absolute;left:4px;right:4px;border-radius:6px;padding:5px 8px;font-size:13px;line-height:1.3}`,
 		`<header><div class="logo">▦ Calendar</div><span class="btn">Today</span><span style="font-size:22px">November 2026</span></header><div class="wk"><div></div>` +
 		['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => `<div class="dh">${d}<b ${i == 1 ? 'style="color:#fff;background:#4f7a6f;border-radius:50%;width:40px;height:40px;line-height:40px;margin:2px auto 0"' : ''}>${2 + i}</b></div>`).join('') +
-		repeat(10, r => `<div class="h lbl">${8 + r}:00</div>` + repeat(7, c => {
-			const ev = { '0,1': ['Team stand-up', 145, 40], '1,3': ['Dentist', 15, 84], '2,0': ['Project review', 210, 120], '3,4': ['Lunch with Ana', 35, 70], '4,2': ['Yoga', 100, 84], '5,1': ['Call with Ivan', 210, 50], '2,5': ['Farmers market', 80, 140], '6,3': ['Code review', 260, 84], '7,6': ['Family dinner', 15, 120], '1,5': ['Ferry to Hvar', 190, 160], '8,0': ['Gym', 100, 70], '6,1': ['Library', 35, 60] }[r + ',' + c];
-			return `<div class="h">${ev ? `<div class="e" style="top:6px;height:${ev[2]}px;background:hsl(${ev[1]},32%,88%);border-left:3px solid hsl(${ev[1]},30%,55%);color:hsl(${ev[1]},30%,25%)"><b>${ev[0]}</b><br>${8 + r}:00</div>` : ''}</div>`; })) + '</div>') },
+		repeat(10, r => `<div class="h lbl">${8 + r}:00</div>` + repeat(7, column => {
+			const appointment = { '0,1': ['Team stand-up', 145, 40], '1,3': ['Dentist', 15, 84], '2,0': ['Project review', 210, 120], '3,4': ['Lunch with Ana', 35, 70], '4,2': ['Yoga', 100, 84], '5,1': ['Call with Ivan', 210, 50], '2,5': ['Farmers market', 80, 140], '6,3': ['Code review', 260, 84], '7,6': ['Family dinner', 15, 120], '1,5': ['Ferry to Hvar', 190, 160], '8,0': ['Gym', 100, 70], '6,1': ['Library', 35, 60] }[r + ',' + column];
+			const [label, hue, height] = appointment || [];
+			return `<div class="h">${appointment ? `<div class="e" style="top:6px;height:${height}px;background:hsl(${hue},32%,88%);border-left:3px solid hsl(${hue},30%,55%);color:hsl(${hue},30%,25%)"><b>${label}</b><br>${8 + r}:00</div>` : ''}</div>`; })) + '</div>') },
 
 	{ title: 'Tunes', url: 'https://tunes.example/', html: page(`
 		body{display:flex;background:#f5f4f7}nav{width:230px;padding:24px 20px;background:#efedf2;height:960px}.logo{font-weight:700;font-size:21px;color:#6d5a8f;margin-bottom:26px}nav div{margin-bottom:10px;color:#565062}
@@ -191,10 +192,10 @@ const SITES = [
 // Background picture for the "own theme over a picture" screenshot: dusk sky, a low sun and four
 // mountain ridges, 1920×1200. Rendered as a page and captured as JPEG, like a photo a user would pick.
 const WALLPAPER = (() => {
-	const ridge = (color, base, amp, k) => {
-		let d = 'M0 1200';
-		for (let x = 0; x <= 1920; x += 40) d += ` L${x} ${(base + Math.sin(x / (180 + k * 60) + k * 2) * amp + Math.sin(x / 63 + k) * 18).toFixed(1)}`;
-		return `<path d="${d} L1920 1200Z" fill="${color}"/>`;
+	const ridge = (color, base, amplitude, layer) => {
+		let outline = 'M0 1200';
+		for (let pointX = 0; pointX <= 1920; pointX += 40) outline += ` L${pointX} ${(base + Math.sin(pointX / (180 + layer * 60) + layer * 2) * amplitude + Math.sin(pointX / 63 + layer) * 18).toFixed(1)}`;
+		return `<path d="${outline} L1920 1200Z" fill="${color}"/>`;
 	};
 	return `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0}body{width:1920px;height:1200px;overflow:hidden}</style></head><body>
 		<svg width="1920" height="1200" viewBox="0 0 1920 1200"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
