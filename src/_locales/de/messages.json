@@ -15,7 +15,7 @@
   },
 
   "dialogNewBookmarkPrompt": {
-    "message": "Neue Lesezeichen URL eingeben:",
+    "message": "Adresse des neuen Lesezeichens:",
     "description": "Text of the add bookmark prompt."
   },
 
@@ -25,7 +25,7 @@
   },
 
   "dialogNewFolderPrompt": {
-    "message": "Neuen Ordner Namen eingeben:",
+    "message": "Name des neuen Ordners:",
     "description": "Text of the add folder prompt."
   },
 
@@ -55,7 +55,7 @@
   },
 
   "menuSettings": {
-    "message": "Quick Dial NG Einstellungen",
+    "message": "Einstellungen von Quick Dial NG",
     "description": "Text of settings menu item."
   },
 
@@ -85,7 +85,7 @@
   },
 
   "extensionDescription": {
-    "message": "Schnellwahl für neue Tabs und die Startseite, mit Kacheln aus einem Lesezeichenordner. Unabhängiger, optimierter Fork von Quick Dial von MatMoul.",
+    "message": "Schnellwahl für neue Tabs und die Startseite – mit Kacheln aus einem Lesezeichenordner. Unabhängiger, optimierter Fork von MatMouls Quick Dial.",
     "description": "The extension's description in Firefox's Add-ons manager"
   },
 
@@ -132,7 +132,7 @@
   },
 
   "dialogEnterValue": {
-    "message": "Bitte geben Sie einen Wert ein."
+    "message": "Geben Sie einen Wert ein."
   },
 
   "dialogAdd": {
@@ -175,7 +175,7 @@
   },
 
   "tileHover": {
-    "message": "Beim Überfahren",
+    "message": "Unter dem Mauszeiger",
     "description": "A tile under the mouse pointer"
   },
 
@@ -266,11 +266,11 @@
   },
 
   "settingsBackgroundDropHint": {
-    "message": "Oder ein Bild auf der Vorschau ablegen."
+    "message": "Oder ziehen Sie ein Bild auf die Vorschau."
   },
 
   "settingsGradientHint": {
-    "message": "Das Theme fügt einen Farbverlauf hinzu, der hinter dem Bild angezeigt wird."
+    "message": "Das Theme fügt einen Farbverlauf hinzu, der hinter einem Bild durchscheint."
   },
 
   "settingsGradientRemove": {
@@ -286,7 +286,7 @@
   },
 
   "settingsAccentColorHint": {
-    "message": "Schaltflächen, Schalter, Tabs und Fokusrahmen in den Fenstern und Dialogen von Quick Dial NG"
+    "message": "Farbe von Schaltflächen, Schaltern, Tabs und Fokusrahmen in Quick Dial NG"
   },
 
   "settingsBehavior": {
@@ -306,7 +306,7 @@
   },
 
   "settingsToolbarButtonHint": {
-    "message": "Was die Quick-Dial-NG-Schaltfläche in der Firefox-Symbolleiste öffnet. Ihr Kontextmenü bietet beides."
+    "message": "Was die Quick-Dial-NG-Schaltfläche in der Firefox-Symbolleiste öffnet. Im Kontextmenü der Schaltfläche finden Sie beides."
   },
 
   "settingsToolbarSettings": {
@@ -326,7 +326,7 @@
   },
 
   "settingsStartPageHint": {
-    "message": "Quick Dial NG ist die Startseite von Firefox: Sie öffnet sich beim Start von Firefox und mit der Startseite-Schaltfläche. Um eine andere Seite zu verwenden, gehen Sie zu Firefox-Einstellungen › Startseite."
+    "message": "Quick Dial NG ist jetzt die Startseite von Firefox: Es öffnet sich beim Start und über die Startseite-Schaltfläche. Eine andere Seite stellen Sie unter Firefox-Einstellungen › Startseite ein."
   },
 
   "settingsLayout": {
@@ -350,11 +350,11 @@
   },
 
   "settingsRatioWidth": {
-    "message": "Breitenverhältnis"
+    "message": "Relative Breite"
   },
 
   "settingsRatioHeight": {
-    "message": "Höhenverhältnis"
+    "message": "Relative Höhe"
   },
 
   "settingsTileShapeHint": {
@@ -370,7 +370,7 @@
   },
 
   "settingsBookmarksFolderHint": {
-    "message": "Der in der Schnellwahl angezeigte Lesezeichenordner"
+    "message": "Der Lesezeichenordner, den die Schnellwahl anzeigt"
   },
 
   "settingsOpening": {
@@ -443,7 +443,7 @@
   },
 
   "settingsCornerRadius": {
-    "message": "Eckenradius"
+    "message": "Eckenrundung"
   },
 
   "settingsBorderColor": {
@@ -455,11 +455,11 @@
   },
 
   "settingsGlassBlur": {
-    "message": "Glasunschärfe"
+    "message": "Milchglas"
   },
 
   "settingsGlassBlurHint": {
-    "message": "Macht die Seite hinter der Kachel unscharf"
+    "message": "Zeichnet den Hintergrund unter der Kachel weich"
   },
 
   "settingsShadow": {
@@ -471,7 +471,7 @@
   },
 
   "shadowStrong": {
-    "message": "Stark"
+    "message": "Kräftig"
   },
 
   "settingsHoverEffect": {
@@ -479,19 +479,19 @@
   },
 
   "hoverInstant": {
-    "message": "Sofortige Änderung"
+    "message": "Sofort"
   },
 
   "hoverSmooth": {
-    "message": "Sanfte Änderung"
+    "message": "Sanft"
   },
 
   "hoverLift": {
-    "message": "Sanft, Kachel hebt sich"
+    "message": "Sanft, mit Anheben"
   },
 
   "hoverGrow": {
-    "message": "Sanft, Kachel wächst"
+    "message": "Sanft, mit Vergrößern"
   },
 
   "settingsClickEffect": {
@@ -499,15 +499,15 @@
   },
 
   "settingsClickEffectHint": {
-    "message": "Klicken Sie auf eine Beispielkachel, um ihn erneut zu sehen"
+    "message": "Klicken Sie auf eine Beispielkachel, um den Effekt noch einmal zu sehen"
   },
 
   "settingsClickToPreview": {
-    "message": "Klicken, um den Klick-Effekt zu sehen"
+    "message": "Klicken, um den Effekt zu sehen"
   },
 
   "settingsReducedMotionHint": {
-    "message": "Animationen sind in Ihren Systemeinstellungen ausgeschaltet, daher bewegen sich Kacheln nicht: Klick-Effekte blinken oder verblassen stattdessen, und ein sanfter Hover ändert nur die Farben, ohne Anheben oder Wachsen."
+    "message": "In Ihren Systemeinstellungen sind Animationen ausgeschaltet, deshalb bewegen sich die Kacheln nicht: Klick-Effekte blitzen stattdessen auf oder verblassen, und sanftes Hovern ändert nur die Farben – ohne Anheben oder Vergrößern."
   },
 
   "clickPress": {
@@ -527,7 +527,7 @@
   },
 
   "clickRing": {
-    "message": "Pulsierender Ring"
+    "message": "Pulsieren"
   },
 
   "settingsGroupTitle": {
@@ -578,7 +578,7 @@
   },
 
   "titleOver": {
-    "message": "Über dem unteren Bildrand"
+    "message": "Im Bild, unten"
   },
 
   "settingsGroupThumbnails": {
@@ -586,7 +586,7 @@
   },
 
   "settingsCaptureDelay": {
-    "message": "Aufnahmeverzögerung"
+    "message": "Verzögerung vor der Aufnahme"
   },
 
   "settingsCaptureDelayUnit": {
@@ -598,7 +598,7 @@
   },
 
   "settingsDiscardHint": {
-    "message": "Die Einstellungen anzeigen, die die Schnellwahl jetzt verwendet"
+    "message": "Zu den Einstellungen zurückkehren, die die Schnellwahl gerade verwendet"
   },
 
   "settingsApplyHint": {
@@ -606,12 +606,12 @@
   },
 
   "settingsThemesIntro": {
-    "message": "Ein Theme ist das Aussehen der Schnellwahl: Hintergrundfarbe, Seitenrand, Kachel- und Titelstile und die Akzentfarbe. Ihr Hintergrundbild, Zeilen und Spalten, die Kachelform und die Kacheln bleiben erhalten. Wählen Sie <b>Verwenden</b>, um ein Theme hier auszuprobieren, und dann <b>Übernehmen</b>, um es in die Schnellwahl zu übernehmen.",
+    "message": "Ein Theme bestimmt das Aussehen der Schnellwahl: Hintergrundfarbe, Seitenrand, Kachel- und Titelstil sowie Akzentfarbe. Hintergrundbild, Zeilen und Spalten, Kachelform und die Kacheln selbst bleiben unverändert. Mit <b>Verwenden</b> probieren Sie ein Theme hier aus, mit <b>Übernehmen</b> wird es in der Schnellwahl aktiv.",
     "description": "Keep <b> and </b> around the words of the buttons"
   },
 
   "themeSaveCurrent": {
-    "message": "Aktuelles als Theme speichern…"
+    "message": "Aktuelles Aussehen als Theme speichern…"
   },
 
   "themeSaveCurrentHint": {
@@ -619,7 +619,7 @@
   },
 
   "themeExportCurrent": {
-    "message": "Aktuelles exportieren…"
+    "message": "Aktuelles Aussehen exportieren…"
   },
 
   "themeExportCurrentHint": {
@@ -647,7 +647,7 @@
   },
 
   "themeUseHint": {
-    "message": "Dieses Theme hier anzeigen; Übernehmen behält es"
+    "message": "Theme hier ausprobieren; „Übernehmen“ behält es"
   },
 
   "themeExport": {
@@ -667,12 +667,12 @@
   },
 
   "themeShownHere": {
-    "message": "„$1“ wird nur hier angezeigt. Übernehmen bringt es in die Schnellwahl; Änderungen verwerfen stellt das vorherige Aussehen wieder her.",
+    "message": "„$1“ ist nur hier zu sehen. „Übernehmen“ aktiviert es in der Schnellwahl, „Änderungen verwerfen“ stellt das vorherige Aussehen wieder her.",
     "description": "$1: the theme's name"
   },
 
   "themeDialogMessage": {
-    "message": "Aus den aktuellen Einstellungen: Hintergrundfarbe, Seitenrand, Kachel- und Titelstile und die Akzentfarbe."
+    "message": "Übernimmt aus den aktuellen Einstellungen Hintergrundfarbe, Seitenrand, Kachel- und Titelstil sowie Akzentfarbe."
   },
 
   "themeName": {
@@ -692,16 +692,16 @@
   },
 
   "themeNameMissing": {
-    "message": "Bitte geben Sie einen Namen ein."
+    "message": "Geben Sie einen Namen ein."
   },
 
   "themeNameTooLong": {
-    "message": "Bitte verwenden Sie höchstens $1 Zeichen.",
+    "message": "Name zu lang (höchstens $1 Zeichen).",
     "description": "$1: a number"
   },
 
   "themeNameBuiltIn": {
-    "message": "„$1“ ist ein eingebautes Theme. Bitte wählen Sie einen anderen Namen.",
+    "message": "„$1“ ist bereits ein eingebautes Theme. Wählen Sie einen anderen Namen.",
     "description": "$1: the name typed"
   },
 
@@ -719,7 +719,7 @@
   },
 
   "themeSaveTitle": {
-    "message": "Aktuelles als Theme speichern"
+    "message": "Aktuelles Aussehen als Theme speichern"
   },
 
   "themeSave": {
@@ -732,7 +732,7 @@
   },
 
   "themeExportTitle": {
-    "message": "Aktuelles als Theme exportieren"
+    "message": "Aktuelles Aussehen als Theme exportieren"
   },
 
   "themeExportButton": {
@@ -740,7 +740,7 @@
   },
 
   "themeImported": {
-    "message": "„$1“ importiert. Wählen Sie Verwenden, um es auszuprobieren.",
+    "message": "„$1“ importiert. Mit „Verwenden“ können Sie es ausprobieren.",
     "description": "$1: the theme's name"
   },
 
@@ -755,11 +755,11 @@
   },
 
   "themeDeleteMessage": {
-    "message": "Das Theme wird aus dieser Liste entfernt. Ihre aktuellen Einstellungen bleiben unverändert."
+    "message": "Das Theme wird aus der Liste entfernt. Ihre aktuellen Einstellungen ändern sich nicht."
   },
 
   "themeFileIsBackup": {
-    "message": "Dies ist eine vollständige Quick-Dial-NG-Sicherung. Importieren Sie sie im Tab Sicherung."
+    "message": "Dies ist eine vollständige Quick-Dial-NG-Sicherung. Stellen Sie sie im Tab „Sicherung“ wieder her."
   },
 
   "themeFileInvalid": {
@@ -788,7 +788,7 @@
   },
 
   "themeAnoriDescription": {
-    "message": "Inspiriert von der Browsererweiterung Anori (anori.app): eine tiefgrüne Seite, Kacheln aus Milchglas mit großen abgerundeten Ecken und Titel über den Bildern."
+    "message": "Nach dem Vorbild der Browsererweiterung Anori (anori.app): tiefgrüner Hintergrund, Milchglaskacheln mit stark abgerundeten Ecken, Titel im Bild."
   },
 
   "themePlumName": {
@@ -796,7 +796,7 @@
   },
 
   "themePlumDescription": {
-    "message": "Eine dunkle Pflaumenseite mit hellgrauen abgerundeten Rahmen und Titeln unter den Bildern. Gemacht für ein großes Raster mit Gruppen von Websites und Platz dazwischen."
+    "message": "Dunkler Pflaumenton, hellgraue abgerundete Rahmen, Titel unter den Bildern. Für ein großes Raster mit Gruppen von Websites und Abstand dazwischen."
   },
 
   "themeDesktopName": {
@@ -804,7 +804,7 @@
   },
 
   "themeDesktopDescription": {
-    "message": "Symbole mit ihren Namen darunter auf einer nachtblauen Seite oder Ihrem Hintergrundbild, wie ein Computer-Desktop, mit einer sanften Hervorhebung unter dem Mauszeiger. Für quadratische Kacheln und Symbolbilder."
+    "message": "Symbole mit Namen darunter auf nachtblauem Grund oder Ihrem Hintergrundbild – wie auf einem Computer-Desktop, mit sanfter Hervorhebung unter dem Mauszeiger. Für quadratische Kacheln und Symbolbilder."
   },
 
   "themeDuskName": {
@@ -812,7 +812,7 @@
   },
 
   "themeDuskDescription": {
-    "message": "Violette Glaskacheln, die beim Überfahren wachsen, vor einem Sonnenuntergangshimmel."
+    "message": "Violette Glaskacheln vor einem Abendhimmel; die Kachel unter dem Mauszeiger wird größer."
   },
 
   "themeRetroPcName": {
@@ -820,7 +820,7 @@
   },
 
   "themeRetroPcDescription": {
-    "message": "Ein PC-Desktop der späten 1990er: eine petrolfarbene Seite, Symbole mit weißen Namen und eine marineblaue Hervorhebung des Namens unter dem Mauszeiger. Für quadratische Kacheln und Symbolbilder."
+    "message": "PC-Desktop der späten 1990er: petrolfarbener Hintergrund, Symbole mit weißen Namen, marineblau hervorgehobener Name unter dem Mauszeiger. Für quadratische Kacheln und Symbolbilder."
   },
 
   "themeRetroMonoName": {
@@ -828,7 +828,7 @@
   },
 
   "themeRetroMonoDescription": {
-    "message": "Ein früher Schwarz-Weiß-Desktop: ein feines graues Muster, schwarze Namen auf weißen Beschriftungen, invertiert unter dem Mauszeiger. Für quadratische Kacheln und Schwarz-Weiß-Symbolbilder."
+    "message": "Früher Schwarz-Weiß-Desktop: feines graues Muster, schwarze Namen auf weißen Schildchen, invertiert unter dem Mauszeiger. Für quadratische Kacheln und Schwarz-Weiß-Symbole."
   },
 
   "backupTitle": {
@@ -836,7 +836,7 @@
   },
 
   "backupIntro": {
-    "message": "Speichert Einstellungen, Kacheln, Bilder und Ihre Themes in einer Datei. Stellen Sie sie mit <b>Aus Datei importieren…</b> unten wieder her.",
+    "message": "Speichert Einstellungen, Kacheln, Bilder und Ihre Themes in einer Datei. Wiederherstellen können Sie sie unten mit <b>Aus Datei importieren…</b>.",
     "description": "Keep <b> and </b>; the words inside are the button's"
   },
 
@@ -853,7 +853,7 @@
   },
 
   "backupImportHint": {
-    "message": "Einen Export des ursprünglichen Quick Dial oder eine Quick-Dial-NG-Sicherung importieren"
+    "message": "Einen Export aus dem ursprünglichen Quick Dial oder eine Quick-Dial-NG-Sicherung öffnen"
   },
 
   "backupOriginalTitle": {
@@ -861,7 +861,7 @@
   },
 
   "backupOriginalIntro": {
-    "message": "Übernimmt Ihre Kacheln mit ihren genauen Rasterpositionen, Ordner, Bilder sowie Raster- und Stileinstellungen. Lesezeichen, die bereits in Ihrem Quick-Dial-Ordner sind, werden wiederverwendet; fehlende werden erstellt."
+    "message": "Übernimmt Kacheln (an denselben Stellen im Raster), Ordner, Bilder sowie Raster- und Stileinstellungen. Lesezeichen, die schon in Ihrem Quick-Dial-Ordner liegen, werden weiterverwendet, fehlende neu angelegt."
   },
 
   "backupStep1": {
@@ -870,16 +870,16 @@
   },
 
   "backupStep2": {
-    "message": "Kopieren Sie das Export-Snippet und fügen Sie es im Tab <b>Konsole</b> ein (geben Sie zuerst <code>allow pasting</code> ein, falls Firefox danach fragt). Es speichert <code>quickdial-export.json</code> im Download-Ordner.",
+    "message": "Kopieren Sie den Exportcode und fügen Sie ihn im Tab <b>Konsole</b> ein (falls Firefox danach fragt, geben Sie zuerst <code>allow pasting</code> ein). Der Code speichert <code>quickdial-export.json</code> in Ihrem Download-Ordner.",
     "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
   },
 
   "backupStep3": {
-    "message": "Wählen Sie diese Datei mit <b>Aus Datei importieren…</b> oben."
+    "message": "Öffnen Sie diese Datei oben mit <b>Aus Datei importieren…</b>."
   },
 
   "backupCopySnippet": {
-    "message": "Export-Snippet kopieren"
+    "message": "Exportcode kopieren"
   },
 
   "backupCopied": {
@@ -887,11 +887,11 @@
   },
 
   "backupCopyPrompt": {
-    "message": "Kopieren Sie dieses Snippet:"
+    "message": "Kopieren Sie diesen Code:"
   },
 
   "backupFileIsTheme": {
-    "message": "Dies ist ein Theme. Importieren Sie es im Tab Themes."
+    "message": "Dies ist ein Theme. Importieren Sie es im Tab „Themes“."
   },
 
   "backupFileInvalid": {
@@ -907,7 +907,7 @@
   },
 
   "backupImportMessage": {
-    "message": "Ihre aktuellen Einstellungen und die Kachelanordnung werden ersetzt. Lesezeichen im Quick-Dial-Ordner bleiben erhalten; fehlende werden erstellt."
+    "message": "Ihre aktuellen Einstellungen und die Kachelanordnung werden ersetzt. Lesezeichen im Quick-Dial-Ordner bleiben erhalten, fehlende werden angelegt."
   },
 
   "backupImportButton": {
@@ -919,7 +919,7 @@
   },
 
   "backupImportResult": {
-    "message": "Importiert: $1, $2, $3 sowie Raster- und Stileinstellungen. Lesezeichen wiederverwendet: $4, erstellt: $5.",
+    "message": "Importiert: $1, $2, $3 sowie Raster- und Stileinstellungen. Vorhandene Lesezeichen weiterverwendet: $4, neu angelegt: $5.",
     "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
   },
 
@@ -933,7 +933,7 @@
   },
 
   "backupNoBookmarksFolder": {
-    "message": "Der Lesezeichenordner „$1“ kann nicht geöffnet werden",
+    "message": "Der Lesezeichenordner „$1“ konnte nicht geöffnet werden",
     "description": "$1: the folder's name"
   },
 
@@ -992,11 +992,11 @@
   },
 
   "propertiesLockTitle": {
-    "message": "Titel sperren"
+    "message": "Titel fixieren"
   },
 
   "propertiesLockTitleHint": {
-    "message": "Titel sperren: Aktualisieren der Kachel benennt sie nicht um"
+    "message": "Titel fixieren, damit Aktualisieren der Kachel ihn nicht ändert"
   },
 
   "propertiesAddress": {
@@ -1028,7 +1028,7 @@
   },
 
   "propertiesPasteHint": {
-    "message": "Legen Sie ein Bild auf der Vorschau ab oder fügen Sie eines mit Strg+V ein."
+    "message": "Ziehen Sie ein Bild auf die Vorschau oder fügen Sie es mit Strg+V ein."
   },
 
   "propertiesKeepPicture": {
@@ -1040,7 +1040,7 @@
   },
 
   "propertiesTileGone": {
-    "message": "Diese Kachel existiert nicht mehr"
+    "message": "Diese Kachel gibt es nicht mehr"
   },
 
   "propertiesTileDeleted": {
