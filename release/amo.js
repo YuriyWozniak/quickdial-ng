@@ -43,6 +43,13 @@ const ENV_MAX_WAIT = 'QDNG_AMO_MAX_WAIT_S';
 const THROTTLE_MAX_WAIT_S = Number(process.env[ENV_MAX_WAIT]) || Infinity; // longest wait for one throttled request
 const MS_PER_S = 1000;
 
+// ---------- screenshot captions ----------
+// AMO resizes an uploaded screenshot in the background and saves it again when that is done, which drops a caption
+// set before then (seen in the 0.7.0 and 0.8.0 runs: every caption set within seconds of its upload was lost). So
+// after the uploads the captions are read back from the public listing and set again until AMO shows all of them.
+const CAPTION_CHECK_DELAY_S = 30; // before each check: time for AMO to process the pictures
+const CAPTION_CHECK_TRIES = 5;
+
 // ---------- files ----------
 const CONFIG_FILE = path.join(__dirname, 'config.local.json');
 const LISTING_FILE = path.join(__dirname, 'amo-listing.md');
@@ -123,6 +130,23 @@ async function api(method, url, body, tries = 0) {
 const blob = (file, type) => new Blob([fs.readFileSync(file)], { type });
 const localized = text => ({ [LOCALE]: text });
 const en = o => o && (o[LOCALE] || Object.values(o)[0]);
+// The screenshots as the public listing shows them now: public, not throttled; the time in the query string gets
+// past AMO's cache, which keeps the listing for up to 6 minutes
+const listedPreviews = async () => (await (await fetch(`${API}${ADDON}/?lang=${LOCALE}&at=${Date.now()}`)).json()).previews;
+// Sets captions again until the listing shows every one of them. uploads: [{ name, id, caption }]
+async function ensureCaptions(uploads) {
+	for (let attempt = 1; ; attempt++) {
+		await wait(CAPTION_CHECK_DELAY_S);
+		const shownCaptions = new Map((await listedPreviews()).map(preview => [preview.id, en(preview.caption)]));
+		const lost = uploads.filter(upload => shownCaptions.get(upload.id) !== upload.caption);
+		if (!lost.length) return;
+		if (attempt > CAPTION_CHECK_TRIES) fail(`AMO still shows no caption for ${lost.map(upload => upload.name).join(', ')}`);
+		for (const upload of lost) {
+			await api('PATCH', `${ADDON}/previews/${upload.id}/`, { caption: localized(upload.caption) });
+			console.log(new Date().toISOString(), 'caption set again', upload.name, '->', upload.id);
+		}
+	}
+}
 const listing = () => fs.readFileSync(LISTING_FILE, 'utf8').replace(/\r\n/g, '\n');
 // The first code block after a heading of amo-listing.md
 function block(md, heading) {
@@ -178,11 +202,11 @@ const commands = {
 		const stateFile = path.join(cfg.outDir, PREVIEW_STATE_FILE);
 		const state = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile, 'utf8')) : {};
 		const save = () => fs.writeFileSync(stateFile, JSON.stringify(state, null, 1));
-		const listed = async () => (await (await fetch(`${API}${ADDON}/?lang=${LOCALE}`)).json()).previews; // public, not throttled
+		const replaced = [];
 		for (const file of files) {
 			const name = path.basename(file), caption = known[name] && known[name].caption;
 			if (!caption) { console.log('skip', name, `(no caption in ${path.basename(LISTING_FILE)})`); continue; }
-			const same = (await listed()).filter(p => en(p.caption) === caption);
+			const same = (await listedPreviews()).filter(p => en(p.caption) === caption);
 			let s = state[name];
 			if (!s) {
 				if (same.length !== 1) { console.log('skip', name, `(${same.length} screenshots on AMO have its caption)`); continue; }
@@ -196,8 +220,10 @@ const commands = {
 			}
 			for (const old of same.filter(p => p.id !== s.id)) await api('DELETE', `${ADDON}/previews/${old.id}/`);
 			delete state[name]; save(); // finished: the next run replaces it again
+			replaced.push({ name, id: s.id, caption });
 			console.log(new Date().toISOString(), 'replaced', name, '->', s.id, 'pos', s.position);
 		}
+		if (replaced.length) await ensureCaptions(replaced);
 		if (!Object.keys(state).length) fs.rmSync(stateFile, { force: true });
 		console.log('screenshots done');
 	},
@@ -226,6 +252,7 @@ const commands = {
 			}
 			console.log(new Date().toISOString(), 'uploaded', name, '->', s.id, 'pos', position);
 		}
+		await ensureCaptions(wanted.map(([name, { caption }]) => ({ name, id: state.uploaded[name].id, caption })));
 		const keep = new Set(Object.values(state.uploaded).map(s => s.id));
 		for (const p of (await api('GET', `${ADDON}/?lang=${LOCALE}`)).previews) {
 			if (keep.has(p.id)) continue;
