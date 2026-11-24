@@ -203,3 +203,50 @@
 
 /* the file input behind a "Choose…" button (a label that opens it): kept in the page, never seen */
 .qd-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+/* where a tile's picture comes from (Properties): a row of toggle buttons, the one in use pressed */
+.qd-source { display: flex; flex-direction: column; gap: var(--qd-gap-sm); margin-bottom: var(--qd-gap-sm); }
+.qd-segments { display: inline-flex; align-self: flex-start; overflow: hidden; border: 1px solid var(--qd-border); border-radius: var(--qd-radius-sm); }
+.qd-segment {
+	height: var(--qd-control-h-sm);
+	padding: 0 10px;
+	font: inherit;
+	font-size: var(--qd-font-size-sm);
+	font-weight: 500;
+	white-space: nowrap;
+	color: var(--qd-text);
+	background: var(--qd-surface-2);
+	border: 0;
+	border-inline-end: 1px solid var(--qd-border);
+	cursor: pointer;
+	transition: background-color .15s, color .15s;
+}
+.qd-segment:last-child { border-inline-end: 0; }
+.qd-segment:hover { background: var(--qd-surface-3); }
+.qd-segment[aria-pressed="true"] { color: var(--qd-accent-text); background: var(--qd-accent); }
+.qd-segment:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
+
+/* the site's icons to choose from, each drawn as on its tile, with its size under it */
+.qd-icon-choices { display: flex; flex-wrap: wrap; gap: var(--qd-row); margin-top: var(--qd-gap); }
+.qd-icon-choice {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: 4px;
+	font: inherit;
+	font-size: var(--qd-font-size-sm);
+	color: var(--qd-muted);
+	background: transparent;
+	border: 1px solid var(--qd-border-soft);
+	border-radius: var(--qd-radius-sm);
+	cursor: pointer;
+	transition: border-color .15s, box-shadow .15s;
+}
+.qd-icon-choice:hover { border-color: var(--qd-border); }
+.qd-icon-choice[aria-pressed="true"] { color: var(--qd-text); border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
+.qd-icon-choice:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: 2px; }
+.qd-icon-choice-img { display: block; width: 64px; background-color: var(--qd-surface-2); background-repeat: no-repeat; background-size: 100% 100%; border-radius: var(--qd-radius-xs); }
+.qd-source-hint { margin: var(--qd-row) 0 0; }
+.qd-source-hint:empty { display: none; }
+.qd-source-hint + .qd-switch-row { margin-top: var(--qd-stack); }

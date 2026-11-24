@@ -11,7 +11,7 @@ var app = {
 	})(),
 	RETRY_DELAY: 500, // ms after the page loads: no settings yet and no answer pending means asking the background page again
 	PROPERTIES_WIDTH: 560, // the tile Properties popup (it shrinks to fit its content)
-	PROPERTIES_HEIGHT: 590,
+	PROPERTIES_HEIGHT: 700, // room for the site's icons to choose from (.qd-frame never grows past the window)
 	BLOCKED_SCHEMES: /^(javascript|data|vbscript):$/i // address schemes a new bookmark can't have: scripts and inline data
 };
 
@@ -95,6 +95,7 @@ app.listen = function(){
 		[Commands.menuEditProperties]: onTile(link => app.editProperties(link)),
 		[Commands.menuRefreshNode]: onTile(link => app.refreshNode(link)),
 		[Commands.menuCapturePage]: onTile(link => app.capturePage(link)),
+		[Commands.menuUseSiteIcon]: onTile(link => app.useSiteIcon(link)),
 		[Commands.menuDeleteNode]: onTile(link => app.deleteNode(link))
 	});
 };
@@ -227,6 +228,10 @@ app.refreshNode = function(link){ // Refresh: download the page for its title an
 app.capturePage = function(link){ // Capture page: open it in a tab and take a picture
 	dial.showLoading(link);
 	QDClient.capturePage(app.path, link.gridNode.id);
+};
+app.useSiteIcon = function(link){ // Use site icon: the site's own icon as the picture, from now on
+	dial.showLoading(link);
+	QDClient.useSiteIcon(app.path, link.gridNode.id);
 };
 app.editProperties = function(link){
 	app.loadUI().then(ui => { ui.openPopup('/html/properties.html?id=' + link.gridNode.id, app.PROPERTIES_WIDTH, app.PROPERTIES_HEIGHT); });

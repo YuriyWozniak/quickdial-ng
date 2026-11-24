@@ -44,6 +44,14 @@
     "description": "Text of capture menu item."
   },
 
+  "menuPicture": {
+    "message": "Изображение"
+  },
+
+  "menuUseSiteIcon": {
+    "message": "Использовать значок сайта"
+  },
+
   "menuDeleteItem": {
     "message": "Удалить",
     "description": "Text of delete menu item."
@@ -1053,6 +1061,50 @@
 
   "propertiesPasteHint": {
     "message": "Перетащите изображение в область просмотра или вставьте его из буфера (Ctrl+V)."
+  },
+
+  "propertiesSource": {
+    "message": "Источник"
+  },
+
+  "propertiesSourcePage": {
+    "message": "Страница"
+  },
+
+  "propertiesSourcePageHint": {
+    "message": "Снимок страницы"
+  },
+
+  "propertiesSourceSiteIcon": {
+    "message": "Значок сайта"
+  },
+
+  "propertiesSourceSiteIconHint": {
+    "message": "Собственный значок сайта"
+  },
+
+  "propertiesSourceFile": {
+    "message": "Файл"
+  },
+
+  "propertiesPageHint": {
+    "message": "При применении снимок страницы заменит это изображение."
+  },
+
+  "propertiesIconsSearching": {
+    "message": "Поиск значков сайта…"
+  },
+
+  "propertiesIconsNone": {
+    "message": "У сайта нет значка: вместо него будет буква."
+  },
+
+  "propertiesIconSize": {
+    "message": "$1 px"
+  },
+
+  "propertiesIconLetter": {
+    "message": "Буква"
   },
 
   "propertiesKeepPicture": {

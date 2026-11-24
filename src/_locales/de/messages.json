@@ -44,6 +44,14 @@
     "description": "Text of capture menu item."
   },
 
+  "menuPicture": {
+    "message": "Bild"
+  },
+
+  "menuUseSiteIcon": {
+    "message": "Website-Symbol verwenden"
+  },
+
   "menuDeleteItem": {
     "message": "Löschen",
     "description": "Text of delete menu item."
@@ -1029,6 +1037,50 @@
 
   "propertiesPasteHint": {
     "message": "Ziehen Sie ein Bild auf die Vorschau oder fügen Sie es mit Strg+V ein."
+  },
+
+  "propertiesSource": {
+    "message": "Quelle"
+  },
+
+  "propertiesSourcePage": {
+    "message": "Seite"
+  },
+
+  "propertiesSourcePageHint": {
+    "message": "Ein Bildschirmfoto der Seite"
+  },
+
+  "propertiesSourceSiteIcon": {
+    "message": "Website-Symbol"
+  },
+
+  "propertiesSourceSiteIconHint": {
+    "message": "Das eigene Symbol der Website"
+  },
+
+  "propertiesSourceFile": {
+    "message": "Datei"
+  },
+
+  "propertiesPageHint": {
+    "message": "Beim Übernehmen ersetzt ein Bildschirmfoto der Seite dieses Bild."
+  },
+
+  "propertiesIconsSearching": {
+    "message": "Symbole der Website werden gesucht…"
+  },
+
+  "propertiesIconsNone": {
+    "message": "Die Website hat kein Symbol: Ein Buchstabe steht dafür."
+  },
+
+  "propertiesIconSize": {
+    "message": "$1 px"
+  },
+
+  "propertiesIconLetter": {
+    "message": "Buchstabe"
   },
 
   "propertiesKeepPicture": {

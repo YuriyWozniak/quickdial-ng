@@ -18,7 +18,9 @@ const ask = (testPage, message) => testPage.inHost(sentMessage => {
 }, message);
 // The command numbers used here (QDCommon.Commands)
 const Commands = { getSettings: 0, setSettings: 1, getNode: 2, getNodeById: 3, updateNode: 4, setNodeIndex: 5, createBookmark: 6, createFolder: 7, deleteNode: 8,
-	refreshNode: 9, getImages: 11, exportData: 12, importData: 13, getThemes: 14, setThemes: 15, openSettings: 16 };
+	refreshNode: 9, getImages: 11, exportData: 12, importData: 13, getThemes: 14, setThemes: 15, openSettings: 16, findSiteIcons: 17, useSiteIcon: 18 };
+// The picture source of a site icon tile (QDCommon.ImageSource)
+const ImageSource = { siteIcon: 1 };
 // How a picture fills its tile (QDCommon.ImageMode): inherit is the "Default" fit
 const ImageMode = { inherit: -1, original: 3 };
 // A node by id in the background page; a bookmark by id
@@ -108,6 +110,15 @@ module.exports = {
 		await ask(testPage, { cmd: Commands.openSettings, tab: 'themes' });
 		const openedTabs = await testPage.inHost(() => backgroundPage().qdTabs);
 		testPage.check('openSettings', testPage.same(openedTabs, [['create', { url: 'html/settings.html?tab=themes' }]]), openedTabs);
+
+		// ----- site icons: the icons Properties offers, and Use site icon on a tile -----
+		const siteIcons = await ask(testPage, { cmd: Commands.findSiteIcons, url: 'https://site3.example/', title: 'Site 3' });
+		testPage.check('findSiteIcons answers the site\'s title, its icons (the stub site has none) and a letter tile', siteIcons.title === 'site3.example'
+			&& siteIcons.icons.length === 0 && siteIcons.letter.startsWith('data:image/webp'), { title: siteIcons.title, icons: siteIcons.icons.length, letter: siteIcons.letter.slice(0, 15) });
+		await ask(testPage, { cmd: Commands.useSiteIcon, path: '/', id: 'b3' });
+		await testPage.waitFor('b3 to get its letter tile', () => { const tile = backgroundPage().app.GridNodes.getNodeById('b3'); return tile.image === '1' && !tile.__isLoading; });
+		const iconTile = await nodeById(testPage, 'b3');
+		testPage.check('useSiteIcon makes the tile a site icon tile', iconTile.imageSource === ImageSource.siteIcon, iconTile);
 
 		// ----- setSettings: a new root folder brings its own tiles (pictures of the old ones go), then back -----
 		const settings = await ask(testPage, { cmd: Commands.getSettings });

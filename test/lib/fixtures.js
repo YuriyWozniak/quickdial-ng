@@ -116,7 +116,8 @@ function stubDrawWindow(testPage) {
 	});
 }
 
-// A small web page served by the test server; returns its address
+// A small web page served by the test server, or any file next to it (an icon: html is then its text or a Buffer);
+// returns its address
 function sitePage(testPage, fileName, html) {
 	fs.mkdirSync(path.join(testPage.dir, 'site'), { recursive: true });
 	fs.writeFileSync(path.join(testPage.dir, 'site', fileName), html);

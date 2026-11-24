@@ -44,6 +44,14 @@
     "description": "Text of capture menu item."
   },
 
+  "menuPicture": {
+    "message": "תמונה"
+  },
+
+  "menuUseSiteIcon": {
+    "message": "שימוש בסמל האתר"
+  },
+
   "menuDeleteItem": {
     "message": "מחיקה",
     "description": "Text of delete menu item."
@@ -1041,6 +1049,50 @@
 
   "propertiesPasteHint": {
     "message": "אפשר לגרור תמונה אל התצוגה המקדימה או להדביק אותה עם Ctrl+V."
+  },
+
+  "propertiesSource": {
+    "message": "מקור"
+  },
+
+  "propertiesSourcePage": {
+    "message": "דף"
+  },
+
+  "propertiesSourcePageHint": {
+    "message": "צילום של הדף"
+  },
+
+  "propertiesSourceSiteIcon": {
+    "message": "סמל האתר"
+  },
+
+  "propertiesSourceSiteIconHint": {
+    "message": "הסמל של האתר עצמו"
+  },
+
+  "propertiesSourceFile": {
+    "message": "קובץ"
+  },
+
+  "propertiesPageHint": {
+    "message": "בעת ההחלה, צילום של הדף יחליף את התמונה הזאת."
+  },
+
+  "propertiesIconsSearching": {
+    "message": "מחפש את הסמלים של האתר…"
+  },
+
+  "propertiesIconsNone": {
+    "message": "לאתר אין סמל: אות מופיעה במקומו."
+  },
+
+  "propertiesIconSize": {
+    "message": "$1 px"
+  },
+
+  "propertiesIconLetter": {
+    "message": "אות"
   },
 
   "propertiesKeepPicture": {

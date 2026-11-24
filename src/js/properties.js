@@ -4,6 +4,9 @@
 var app = {};
 
 let picture = null; // The picture being edited: a CSS "url(...)" value, a data URL, or null
+let source = QDCommon.ImageSource.page; // Where it comes from (QDCommon.ImageSource): saved with it
+let capturesPage = false; // Page chosen for a tile whose picture isn't a screenshot: the page is captured once saved
+let iconSearch = null; // { url, found }: the last search for the site's icons, kept so choosing Site icon again doesn't download them again
 
 document.addEventListener('DOMContentLoaded', event => {
 	QDUI.localize();
@@ -85,6 +88,8 @@ app.initNode = function(node){
 	IconBookmark.toggleAttribute('hidden', isFolder); // SVG elements have no .hidden property
 	IconFolder.toggleAttribute('hidden', !isFolder);
 	HeaderTitle.textContent = QDCommon.text(isFolder ? 'propertiesFolder' : 'propertiesBookmark');
+	SourceRow.hidden = isFolder; // A folder's picture is a file or the default folder picture
+	ImageChooseRow.hidden = !isFolder; // A tile has File among its sources instead
 	if(isFolder){
 		HeaderSubtitle.textContent = node.title || QDCommon.text('propertiesFolderUntitled');
 		TitleLockBox.hidden = true;
@@ -100,8 +105,10 @@ app.initNode = function(node){
 		ImageDefault.hidden = true;
 		Url.value = node.url;
 	}
-	picture = (node.image && node.image != '0') ? node.image : null;
+	picture = app.originalPicture();
+	source = app.originalSource();
 	app.showImage();
+	app.showSource();
 	QDUI.fitPopup();
 	setTimeout(() => { Title.focus(); Title.select(); }, 0);
 };
@@ -117,12 +124,118 @@ app.save = function(onSaved){ // Apply and OK; onSaved() runs once the tile has 
 	const image = QDCommon.fromCssUrl(picture); // Stored as a plain data URL: the dial adds url("...") itself
 	const value = isFolder
 		? { title: Title.value, image: image, imageMode: +(ImageMode.value) }
-		: { title: Title.value, titleLocked: TitleLocked.checked, imageLocked: ImageLocked.checked, url: Url.value.trim(), image: image, imageMode: +(ImageMode.value) };
+		: { title: Title.value, titleLocked: TitleLocked.checked, imageLocked: ImageLocked.checked, url: Url.value.trim(), image: image, imageMode: +(ImageMode.value),
+			imageSource: source, capturePage: capturesPage };
 	QDClient.updateNode(app.node.id, value).then(found => {
 		if(found === false){ app.showDeleted(); return; }
 		app.changes.markSaved();
+		if(capturesPage){ // Asked once: the screenshot replaces the picture in the background
+			capturesPage = false;
+			SourceHint.textContent = '';
+		}
 		if(onSaved) onSaved();
 	});
+};
+
+// ---------- where the picture comes from: Page, Site icon (one of the site's icons, or a letter tile) or File ----------
+app.ICON_CHOICE_WIDTH = 64; // Width of an icon to choose from, in pixels (its height follows the tiles' shape); see .qd-icon-choice-img
+app.VECTOR_LABEL = 'SVG'; // Shown under an SVG icon instead of a size: it has none
+app.originalPicture = () => (app.node.image && app.node.image != '0') ? app.node.image : null; // The picture the tile had when this window opened
+app.originalSource = () => app.node.imageSource == null ? QDCommon.ImageSource.page : app.node.imageSource;
+app.sourceOptions = () => [SourcePageOption, SourceSiteIconOption, SourceFileOption];
+
+// Presses the button of a source: the one in use, or `shown` (Site icon, while the icons are being found)
+app.showSource = function(shown){
+	const ImageSource = QDCommon.ImageSource;
+	let pressed = shown == null ? source : shown;
+	if(pressed == ImageSource.letter) pressed = ImageSource.siteIcon; // A letter tile is one of the Site icon choices
+	for(const option of app.sourceOptions()) option.setAttribute('aria-pressed', String(+option.dataset.source == pressed));
+};
+app.chooseSource = function(chosen){
+	const ImageSource = QDCommon.ImageSource;
+	if(chosen == ImageSource.file){ // The source becomes File once a picture is chosen (QDUI.imagePicker below)
+		ImageFile.click();
+		return;
+	}
+	if(chosen == ImageSource.siteIcon){
+		app.showSiteIcons();
+		return;
+	}
+	const changed = source != ImageSource.page;
+	picture = app.originalPicture(); // Page: the tile's screenshot, or one to be taken once saved
+	source = ImageSource.page;
+	capturesPage = app.originalSource() != ImageSource.page;
+	IconList.hidden = true;
+	SourceHint.textContent = capturesPage ? QDCommon.text('propertiesPageHint') : '';
+	app.showImage();
+	app.showSource();
+	if(changed) app.changes.mark();
+	QDUI.fitPopup();
+};
+// Site icon: the site's icons to choose from, best first, and a letter tile. Coming from another source, the best is
+// chosen at once; a tile that has an icon already keeps it until another is chosen.
+app.showSiteIcons = function(){
+	const ImageSource = QDCommon.ImageSource;
+	const url = Url.value.trim();
+	if(!iconSearch || iconSearch.url != url) iconSearch = { url, found: QDClient.findSiteIcons(url, Title.value) };
+	const search = iconSearch;
+	IconList.replaceChildren();
+	IconList.hidden = false;
+	SourceHint.textContent = QDCommon.text('propertiesIconsSearching');
+	app.showSource(ImageSource.siteIcon);
+	QDUI.fitPopup();
+	search.found.then(found => {
+		if(iconSearch != search || IconList.hidden || app.deleted) return; // Another address, or another source chosen meanwhile
+		const choices = found.icons.map(icon => ({ picture: icon.picture, source: ImageSource.siteIcon,
+			label: icon.isVector ? app.VECTOR_LABEL : QDCommon.text('propertiesIconSize', icon.width) }));
+		if(found.letter) choices.push({ picture: found.letter, source: ImageSource.letter, label: QDCommon.text('propertiesIconLetter') });
+		app.iconChoices = choices;
+		IconList.replaceChildren(...choices.map(app.iconChoiceButton));
+		SourceHint.textContent = found.icons.length ? '' : QDCommon.text('propertiesIconsNone');
+		const isIconAlready = source == ImageSource.siteIcon || source == ImageSource.letter;
+		if(!isIconAlready && choices.length) app.useIconChoice(choices[0]);
+		else app.showIconChoices();
+		QDUI.fitPopup();
+	});
+};
+app.iconChoices = []; // What the buttons of IconList stand for, in their order: { picture, source, label }
+app.iconChoiceButton = function(choice, index){
+	const button = document.createElement('button');
+	button.type = 'button';
+	button.className = 'qd-icon-choice';
+	button.dataset.index = String(index);
+	const image = document.createElement('span');
+	image.className = 'qd-icon-choice-img';
+	image.style.height = Math.round(app.ICON_CHOICE_WIDTH * QDCommon.tileRatio(app.settings.grid)) + 'px';
+	image.style.backgroundImage = QDCommon.toCssUrl(choice.picture) || 'none';
+	const label = document.createElement('span');
+	label.textContent = choice.label;
+	button.append(image, label);
+	button.onclick = () => app.useIconChoice(choice);
+	return button;
+};
+app.useIconChoice = function(choice){
+	picture = choice.picture;
+	source = choice.source;
+	capturesPage = false;
+	app.showImage();
+	app.showSource();
+	app.showIconChoices();
+	app.changes.mark();
+};
+app.showIconChoices = function(){ // Presses the icon in use, if it is one of them
+	for(const button of IconList.querySelectorAll('button')) button.setAttribute('aria-pressed', String(app.iconChoices[+(button.dataset.index || 0)].picture == picture));
+};
+app.useFile = function(webp){ // A picture from a file, dropped or pasted
+	picture = webp;
+	source = QDCommon.ImageSource.file;
+	capturesPage = false;
+	IconList.hidden = true;
+	SourceHint.textContent = '';
+	app.showImage();
+	app.showSource();
+	app.changes.mark();
+	QDUI.fitPopup();
 };
 
 app.initButtons = function(){
@@ -133,21 +246,24 @@ app.initButtons = function(){
 
 	ImageMode.onchange = function(){ app.showImage(); };
 	ImageReset.onclick = function(){ // Back to the picture the tile had when this window opened
-		picture = (app.node.image && app.node.image != '0') ? app.node.image : null;
+		picture = app.originalPicture();
+		source = app.originalSource();
+		capturesPage = false;
+		IconList.hidden = true;
+		SourceHint.textContent = '';
 		app.showImage();
+		app.showSource();
 		app.changes.mark();
+		QDUI.fitPopup();
 	};
+	for(const option of app.sourceOptions()) option.onclick = () => app.chooseSource(+(option.dataset.source || 0));
 	ImageDefault.onclick = function(){ // Folders only: use the folder picture from the settings
 		picture = null;
 		app.showImage();
 		app.changes.mark();
 	};
 	QDUI.imagePicker(ImageFile, ImageChoose, dataUrl => {
-		QDCommon.toWebp(dataUrl, QDCommon.IMAGE_MAX_SIZE).then(webp => { // Store uploads as compact WebP
-			picture = webp;
-			app.showImage();
-			app.changes.mark();
-		});
+		QDCommon.toWebp(dataUrl, QDCommon.IMAGE_MAX_SIZE).then(app.useFile); // Store uploads as compact WebP
 	});
 	QDUI.imageDrop(ImageZone, ImageFile, { paste: true });
 };

@@ -40,8 +40,10 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all me
 	create({ id: 'itemmenu', title: text('extensionName'), documentUrlPatterns: dialPages, contexts: ['link'] });
 	newItems('itemmenu');
 	create({ parentId: 'itemmenu', title: text('menuProperties'), onclick: toDial(Commands.menuEditProperties) });
-	create({ parentId: 'itemmenu', title: text('menuRefreshItem'), onclick: toDial(Commands.menuRefreshNode) });
-	create({ parentId: 'itemmenu', title: text('menuCapturePage'), onclick: toDial(Commands.menuCapturePage) });
+	create({ id: 'itemmenupicture', parentId: 'itemmenu', title: text('menuPicture') }); // Picture › the ways to make the tile's picture
+	create({ parentId: 'itemmenupicture', title: text('menuRefreshItem'), onclick: toDial(Commands.menuRefreshNode) });
+	create({ parentId: 'itemmenupicture', title: text('menuCapturePage'), onclick: toDial(Commands.menuCapturePage) });
+	create({ parentId: 'itemmenupicture', title: text('menuUseSiteIcon'), onclick: toDial(Commands.menuUseSiteIcon) });
 	create({ parentId: 'itemmenu', title: text('menuDeleteItem'), onclick: toDial(Commands.menuDeleteNode) });
 	create({ parentId: 'itemmenu', type: 'separator' });
 	create({ parentId: 'itemmenu', title: text('menuSettings'), onclick: openSettings });

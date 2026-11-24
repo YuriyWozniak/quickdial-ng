@@ -8,15 +8,19 @@
 // The steps build on each other:
 //   b1: renamed "My site" (title locked, fit Contain), a picture from a file (locked), then a new address
 //   b2: a dropped and a pasted picture, then Cancel and Escape: nothing is saved
+//   b5: at a local page with an SVG icon: its letter tile chosen (Site icon), then Page (Capture page stood in for)
+//   b6: a picture through the File source
 //   f1: a folder's form; renamed "Work", its picture back to the folder icon
 //   b3: its bookmark deleted while the window is open, then opened again while gone
 //   b4: taken out of the tree without the window being told, then OK
 // Related: the updateNode message the popup sends is tested on its own in messages.js.
 'use strict';
-const { freshProfile, stubDrawWindow, pictures } = require('../lib/fixtures');
+const { freshProfile, stubDrawWindow, pictures, sitePage } = require('../lib/fixtures');
 
 // How a picture fills its tile (QDCommon.ImageMode), as values of the fit list (the ImageMode field)
 const ImageFit = { inherit: '-1', contain: '2' };
+// Where a tile's picture comes from (QDCommon.ImageSource)
+const ImageSource = { letter: 2, file: 3 };
 
 // Opens Properties for a tile, as its context menu item does, and waits until the form is filled in.
 // Returns a locator for the popup's frame.
@@ -131,13 +135,66 @@ module.exports = {
 		const unchanged = await nodeById(testPage, 'b2');
 		testPage.check('Cancel and Escape close without saving', unchanged.title === 'site2.example', unchanged);
 
+		// ----- where the picture comes from: Site icon (the site's icons and a letter tile), then Page (a capture once saved), File -----
+		sitePage(testPage, 'icon.svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#cc3366"/></svg>');
+		const iconSite = sitePage(testPage, 'icon-site.html', '<!doctype html><html><head><title>Icon site</title><link rel="icon" href="icon.svg"></head><body></body></html>');
+		await testPage.inHost(address => { backgroundPage().app.GridNodes.getNodeById('b5').url = address; }, iconSite);
+		popup = await openProperties(testPage, 'b5');
+		const pressedSources = () => inPopup(testPage, () => [...document.querySelectorAll('.qd-segment')].map(option => option.getAttribute('aria-pressed') === 'true'));
+		const sourceForm = { pressed: await pressedSources(), ...await inPopup(testPage, () => ({ chooseHidden: ImageChooseRow.hidden, choicesHidden: IconList.hidden })) };
+		testPage.check('a screenshot tile: Page pressed; File is a source, so no separate Choose button', testPage.same(sourceForm.pressed, [true, false, false])
+			&& sourceForm.chooseHidden && sourceForm.choicesHidden, sourceForm);
+		await popup.locator('#SourceSiteIconOption').click();
+		await testPage.waitFor('the site\'s icons', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.document.querySelectorAll('.qd-icon-choice').length === 2);
+		const iconChoices = { pressed: await pressedSources(), ...await inPopup(testPage, () => {
+			const buttons = [...IconList.querySelectorAll('.qd-icon-choice')];
+			return { labels: buttons.map(button => button.textContent), chosen: buttons.map(button => button.getAttribute('aria-pressed') === 'true'), hint: SourceHint.textContent,
+				shown: ImagePreview.style.backgroundImage === buttons[0].firstChild.style.backgroundImage, apply: BtnApply.disabled };
+		}) };
+		testPage.check('Site icon: the site\'s icon and a letter tile to choose from; the best is chosen and shown at once', testPage.same(iconChoices.pressed, [false, true, false])
+			&& testPage.same(iconChoices.labels, ['SVG', 'Letter']) && testPage.same(iconChoices.chosen, [true, false]) && iconChoices.hint === '' && iconChoices.shown && !iconChoices.apply, iconChoices);
+		await popup.locator('.qd-icon-choice').nth(1).click();
+		await popup.locator('#BtnOk').click();
+		await popupClosed(testPage);
+		await testPage.idle();
+		const letterTile = await nodeById(testPage, 'b5');
+		testPage.check('OK saves the letter tile and where it comes from', letterTile.imageSource === ImageSource.letter && letterTile.image === '1', letterTile);
+		await testPage.inHost(() => {
+			const page = backgroundPage();
+			page.qdCaptured = [];
+			page.app.GridNodes.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
+		});
+		popup = await openProperties(testPage, 'b5');
+		const reopened = await pressedSources();
+		await popup.locator('#SourcePageOption').click();
+		const pageChosen = { pressed: await pressedSources(), hint: await inPopup(testPage, () => SourceHint.textContent) };
+		await popup.locator('#BtnOk').click();
+		await popupClosed(testPage);
+		const capturedIds = await testPage.waitFor('the capture', () => backgroundPage().qdCaptured.length && backgroundPage().qdCaptured);
+		const screenshotTile = await nodeById(testPage, 'b5');
+		testPage.check('a letter tile shows Site icon pressed; Page says a screenshot comes once saved, and OK asks for it', testPage.same(reopened, [false, true, false])
+			&& testPage.same(pageChosen.pressed, [true, false, false]) && /screenshot/.test(pageChosen.hint) && testPage.same(capturedIds, ['b5'])
+			&& screenshotTile.imageSource === undefined, [reopened, pageChosen, capturedIds, screenshotTile]);
+		popup = await openProperties(testPage, 'b6');
+		const [fileChooser] = await Promise.all([testPage.page.waitForEvent('filechooser'), popup.locator('#SourceFileOption').click()]);
+		const sourcesWhileChoosing = await pressedSources();
+		await fileChooser.setFiles(pngFile(png));
+		await testPage.waitFor('the chosen picture', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.SourceFileOption.getAttribute('aria-pressed') === 'true');
+		const fileChosen = await pressedSources();
+		await popup.locator('#BtnOk').click();
+		await popupClosed(testPage);
+		await testPage.idle();
+		const fileTile = await nodeById(testPage, 'b6');
+		testPage.check('File opens the file chooser; the source is File once a picture is chosen, and saved with it', testPage.same(sourcesWhileChoosing, [true, false, false])
+			&& testPage.same(fileChosen, [false, false, true]) && fileTile.imageSource === ImageSource.file, [sourcesWhileChoosing, fileChosen, fileTile]);
+
 		// ----- a folder: no address or locks; its picture can go back to the folder icon -----
 		await testPage.inHost(() => { const app = backgroundPage().app; return app.Images.setNodeImage(app.GridNodes.getNodeById('f1'), document.createElement('canvas').toDataURL('image/webp')); });
 		popup = await openProperties(testPage, 'f1');
 		const folderForm = await inPopup(testPage, () => ({ header: HeaderTitle.textContent, urlHidden: UrlRow.hidden, locksHidden: [TitleLockBox.hidden, ImageLockRow.hidden],
-			useDefault: [ImageDefault.hidden, ImageDefault.disabled] }));
-		testPage.check('a folder\'s Properties: no address, no locks, "Use default" available', folderForm.header === 'Folder properties' && folderForm.urlHidden
-			&& testPage.same(folderForm.locksHidden, [true, true]) && testPage.same(folderForm.useDefault, [false, false]), folderForm);
+			useDefault: [ImageDefault.hidden, ImageDefault.disabled], sources: [SourceRow.hidden, ImageChooseRow.hidden] }));
+		testPage.check('a folder\'s Properties: no address, no locks, no picture sources but Choose, "Use default" available', folderForm.header === 'Folder properties' && folderForm.urlHidden
+			&& testPage.same(folderForm.locksHidden, [true, true]) && testPage.same(folderForm.useDefault, [false, false]) && testPage.same(folderForm.sources, [true, false]), folderForm);
 		await popup.locator('#ImageDefault').click();
 		const defaultPicture = await inPopup(testPage, () => ({ picture: ImagePreview.style.backgroundImage, disabled: ImageDefault.disabled }));
 		await popup.locator('#Title').fill('Work');

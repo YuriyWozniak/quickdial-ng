@@ -62,19 +62,20 @@ module.exports = {
 
 		// ----- the menus: every item there, and what each one does -----
 		const menuTitles = await testPage.inHost(() => mockState.menus);
-		testPage.check('the menus are all there', ['menuAddToQuickDial', 'menuNewBookmark', 'menuNewFolder', 'menuSettings', 'menuImportQuickDial', 'menuProperties', 'menuRefreshItem',
-			'menuCapturePage', 'menuDeleteItem', 'menuOpenDial'].every(key => menuTitles.includes(englishText(key))), menuTitles);
+		testPage.check('the menus are all there', ['menuAddToQuickDial', 'menuNewBookmark', 'menuNewFolder', 'menuSettings', 'menuImportQuickDial', 'menuProperties', 'menuPicture',
+			'menuRefreshItem', 'menuCapturePage', 'menuUseSiteIcon', 'menuDeleteItem', 'menuOpenDial'].every(key => menuTitles.includes(englishText(key))), menuTitles);
 		await clickMenu(testPage, 'menuAddToQuickDial', null, { menuItemId: 'AddToQuickDial', pageUrl: 'https://added.example/page' }, { id: 4, title: 'Added page' });
 		const addedTile = await testPage.waitFor('the new tile', () => backgroundPage().app.node.children.find(tile => tile.url === 'https://added.example/page'));
 		const addedBookmark = await testPage.inHost(() => dialFolderBookmarks().find(bookmark => bookmark.url === 'https://added.example/page'));
 		testPage.check('Add to Quick Dial (on a web page) adds a tile and its bookmark', addedTile.title === 'Added page' && addedBookmark && addedBookmark.title === 'Added page', [addedTile, addedBookmark]);
 		const commandsSent = {};
-		for (const [key, parentId] of [['menuNewBookmark', 'pagemenunew'], ['menuNewFolder', 'itemmenunew'], ['menuProperties'], ['menuRefreshItem'], ['menuCapturePage'], ['menuDeleteItem']]) {
+		for (const [key, parentId] of [['menuNewBookmark', 'pagemenunew'], ['menuNewFolder', 'itemmenunew'], ['menuProperties', 'itemmenu'], ['menuRefreshItem', 'itemmenupicture'],
+			['menuCapturePage', 'itemmenupicture'], ['menuUseSiteIcon', 'itemmenupicture'], ['menuDeleteItem', 'itemmenu']]) {
 			await clickMenu(testPage, key, parentId);
 			commandsSent[key] = (await tabCalls(testPage)).map(call => call[2]).join(); // ['message', tab id, command, section]
 		}
-		testPage.check('the dial\'s items ask that dial page to act (on the tile under the mouse)', testPage.same(commandsSent,
-			{ menuNewBookmark: '200', menuNewFolder: '201', menuProperties: '203', menuRefreshItem: '204', menuCapturePage: '206', menuDeleteItem: '207' }), commandsSent);
+		testPage.check('the dial\'s items ask that dial page to act (on the tile under the mouse); the picture\'s are under Picture', testPage.same(commandsSent,
+			{ menuNewBookmark: '200', menuNewFolder: '201', menuProperties: '203', menuRefreshItem: '204', menuCapturePage: '206', menuUseSiteIcon: '210', menuDeleteItem: '207' }), commandsSent);
 		const tabsOpened = [];
 		for (const [key, parentId] of [['menuSettings', 'pagemenu'], ['menuImportQuickDial', 'pagemenu'], ['menuSettings', 'itemmenu'], ['menuOpenDial']]) {
 			await clickMenu(testPage, key, parentId);
