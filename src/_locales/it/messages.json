@@ -15,7 +15,7 @@
   },
 
   "dialogNewBookmarkPrompt": {
-    "message": "Scrivi l'url del nuovo segnalibro:",
+    "message": "Indirizzo del nuovo segnalibro:",
     "description": "Text of the add bookmark prompt."
   },
 
@@ -25,7 +25,7 @@
   },
 
   "dialogNewFolderPrompt": {
-    "message": "Scrivi il nome della nuova cartella:",
+    "message": "Nome della nuova cartella:",
     "description": "Text of the add folder prompt."
   },
 
@@ -55,7 +55,7 @@
   },
 
   "menuSettings": {
-    "message": "Impostazioni Quick Dial NG",
+    "message": "Impostazioni di Quick Dial NG",
     "description": "Text of settings menu item."
   },
 
@@ -85,7 +85,7 @@
   },
 
   "extensionDescription": {
-    "message": "Accesso rapido per la nuova scheda e la pagina iniziale, con riquadri da una cartella di segnalibri. Fork indipendente e ottimizzato di Quick Dial di MatMoul.",
+    "message": "Accesso rapido nella nuova scheda e nella pagina iniziale, con riquadri presi da una cartella di segnalibri. Fork indipendente e ottimizzato del Quick Dial di MatMoul.",
     "description": "The extension's description in Firefox's Add-ons manager"
   },
 
@@ -175,7 +175,7 @@
   },
 
   "tileHover": {
-    "message": "Al passaggio",
+    "message": "Sotto il puntatore",
     "description": "A tile under the mouse pointer"
   },
 
@@ -270,7 +270,7 @@
   },
 
   "settingsGradientHint": {
-    "message": "Il tema aggiunge una sfumatura, mostrata dietro l’immagine."
+    "message": "Il tema aggiunge una sfumatura, visibile dietro l’immagine."
   },
 
   "settingsGradientRemove": {
@@ -286,7 +286,7 @@
   },
 
   "settingsAccentColorHint": {
-    "message": "Pulsanti, interruttori, schede e contorni di focus nelle finestre e nelle finestre di dialogo di Quick Dial NG"
+    "message": "Colore di pulsanti, interruttori, schede e contorni di focus in Quick Dial NG"
   },
 
   "settingsBehavior": {
@@ -306,7 +306,7 @@
   },
 
   "settingsToolbarButtonHint": {
-    "message": "Cosa apre il pulsante di Quick Dial NG nella barra degli strumenti di Firefox. Il suo menu contestuale offre entrambe le opzioni."
+    "message": "Cosa apre il pulsante di Quick Dial NG nella barra degli strumenti di Firefox. Dal suo menu contestuale puoi aprire entrambi."
   },
 
   "settingsToolbarSettings": {
@@ -326,7 +326,7 @@
   },
 
   "settingsStartPageHint": {
-    "message": "Quick Dial NG è la pagina iniziale di Firefox: si apre all’avvio di Firefox e con il pulsante Pagina iniziale. Per usare un’altra pagina, vai in Impostazioni di Firefox › Pagina iniziale."
+    "message": "Quick Dial NG è ora la pagina iniziale di Firefox: si apre all’avvio del browser e con il pulsante Pagina iniziale. Per sceglierne un’altra, vai in Impostazioni di Firefox › Pagina iniziale."
   },
 
   "settingsLayout": {
@@ -350,11 +350,11 @@
   },
 
   "settingsRatioWidth": {
-    "message": "Proporzione larghezza"
+    "message": "Larghezza relativa"
   },
 
   "settingsRatioHeight": {
-    "message": "Proporzione altezza"
+    "message": "Altezza relativa"
   },
 
   "settingsTileShapeHint": {
@@ -443,7 +443,7 @@
   },
 
   "settingsCornerRadius": {
-    "message": "Raggio degli angoli"
+    "message": "Arrotondamento degli angoli"
   },
 
   "settingsBorderColor": {
@@ -455,11 +455,11 @@
   },
 
   "settingsGlassBlur": {
-    "message": "Sfocatura vetro"
+    "message": "Vetro smerigliato"
   },
 
   "settingsGlassBlurHint": {
-    "message": "Sfoca la pagina dietro il riquadro"
+    "message": "Sfoca lo sfondo sotto il riquadro"
   },
 
   "settingsShadow": {
@@ -471,7 +471,7 @@
   },
 
   "shadowStrong": {
-    "message": "Intensa"
+    "message": "Marcata"
   },
 
   "settingsHoverEffect": {
@@ -479,19 +479,19 @@
   },
 
   "hoverInstant": {
-    "message": "Cambio immediato"
+    "message": "Immediato"
   },
 
   "hoverSmooth": {
-    "message": "Cambio graduale"
+    "message": "Graduale"
   },
 
   "hoverLift": {
-    "message": "Graduale, il riquadro si solleva"
+    "message": "Graduale, con sollevamento"
   },
 
   "hoverGrow": {
-    "message": "Graduale, il riquadro si ingrandisce"
+    "message": "Graduale, con ingrandimento"
   },
 
   "settingsClickEffect": {
@@ -499,15 +499,15 @@
   },
 
   "settingsClickEffectHint": {
-    "message": "Fai clic su un riquadro di esempio per rivederlo"
+    "message": "Fai clic su un riquadro di esempio per rivedere l’effetto"
   },
 
   "settingsClickToPreview": {
-    "message": "Fai clic per vedere l’effetto al clic"
+    "message": "Fai clic per vedere l’effetto"
   },
 
   "settingsReducedMotionHint": {
-    "message": "Le animazioni sono disattivate nelle impostazioni di sistema, quindi i riquadri non si muovono: gli effetti al clic lampeggiano o sfumano al loro posto, e un passaggio graduale cambia solo i colori, senza sollevare né ingrandire."
+    "message": "Le animazioni sono disattivate nelle impostazioni di sistema, quindi i riquadri non si muovono: gli effetti al clic lampeggiano o sfumano, e il passaggio graduale cambia solo i colori, senza sollevamento né ingrandimento."
   },
 
   "clickPress": {
@@ -527,7 +527,7 @@
   },
 
   "clickRing": {
-    "message": "Anello pulsante"
+    "message": "Pulsazione"
   },
 
   "settingsGroupTitle": {
@@ -578,7 +578,7 @@
   },
 
   "titleOver": {
-    "message": "Sulla parte inferiore dell’immagine"
+    "message": "Sull’immagine, in basso"
   },
 
   "settingsGroupThumbnails": {
@@ -586,7 +586,7 @@
   },
 
   "settingsCaptureDelay": {
-    "message": "Ritardo di cattura"
+    "message": "Attesa prima della cattura"
   },
 
   "settingsCaptureDelayUnit": {
@@ -598,7 +598,7 @@
   },
 
   "settingsDiscardHint": {
-    "message": "Mostra le impostazioni che l’accesso rapido usa ora"
+    "message": "Torna alle impostazioni che l’accesso rapido usa ora"
   },
 
   "settingsApplyHint": {
@@ -606,12 +606,12 @@
   },
 
   "settingsThemesIntro": {
-    "message": "Un tema è l’aspetto dell’accesso rapido: colore di sfondo, margine della pagina, stili di riquadri e titoli e il colore di risalto. Mantiene la tua immagine di sfondo, righe e colonne, la forma dei riquadri e i riquadri. Scegli <b>Usa</b> per provare un tema qui, poi <b>Applica</b> per metterlo sull’accesso rapido.",
+    "message": "Un tema definisce l’aspetto dell’accesso rapido: colore di sfondo, margine della pagina, stile di riquadri e titoli, colore di risalto. L’immagine di sfondo, il numero di righe e colonne, la forma dei riquadri e i riquadri stessi non cambiano. Scegli <b>Usa</b> per provare un tema qui, poi <b>Applica</b> per attivarlo nell’accesso rapido.",
     "description": "Keep <b> and </b> around the words of the buttons"
   },
 
   "themeSaveCurrent": {
-    "message": "Salva l’attuale come tema…"
+    "message": "Salva l’aspetto attuale come tema…"
   },
 
   "themeSaveCurrentHint": {
@@ -619,7 +619,7 @@
   },
 
   "themeExportCurrent": {
-    "message": "Esporta l’attuale…"
+    "message": "Esporta l’aspetto attuale…"
   },
 
   "themeExportCurrentHint": {
@@ -647,7 +647,7 @@
   },
 
   "themeUseHint": {
-    "message": "Mostra questo tema qui; Applica lo mantiene"
+    "message": "Prova questo tema qui; “Applica” lo mantiene"
   },
 
   "themeExport": {
@@ -667,12 +667,12 @@
   },
 
   "themeShownHere": {
-    "message": "“$1” è mostrato solo qui. Applica lo mette sull’accesso rapido; Annulla modifiche mantiene l’aspetto precedente.",
+    "message": "“$1” è visibile solo qui. “Applica” lo attiva nell’accesso rapido; “Annulla modifiche” torna all’aspetto precedente.",
     "description": "$1: the theme's name"
   },
 
   "themeDialogMessage": {
-    "message": "Dalle impostazioni attuali: colore di sfondo, margine della pagina, stili di riquadri e titoli e il colore di risalto."
+    "message": "Prende dalle impostazioni attuali il colore di sfondo, il margine della pagina, lo stile di riquadri e titoli e il colore di risalto."
   },
 
   "themeName": {
@@ -696,12 +696,12 @@
   },
 
   "themeNameTooLong": {
-    "message": "Usa al massimo $1 caratteri.",
+    "message": "Nome troppo lungo (massimo $1 caratteri).",
     "description": "$1: a number"
   },
 
   "themeNameBuiltIn": {
-    "message": "“$1” è un tema integrato. Scegli un altro nome.",
+    "message": "“$1” è già un tema integrato. Scegli un altro nome.",
     "description": "$1: the name typed"
   },
 
@@ -719,7 +719,7 @@
   },
 
   "themeSaveTitle": {
-    "message": "Salva l’attuale come tema"
+    "message": "Salva l’aspetto attuale come tema"
   },
 
   "themeSave": {
@@ -732,7 +732,7 @@
   },
 
   "themeExportTitle": {
-    "message": "Esporta l’attuale come tema"
+    "message": "Esporta l’aspetto attuale come tema"
   },
 
   "themeExportButton": {
@@ -740,7 +740,7 @@
   },
 
   "themeImported": {
-    "message": "“$1” importato. Scegli Usa per provarlo.",
+    "message": "“$1” importato. Scegli “Usa” per provarlo.",
     "description": "$1: the theme's name"
   },
 
@@ -759,7 +759,7 @@
   },
 
   "themeFileIsBackup": {
-    "message": "Questo è un backup completo di Quick Dial NG. Importalo nella scheda Backup."
+    "message": "Questo è un backup completo di Quick Dial NG. Ripristinalo nella scheda “Backup”."
   },
 
   "themeFileInvalid": {
@@ -788,7 +788,7 @@
   },
 
   "themeAnoriDescription": {
-    "message": "Ispirato all’estensione Anori (anori.app): una pagina verde intenso, riquadri in vetro smerigliato con grandi angoli arrotondati e titoli sopra le immagini."
+    "message": "Ispirato all’estensione Anori (anori.app): sfondo verde intenso, riquadri in vetro smerigliato con angoli molto arrotondati, titoli sopra le immagini."
   },
 
   "themePlumName": {
@@ -796,7 +796,7 @@
   },
 
   "themePlumDescription": {
-    "message": "Una pagina color prugna scuro con bordi arrotondati grigio chiaro e titoli sotto le immagini. Pensato per una griglia grande con gruppi di siti e spazio tra di essi."
+    "message": "Sfondo prugna scuro, bordi arrotondati grigio chiaro, titoli sotto le immagini. Per una griglia grande con gruppi di siti ben distanziati."
   },
 
   "themeDesktopName": {
@@ -804,7 +804,7 @@
   },
 
   "themeDesktopDescription": {
-    "message": "Icone con il nome sotto su una pagina blu notte o sul tuo sfondo, come il desktop di un computer, con un’evidenziazione morbida sotto il puntatore. Per riquadri quadrati e immagini di icone."
+    "message": "Icone con il nome sotto, su sfondo blu notte o sul tuo sfondo — come il desktop di un computer, con una leggera evidenziazione sotto il puntatore. Per riquadri quadrati e immagini di icone."
   },
 
   "themeDuskName": {
@@ -812,7 +812,7 @@
   },
 
   "themeDuskDescription": {
-    "message": "Riquadri di vetro viola che si ingrandiscono al passaggio, su un cielo al tramonto."
+    "message": "Riquadri di vetro viola su un cielo al tramonto; il riquadro sotto il puntatore si ingrandisce."
   },
 
   "themeRetroPcName": {
@@ -820,7 +820,7 @@
   },
 
   "themeRetroPcDescription": {
-    "message": "Un desktop di PC di fine anni ’90: una pagina verde acqua, icone con nomi bianchi e un’evidenziazione blu navy del nome sotto il puntatore. Per riquadri quadrati e immagini di icone."
+    "message": "Desktop di un PC di fine anni ’90: sfondo verde acqua, icone con nomi bianchi, nome evidenziato in blu navy sotto il puntatore. Per riquadri quadrati e immagini di icone."
   },
 
   "themeRetroMonoName": {
@@ -828,7 +828,7 @@
   },
 
   "themeRetroMonoDescription": {
-    "message": "Uno dei primi desktop in bianco e nero: un fine motivo grigio, nomi neri su etichette bianche, invertiti sotto il puntatore. Per riquadri quadrati e immagini di icone in bianco e nero."
+    "message": "Uno dei primi desktop in bianco e nero: fine motivo grigio, nomi neri su etichette bianche che si invertono sotto il puntatore. Per riquadri quadrati e icone in bianco e nero."
   },
 
   "backupTitle": {
@@ -836,7 +836,7 @@
   },
 
   "backupIntro": {
-    "message": "Salva impostazioni, riquadri, immagini e i tuoi temi in un unico file. Ripristinalo con <b>Importa da file…</b> qui sotto.",
+    "message": "Salva impostazioni, riquadri, immagini e i tuoi temi in un unico file. Per ripristinarli, usa <b>Importa da file…</b> qui sotto.",
     "description": "Keep <b> and </b>; the words inside are the button's"
   },
 
@@ -853,7 +853,7 @@
   },
 
   "backupImportHint": {
-    "message": "Importa un’esportazione del Quick Dial originale o un backup di Quick Dial NG"
+    "message": "Apri un’esportazione del Quick Dial originale o un backup di Quick Dial NG"
   },
 
   "backupOriginalTitle": {
@@ -861,7 +861,7 @@
   },
 
   "backupOriginalIntro": {
-    "message": "Porta i tuoi riquadri con la loro posizione esatta nella griglia, le cartelle, le immagini e le impostazioni di griglia e stile. I segnalibri già presenti nella cartella di Quick Dial vengono riutilizzati; quelli mancanti vengono creati."
+    "message": "Porta i tuoi riquadri (nelle stesse posizioni della griglia), le cartelle, le immagini e le impostazioni di griglia e stile. I segnalibri già presenti nella cartella di Quick Dial vengono riutilizzati, quelli mancanti vengono creati."
   },
 
   "backupStep1": {
@@ -870,16 +870,16 @@
   },
 
   "backupStep2": {
-    "message": "Copia lo snippet di esportazione e incollalo nella scheda <b>Console</b> (digita prima <code>allow pasting</code> se Firefox lo chiede). Salva <code>quickdial-export.json</code> in Download.",
+    "message": "Copia il codice di esportazione e incollalo nella scheda <b>Console</b> (se Firefox lo chiede, digita prima <code>allow pasting</code>). Il codice salva <code>quickdial-export.json</code> in Download.",
     "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
   },
 
   "backupStep3": {
-    "message": "Scegli quel file con <b>Importa da file…</b> qui sopra."
+    "message": "Apri quel file con <b>Importa da file…</b> qui sopra."
   },
 
   "backupCopySnippet": {
-    "message": "Copia lo snippet di esportazione"
+    "message": "Copia il codice di esportazione"
   },
 
   "backupCopied": {
@@ -887,11 +887,11 @@
   },
 
   "backupCopyPrompt": {
-    "message": "Copia questo snippet:"
+    "message": "Copia questo codice:"
   },
 
   "backupFileIsTheme": {
-    "message": "Questo è un tema. Importalo nella scheda Temi."
+    "message": "Questo è un tema. Importalo nella scheda “Temi”."
   },
 
   "backupFileInvalid": {
@@ -907,7 +907,7 @@
   },
 
   "backupImportMessage": {
-    "message": "Le impostazioni attuali e la disposizione dei riquadri verranno sostituite. I segnalibri nella cartella di Quick Dial vengono mantenuti; quelli mancanti vengono creati."
+    "message": "Le impostazioni attuali e la disposizione dei riquadri verranno sostituite. I segnalibri nella cartella di Quick Dial restano, quelli mancanti vengono creati."
   },
 
   "backupImportButton": {
@@ -919,7 +919,7 @@
   },
 
   "backupImportResult": {
-    "message": "Importati: $1, $2, $3, più le impostazioni di griglia e stile. Segnalibri riutilizzati: $4, creati: $5.",
+    "message": "Importati: $1, $2, $3, più le impostazioni di griglia e stile. Segnalibri esistenti riutilizzati: $4, nuovi: $5.",
     "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
   },
 
@@ -1008,7 +1008,7 @@
   },
 
   "propertiesLockTitleHint": {
-    "message": "Blocca il titolo: aggiornare il riquadro non lo rinominerà"
+    "message": "Blocca il titolo così l’aggiornamento del riquadro non lo cambia"
   },
 
   "propertiesAddress": {
@@ -1040,7 +1040,7 @@
   },
 
   "propertiesPasteHint": {
-    "message": "Trascina un’immagine sull’anteprima o incollane una con Ctrl+V."
+    "message": "Trascina un’immagine sull’anteprima o incollala con Ctrl+V."
   },
 
   "propertiesKeepPicture": {
