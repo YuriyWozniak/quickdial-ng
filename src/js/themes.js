@@ -139,13 +139,17 @@ var QDThemes = (function(){
 		}
 		return obj;
 	}
+	// Keys that would reach Object.prototype instead of a style value; set() and derive() skip them
+	function isStyleKey(key){ return key !== '__proto__' && key !== 'constructor' && key !== 'prototype'; }
 	function set(obj, path, value){
 		const parts = path.split('.');
 		for(let i = 0; i < parts.length - 1; i++){
+			if(!isStyleKey(parts[i])) return;
 			if(!obj[parts[i]] || typeof obj[parts[i]] != 'object') obj[parts[i]] = {};
 			obj = obj[parts[i]];
 		}
-		obj[parts[parts.length - 1]] = value;
+		const key = parts[parts.length - 1];
+		if(isStyleKey(key)) obj[key] = value;
 	}
 
 	// A complete, valid style: values from `style` where they pass the checks, Classic values elsewhere
@@ -212,6 +216,7 @@ var QDThemes = (function(){
 		const out = JSON.parse(JSON.stringify(base));
 		(function merge(target, values){
 			for(const key in values){
+				if(!isStyleKey(key)) continue;
 				if(values[key] && typeof values[key] == 'object') merge(target[key] || (target[key] = {}), values[key]);
 				else target[key] = values[key];
 			}
