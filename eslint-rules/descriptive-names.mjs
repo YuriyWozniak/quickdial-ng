@@ -1,12 +1,12 @@
 // ESLint rule qdng/descriptive-names (CODE_STYLE.md, Names): a name declared in the code (a variable, a function,
 // a parameter, a class) says what it holds, so it is longer than two letters. Short names are left for what
 // CODE_STYLE.md allows: loop indexes (i, j), events and errors (e), the parameters of a one-line arrow function
-// (t => t.name, (a, b) => a - b), and short words that are names in their own right (id, fs, ms...).
+// (t => t.name, (a, b) => a - b), and short words that are names in their own right (id, ui, fs, ms...).
 //
 //   'qdng/descriptive-names': ['error', { minLength: 3, allow: ['id', 'ok'] }]
 
 const DEFAULT_MIN_LENGTH = 3;
-const DEFAULT_ALLOWED = ['i', 'j', 'e', '_', 'id', 'ok', 'fs', 'os', 'vm', 'ms', 'px'];
+const DEFAULT_ALLOWED = ['i', 'j', 'e', '_', 'id', 'ok', 'ui', 'fs', 'os', 'vm', 'ms', 'px'];
 
 // The identifiers a declaration pattern binds: x, { a, b: c }, [d, ...e], f = 1
 function boundIdentifiers(pattern) {

@@ -287,7 +287,7 @@ app.Settings._write = function(){ // The batched save: writes what changed since
 	delete app.Settings._saveTimer;
 	const waiting = app.Settings._saveWaiting;
 	app.Settings._saveWaiting = [];
-	const done = error => { for(const w of waiting) if(error) w.reject(error); else w.resolve(); };
+	const done = error => { for(const caller of waiting) if(error) caller.reject(error); else caller.resolve(); };
 	if(app.Settings._loadFailed){ // Keep what is stored (see Settings.init)
 		done(new Error('The stored settings could not be loaded, so nothing is saved over them.'));
 		return;

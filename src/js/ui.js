@@ -22,7 +22,7 @@ var QDUI = (function(){
 		this._onContextMenu = function(e){ e.preventDefault(); };
 		this._onKeyDown = function(e){ if(e.key == 'Escape') self.close(); }; // when focus is outside the frame
 		this.overlay.addEventListener('mousedown', e => { // keep focus in the frame
-			if(e.target === self.overlay){ e.preventDefault(); const f = self.panel.querySelector('iframe'); if(f) f.focus(); }
+			if(e.target === self.overlay){ e.preventDefault(); const frame = self.panel.querySelector('iframe'); if(frame) frame.focus(); }
 		});
 		this.popup = function(){
 			if(shownPopup) shownPopup.close(true);
@@ -32,12 +32,12 @@ var QDUI = (function(){
 			document.body.appendChild(self.overlay);
 		};
 		this.fit = function(){ // Called by the page inside: shrink the frame to its content (never above the requested height)
-			const f = self.panel.querySelector('iframe'), d = f && f.contentDocument;
-			if(!d) return;
-			const content = d.querySelector('.qd-content');
+			const frame = self.panel.querySelector('iframe'), frameDocument = frame && frame.contentDocument;
+			if(!frameDocument) return;
+			const content = frameDocument.querySelector('.qd-content');
 			let needed = 2;
 			if(content) content.style.flex = '0 0 auto'; // natural height instead of "fill the frame"
-			for(const el of d.body.children) needed += el.offsetHeight;
+			for(const element of frameDocument.body.children) needed += element.offsetHeight;
 			if(content) content.style.flex = '';
 			self.panel.style.height = Math.min(height, Math.ceil(needed)) + 'px';
 		};
@@ -74,26 +74,26 @@ var QDUI = (function(){
 	function initTabs(list, onChange){
 		const buttons = Array.prototype.slice.call(list.querySelectorAll('[role=tab]'));
 		function select(btn, focus){
-			if(typeof btn == 'string') btn = buttons.filter(b => { return b.id == btn || b.getAttribute('aria-controls') == btn; })[0];
+			if(typeof btn == 'string') btn = buttons.filter(b => b.id == btn || b.getAttribute('aria-controls') == btn)[0];
 			if(!btn) return;
-			buttons.forEach(b => {
-				const on = b === btn;
-				b.setAttribute('aria-selected', on ? 'true' : 'false');
-				b.tabIndex = on ? 0 : -1;
-				document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+			buttons.forEach(button => {
+				const selected = button === btn;
+				button.setAttribute('aria-selected', selected ? 'true' : 'false');
+				button.tabIndex = selected ? 0 : -1;
+				document.getElementById(button.getAttribute('aria-controls')).hidden = !selected;
 			});
 			if(focus) btn.focus();
 			if(onChange) onChange(btn);
 		}
-		buttons.forEach((b, i) => {
-			b.addEventListener('click', () => { select(b); });
-			b.addEventListener('keydown', e => {
-				let n = null;
-				if(e.key == 'ArrowRight' || e.key == 'ArrowDown') n = buttons[(i + 1) % buttons.length];
-				else if(e.key == 'ArrowLeft' || e.key == 'ArrowUp') n = buttons[(i - 1 + buttons.length) % buttons.length];
-				else if(e.key == 'Home') n = buttons[0];
-				else if(e.key == 'End') n = buttons[buttons.length - 1];
-				if(n){ e.preventDefault(); select(n, true); }
+		buttons.forEach((button, i) => {
+			button.addEventListener('click', () => { select(button); });
+			button.addEventListener('keydown', e => {
+				let next = null;
+				if(e.key == 'ArrowRight' || e.key == 'ArrowDown') next = buttons[(i + 1) % buttons.length];
+				else if(e.key == 'ArrowLeft' || e.key == 'ArrowUp') next = buttons[(i - 1 + buttons.length) % buttons.length];
+				else if(e.key == 'Home') next = buttons[0];
+				else if(e.key == 'End') next = buttons[buttons.length - 1];
+				if(next){ e.preventDefault(); select(next, true); }
 			});
 		});
 		return { select: select };
@@ -166,17 +166,17 @@ var QDUI = (function(){
 	function imageDrop(zone, input, options){
 		options = options || {};
 		let depth = 0;
-		function isImage(dt){
-			if(!dt) return false;
-			if(dt.items && dt.items.length) return Array.prototype.some.call(dt.items, i => { return i.kind == 'file' && /^image\//.test(i.type); });
-			return dt.types && Array.prototype.indexOf.call(dt.types, 'Files') >= 0;
+		function isImage(transfer){
+			if(!transfer) return false;
+			if(transfer.items && transfer.items.length) return Array.prototype.some.call(transfer.items, i => i.kind == 'file' && /^image\//.test(i.type));
+			return transfer.types && Array.prototype.indexOf.call(transfer.types, 'Files') >= 0;
 		}
 		function give(files){
-			const file = Array.prototype.filter.call(files || [], f => { return /^image\//.test(f.type); })[0];
+			const file = Array.prototype.filter.call(files || [], f => /^image\//.test(f.type))[0];
 			if(!file) return false;
-			const dt = new DataTransfer();
-			dt.items.add(file);
-			input.files = dt.files;
+			const transfer = new DataTransfer();
+			transfer.items.add(file);
+			input.files = transfer.files;
 			input.dispatchEvent(new Event('change', { bubbles: true }));
 			return true;
 		}
@@ -186,8 +186,8 @@ var QDUI = (function(){
 		zone.addEventListener('drop', e => { e.preventDefault(); depth = 0; zone.classList.remove('is-dragover'); give(e.dataTransfer.files); });
 		if(options.paste){
 			document.addEventListener('paste', e => {
-				const t = e.target;
-				if(t && (t.tagName == 'INPUT' || t.tagName == 'TEXTAREA') && !(e.clipboardData.files && e.clipboardData.files.length)) return; // normal text paste
+				const target = e.target;
+				if(target && (target.tagName == 'INPUT' || target.tagName == 'TEXTAREA') && !(e.clipboardData.files && e.clipboardData.files.length)) return; // normal text paste
 				if(give(e.clipboardData && e.clipboardData.files)) e.preventDefault();
 			});
 		}
@@ -204,9 +204,9 @@ var QDUI = (function(){
 			root.style.removeProperty('--qd-user-accent-text');
 			return;
 		}
-		const n = parseInt(hex.slice(1), 16);
-		const lin = function(v){ v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
-		const lum = .2126 * lin(n >> 16 & 255) + .7152 * lin(n >> 8 & 255) + .0722 * lin(n & 255);
+		const rgb = parseInt(hex.slice(1), 16);
+		const lin = function(channel){ channel /= 255; return channel <= .03928 ? channel / 12.92 : Math.pow((channel + .055) / 1.055, 2.4); };
+		const lum = .2126 * lin(rgb >> 16 & 255) + .7152 * lin(rgb >> 8 & 255) + .0722 * lin(rgb & 255);
 		root.style.setProperty('--qd-user-accent', hex);
 		root.style.setProperty('--qd-user-accent-text', lum > .4 ? '#15141a' : '#ffffff'); // whichever reads better on it
 		root.classList.add('qd-accented');
@@ -227,19 +227,19 @@ var QDUI = (function(){
 			box.className = 'qd-dialog';
 			box.setAttribute('role', options.danger ? 'alertdialog' : 'dialog');
 			box.setAttribute('aria-modal', 'true');
-			const h = document.createElement('h1'); h.className = 'qd-title'; h.textContent = options.title || ''; h.id = 'qd-dialog-title';
-			box.setAttribute('aria-labelledby', h.id);
-			box.appendChild(h);
-			if(options.message){ const m = document.createElement('p'); m.className = 'qd-dialog-message'; m.textContent = options.message; box.appendChild(m); }
-			const inputs = fields.map((f, i) => {
+			const heading = document.createElement('h1'); heading.className = 'qd-title'; heading.textContent = options.title || ''; heading.id = 'qd-dialog-title';
+			box.setAttribute('aria-labelledby', heading.id);
+			box.appendChild(heading);
+			if(options.message){ const message = document.createElement('p'); message.className = 'qd-dialog-message'; message.textContent = options.message; box.appendChild(message); }
+			const inputs = fields.map((field, i) => {
 				const input = document.createElement('input');
 				input.type = 'text';
-				input.value = f.value || '';
+				input.value = field.value || '';
 				input.spellcheck = false;
 				input.id = 'qd-dialog-field-' + i;
-				if(f.placeholder) input.placeholder = f.placeholder;
-				if(f.label){
-					const label = document.createElement('label'); label.className = 'qd-dialog-label'; label.htmlFor = input.id; label.textContent = f.label;
+				if(field.placeholder) input.placeholder = field.placeholder;
+				if(field.label){
+					const label = document.createElement('label'); label.className = 'qd-dialog-label'; label.htmlFor = input.id; label.textContent = field.label;
 					box.appendChild(label);
 				}
 				box.appendChild(input);
@@ -271,7 +271,7 @@ var QDUI = (function(){
 				let result;
 				if(options.fields){
 					result = {};
-					options.fields.forEach((f, i) => { result[f.name] = inputs[i].value.trim(); });
+					options.fields.forEach((field, i) => { result[field.name] = inputs[i].value.trim(); });
 				} else result = inputs[0].value.trim();
 				const problem = options.validate ? options.validate(result) : (inputs[0].value.trim() ? '' : QDCommon.text('dialogEnterValue'));
 				if(problem){ inputs[0].classList.add('is-invalid'); error.textContent = problem; inputs[0].focus(); return; }
@@ -281,7 +281,7 @@ var QDUI = (function(){
 				if(e.key == 'Escape'){ e.preventDefault(); e.stopImmediatePropagation(); finish(null); }
 				else if(e.key == 'Enter' && !(e.target && e.target.tagName == 'BUTTON')){ e.preventDefault(); e.stopImmediatePropagation(); accept(); }
 				else if(e.key == 'Tab'){ // keep focus inside the dialog
-					const f = box.querySelectorAll('input, button'), first = f[0], last = f[f.length - 1];
+					const focusable = box.querySelectorAll('input, button'), first = focusable[0], last = focusable[focusable.length - 1];
 					if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
 					else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
 				}
@@ -303,9 +303,9 @@ var QDUI = (function(){
 	const TEXT_ATTRIBUTES = ['title', 'placeholder', 'aria-label'];
 	function localize(root){
 		root = root || document;
-		for(const el of root.querySelectorAll('[data-i18n]')) setRichText(el, QDCommon.text(el.getAttribute('data-i18n')));
+		for(const element of root.querySelectorAll('[data-i18n]')) setRichText(element, QDCommon.text(element.getAttribute('data-i18n')));
 		for(const attr of TEXT_ATTRIBUTES){
-			for(const el of root.querySelectorAll('[data-i18n-' + attr + ']')) el.setAttribute(attr, QDCommon.text(el.getAttribute('data-i18n-' + attr)));
+			for(const element of root.querySelectorAll('[data-i18n-' + attr + ']')) element.setAttribute(attr, QDCommon.text(element.getAttribute('data-i18n-' + attr)));
 		}
 		if(root === document){
 			document.documentElement.lang = QDCommon.language();
@@ -315,16 +315,16 @@ var QDUI = (function(){
 	// A text may hold <b>...</b>, <code>...</code> and <br>: they become those elements (built one by one, never
 	// parsed as HTML); anything else in it is shown as it is.
 	const RICH_TEXT = /<(b|code)>(.*?)<\/\1>|<br>/g;
-	function setRichText(el, text){
-		el.replaceChildren();
+	function setRichText(element, text){
+		element.replaceChildren();
 		let last = 0;
-		for(const m of text.matchAll(RICH_TEXT)){
-			el.append(text.slice(last, m.index));
-			if(m[1]){ const part = document.createElement(m[1]); part.textContent = m[2]; el.append(part); }
-			else el.append(document.createElement('br'));
-			last = m.index + m[0].length;
+		for(const match of text.matchAll(RICH_TEXT)){
+			element.append(text.slice(last, match.index));
+			if(match[1]){ const part = document.createElement(match[1]); part.textContent = match[2]; element.append(part); }
+			else element.append(document.createElement('br'));
+			last = match.index + match[0].length;
 		}
-		el.append(text.slice(last));
+		element.append(text.slice(last));
 	}
 
 	return { openPopup, closePopup, fitPopup, initTabs, trackChanges, readFile, imagePicker, imageDrop, setAccent, dialog, localize, setRichText };

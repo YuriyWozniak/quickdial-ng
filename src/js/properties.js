@@ -58,10 +58,10 @@ app.PREVIEW_MAX_WIDTH = 240;
 app.PREVIEW_MAX_HEIGHT = 190;
 app.sizePreview = function(){
 	const ratio = QDCommon.tileRatio(app.settings.grid);
-	let w = app.PREVIEW_MAX_WIDTH, h = w * ratio;
-	if(h > app.PREVIEW_MAX_HEIGHT){ h = app.PREVIEW_MAX_HEIGHT; w = h / ratio; }
-	ImageZone.style.width = Math.round(w) + 'px';
-	ImageZone.style.height = Math.round(h) + 'px';
+	let width = app.PREVIEW_MAX_WIDTH, height = width * ratio;
+	if(height > app.PREVIEW_MAX_HEIGHT){ height = app.PREVIEW_MAX_HEIGHT; width = height / ratio; }
+	ImageZone.style.width = Math.round(width) + 'px';
+	ImageZone.style.height = Math.round(height) + 'px';
 	ImageZone.style.aspectRatio = 'auto';
 };
 

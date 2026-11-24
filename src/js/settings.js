@@ -60,42 +60,42 @@ const FIELDS = (function(){
 		['Title', 'title', 'bool'], ['TitleHeight', 'titleHeight', 'num'], ['TitleFontSize', 'titleFontSize', 'num'],
 		['TitleBorderSize', 'titleBorderSize', 'num'], ['TitleColor', 'titleColor', 'color'],
 		['TitleBackgroundColor', 'titleBackgroundColor', 'color?', 'TitleBackgroundTransparent'], ['TitleBackgroundOpacity', 'titleBackgroundOpacity', 'pct']
-	].forEach(p => {
-		['', 'Hover'].forEach(h => {
-			fields.push(field('GridCells' + p[0] + h, 'grid.cells.' + p[1] + h, p[2], p[3] ? 'GridCells' + p[3] + h : null, '#ffffff'));
+	].forEach(entry => {
+		['', 'Hover'].forEach(suffix => {
+			fields.push(field('GridCells' + entry[0] + suffix, 'grid.cells.' + entry[1] + suffix, entry[2], entry[3] ? 'GridCells' + entry[3] + suffix : null, '#ffffff'));
 		});
 	});
 	return fields;
 })();
 
 app.objectPath = {
-	get: function(obj, path){ return path.split('.').reduce((o, k) => { return o == null ? undefined : o[k]; }, obj); },
+	get: function(obj, path){ return path.split('.').reduce((o, k) => o == null ? undefined : o[k], obj); },
 	set: function(obj, path, value){
 		const keys = path.split('.'), last = keys.pop();
-		keys.reduce((o, k) => { return o[k] || (o[k] = {}); }, obj)[last] = value;
+		keys.reduce((o, k) => o[k] || (o[k] = {}), obj)[last] = value;
 	}
 };
-app.clone = function(v){ return JSON.parse(JSON.stringify(v)); };
+app.clone = function(value){ return JSON.parse(JSON.stringify(value)); };
 
 // settings -> form
 app.fillForm = function(settings){
-	FIELDS.forEach(f => {
-		const el = document.getElementById(f.id), v = app.objectPath.get(settings, f.path);
-		switch(f.kind){
-			case 'bool': el.checked = !!v; break;
-			case 'pct': el.value = Math.round((v == null ? 1 : v) * 100); break;
-			case 'color?': document.getElementById(f.nullToggle).checked = (v == null); el.value = v || f.nullColor; break;
+	FIELDS.forEach(field => {
+		const element = document.getElementById(field.id), value = app.objectPath.get(settings, field.path);
+		switch(field.kind){
+			case 'bool': element.checked = !!value; break;
+			case 'pct': element.value = Math.round((value == null ? 1 : value) * 100); break;
+			case 'color?': document.getElementById(field.nullToggle).checked = (value == null); element.value = value || field.nullColor; break;
 			case 'text':
-				if(el.tagName == 'SELECT' && v && !Array.prototype.some.call(el.options, o => { return o.value == v; })){
-					el.add(new Option(QDCommon.text('settingsCustomFont', v.split(',')[0].replace(/["']/g, '')), v)); // a font from an imported theme
+				if(element.tagName == 'SELECT' && value && !Array.prototype.some.call(element.options, o => o.value == value)){
+					element.add(new Option(QDCommon.text('settingsCustomFont', value.split(',')[0].replace(/["']/g, '')), value)); // a font from an imported theme
 				}
-				el.value = v == null ? '' : v;
+				element.value = value == null ? '' : value;
 				break;
 			case 'choice':
-				el.value = v == null ? '' : v;
-				if(el.selectedIndex < 0) el.selectedIndex = 0;
+				element.value = value == null ? '' : value;
+				if(element.selectedIndex < 0) element.selectedIndex = 0;
 				break;
-			default: el.value = v == null ? '' : v;
+			default: element.value = value == null ? '' : value;
 		}
 	});
 	backgroundImage = settings.backgroundImage;
@@ -105,17 +105,17 @@ app.fillForm = function(settings){
 };
 // form -> settings (written into `settings`, which is returned)
 app.readForm = function(settings){
-	FIELDS.forEach(f => {
-		const el = document.getElementById(f.id);
-		let v;
-		switch(f.kind){
-			case 'bool': v = el.checked; break;
-			case 'num': v = el.value === '' || isNaN(+el.value) ? app.objectPath.get(settings, f.path) : +el.value; break;
-			case 'pct': v = el.value === '' || isNaN(+el.value) ? app.objectPath.get(settings, f.path) : Math.min(100, Math.max(0, +el.value)) / 100; break;
-			case 'color?': v = document.getElementById(f.nullToggle).checked ? null : el.value; break;
-			default: v = el.value;
+	FIELDS.forEach(field => {
+		const element = document.getElementById(field.id);
+		let value;
+		switch(field.kind){
+			case 'bool': value = element.checked; break;
+			case 'num': value = element.value === '' || isNaN(+element.value) ? app.objectPath.get(settings, field.path) : +element.value; break;
+			case 'pct': value = element.value === '' || isNaN(+element.value) ? app.objectPath.get(settings, field.path) : Math.min(100, Math.max(0, +element.value)) / 100; break;
+			case 'color?': value = document.getElementById(field.nullToggle).checked ? null : element.value; break;
+			default: value = element.value;
 		}
-		app.objectPath.set(settings, f.path, v);
+		app.objectPath.set(settings, field.path, value);
 	});
 	settings.backgroundImage = backgroundImage;
 	settings.backgroundGradient = backgroundGradient;
@@ -179,14 +179,14 @@ app.setupActions = function(){
 // The settings hold pictures as url("...") values.
 app.pictureEdit = fn => value => { fn(value); app.updatePreviews(); app.changes.mark(); };
 // A picture chosen or dropped: re-encoded as compact WebP of at most maxSize pixels (as in Properties, see
-// QDCommon.toWebp), then stored by fn(url("...")). When a second picture is chosen before the first one is
+// QDCommon.toWebp), then stored by store(url("...")). When a second picture is chosen before the first one is
 // ready, only the second is kept.
-app.picturePicked = (fn, maxSize) => {
+app.picturePicked = (store, maxSize) => {
 	let latest = 0;
 	return dataUrl => {
 		const pick = ++latest;
 		QDCommon.toWebp(dataUrl, maxSize).then(webp => {
-			if(pick == latest) app.pictureEdit(fn)(QDCommon.toCssUrl(webp));
+			if(pick == latest) app.pictureEdit(store)(QDCommon.toCssUrl(webp));
 		});
 	};
 };
@@ -210,8 +210,8 @@ app.setupLanguages = function(){
 };
 // The language Firefox shows the extension in: its own if there are texts for it ('pt-BR', or 'uk' for 'uk-UA'), otherwise English
 app.firefoxLanguage = function(){
-	const ui = browser.i18n.getUILanguage().replace('-', '_'), codes = Object.keys(QDCommon.LANGUAGES);
-	return codes.find(c => c.toLowerCase() == ui.toLowerCase()) || codes.find(c => c.split('_')[0] == ui.split('_')[0].toLowerCase()) || 'en';
+	const uiLanguage = browser.i18n.getUILanguage().replace('-', '_'), codes = Object.keys(QDCommon.LANGUAGES);
+	return codes.find(c => c.toLowerCase() == uiLanguage.toLowerCase()) || codes.find(c => c.split('_')[0] == uiLanguage.split('_')[0].toLowerCase()) || 'en';
 };
 // Tab Grid: the Back and folder pictures
 app.setupGrid = function(){
@@ -225,7 +225,7 @@ app.setupGrid = function(){
 // Tab Tiles: the title fonts (an imported theme's font is added when the form is filled, fillForm) and the click
 // effect preview: it plays on the Hover sample when another effect is picked, and on a sample tile when it is clicked
 app.setupTiles = function(){
-	QDThemes.FONTS.forEach(f => { GridCellsTitleFont.add(new Option(f.label, f.value)); });
+	QDThemes.FONTS.forEach(font => { GridCellsTitleFont.add(new Option(font.label, font.value)); });
 	app.clickEffectStyle = document.head.appendChild(document.createElement('style')); // filled by updatePreviews
 	GridCellsClickEffect.addEventListener('change', () => {
 		app.updatePreviews(); // before the page's own change listener: the new effect's rules must be in place
@@ -289,10 +289,10 @@ app.readJsonFile = function(file){ // Resolves with the parsed object, or null w
 		try { return JSON.parse(text); } catch(e) { return null; }
 	});
 };
-app.showStatus = function(el, text, isError, isBusy){
-	el.textContent = text;
-	el.className = 'qd-banner' + (isError ? ' is-error' : '') + (isBusy ? ' is-busy' : '');
-	el.hidden = false;
+app.showStatus = function(element, text, isError, isBusy){
+	element.textContent = text;
+	element.className = 'qd-banner' + (isError ? ' is-error' : '') + (isBusy ? ' is-busy' : '');
+	element.hidden = false;
 };
 
 // ---------- previews ----------
@@ -311,7 +311,7 @@ app.updatePreviews = function(){
 	QDUI.setAccent(s.accentColor); // this window shows the accent right away
 
 	// "None" / "Default" switch off the colour next to them
-	FIELDS.forEach(f => { if(f.nullToggle) document.getElementById(f.id).disabled = document.getElementById(f.nullToggle).checked; });
+	FIELDS.forEach(field => { if(field.nullToggle) document.getElementById(field.id).disabled = document.getElementById(field.nullToggle).checked; });
 
 	TileStage.style.backgroundColor = s.backgroundColor;
 	TileStage.style.backgroundImage = QDThemes.background(backgroundImage, backgroundGradient);
@@ -378,7 +378,7 @@ app.Themes.isBuiltinName = function(name){
 };
 app.Themes.find = function(name){
 	name = String(name).trim().toLowerCase();
-	return app.Themes.list.filter(t => { return t.name.toLowerCase() == name; })[0] || null;
+	return app.Themes.list.filter(t => t.name.toLowerCase() == name)[0] || null;
 };
 app.Themes.store = function(list, callback){
 	QDClient.setThemes(list).then(saved => {
@@ -390,30 +390,30 @@ app.Themes.store = function(list, callback){
 app.Themes.render = function(){
 	ThemeList.replaceChildren();
 	app.Themes.cards = app.Themes.all().map(theme => {
-		function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text) e.textContent = text; return e; }
-		function button(text, title, onclick, cls){ const b = el('button', 'qd-btn is-small' + (cls ? ' ' + cls : ''), text); b.type = 'button'; b.title = title; b.onclick = onclick; return b; }
-		const card = el('article', 'qd-theme');
-		const preview = el('div', 'qd-theme-preview');
+		function makeElement(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text) e.textContent = text; return e; }
+		function button(text, title, onclick, cls){ const control = makeElement('button', 'qd-btn is-small' + (cls ? ' ' + cls : ''), text); control.type = 'button'; control.title = title; control.onclick = onclick; return control; }
+		const card = makeElement('article', 'qd-theme');
+		const preview = makeElement('div', 'qd-theme-preview');
 		preview.style.backgroundColor = theme.style.backgroundColor;
 		preview.style.backgroundImage = QDThemes.background(null, theme.style.backgroundGradient);
 		const ratio = QDCommon.tileRatio(app.settings.grid);
 		[false, true].forEach(hover => {
-			const slot = el('div', 'qd-tile-slot'), tile = el('div', 'qd-tile');
-			tile.appendChild(el('div', 'qd-tile-img'));
-			tile.appendChild(el('div', 'qd-tile-title', QDCommon.text(hover ? 'tileHover' : 'tileExample')));
+			const slot = makeElement('div', 'qd-tile-slot'), tile = makeElement('div', 'qd-tile');
+			tile.appendChild(makeElement('div', 'qd-tile-img'));
+			tile.appendChild(makeElement('div', 'qd-tile-title', QDCommon.text(hover ? 'tileHover' : 'tileExample')));
 			slot.appendChild(tile);
 			preview.appendChild(slot);
 			app.paintTile(tile, theme.style.grid.cells, hover, ratio);
 		});
 		card.appendChild(preview);
-		const body = el('div', 'qd-theme-body');
-		const name = el('h3', 'qd-theme-name', app.Themes.displayName(theme));
-		if(theme.builtin) name.appendChild(el('span', 'qd-badge', QDCommon.text('themeBuiltIn')));
-		const current = el('span', 'qd-badge is-accent', QDCommon.text('themeInUse'));
+		const body = makeElement('div', 'qd-theme-body');
+		const name = makeElement('h3', 'qd-theme-name', app.Themes.displayName(theme));
+		if(theme.builtin) name.appendChild(makeElement('span', 'qd-badge', QDCommon.text('themeBuiltIn')));
+		const current = makeElement('span', 'qd-badge is-accent', QDCommon.text('themeInUse'));
 		name.appendChild(current);
 		body.appendChild(name);
-		body.appendChild(el('p', 'qd-theme-desc', app.Themes.displayDescription(theme)));
-		const actions = el('div', 'qd-theme-actions');
+		body.appendChild(makeElement('p', 'qd-theme-desc', app.Themes.displayDescription(theme)));
+		const actions = makeElement('div', 'qd-theme-actions');
 		const use = button(QDCommon.text('themeUse'), QDCommon.text('themeUseHint'), () => { app.Themes.use(theme); }, 'is-primary');
 		actions.appendChild(use);
 		actions.appendChild(button(QDCommon.text('themeExport'), QDCommon.text('themeExportHint'), () => { app.download(QDThemes.toFile({ name: theme.name, description: app.Themes.displayDescription(theme), style: theme.style }), QDThemes.fileName(theme.name)); }));
@@ -427,11 +427,11 @@ app.Themes.render = function(){
 };
 app.Themes.markCurrent = function(settings){ // highlights the theme the form currently matches
 	const style = QDThemes.extract(settings);
-	app.Themes.cards.forEach(c => {
-		const on = QDThemes.equal(style, c.theme.style);
-		c.card.classList.toggle('is-current', on);
-		c.badge.hidden = !on;
-		c.use.disabled = on;
+	app.Themes.cards.forEach(entry => {
+		const isCurrent = QDThemes.equal(style, entry.theme.style);
+		entry.card.classList.toggle('is-current', isCurrent);
+		entry.badge.hidden = !isCurrent;
+		entry.use.disabled = isCurrent;
 	});
 };
 app.Themes.use = function(theme){
@@ -444,7 +444,7 @@ app.Themes.use = function(theme){
 // Asks for a name and description: resolves to { name, description } or null
 app.Themes.ask = function(title, okText, forSaving){
 	const style = QDThemes.extract(app.formSettings());
-	const match = app.Themes.all().filter(t => { return QDThemes.equal(style, t.style); })[0];
+	const match = app.Themes.all().filter(t => QDThemes.equal(style, t.style))[0];
 	return QDUI.dialog({
 		title: title,
 		message: QDCommon.text('themeDialogMessage'),
@@ -453,10 +453,10 @@ app.Themes.ask = function(title, okText, forSaving){
 			{ name: 'description', label: QDCommon.text('themeDescription'), value: match && !match.builtin ? match.description : '', placeholder: QDCommon.text('themeDescriptionPlaceholder') }
 		],
 		okText: okText,
-		validate: function(v){
-			if(!v.name) return QDCommon.text('themeNameMissing');
-			if(v.name.length > QDThemes.NAME_MAX_LENGTH) return QDCommon.text('themeNameTooLong', QDThemes.NAME_MAX_LENGTH);
-			if(forSaving && app.Themes.isBuiltinName(v.name)) return QDCommon.text('themeNameBuiltIn', v.name);
+		validate: function(answer){
+			if(!answer.name) return QDCommon.text('themeNameMissing');
+			if(answer.name.length > QDThemes.NAME_MAX_LENGTH) return QDCommon.text('themeNameTooLong', QDThemes.NAME_MAX_LENGTH);
+			if(forSaving && app.Themes.isBuiltinName(answer.name)) return QDCommon.text('themeNameBuiltIn', answer.name);
 			return '';
 		}
 	});
@@ -466,20 +466,20 @@ app.Themes.add = function(theme, done){
 	const existing = app.Themes.find(theme.name);
 	(existing ? QDUI.dialog({ title: QDCommon.text('themeReplaceTitle', existing.name), message: QDCommon.text('themeReplaceMessage'), okText: QDCommon.text('themeReplace'), danger: true }) : Promise.resolve(true)).then(ok => {
 		if(!ok) return;
-		app.Themes.store([theme].concat(app.Themes.list.filter(t => { return t !== existing; })), done);
+		app.Themes.store([theme].concat(app.Themes.list.filter(t => t !== existing)), done);
 	});
 };
 app.Themes.saveCurrent = function(){
-	app.Themes.ask(QDCommon.text('themeSaveTitle'), QDCommon.text('themeSave'), true).then(v => {
-		if(!v) return;
-		const theme = { name: v.name, description: v.description, style: QDThemes.extract(app.formSettings()) };
+	app.Themes.ask(QDCommon.text('themeSaveTitle'), QDCommon.text('themeSave'), true).then(answer => {
+		if(!answer) return;
+		const theme = { name: answer.name, description: answer.description, style: QDThemes.extract(app.formSettings()) };
 		app.Themes.add(theme, () => { app.showStatus(ThemeStatus, QDCommon.text('themeSaved', theme.name)); });
 	});
 };
 app.Themes.exportCurrent = function(){
-	app.Themes.ask(QDCommon.text('themeExportTitle'), QDCommon.text('themeExportButton'), false).then(v => {
-		if(!v) return;
-		app.download(QDThemes.toFile({ name: v.name, description: v.description, style: QDThemes.extract(app.formSettings()) }), QDThemes.fileName(v.name));
+	app.Themes.ask(QDCommon.text('themeExportTitle'), QDCommon.text('themeExportButton'), false).then(answer => {
+		if(!answer) return;
+		app.download(QDThemes.toFile({ name: answer.name, description: answer.description, style: QDThemes.extract(app.formSettings()) }), QDThemes.fileName(answer.name));
 	});
 };
 app.Themes.importFile = function(data){
@@ -491,7 +491,7 @@ app.Themes.importFile = function(data){
 };
 app.Themes.remove = function(theme){
 	QDUI.dialog({ title: QDCommon.text('themeDeleteTitle', theme.name), message: QDCommon.text('themeDeleteMessage'), okText: QDCommon.text('themeDelete'), danger: true }).then(ok => {
-		if(ok) app.Themes.store(app.Themes.list.filter(t => { return t !== theme; }));
+		if(ok) app.Themes.store(app.Themes.list.filter(t => t !== theme));
 	});
 };
 
@@ -535,9 +535,9 @@ app.Backup.importFile = function(data){
 		if(!ok) return;
 		BtnImport.disabled = true;
 		app.showStatus(ImportStatus, QDCommon.text('backupImporting'), false, true);
-		QDClient.importData(data).then(r => {
-			const text = QDCommon.text('backupImportResult', QDCommon.countText('countTiles', r.tiles), QDCommon.countText('countFolders', r.folders + 1),
-				QDCommon.countText('countPictures', r.images), r.matched, r.created);
+		QDClient.importData(data).then(result => {
+			const text = QDCommon.text('backupImportResult', QDCommon.countText('countTiles', result.tiles), QDCommon.countText('countFolders', result.folders + 1),
+				QDCommon.countText('countPictures', result.images), result.matched, result.created);
 			location.search = '?tab=backup&result=' + encodeURIComponent(text); // Reload so the form shows the imported settings
 		}, err => {
 			BtnImport.disabled = false;

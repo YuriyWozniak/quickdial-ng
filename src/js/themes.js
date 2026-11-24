@@ -95,8 +95,8 @@ var QDThemes = (function(){
 	function rule(path){ // most specific name first: "grid.cells.backgroundColor" -> "cells.backgroundColor" -> "backgroundColor"
 		const parts = path.split('.');
 		for(let i = 0; i < parts.length; i++){
-			const r = RULES[parts.slice(i).join('.')];
-			if(r !== undefined) return r;
+			const found = RULES[parts.slice(i).join('.')];
+			if(found !== undefined) return found;
 		}
 		return null;
 	}
@@ -104,31 +104,31 @@ var QDThemes = (function(){
 	const COLOR = /^#[0-9a-f]{6}$/i;
 	const FONT = /^[\w\s,"'-]{1,200}$/;
 	const GRADIENT = /^\s*(repeating-)?(linear|radial|conic)-gradient\(/i;
-	function clean(r, v, fallback){ // a valid value, or the fallback
-		if(Array.isArray(r)){
-			v = typeof v == 'string' && v.trim() !== '' ? +v : v;
-			if(typeof v != 'number' || !isFinite(v)) return fallback;
-			v = Math.min(r[1], Math.max(r[0], v));
-			return +(Math.round(v / r[2]) * r[2]).toFixed(2);
+	function clean(valueRule, value, fallback){ // a valid value, or the fallback
+		if(Array.isArray(valueRule)){
+			value = typeof value == 'string' && value.trim() !== '' ? +value : value;
+			if(typeof value != 'number' || !isFinite(value)) return fallback;
+			value = Math.min(valueRule[1], Math.max(valueRule[0], value));
+			return +(Math.round(value / valueRule[2]) * valueRule[2]).toFixed(2);
 		}
-		switch(r){
-			case 'color': return typeof v == 'string' && COLOR.test(v) ? v.toLowerCase() : fallback;
-			case 'color?': return v === null ? null : (typeof v == 'string' && COLOR.test(v) ? v.toLowerCase() : fallback);
-			case 'bool': return typeof v == 'boolean' ? v : fallback;
-			case 'font': return typeof v == 'string' && FONT.test(v) ? v.trim() : fallback;
+		switch(valueRule){
+			case 'color': return typeof value == 'string' && COLOR.test(value) ? value.toLowerCase() : fallback;
+			case 'color?': return value === null ? null : (typeof value == 'string' && COLOR.test(value) ? value.toLowerCase() : fallback);
+			case 'bool': return typeof value == 'boolean' ? value : fallback;
+			case 'font': return typeof value == 'string' && FONT.test(value) ? value.trim() : fallback;
 			case 'gradient': // gradients only: no url() (no outside requests), nothing that could end the CSS declaration
-				if(v === null) return null;
-				return typeof v == 'string' && v.length <= 2000 && GRADIENT.test(v) && !/url\s*\(|[;{}<>\\]/i.test(v) ? v.trim() : fallback;
+				if(value === null) return null;
+				return typeof value == 'string' && value.length <= 2000 && GRADIENT.test(value) && !/url\s*\(|[;{}<>\\]/i.test(value) ? value.trim() : fallback;
 		}
 		return fallback;
 	}
 
-	// Calls fn(path, classicValue) for every style key ("grid.cells.margin", 4)
-	function walk(shape, prefix, fn){
-		for(const k in shape){
-			const path = prefix ? prefix + '.' + k : k;
-			if(shape[k] && typeof shape[k] == 'object') walk(shape[k], path, fn);
-			else fn(path, shape[k]);
+	// Calls visit(path, classicValue) for every style key ("grid.cells.margin", 4)
+	function walk(shape, prefix, visit){
+		for(const key in shape){
+			const path = prefix ? prefix + '.' + key : key;
+			if(shape[key] && typeof shape[key] == 'object') walk(shape[key], path, visit);
+			else visit(path, shape[key]);
 		}
 	}
 	function get(obj, path){
@@ -162,7 +162,7 @@ var QDThemes = (function(){
 		walk(CLASSIC, '', path => { set(settings, path, get(style, path)); });
 		return settings;
 	}
-	function equal(a, b){ return JSON.stringify(normalize(a)) === JSON.stringify(normalize(b)); }
+	function equal(first, second){ return JSON.stringify(normalize(first)) === JSON.stringify(normalize(second)); }
 	// Fills in style keys a settings object doesn't have yet (settings from older versions); returns true if any was added
 	function complete(settings){
 		let added = false;
@@ -211,9 +211,9 @@ var QDThemes = (function(){
 	function derive(base, changes){
 		const out = JSON.parse(JSON.stringify(base));
 		(function merge(target, values){
-			for(const k in values){
-				if(values[k] && typeof values[k] == 'object') merge(target[k] || (target[k] = {}), values[k]);
-				else target[k] = values[k];
+			for(const key in values){
+				if(values[key] && typeof values[key] == 'object') merge(target[key] || (target[key] = {}), values[key]);
+				else target[key] = values[key];
 			}
 		})(out, changes);
 		return normalize(out);
@@ -294,7 +294,7 @@ var QDThemes = (function(){
 	const NAME_MAX_LENGTH = 60;
 	const DESCRIPTION_MAX_LENGTH = 300;
 	// eslint-disable-next-line no-control-regex -- control characters are what it removes
-	function cleanText(v, max){ return typeof v == 'string' ? v.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max) : ''; }
+	function cleanText(text, max){ return typeof text == 'string' ? text.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max) : ''; }
 	// { name, description, style } -> the object saved as a .json file
 	function toFile(theme){
 		return { format: FILE_FORMAT, version: FILE_VERSION, name: cleanText(theme.name, NAME_MAX_LENGTH),
@@ -315,27 +315,27 @@ var QDThemes = (function(){
 	function cleanList(list){
 		if(!Array.isArray(list)) return [];
 		const out = [], seen = {};
-		list.forEach(t => {
-			try { t = fromFile({ format: FILE_FORMAT, version: FILE_VERSION, name: t.name, description: t.description, style: t.style }); } catch(e){ return; }
-			const key = t.name.toLowerCase();
-			if(seen[key] || isBuiltinName(t.name)) return;
+		list.forEach(theme => {
+			try { theme = fromFile({ format: FILE_FORMAT, version: FILE_VERSION, name: theme.name, description: theme.description, style: theme.style }); } catch(e){ return; }
+			const key = theme.name.toLowerCase();
+			if(seen[key] || isBuiltinName(theme.name)) return;
 			seen[key] = true;
-			out.push(t);
+			out.push(theme);
 		});
 		return out;
 	}
-	function isBuiltinName(name){ return BUILTIN.some(t => { return t.name.toLowerCase() == String(name).trim().toLowerCase(); }); }
+	function isBuiltinName(name){ return BUILTIN.some(t => t.name.toLowerCase() == String(name).trim().toLowerCase()); }
 	function fileName(name){ return FILE_FORMAT + '-' + (String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'custom') + '.json'; }
 
 	// ---------- CSS values ----------
 	function rgba(hex, opacity){ // '#rrggbb' + 0..1 -> CSS colour; null -> transparent
 		if(!hex) return 'transparent';
 		if(opacity === undefined || opacity >= 1) return hex;
-		const n = parseInt(hex.slice(1), 16);
-		return 'rgba(' + (n >> 16 & 255) + ', ' + (n >> 8 & 255) + ', ' + (n & 255) + ', ' + Math.max(0, opacity) + ')';
+		const rgb = parseInt(hex.slice(1), 16);
+		return 'rgba(' + (rgb >> 16 & 255) + ', ' + (rgb >> 8 & 255) + ', ' + (rgb & 255) + ', ' + Math.max(0, opacity) + ')';
 	}
 	function background(picture, gradient){ // the picture lies on top of the theme's gradient
-		const layers = [picture, gradient].filter(v => { return v; });
+		const layers = [picture, gradient].filter(v => v);
 		return layers.length ? layers.join(', ') : 'none';
 	}
 	function shadow(level){ // level: Shadow; the CSS box-shadow of each, in their order
@@ -389,11 +389,11 @@ var QDThemes = (function(){
 		if(!rules) return [];
 		return [FLASH_KEYFRAMES].concat(rules, reducedMotion);
 	}
-	// Starts the effect on a tile, again from the start if it is still playing. x, y: the pointer in the viewport
+	// Starts the effect on a tile, again from the start if it is still playing. pointerX, pointerY: the pointer in the viewport
 	// (the ripple starts there); left out, the middle of the tile.
-	function playClickEffect(tile, x, y){
+	function playClickEffect(tile, pointerX, pointerY){
 		const box = tile.getBoundingClientRect();
-		const left = x === undefined ? box.width / 2 : x - box.left, top = y === undefined ? box.height / 2 : y - box.top;
+		const left = pointerX === undefined ? box.width / 2 : pointerX - box.left, top = pointerY === undefined ? box.height / 2 : pointerY - box.top;
 		const reach = Math.hypot(Math.max(left, box.width - left), Math.max(top, box.height - top)); // to the farthest corner
 		tile.style.setProperty('--qd-click-x', left + 'px');
 		tile.style.setProperty('--qd-click-y', top + 'px');
