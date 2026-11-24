@@ -15,7 +15,7 @@
   },
 
   "dialogNewBookmarkPrompt": {
-    "message": "Wprowadź nowy adres URL zakładki:",
+    "message": "Adres nowej zakładki:",
     "description": "Text of the add bookmark prompt."
   },
 
@@ -25,7 +25,7 @@
   },
 
   "dialogNewFolderPrompt": {
-    "message": "Wprowadź nazwę nowego folderu:",
+    "message": "Nazwa nowego folderu:",
     "description": "Text of the add folder prompt."
   },
 
@@ -50,7 +50,7 @@
   },
 
   "dialogDeleteConfirmation": {
-    "message": "Usuń $1 ?",
+    "message": "Usunąć $1?",
     "description": "Text of delete confirmation."
   },
 
@@ -85,7 +85,7 @@
   },
 
   "extensionDescription": {
-    "message": "Szybkie wybieranie na nowej karcie i stronie startowej, z kafelkami z folderu zakładek. Niezależny, zoptymalizowany fork Quick Dial autorstwa MatMoul.",
+    "message": "Szybkie wybieranie na nowej karcie i stronie startowej: kafelki z wybranego folderu zakładek. Niezależny, zoptymalizowany fork Quick Dial autorstwa MatMoula.",
     "description": "The extension's description in Firefox's Add-ons manager"
   },
 
@@ -120,15 +120,15 @@
   },
 
   "statusApplied": {
-    "message": "Zmiany zastosowane"
+    "message": "Zastosowano zmiany"
   },
 
   "statusAppliedToDial": {
-    "message": "Zmiany zastosowane na panelu"
+    "message": "Zastosowano zmiany na panelu"
   },
 
   "statusDiscarded": {
-    "message": "Zmiany odrzucone"
+    "message": "Odrzucono zmiany"
   },
 
   "dialogEnterValue": {
@@ -175,7 +175,7 @@
   },
 
   "tileHover": {
-    "message": "Po najechaniu",
+    "message": "Pod kursorem",
     "description": "A tile under the mouse pointer"
   },
 
@@ -209,7 +209,7 @@
   },
 
   "fitContain": {
-    "message": "Zmieść"
+    "message": "Dopasuj"
   },
 
   "fitCenter": {
@@ -266,7 +266,7 @@
   },
 
   "settingsBackgroundDropHint": {
-    "message": "Lub upuść obraz na podgląd."
+    "message": "Albo przeciągnij obraz na podgląd."
   },
 
   "settingsGradientHint": {
@@ -286,7 +286,7 @@
   },
 
   "settingsAccentColorHint": {
-    "message": "Przyciski, przełączniki, karty i obramowania fokusu w oknach i dialogach Quick Dial NG"
+    "message": "Kolor przycisków, przełączników, kart i obramowań fokusu w oknach Quick Dial NG"
   },
 
   "settingsBehavior": {
@@ -306,7 +306,7 @@
   },
 
   "settingsToolbarButtonHint": {
-    "message": "Co otwiera przycisk Quick Dial NG na pasku narzędzi Firefoksa. Jego menu kontekstowe zawiera obie opcje."
+    "message": "Co otwiera przycisk Quick Dial NG na pasku narzędzi Firefoksa. Obie opcje są w jego menu kontekstowym."
   },
 
   "settingsToolbarSettings": {
@@ -326,7 +326,7 @@
   },
 
   "settingsStartPageHint": {
-    "message": "Quick Dial NG jest stroną startową Firefoksa: otwiera się przy uruchomieniu Firefoksa i przyciskiem Strona startowa. Aby używać innej strony, przejdź do Ustawienia Firefoksa › Strona startowa."
+    "message": "Quick Dial NG jest teraz stroną startową Firefoksa: otwiera się po uruchomieniu przeglądarki i po kliknięciu przycisku Strona startowa. Aby wybrać inną stronę, przejdź do Ustawienia Firefoksa › Strona startowa."
   },
 
   "settingsLayout": {
@@ -350,11 +350,11 @@
   },
 
   "settingsRatioWidth": {
-    "message": "Proporcja szerokości"
+    "message": "Względna szerokość"
   },
 
   "settingsRatioHeight": {
-    "message": "Proporcja wysokości"
+    "message": "Względna wysokość"
   },
 
   "settingsTileShapeHint": {
@@ -370,7 +370,7 @@
   },
 
   "settingsBookmarksFolderHint": {
-    "message": "Folder zakładek wyświetlany na panelu"
+    "message": "Folder zakładek, który pokazuje panel"
   },
 
   "settingsOpening": {
@@ -443,7 +443,7 @@
   },
 
   "settingsCornerRadius": {
-    "message": "Promień narożników"
+    "message": "Zaokrąglenie narożników"
   },
 
   "settingsBorderColor": {
@@ -455,11 +455,11 @@
   },
 
   "settingsGlassBlur": {
-    "message": "Rozmycie szkła"
+    "message": "Matowe szkło"
   },
 
   "settingsGlassBlurHint": {
-    "message": "Rozmywa stronę za kafelkiem"
+    "message": "Rozmywa tło pod kafelkiem"
   },
 
   "settingsShadow": {
@@ -471,7 +471,7 @@
   },
 
   "shadowStrong": {
-    "message": "Mocny"
+    "message": "Wyraźny"
   },
 
   "settingsHoverEffect": {
@@ -479,19 +479,19 @@
   },
 
   "hoverInstant": {
-    "message": "Natychmiastowa zmiana"
+    "message": "Natychmiast"
   },
 
   "hoverSmooth": {
-    "message": "Płynna zmiana"
+    "message": "Płynnie"
   },
 
   "hoverLift": {
-    "message": "Płynnie, kafelek się unosi"
+    "message": "Płynnie, z uniesieniem"
   },
 
   "hoverGrow": {
-    "message": "Płynnie, kafelek rośnie"
+    "message": "Płynnie, z powiększeniem"
   },
 
   "settingsClickEffect": {
@@ -499,15 +499,15 @@
   },
 
   "settingsClickEffectHint": {
-    "message": "Kliknij przykładowy kafelek, aby zobaczyć go ponownie"
+    "message": "Kliknij przykładowy kafelek, aby zobaczyć efekt jeszcze raz"
   },
 
   "settingsClickToPreview": {
-    "message": "Kliknij, aby zobaczyć efekt kliknięcia"
+    "message": "Kliknij, aby zobaczyć efekt"
   },
 
   "settingsReducedMotionHint": {
-    "message": "Animacje są wyłączone w ustawieniach systemu, więc kafelki się nie poruszają: efekty kliknięcia zamiast tego błyskają lub zanikają, a płynne najechanie tylko zmienia kolory, bez unoszenia i powiększania."
+    "message": "Animacje są wyłączone w ustawieniach systemu, więc kafelki się nie poruszają: efekty kliknięcia błyskają lub zanikają, a płynne najechanie zmienia tylko kolory – bez unoszenia i powiększania."
   },
 
   "clickPress": {
@@ -527,7 +527,7 @@
   },
 
   "clickRing": {
-    "message": "Pulsujący pierścień"
+    "message": "Pulsowanie"
   },
 
   "settingsGroupTitle": {
@@ -578,7 +578,7 @@
   },
 
   "titleOver": {
-    "message": "Na dolnej części obrazu"
+    "message": "Na obrazie, u dołu"
   },
 
   "settingsGroupThumbnails": {
@@ -598,7 +598,7 @@
   },
 
   "settingsDiscardHint": {
-    "message": "Pokaż ustawienia, których panel używa teraz"
+    "message": "Wróć do ustawień, których panel używa teraz"
   },
 
   "settingsApplyHint": {
@@ -606,12 +606,12 @@
   },
 
   "settingsThemesIntro": {
-    "message": "Motyw to wygląd panelu: kolor tła, margines strony, style kafelków i tytułów oraz kolor akcentu. Twój obraz tła, wiersze i kolumny, kształt kafelków i same kafelki pozostają bez zmian. Wybierz <b>Użyj</b>, aby wypróbować motyw tutaj, a potem <b>Zastosuj</b>, aby przenieść go na panel.",
+    "message": "Motyw określa wygląd panelu: kolor tła, margines strony, styl kafelków i tytułów oraz kolor akcentu. Obraz tła, liczba wierszy i kolumn, kształt kafelków i same kafelki się nie zmieniają. Wybierz <b>Użyj</b>, aby wypróbować motyw tutaj, a potem <b>Zastosuj</b>, aby włączyć go na panelu.",
     "description": "Keep <b> and </b> around the words of the buttons"
   },
 
   "themeSaveCurrent": {
-    "message": "Zapisz bieżący jako motyw…"
+    "message": "Zapisz bieżący wygląd jako motyw…"
   },
 
   "themeSaveCurrentHint": {
@@ -619,7 +619,7 @@
   },
 
   "themeExportCurrent": {
-    "message": "Eksportuj bieżący…"
+    "message": "Eksportuj bieżący wygląd…"
   },
 
   "themeExportCurrentHint": {
@@ -647,7 +647,7 @@
   },
 
   "themeUseHint": {
-    "message": "Pokaż ten motyw tutaj; Zastosuj go zachowuje"
+    "message": "Wypróbuj ten motyw tutaj; „Zastosuj” go zachowa"
   },
 
   "themeExport": {
@@ -667,12 +667,12 @@
   },
 
   "themeShownHere": {
-    "message": "„$1” jest pokazany tylko tutaj. Zastosuj przenosi go na panel; Odrzuć zmiany przywraca poprzedni wygląd.",
+    "message": "„$1” jest widoczny tylko tutaj. „Zastosuj” włączy go na panelu, a „Odrzuć zmiany” przywróci poprzedni wygląd.",
     "description": "$1: the theme's name"
   },
 
   "themeDialogMessage": {
-    "message": "Z bieżących ustawień: kolor tła, margines strony, style kafelków i tytułów oraz kolor akcentu."
+    "message": "Motyw przejmie z bieżących ustawień kolor tła, margines strony, styl kafelków i tytułów oraz kolor akcentu."
   },
 
   "themeName": {
@@ -696,7 +696,7 @@
   },
 
   "themeNameTooLong": {
-    "message": "Użyj najwyżej $1 znaków.",
+    "message": "Za długa nazwa (maksimum: $1).",
     "description": "$1: a number"
   },
 
@@ -719,7 +719,7 @@
   },
 
   "themeSaveTitle": {
-    "message": "Zapisz bieżący jako motyw"
+    "message": "Zapisz bieżący wygląd jako motyw"
   },
 
   "themeSave": {
@@ -732,7 +732,7 @@
   },
 
   "themeExportTitle": {
-    "message": "Eksportuj bieżący jako motyw"
+    "message": "Eksportuj bieżący wygląd jako motyw"
   },
 
   "themeExportButton": {
@@ -740,7 +740,7 @@
   },
 
   "themeImported": {
-    "message": "Zaimportowano „$1”. Wybierz Użyj, aby go wypróbować.",
+    "message": "Zaimportowano „$1”. Wybierz „Użyj”, aby go wypróbować.",
     "description": "$1: the theme's name"
   },
 
@@ -759,7 +759,7 @@
   },
 
   "themeFileIsBackup": {
-    "message": "To pełna kopia zapasowa Quick Dial NG. Zaimportuj ją na karcie Kopia zapasowa."
+    "message": "To pełna kopia zapasowa Quick Dial NG. Przywróć ją na karcie „Kopia zapasowa”."
   },
 
   "themeFileInvalid": {
@@ -788,7 +788,7 @@
   },
 
   "themeAnoriDescription": {
-    "message": "Inspirowany rozszerzeniem Anori (anori.app): ciemnozielona strona, kafelki z matowego szkła z dużymi zaokrąglonymi narożnikami i tytuły na obrazach."
+    "message": "Inspirowany rozszerzeniem Anori (anori.app): ciemnozielone tło, kafelki z matowego szkła z mocno zaokrąglonymi narożnikami, tytuły na obrazach."
   },
 
   "themePlumName": {
@@ -796,7 +796,7 @@
   },
 
   "themePlumDescription": {
-    "message": "Ciemnośliwkowa strona z jasnoszarymi zaokrąglonymi obramowaniami i tytułami pod obrazami. Do dużej siatki z grupami stron i odstępami między nimi."
+    "message": "Ciemnośliwkowe tło, jasnoszare zaokrąglone obramowania, tytuły pod obrazami. Do dużej siatki z grupami stron oddzielonymi odstępami."
   },
 
   "themeDesktopName": {
@@ -804,7 +804,7 @@
   },
 
   "themeDesktopDescription": {
-    "message": "Ikony z nazwami pod spodem na nocnoniebieskiej stronie lub Twojej tapecie, jak na pulpicie komputera, z delikatnym podświetleniem pod kursorem. Do kwadratowych kafelków i obrazów-ikon."
+    "message": "Ikony z nazwami pod spodem na granatowym tle lub Twojej tapecie — jak na pulpicie komputera, z delikatnym podświetleniem pod kursorem. Do kwadratowych kafelków i obrazów-ikon."
   },
 
   "themeDuskName": {
@@ -812,7 +812,7 @@
   },
 
   "themeDuskDescription": {
-    "message": "Fioletowe szklane kafelki, które rosną po najechaniu, na tle nieba o zachodzie słońca."
+    "message": "Fioletowe szklane kafelki na tle nieba o zachodzie słońca; kafelek pod kursorem się powiększa."
   },
 
   "themeRetroPcName": {
@@ -820,7 +820,7 @@
   },
 
   "themeRetroPcDescription": {
-    "message": "Pulpit komputera z końca lat 90.: morska strona, ikony z białymi nazwami i granatowe podświetlenie nazwy pod kursorem. Do kwadratowych kafelków i obrazów-ikon."
+    "message": "Pulpit komputera z końca lat 90.: morskie tło, ikony z białymi nazwami, granatowe podświetlenie nazwy pod kursorem. Do kwadratowych kafelków i obrazów-ikon."
   },
 
   "themeRetroMonoName": {
@@ -828,7 +828,7 @@
   },
 
   "themeRetroMonoDescription": {
-    "message": "Wczesny czarno-biały pulpit: drobny szary wzór, czarne nazwy na białych etykietach, odwrócone pod kursorem. Do kwadratowych kafelków i czarno-białych obrazów-ikon."
+    "message": "Wczesny czarno-biały pulpit: drobny szary wzór, czarne nazwy na białych etykietach, odwracane pod kursorem. Do kwadratowych kafelków i czarno-białych ikon."
   },
 
   "backupTitle": {
@@ -836,7 +836,7 @@
   },
 
   "backupIntro": {
-    "message": "Zapisuje ustawienia, kafelki, obrazy i Twoje motywy w jednym pliku. Przywróć go przyciskiem <b>Importuj z pliku…</b> poniżej.",
+    "message": "Zapisuje ustawienia, kafelki, obrazy i Twoje motywy w jednym pliku. Aby je przywrócić, użyj przycisku <b>Importuj z pliku…</b> poniżej.",
     "description": "Keep <b> and </b>; the words inside are the button's"
   },
 
@@ -853,7 +853,7 @@
   },
 
   "backupImportHint": {
-    "message": "Importuj eksport oryginalnego Quick Dial lub kopię zapasową Quick Dial NG"
+    "message": "Otwórz eksport z oryginalnego Quick Dial lub kopię zapasową Quick Dial NG"
   },
 
   "backupOriginalTitle": {
@@ -861,7 +861,7 @@
   },
 
   "backupOriginalIntro": {
-    "message": "Przenosi Twoje kafelki z dokładnymi pozycjami w siatce, foldery, obrazy oraz ustawienia siatki i stylu. Zakładki, które już są w folderze Quick Dial, zostają użyte ponownie; brakujące zostają utworzone."
+    "message": "Przenosi kafelki (na te same miejsca w siatce), foldery, obrazy oraz ustawienia siatki i stylu. Zakładki, które już są w folderze Quick Dial, zostaną wykorzystane, a brakujące – utworzone."
   },
 
   "backupStep1": {
@@ -870,16 +870,16 @@
   },
 
   "backupStep2": {
-    "message": "Skopiuj fragment eksportu i wklej go na karcie <b>Konsola</b> (najpierw wpisz <code>allow pasting</code>, jeśli Firefox o to poprosi). Zapisze on <code>quickdial-export.json</code> w folderze Pobrane.",
+    "message": "Skopiuj kod eksportu i wklej go na karcie <b>Konsola</b> (jeśli Firefox o to poprosi, najpierw wpisz <code>allow pasting</code>). Kod zapisze plik <code>quickdial-export.json</code> w folderze Pobrane.",
     "description": "<b>Console</b> and allow pasting: as Firefox shows them in this language"
   },
 
   "backupStep3": {
-    "message": "Wybierz ten plik przyciskiem <b>Importuj z pliku…</b> powyżej."
+    "message": "Otwórz ten plik przyciskiem <b>Importuj z pliku…</b> powyżej."
   },
 
   "backupCopySnippet": {
-    "message": "Kopiuj fragment eksportu"
+    "message": "Kopiuj kod eksportu"
   },
 
   "backupCopied": {
@@ -887,11 +887,11 @@
   },
 
   "backupCopyPrompt": {
-    "message": "Skopiuj ten fragment:"
+    "message": "Skopiuj ten kod:"
   },
 
   "backupFileIsTheme": {
-    "message": "To jest motyw. Zaimportuj go na karcie Motywy."
+    "message": "To jest motyw. Zaimportuj go na karcie „Motywy”."
   },
 
   "backupFileInvalid": {
@@ -907,7 +907,7 @@
   },
 
   "backupImportMessage": {
-    "message": "Twoje bieżące ustawienia i układ kafelków zostaną zastąpione. Zakładki w folderze Quick Dial zostaną zachowane; brakujące zostaną utworzone."
+    "message": "Bieżące ustawienia i układ kafelków zostaną zastąpione. Zakładki w folderze Quick Dial pozostaną, a brakujące zostaną utworzone."
   },
 
   "backupImportButton": {
@@ -919,7 +919,7 @@
   },
 
   "backupImportResult": {
-    "message": "Zaimportowano: $1, $2, $3 oraz ustawienia siatki i stylu. Zakładki użyte ponownie: $4, utworzone: $5.",
+    "message": "Zaimportowano: $1, $2, $3 oraz ustawienia siatki i stylu. Wykorzystane istniejące zakładki: $4, nowe: $5.",
     "description": "$1: \"7 tiles\", $2: \"2 folders\", $3: \"5 pictures\" (countTiles, countFolders, countPictures); $4, $5: numbers"
   },
 
@@ -933,7 +933,7 @@
   },
 
   "backupNoBookmarksFolder": {
-    "message": "Nie można otworzyć folderu zakładek „$1”",
+    "message": "Nie udało się otworzyć folderu zakładek „$1”",
     "description": "$1: the folder's name"
   },
 
@@ -1020,7 +1020,7 @@
   },
 
   "propertiesLockTitleHint": {
-    "message": "Zablokuj tytuł: odświeżenie kafelka nie zmieni jego nazwy"
+    "message": "Zablokuj tytuł, aby odświeżenie kafelka go nie zmieniało"
   },
 
   "propertiesAddress": {
@@ -1032,7 +1032,7 @@
   },
 
   "propertiesNoPicture": {
-    "message": "Jeszcze brak obrazu"
+    "message": "Na razie brak obrazu"
   },
 
   "propertiesRevert": {
@@ -1052,7 +1052,7 @@
   },
 
   "propertiesPasteHint": {
-    "message": "Upuść obraz na podgląd lub wklej go za pomocą Ctrl+V."
+    "message": "Przeciągnij obraz na podgląd lub wklej go skrótem Ctrl+V."
   },
 
   "propertiesKeepPicture": {
@@ -1064,7 +1064,7 @@
   },
 
   "propertiesTileGone": {
-    "message": "Ten kafelek już nie istnieje"
+    "message": "Tego kafelka już nie ma"
   },
 
   "propertiesTileDeleted": {
