@@ -25,6 +25,8 @@ const menuCommand = (testPage, command, tileTitle) => testPage.inDial(([cmd, tit
 }, [command, tileTitle || null]);
 // The commands of the tile menu, as the background page sends them to the dial (js/dial.js)
 const MenuCommand = { createBookmark: 200, createFolder: 201, editProperties: 203, refresh: 204, capture: 206, delete: 207 };
+// Addresses New bookmark refuses: scripts (js/dial.js, app.BLOCKED_SCHEMES)
+const SCRIPT_ADDRESSES = ['javascript:alert(1)', 'vbscript:msgbox(1)'];
 
 module.exports = {
 	title: 'Dial menu: new bookmark and folder, delete, refresh, capture, properties, Settings',
@@ -36,10 +38,12 @@ module.exports = {
 		const newsPage = sitePage(testPage, 'news.html', '<!doctype html><html><head><title>News page</title></head><body><h1>News</h1></body></html>');
 
 		// ----- New bookmark: the address is checked; the new tile fetches its title and picture -----
-		await menuCommand(testPage, MenuCommand.createBookmark);
-		const refused = await testPage.answer({ values: ['javascript:alert(1)'] });
-		testPage.check('New bookmark refuses an address that isn\'t a web page', /web address/.test(refused.error), refused);
-		await testPage.answer({ ok: false });
+		for (const scriptAddress of SCRIPT_ADDRESSES) {
+			await menuCommand(testPage, MenuCommand.createBookmark);
+			const refused = await testPage.answer({ values: [scriptAddress] });
+			testPage.check(`New bookmark refuses a script address (${scriptAddress})`, /web address/.test(refused.error), refused);
+			await testPage.answer({ ok: false });
+		}
 		await menuCommand(testPage, MenuCommand.createBookmark);
 		await testPage.answer({ values: [newsPage] });
 		await testPage.waitFor('the new tile with its picture', () => { const tile = backgroundPage().app.node.children.find(child => child.url && child.url.includes('news.html')); return tile && tile.image === '1'; });

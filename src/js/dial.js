@@ -11,7 +11,8 @@ var app = {
 	})(),
 	RETRY_DELAY: 500, // ms after the page loads: no settings yet and no answer pending means asking the background page again
 	PROPERTIES_WIDTH: 560, // the tile Properties popup (it shrinks to fit its content)
-	PROPERTIES_HEIGHT: 590
+	PROPERTIES_HEIGHT: 590,
+	BLOCKED_SCHEMES: /^(javascript|data|vbscript):$/i // address schemes a new bookmark can't have: scripts and inline data
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -200,7 +201,7 @@ app.createBookmark = function(){
 				const url = /^[a-z][a-z0-9+.-]*:/i.test(address) ? address : 'https://' + address;
 				try { // web addresses need a host; other schemes (file:, about:...) are kept, except scripts and inline data
 					const parsed = new URL(url);
-					if(/^https?:$/.test(parsed.protocol) ? parsed.hostname : !/^(javascript|data):$/i.test(parsed.protocol)) return '';
+					if(/^https?:$/.test(parsed.protocol) ? parsed.hostname : !app.BLOCKED_SCHEMES.test(parsed.protocol)) return '';
 				} catch(e) {}
 				return QDCommon.text('dialogInvalidAddress');
 			},

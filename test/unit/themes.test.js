@@ -151,6 +151,16 @@ test('fromFile says what is wrong with a file (the key of the text Settings show
 	assert.equal(errorKeyFor({ format: 'quickdial-ng-theme', version: 1, name: 'x', style: 'red' }), 'themeFileInvalid');
 });
 
+test('a theme file with __proto__ or constructor keys changes nothing outside its style', () => {
+	const POLLUTED_KEY = 'polluted', TILE_MARGIN = 7;
+	const fileText = JSON.stringify({ format: 'quickdial-ng-theme', version: 1, name: 'Sneaky', style: {
+		grid: { cells: { margin: TILE_MARGIN, constructor: { prototype: { [POLLUTED_KEY]: true } } } } } })
+		.replace('"grid"', `"__proto__": { "${POLLUTED_KEY}": true }, "grid"`);
+	const readBack = Themes.fromFile(JSON.parse(fileText));
+	assert.equal(readBack.style.grid.cells.margin, TILE_MARGIN, 'the valid values are kept');
+	assert.ok(!(POLLUTED_KEY in readBack.style) && !(POLLUTED_KEY in readBack.style.grid.cells), 'nothing reaches the prototypes');
+});
+
 test('cleanList keeps valid custom themes once; built-in names and broken entries go', () => {
 	assert.deepEqual(plain(Themes.cleanList('nope')), []);
 	const list = Themes.cleanList([{ name: 'Mine', style: {} }, { name: ' mine ', style: {} }, { name: 'classic', style: {} }, { name: 'ANORI', style: {} }, { nameless: true }, null,
