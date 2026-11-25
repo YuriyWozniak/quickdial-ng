@@ -56,206 +56,213 @@
 			</div>
 
 			<!-- ===== Page ===== -->
-			<div class="qd-panel qd-stack" id="TabPage" role="tabpanel" aria-labelledby="TabPageButton" data-i18n-intro="settingsPageIntro">
-				<section class="qd-card">
-					<h2 data-i18n="settingsBackground"></h2>
-					<div class="qd-image">
-						<div class="qd-preview is-screen" id="BackgroundZone" data-i18n-title="imageDropHere">
-							<div class="qd-preview-img" id="BackgroundPreview"></div>
-							<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
-						</div>
-						<div class="qd-image-controls">
-							<div class="qd-pairs">
-								<label class="qd-label" for="BackgroundColor" data-i18n="settingsColor"></label>
-								<input id="BackgroundColor" type="color">
-								<label class="qd-label" for="BackgroundMode" data-i18n="imageFit"></label>
-								<select id="BackgroundMode">
-									<option value="0" data-i18n="fitStretch"></option>
-									<option value="1" data-i18n="fitCover"></option>
-									<option value="2" data-i18n="fitContain"></option>
-									<option value="3" data-i18n="fitCenter"></option>
-								</select>
+			<div class="qd-panel qd-cols" id="TabPage" role="tabpanel" aria-labelledby="TabPageButton" data-i18n-intro="settingsPageIntro">
+				<div class="qd-aside">
+					<section class="qd-card is-lead">
+						<h2 data-i18n="settingsBackground"></h2>
+						<div class="qd-image is-stacked">
+							<div class="qd-preview is-screen" id="BackgroundZone" data-i18n-title="imageDropHere">
+								<div class="qd-preview-img" id="BackgroundPreview"></div>
+								<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
 							</div>
+							<div class="qd-image-controls">
+								<div class="qd-pairs">
+									<label class="qd-label" for="BackgroundColor" data-i18n="settingsColor"></label>
+									<input id="BackgroundColor" type="color">
+									<label class="qd-label" for="BackgroundMode" data-i18n="imageFit"></label>
+									<select id="BackgroundMode">
+										<option value="0" data-i18n="fitStretch"></option>
+										<option value="1" data-i18n="fitCover"></option>
+										<option value="2" data-i18n="fitContain"></option>
+										<option value="3" data-i18n="fitCenter"></option>
+									</select>
+								</div>
+								<div class="qd-inline">
+									<label class="qd-btn is-small" for="BackgroundImageFile" id="BackgroundImageChoose" tabindex="0" role="button" data-i18n="imageChoose"></label>
+									<input id="BackgroundImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
+									<button type="button" class="qd-btn is-small" id="BackgroundImageClear" data-i18n="settingsRemove"></button>
+								</div>
+								<span class="qd-hint" data-i18n="settingsBackgroundDropHint"></span>
+								<div class="qd-inline" id="BackgroundGradientRow" hidden>
+									<span class="qd-hint" data-i18n="settingsGradientHint"></span>
+									<button type="button" class="qd-btn is-small" id="BackgroundGradientClear" data-i18n="settingsGradientRemove"></button>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
+
+				<div class="qd-main qd-stack">
+					<section class="qd-card">
+						<h2 data-i18n="settingsInterface"></h2>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="Language"><span data-i18n="settingsLanguage"></span><small data-i18n="settingsLanguageHint"></small></label>
+							<select id="Language"><option value="" id="LanguageBrowser"></option></select>
+						</div>
+						<div class="qd-setting">
+							<span class="qd-setting-text"><span data-i18n="settingsAccentColor"></span><small data-i18n="settingsAccentColorHint"></small></span>
 							<div class="qd-inline">
-								<label class="qd-btn is-small" for="BackgroundImageFile" id="BackgroundImageChoose" tabindex="0" role="button" data-i18n="imageChoose"></label>
-								<input id="BackgroundImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
-								<button type="button" class="qd-btn is-small" id="BackgroundImageClear" data-i18n="settingsRemove"></button>
-							</div>
-							<span class="qd-hint" data-i18n="settingsBackgroundDropHint"></span>
-							<div class="qd-inline" id="BackgroundGradientRow" hidden>
-								<span class="qd-hint" data-i18n="settingsGradientHint"></span>
-								<button type="button" class="qd-btn is-small" id="BackgroundGradientClear" data-i18n="settingsGradientRemove"></button>
+								<div class="qd-segments" role="radiogroup" data-i18n-aria-label="settingsAccentColor">
+									<label class="qd-segment"><input id="AccentDefault" type="radio" name="AccentSource"><span data-i18n="optionDefault"></span></label>
+									<label class="qd-segment"><input id="AccentCustom" type="radio" name="AccentSource"><span data-i18n="settingsAccentCustom"></span></label>
+								</div>
+								<input id="AccentColor" type="color" data-i18n-aria-label="settingsAccentColor">
 							</div>
 						</div>
-					</div>
-				</section>
+					</section>
 
-				<section class="qd-card">
-					<h2 data-i18n="settingsInterface"></h2>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="Language"><span data-i18n="settingsLanguage"></span><small data-i18n="settingsLanguageHint"></small></label>
-						<select id="Language"><option value="" id="LanguageBrowser"></option></select>
-					</div>
-					<div class="qd-setting">
-						<span class="qd-setting-text"><span data-i18n="settingsAccentColor"></span><small data-i18n="settingsAccentColorHint"></small></span>
-						<div class="qd-inline">
-							<div class="qd-segments" role="radiogroup" data-i18n-aria-label="settingsAccentColor">
-								<label class="qd-segment"><input id="AccentDefault" type="radio" name="AccentSource"><span data-i18n="optionDefault"></span></label>
-								<label class="qd-segment"><input id="AccentCustom" type="radio" name="AccentSource"><span data-i18n="settingsAccentCustom"></span></label>
-							</div>
-							<input id="AccentColor" type="color" data-i18n-aria-label="settingsAccentColor">
+					<section class="qd-card">
+						<h2 data-i18n="settingsBehavior"></h2>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="MenuShowAdd"><span data-i18n="settingsMenuShowAdd"></span><small data-i18n="settingsMenuShowAddHint"></small></label>
+							<input id="MenuShowAdd" type="checkbox" class="qd-switch">
 						</div>
-					</div>
-				</section>
-
-				<section class="qd-card">
-					<h2 data-i18n="settingsBehavior"></h2>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="MenuShowAdd"><span data-i18n="settingsMenuShowAdd"></span><small data-i18n="settingsMenuShowAddHint"></small></label>
-						<input id="MenuShowAdd" type="checkbox" class="qd-switch">
-					</div>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="ToolbarAction"><span data-i18n="settingsToolbarButton"></span><small data-i18n="settingsToolbarButtonHint"></small></label>
-						<select id="ToolbarAction">
-							<option value="settings" data-i18n="settingsToolbarSettings"></option>
-							<option value="newtab" data-i18n="settingsToolbarNewTab"></option>
-							<option value="current" data-i18n="settingsToolbarCurrentTab"></option>
-						</select>
-					</div>
-					<p class="qd-note">
-						<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M8 7v4M8 4.8v.4"/></svg>
-						<span><b data-i18n="settingsStartPage"></b> <span data-i18n="settingsStartPageHint"></span></span>
-					</p>
-				</section>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="ToolbarAction"><span data-i18n="settingsToolbarButton"></span><small data-i18n="settingsToolbarButtonHint"></small></label>
+							<select id="ToolbarAction">
+								<option value="settings" data-i18n="settingsToolbarSettings"></option>
+								<option value="newtab" data-i18n="settingsToolbarNewTab"></option>
+								<option value="current" data-i18n="settingsToolbarCurrentTab"></option>
+							</select>
+						</div>
+						<p class="qd-note">
+							<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><path d="M8 7v4M8 4.8v.4"/></svg>
+							<span><b data-i18n="settingsStartPage"></b> <span data-i18n="settingsStartPageHint"></span></span>
+						</p>
+					</section>
+				</div>
 			</div>
 
 			<!-- ===== Grid ===== -->
-			<div class="qd-panel qd-stack" id="TabGrid" role="tabpanel" aria-labelledby="TabGridButton" data-i18n-intro="settingsGridIntro" hidden>
-				<section class="qd-card">
-					<h2 data-i18n="settingsLayout"></h2>
-					<div class="qd-layout">
-						<div>
-							<div class="qd-setting">
-								<label class="qd-setting-text" for="GridRows" data-i18n="settingsRowsColumns"></label>
-								<div class="qd-inline">
-									<span class="qd-number"><input id="GridRows" type="number" min="1" data-i18n-aria-label="settingsRows"></span>
-									<span class="qd-sep">×</span>
-									<span class="qd-number"><input id="GridColumns" type="number" min="1" data-i18n-aria-label="settingsColumns"></span>
-								</div>
-							</div>
-							<div class="qd-setting">
-								<label class="qd-setting-text" for="GridRatioX"><span data-i18n="settingsTileShape"></span><small data-i18n="settingsTileShapeHint"></small></label>
-								<div class="qd-inline">
-									<span class="qd-number"><input id="GridRatioX" type="number" min="1" data-i18n-aria-label="settingsRatioWidth"></span>
-									<span class="qd-sep">:</span>
-									<span class="qd-number"><input id="GridRatioY" type="number" min="1" data-i18n-aria-label="settingsRatioHeight"></span>
-								</div>
-							</div>
-							<div class="qd-setting">
-								<label class="qd-setting-text" for="GridMargins" data-i18n="settingsPageMargin"></label>
-								<span class="qd-number"><input id="GridMargins" type="number" min="0">px</span>
-							</div>
-						</div>
+			<div class="qd-panel qd-cols" id="TabGrid" role="tabpanel" aria-labelledby="TabGridButton" data-i18n-intro="settingsGridIntro" hidden>
+				<div class="qd-aside">
+					<section class="qd-card is-lead">
 						<figure class="qd-grid-preview">
 							<div class="qd-grid-preview-stage" id="GridPreview"><div class="qd-grid-preview-cells" id="GridPreviewCells"></div></div>
 							<figcaption class="qd-hint" id="GridPreviewCaption"></figcaption>
 						</figure>
-					</div>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="GridRoot"><span data-i18n="settingsBookmarksFolder"></span><small data-i18n="settingsBookmarksFolderHint"></small></label>
-						<input id="GridRoot" type="text" spellcheck="false">
-					</div>
-				</section>
+					</section>
+				</div>
 
-				<section class="qd-card">
-					<h2 data-i18n="settingsOpening"></h2>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="GridOpenBookmarksIn" data-i18n="settingsOpenBookmarksIn"></label>
-						<select id="GridOpenBookmarksIn">
-							<option value="0" data-i18n="settingsOpenSameTab"></option>
-							<option value="1" data-i18n="settingsOpenNewTab"></option>
-						</select>
-					</div>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="GridOpenFoldersIn" data-i18n="settingsOpenFoldersIn"></label>
-						<select id="GridOpenFoldersIn">
-							<option value="0" data-i18n="settingsOpenSameTab"></option>
-							<option value="1" data-i18n="settingsOpenNewTab"></option>
-						</select>
-					</div>
-				</section>
-
-				<section class="qd-card">
-					<h2 data-i18n="settingsGroupThumbnails"></h2>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="GridNewTilePicture"><span data-i18n="settingsNewTilePicture"></span><small data-i18n="settingsNewTilePictureHint"></small></label>
-						<select id="GridNewTilePicture">
-							<option value="0" data-i18n="tilePicturePage"></option>
-							<option value="1" data-i18n="tilePictureSiteIcon"></option>
-							<option value="2" data-i18n="tilePictureSiteIconOrPage"></option>
-						</select>
-					</div>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="GridCellsSnapshotDelay"><span data-i18n="settingsCaptureDelay"></span><small data-i18n="settingsCaptureDelayUnit"></small></label>
-						<span class="qd-number"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000" step="100">ms</span>
-					</div>
-					<div class="qd-setting">
-						<span class="qd-setting-text"><span data-i18n="settingsTilesYouHave"></span><small id="TilePictureStatus" role="status"></small></span>
-						<button type="button" class="qd-btn" id="BtnApplyTilePicture" data-no-dirty data-i18n-title="settingsApplyTilePictureHint" data-i18n="settingsApplyTilePicture"></button>
-					</div>
-				</section>
-
-				<section class="qd-card">
-					<h2 data-i18n="settingsFolderTiles"></h2>
-					<div class="qd-setting">
-						<label class="qd-setting-text" for="GridBackNode" data-i18n="settingsBackNode"></label>
-						<input id="GridBackNode" type="checkbox" class="qd-switch">
-					</div>
-					<div class="qd-split">
-						<div class="qd-image is-stacked">
-							<span class="qd-label" data-i18n="settingsBackPicture"></span>
-							<div class="qd-preview is-small" id="GridBackZone" data-i18n-title="imageDropHere">
-								<div class="qd-preview-img" id="GridBackPreview"></div>
-								<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
-							</div>
+				<div class="qd-main qd-stack">
+					<section class="qd-card">
+						<h2 data-i18n="settingsLayout"></h2>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridRows" data-i18n="settingsRowsColumns"></label>
 							<div class="qd-inline">
-								<select id="GridBackMode" data-i18n-aria-label="settingsBackPictureFit">
-									<option value="0" data-i18n="fitStretch"></option>
-									<option value="1" data-i18n="fitCover"></option>
-									<option value="2" data-i18n="fitContain"></option>
-									<option value="3" data-i18n="fitCenter"></option>
-								</select>
-								<label class="qd-btn is-small" for="GridBackImageFile" tabindex="0" role="button" data-i18n="imageChooseShort"></label>
-								<input id="GridBackImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
-								<button type="button" class="qd-btn is-small" id="GridBackImageReset" data-i18n-title="settingsResetHint" data-i18n="settingsReset"></button>
+								<span class="qd-number"><input id="GridRows" type="number" min="1" data-i18n-aria-label="settingsRows"></span>
+								<span class="qd-sep">×</span>
+								<span class="qd-number"><input id="GridColumns" type="number" min="1" data-i18n-aria-label="settingsColumns"></span>
 							</div>
 						</div>
-						<div class="qd-image is-stacked">
-							<span class="qd-label" data-i18n="settingsFolderPicture"></span>
-							<div class="qd-preview is-small" id="GridFolderZone" data-i18n-title="imageDropHere">
-								<div class="qd-preview-img" id="GridFolderPreview"></div>
-								<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
-							</div>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridRatioX"><span data-i18n="settingsTileShape"></span><small data-i18n="settingsTileShapeHint"></small></label>
 							<div class="qd-inline">
-								<select id="GridFolderMode" data-i18n-aria-label="settingsFolderPictureFit">
-									<option value="0" data-i18n="fitStretch"></option>
-									<option value="1" data-i18n="fitCover"></option>
-									<option value="2" data-i18n="fitContain"></option>
-									<option value="3" data-i18n="fitCenter"></option>
-								</select>
-								<label class="qd-btn is-small" for="GridFolderImageFile" tabindex="0" role="button" data-i18n="imageChooseShort"></label>
-								<input id="GridFolderImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
-								<button type="button" class="qd-btn is-small" id="GridFolderImageReset" data-i18n-title="settingsResetHint" data-i18n="settingsReset"></button>
+								<span class="qd-number"><input id="GridRatioX" type="number" min="1" data-i18n-aria-label="settingsRatioWidth"></span>
+								<span class="qd-sep">:</span>
+								<span class="qd-number"><input id="GridRatioY" type="number" min="1" data-i18n-aria-label="settingsRatioHeight"></span>
 							</div>
 						</div>
-					</div>
-				</section>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridMargins" data-i18n="settingsPageMargin"></label>
+							<span class="qd-number"><input id="GridMargins" type="number" min="0">px</span>
+						</div>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridRoot"><span data-i18n="settingsBookmarksFolder"></span><small data-i18n="settingsBookmarksFolderHint"></small></label>
+							<input id="GridRoot" type="text" spellcheck="false">
+						</div>
+					</section>
+
+					<section class="qd-card">
+						<h2 data-i18n="settingsOpening"></h2>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridOpenBookmarksIn" data-i18n="settingsOpenBookmarksIn"></label>
+							<select id="GridOpenBookmarksIn">
+								<option value="0" data-i18n="settingsOpenSameTab"></option>
+								<option value="1" data-i18n="settingsOpenNewTab"></option>
+							</select>
+						</div>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridOpenFoldersIn" data-i18n="settingsOpenFoldersIn"></label>
+							<select id="GridOpenFoldersIn">
+								<option value="0" data-i18n="settingsOpenSameTab"></option>
+								<option value="1" data-i18n="settingsOpenNewTab"></option>
+							</select>
+						</div>
+					</section>
+
+					<section class="qd-card">
+						<h2 data-i18n="settingsGroupThumbnails"></h2>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridNewTilePicture"><span data-i18n="settingsNewTilePicture"></span><small data-i18n="settingsNewTilePictureHint"></small></label>
+							<select id="GridNewTilePicture">
+								<option value="0" data-i18n="tilePicturePage"></option>
+								<option value="1" data-i18n="tilePictureSiteIcon"></option>
+								<option value="2" data-i18n="tilePictureSiteIconOrPage"></option>
+							</select>
+						</div>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridCellsSnapshotDelay"><span data-i18n="settingsCaptureDelay"></span><small data-i18n="settingsCaptureDelayUnit"></small></label>
+							<span class="qd-number"><input id="GridCellsSnapshotDelay" type="number" min="300" max="10000" step="100">ms</span>
+						</div>
+						<div class="qd-setting">
+							<span class="qd-setting-text"><span data-i18n="settingsTilesYouHave"></span><small id="TilePictureStatus" role="status"></small></span>
+							<button type="button" class="qd-btn" id="BtnApplyTilePicture" data-no-dirty data-i18n-title="settingsApplyTilePictureHint" data-i18n="settingsApplyTilePicture"></button>
+						</div>
+					</section>
+
+					<section class="qd-card">
+						<h2 data-i18n="settingsFolderTiles"></h2>
+						<div class="qd-setting">
+							<label class="qd-setting-text" for="GridBackNode" data-i18n="settingsBackNode"></label>
+							<input id="GridBackNode" type="checkbox" class="qd-switch">
+						</div>
+						<div class="qd-split">
+							<div class="qd-image is-stacked">
+								<span class="qd-label" data-i18n="settingsBackPicture"></span>
+								<div class="qd-preview is-small" id="GridBackZone" data-i18n-title="imageDropHere">
+									<div class="qd-preview-img" id="GridBackPreview"></div>
+									<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
+								</div>
+								<div class="qd-inline">
+									<select id="GridBackMode" data-i18n-aria-label="settingsBackPictureFit">
+										<option value="0" data-i18n="fitStretch"></option>
+										<option value="1" data-i18n="fitCover"></option>
+										<option value="2" data-i18n="fitContain"></option>
+										<option value="3" data-i18n="fitCenter"></option>
+									</select>
+									<label class="qd-btn is-small" for="GridBackImageFile" tabindex="0" role="button" data-i18n="imageChooseShort"></label>
+									<input id="GridBackImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
+									<button type="button" class="qd-btn is-small" id="GridBackImageReset" data-i18n-title="settingsResetHint" data-i18n="settingsReset"></button>
+								</div>
+							</div>
+							<div class="qd-image is-stacked">
+								<span class="qd-label" data-i18n="settingsFolderPicture"></span>
+								<div class="qd-preview is-small" id="GridFolderZone" data-i18n-title="imageDropHere">
+									<div class="qd-preview-img" id="GridFolderPreview"></div>
+									<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
+								</div>
+								<div class="qd-inline">
+									<select id="GridFolderMode" data-i18n-aria-label="settingsFolderPictureFit">
+										<option value="0" data-i18n="fitStretch"></option>
+										<option value="1" data-i18n="fitCover"></option>
+										<option value="2" data-i18n="fitContain"></option>
+										<option value="3" data-i18n="fitCenter"></option>
+									</select>
+									<label class="qd-btn is-small" for="GridFolderImageFile" tabindex="0" role="button" data-i18n="imageChooseShort"></label>
+									<input id="GridFolderImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
+									<button type="button" class="qd-btn is-small" id="GridFolderImageReset" data-i18n-title="settingsResetHint" data-i18n="settingsReset"></button>
+								</div>
+							</div>
+						</div>
+					</section>
+				</div>
 			</div>
 
 			<!-- ===== Tiles ===== -->
-			<div class="qd-panel qd-cols is-wide" id="TabTiles" role="tabpanel" aria-labelledby="TabTilesButton" data-i18n-intro="settingsTilesIntro" hidden>
+			<div class="qd-panel qd-cols" id="TabTiles" role="tabpanel" aria-labelledby="TabTilesButton" data-i18n-intro="settingsTilesIntro" hidden>
 				<div class="qd-aside">
-					<section class="qd-card">
+					<section class="qd-card is-lead">
 						<div class="qd-tile-stage" id="TileStage">
 							<figure class="qd-tile-figure">
 								<div class="qd-tile-slot"><div class="qd-tile" id="TileNormal"><div class="qd-tile-img"></div><div class="qd-tile-title" data-i18n="tileExampleSite"></div></div></div>
@@ -406,35 +413,39 @@
 			</div>
 
 			<!-- ===== Themes ===== -->
-			<div class="qd-panel qd-stack is-wide" id="TabThemes" role="tabpanel" aria-labelledby="TabThemesButton" data-i18n-intro="settingsThemesIntro" hidden>
+			<div class="qd-panel qd-stack" id="TabThemes" role="tabpanel" aria-labelledby="TabThemesButton" data-i18n-intro="settingsThemesIntro" hidden>
 				<div id="ThemeStatus" class="qd-banner" hidden></div>
 				<div class="qd-themes" id="ThemeList" data-no-dirty></div>
 			</div>
 
 			<!-- ===== Backup ===== -->
-			<div class="qd-panel qd-stack" id="TabBackup" role="tabpanel" aria-labelledby="TabBackupButton" data-i18n-intro="settingsBackupIntro" hidden>
+			<div class="qd-panel qd-cols is-even" id="TabBackup" role="tabpanel" aria-labelledby="TabBackupButton" data-i18n-intro="settingsBackupIntro" hidden>
 				<div id="ImportStatus" class="qd-banner" hidden></div>
 
-				<section class="qd-card">
-					<h2 data-i18n="backupTitle"></h2>
-					<p class="qd-muted" data-i18n="backupIntro"></p>
-					<div class="qd-inline">
-						<button type="button" class="qd-btn is-primary" id="BtnExport" data-i18n-title="backupExportHint" data-i18n="backupExport"></button>
-						<button type="button" class="qd-btn" id="BtnImport" data-i18n-title="backupImportHint" data-i18n="backupImport"></button>
-					</div>
-					<input id="ImportFile" type="file" accept=".json,application/json" class="qd-file" data-no-dirty tabindex="-1">
-				</section>
+				<div class="qd-main qd-stack">
+					<section class="qd-card">
+						<h2 data-i18n="backupTitle"></h2>
+						<p class="qd-muted" data-i18n="backupIntro"></p>
+						<div class="qd-inline">
+							<button type="button" class="qd-btn is-primary" id="BtnExport" data-i18n-title="backupExportHint" data-i18n="backupExport"></button>
+							<button type="button" class="qd-btn" id="BtnImport" data-i18n-title="backupImportHint" data-i18n="backupImport"></button>
+						</div>
+						<input id="ImportFile" type="file" accept=".json,application/json" class="qd-file" data-no-dirty tabindex="-1">
+					</section>
+				</div>
 
-				<section class="qd-card">
-					<h2 data-i18n="backupOriginalTitle"></h2>
-					<p class="qd-muted" data-i18n="backupOriginalIntro"></p>
-					<ol class="qd-steps">
-						<li data-i18n="backupStep1"></li>
-						<li><span data-i18n="backupStep2"></span><br>
-							<button type="button" class="qd-btn is-small" id="BtnCopySnippet" data-i18n="backupCopySnippet"></button></li>
-						<li data-i18n="backupStep3"></li>
-					</ol>
-				</section>
+				<div class="qd-aside">
+					<section class="qd-card">
+						<h2 data-i18n="backupOriginalTitle"></h2>
+						<p class="qd-muted" data-i18n="backupOriginalIntro"></p>
+						<ol class="qd-steps">
+							<li data-i18n="backupStep1"></li>
+							<li><span data-i18n="backupStep2"></span><br>
+								<button type="button" class="qd-btn is-small" id="BtnCopySnippet" data-i18n="backupCopySnippet"></button></li>
+							<li data-i18n="backupStep3"></li>
+						</ol>
+					</section>
+				</div>
 			</div>
 		</main>
 

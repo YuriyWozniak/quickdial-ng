@@ -15,8 +15,8 @@ let folderIcon = null;
 // Sizes and times of this page
 app.SAMPLE_TILE_WIDTH = 152; // px: the sample tiles of the Tiles tab and the theme cards (.qd-tile-slot, css/page.css)
 app.SAMPLE_TILE_MAX_HEIGHT = 200; // px: taller shapes are cut off
-const GRID_PREVIEW_WIDTH = 220; // px: the cells of the grid preview (Grid tab) fit in this box (.qd-grid-preview, css/settings.css)
-const GRID_PREVIEW_HEIGHT = 124;
+const GRID_PREVIEW_WIDTH = 256; // px: the cells of the grid preview (Grid tab) fit in this box (.qd-grid-preview, css/settings.css)
+const GRID_PREVIEW_HEIGHT = 150;
 const GRID_PREVIEW_GAP = 2; // px between its cells
 const GRID_PREVIEW_MIN_CELL = 1; // px: a cell is drawn at least this large, however many there are
 const GRID_PREVIEW_CELL_OPACITY = .45; // its cells are the title colour at this opacity

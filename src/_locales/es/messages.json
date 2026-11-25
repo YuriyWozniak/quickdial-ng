@@ -1004,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Abre ese archivo con <b>Importar desde archivo…</b> más arriba."
+    "message": "Abre ese archivo con <b>Importar desde archivo…</b>"
   },
 
   "backupCopySnippet": {
