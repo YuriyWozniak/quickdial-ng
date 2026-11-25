@@ -1143,6 +1143,14 @@
     "message": "הסמל של האתר עצמו"
   },
 
+  "propertiesSourceIcon": {
+    "message": "סמל"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "סמל מערכת סמלים שמורידים"
+  },
+
   "propertiesSourceFile": {
     "message": "קובץ"
   },
@@ -1165,6 +1173,86 @@
 
   "propertiesIconLetter": {
     "message": "אות"
+  },
+
+  "propertiesIconSet": {
+    "message": "ערכת סמלים"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "קו מתאר (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "פיקסלים (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "רטרו בצבע (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "חיפוש סמלים (באנגלית)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "יש לבחור סמל. החיפוש מוצא סמלים לפי השמות והמילים שלהם באנגלית."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "אין סמל שמתאים ל־\"$1\"."
+  },
+
+  "propertiesIconColor": {
+    "message": "צבע"
+  },
+
+  "propertiesIconBackground": {
+    "message": "רקע"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "צבע רקע"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "$1 סמלים, $2 MB"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "רישיון $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "הורדה"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "עדכון"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "הסרה"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "מתבצעת הורדה…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "הערכה הזאת לא הורדה. „הורדה” מביאה אותה פעם אחת מהמיזם Quick Dial NG ב־GitHub ושומרת אותה בדפדפן הזה, כך שהיא עובדת גם בלי חיבור."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "יש גרסה חדשה יותר של הערכה הזאת. „עדכון” מוריד אותה; סמלים שכבר נבחרו נשארים כמו שהם."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "לא ניתן היה להוריד את הערכה ($1). כדאי לנסות שוב מאוחר יותר."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "הקובץ אינו הקובץ הצפוי"
   },
 
   "propertiesKeepPicture": {

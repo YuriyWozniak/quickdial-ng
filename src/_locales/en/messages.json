@@ -1131,6 +1131,14 @@
     "message": "The site's own icon"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Icon"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "An icon from an icon set you download"
+  },
+
   "propertiesSourceFile": {
     "message": "File"
   },
@@ -1153,6 +1161,86 @@
 
   "propertiesIconLetter": {
     "message": "Letter"
+  },
+
+  "propertiesIconSet": {
+    "message": "Icon set"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Outline (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Pixel (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Retro color (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Search icons (in English)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Choose an icon. The search finds icons by their English names and words."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "No icon matches “$1”."
+  },
+
+  "propertiesIconColor": {
+    "message": "Color"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Background"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Background color"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "$1 icons, $2 MB"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "$1 license"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Download"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Update"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Remove"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Downloading…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "This set isn’t downloaded. Download gets it once from the Quick Dial NG project on GitHub and keeps it in this browser, so it works offline."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "A newer version of this set is available. Update downloads it; icons you’ve already chosen stay as they are."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "The set couldn’t be downloaded ($1). Try again later."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "the file isn’t the expected one"
   },
 
   "propertiesKeepPicture": {

@@ -75,6 +75,9 @@ A tile's picture can also be the site's own icon: right-click the tile → **Pic
 **What new tiles get.**
 In Settings › Tiles › Thumbnails, **New tiles get** chooses the picture a new tile starts with: a screenshot of the page (as before), the site's icon (a letter tile when it has none), or the site's icon with a screenshot for sites without one. **Apply to tiles…** gives the tiles you have now pictures made the same way, after asking; pictures you chose yourself and pictures you keep (**Keep picture** in Properties) are never replaced. The Desktop, Retro PC and Retro Mono themes are drawn for icons: using one offers site icons for new tiles in the same step, and switching themes never changes the tiles' pictures by itself.
 
+**Icons from icon sets.**
+In a tile's Properties, the **Icon** source offers icons from three open icon sets: Outline ([Tabler Icons](https://tabler.io/icons), MIT), Pixel ([Pixelarticons](https://pixelarticons.com), MIT) and Retro color (the [SerenityOS](https://github.com/SerenityOS/serenity) icons, BSD 2-Clause). None of them comes with the extension: the picker shows each set's size and licence, and **Download** gets it once from this project's [GitHub releases](https://github.com/YuriyWozniak/quickdial-ng/releases), checked against a fingerprint built into the extension (a file that doesn't match is refused). A downloaded set is kept in the browser, works offline, and can be removed again; it isn't part of backups. When a newer version of a set comes with a new version of Quick Dial NG, the picker offers **Update**. Search a set by the icons' English names and words, choose an icon, its colour and, if you like, a coloured square behind it: the icon becomes the tile's own picture, so **Refresh** keeps it, and removing the set later changes no tile.
+
 ## Permissions and privacy
 
 Quick Dial NG collects no data and sends nothing anywhere. Everything stays in your Firefox profile: settings and pictures in the extension's storage, tiles in your bookmarks.
@@ -82,7 +85,7 @@ Quick Dial NG collects no data and sends nothing anywhere. Everything stays in y
 | Permission | Why |
 |---|---|
 | Bookmarks | Tiles are the bookmarks of one folder ("Quick Dial" by default); adding, editing or deleting a tile changes that bookmark. |
-| Access your data for all websites | **Capture in a new tab** takes a screenshot of the site (as you see it, signed in), **Refresh** downloads the page to read its title, and **Site icon** downloads the site's own icons (signed in too). |
+| Access your data for all websites | **Capture in a new tab** takes a screenshot of the site (as you see it, signed in), **Refresh** downloads the page to read its title, and **Site icon** downloads the site's own icons (signed in too). An icon set you download in Properties comes from this project's GitHub releases, without cookies. |
 | Tabs | Opens the site in a background tab for the capture and closes it afterwards; opens the dial or Settings from the toolbar button, and brings an open Settings tab forward. |
 | Menus | The right-click menu on the dial (new bookmark, properties, picture, settings…) and on the toolbar button. |
 | Storage | Settings, themes and tile pictures. |
@@ -141,6 +144,10 @@ Bugs and ideas: [open an issue](https://github.com/YuriyWozniak/quickdial-ng/iss
 ## Credits
 
 - [Quick Dial](https://github.com/MatMoul/quickdial-webext) by MatMoul, which Quick Dial NG is a fork of.
+- The icon sets you can download for the icon picker (made by [release/make-icon-sets.js](release/make-icon-sets.js); each file carries its licence):
+  - Outline: [Tabler Icons](https://tabler.io/icons) by Paweł Kuna, [MIT License](https://github.com/tabler/tabler-icons/blob/main/LICENSE).
+  - Pixel: [Pixelarticons](https://pixelarticons.com) by Gerrit Halfmann, [MIT License](https://github.com/halfmage/pixelarticons/blob/master/LICENSE).
+  - Retro color: icons from [SerenityOS](https://github.com/SerenityOS/serenity), © the SerenityOS developers, [BSD 2-Clause License](https://github.com/SerenityOS/serenity/blob/master/LICENSE).
 - Icons in the retro screenshots (they are not part of the extension):
   - Retro PC: icons from [SerenityOS](https://github.com/SerenityOS/serenity), © the SerenityOS developers, [BSD 2-Clause License](test/screenshots/retro-icons/LICENSE).
   - Retro Mono: [Pixelarticons](https://pixelarticons.com) by Gerrit Halfmann, [MIT License](https://github.com/halfmage/pixelarticons/blob/master/LICENSE).

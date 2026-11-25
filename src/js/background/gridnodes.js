@@ -277,6 +277,7 @@ app.GridNodes.refreshNode = function(gridNode){
 		switch(gridNode.type){
 			case NodeType.folder: // The dial shows the folder icon again
 				app.Images.setNodeImage(gridNode, null);
+				delete gridNode.imageSource;
 				app.GridNodes.save();
 				return { title: gridNode.title };
 			case NodeType.bookmark:
@@ -316,7 +317,7 @@ app.GridNodes._makePicture = async function(gridNode, kind){
 app.GridNodes._takesPicture = function(gridNode, kind){
 	const ImageSource = QDCommon.ImageSource, source = gridNode.imageSource;
 	if(gridNode.type != QDCommon.NodeType.bookmark || gridNode.imageLocked == true) return false;
-	if(source == ImageSource.file && gridNode.image == '1') return false;
+	if(app.GridNodes._hasUserPicture(gridNode)) return false;
 	const isIcon = source == ImageSource.siteIcon || source == ImageSource.letter;
 	if(kind == QDCommon.TilePicture.page) return isIcon || gridNode.image != '1';
 	return !isIcon;
@@ -353,7 +354,12 @@ app.GridNodes.useSiteIcon = function(gridNode){
 // user's own picture (kept). A tile whose own picture is gone (its address changed) gets a screenshot again.
 app.GridNodes._hasOwnPicture = function(gridNode){
 	const ImageSource = QDCommon.ImageSource;
-	return gridNode.imageSource == ImageSource.siteIcon || gridNode.imageSource == ImageSource.letter || (gridNode.imageSource == ImageSource.file && gridNode.image == '1');
+	return gridNode.imageSource == ImageSource.siteIcon || gridNode.imageSource == ImageSource.letter || app.GridNodes._hasUserPicture(gridNode);
+};
+// Whether the tile shows a picture the user chose: a file, or an icon from the icon picker. Nothing replaces it but the user.
+app.GridNodes._hasUserPicture = function(gridNode){
+	const ImageSource = QDCommon.ImageSource;
+	return (gridNode.imageSource == ImageSource.file || gridNode.imageSource == ImageSource.icon) && gridNode.image == '1';
 };
 // Refresh of a tile with its own picture: the title from the page, and the same kind of picture again. A site icon
 // tile gets the site's best icon; when the site has none it keeps its picture, or gets a letter tile if it has no
@@ -388,6 +394,7 @@ app.GridNodes.capturePage = function(gridNode){
 				const path = nodes.slice(1).map(n => '/' + n.title).join('');
 				return app.SiteInfos.fromNewTab(QDCommon.DIAL_PAGE + '?path=' + encodeURIComponent(path)).then(infos => { // folder names may hold & # ? or %
 					app.Images.setNodeImage(gridNode, infos ? infos.screenshot : null);
+					delete gridNode.imageSource; // Its own page now, or the folder picture
 					app.GridNodes.save();
 					return { title: gridNode.title };
 				});

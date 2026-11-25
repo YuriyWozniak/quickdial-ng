@@ -9,18 +9,52 @@
 //   b1: renamed "My site" (title locked, fit Contain), a picture from a file (locked), then a new address
 //   b2: a dropped and a pasted picture, then Cancel and Escape: nothing is saved
 //   b5: at a local page with an SVG icon: its letter tile chosen (Site icon), then Page (Capture page stood in for)
-//   b6: a picture through the File source
+//   b6: a picture through the File source; then an icon (test sets in place of the real ones): nothing downloaded until
+//       Download, the search, an outline icon, the retro set, a download refused, OK; reopened, Remove (the tile keeps its icon)
 //   f1: a folder's form; renamed "Work", its picture back to the folder icon
 //   b3: its bookmark deleted while the window is open, then opened again while gone
 //   b4: taken out of the tree without the window being told, then OK
 // Related: the updateNode message the popup sends is tested on its own in messages.js.
 'use strict';
+const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { freshProfile, stubDrawWindow, pictures, sitePage } = require('../lib/fixtures');
 
 // How a picture fills its tile (QDCommon.ImageMode), as values of the fit list (the ImageMode field)
 const ImageFit = { inherit: '-1', contain: '2' };
 // Where a tile's picture comes from (QDCommon.ImageSource)
-const ImageSource = { letter: 2, file: 3 };
+const ImageSource = { letter: 2, file: 3, icon: 4 };
+
+// The icon picker's sets for this suite, in place of the real ones (src/iconsets.json, js/background/iconsets.js): two
+// outline icons; a retro set of two icons in a picture made in the page; a pixel set whose file doesn't match its fingerprint.
+// Served from the test server's site/ folder. Returns a function that puts the real iconsets.json back.
+const TEST_OUTLINE = { source: 'Test outline 1', license: 'MIT', icons: [['home', 'house', '<path d="M3 12l9-9 9 9"/>'], ['star', 'favourite', '<path d="M12 3l3 7h6l-5 4 2 7-6-4-6 4 2-7-5-4h6z"/>']] };
+const TEST_PIXEL = { source: 'Test pixel 1', license: 'MIT', icons: [['heart', '', '<path d="M2 2h4v4H2z"/>']] };
+async function useTestIconSets(testPage) {
+	const retroPicture = await testPage.inHost(() => {
+		const canvas = document.createElement('canvas');
+		canvas.width = 64;
+		canvas.height = 32;
+		const ctx = canvas.getContext('2d');
+		ctx.fillStyle = '#cc3366';
+		ctx.fillRect(0, 0, 32, 32);
+		ctx.fillStyle = '#3366cc';
+		ctx.fillRect(32, 0, 16, 16);
+		return canvas.toDataURL('image/png');
+	});
+	const retro = { source: 'Test retro 1', license: 'BSD', cell: 32, picture: retroPicture, icons: [['big', '', 0, 0, 32], ['small', '', 32, 0, 16]] };
+	const catalog = { release: 'icons-test', base: testPage.base + 'site/icon-sets/', sets: {} };
+	fs.mkdirSync(path.join(testPage.dir, 'site', 'icon-sets'), { recursive: true });
+	for (const [name, data] of Object.entries({ outline: TEST_OUTLINE, pixel: TEST_PIXEL, retro })) {
+		const bytes = Buffer.from(JSON.stringify(data) + '\n');
+		sitePage(testPage, 'icon-sets/' + name + '.json', bytes);
+		catalog.sets[name] = { file: name + '.json', bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), count: data.icons.length,
+			source: data.source, homepage: testPage.base + 'site/', license: data.license, licenseUrl: testPage.base + 'site/LICENSE' };
+	}
+	catalog.sets.pixel.sha256 = '0'.repeat(64); // not the file's
+	const catalogFile = path.join(testPage.dir, 'iconsets.json'), realCatalog = fs.readFileSync(catalogFile);
+	fs.writeFileSync(catalogFile, JSON.stringify(catalog));
+	return () => fs.writeFileSync(catalogFile, realCatalog);
+}
 
 // Opens Properties for a tile, as its context menu item does, and waits until the form is filled in.
 // Returns a locator for the popup's frame.
@@ -142,7 +176,7 @@ module.exports = {
 		popup = await openProperties(testPage, 'b5');
 		const pressedSources = () => inPopup(testPage, () => [...document.querySelectorAll('.qd-segment')].map(option => option.getAttribute('aria-pressed') === 'true'));
 		const sourceForm = { pressed: await pressedSources(), ...await inPopup(testPage, () => ({ chooseHidden: ImageChooseRow.hidden, choicesHidden: IconList.hidden })) };
-		testPage.check('a screenshot tile: Page pressed; File is a source, so no separate Choose button', testPage.same(sourceForm.pressed, [true, false, false])
+		testPage.check('a screenshot tile: Page pressed; File is a source, so no separate Choose button', testPage.same(sourceForm.pressed, [true, false, false, false])
 			&& sourceForm.chooseHidden && sourceForm.choicesHidden, sourceForm);
 		await popup.locator('#SourceSiteIconOption').click();
 		await testPage.waitFor('the site\'s icons', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.document.querySelectorAll('.qd-icon-choice').length === 2);
@@ -151,7 +185,7 @@ module.exports = {
 			return { labels: buttons.map(button => button.textContent), chosen: buttons.map(button => button.getAttribute('aria-pressed') === 'true'), hint: SourceHint.textContent,
 				shown: ImagePreview.style.backgroundImage === buttons[0].firstChild.style.backgroundImage, apply: BtnApply.disabled };
 		}) };
-		testPage.check('Site icon: the site\'s icon and a letter tile to choose from; the best is chosen and shown at once', testPage.same(iconChoices.pressed, [false, true, false])
+		testPage.check('Site icon: the site\'s icon and a letter tile to choose from; the best is chosen and shown at once', testPage.same(iconChoices.pressed, [false, true, false, false])
 			&& testPage.same(iconChoices.labels, ['SVG', 'Letter']) && testPage.same(iconChoices.chosen, [true, false]) && iconChoices.hint === '' && iconChoices.shown && !iconChoices.apply, iconChoices);
 		await popup.locator('.qd-icon-choice').nth(1).click();
 		await popup.locator('#BtnOk').click();
@@ -172,8 +206,8 @@ module.exports = {
 		await popupClosed(testPage);
 		const capturedIds = await testPage.waitFor('the capture', () => backgroundPage().qdCaptured.length && backgroundPage().qdCaptured);
 		const screenshotTile = await nodeById(testPage, 'b5');
-		testPage.check('a letter tile shows Site icon pressed; Page says a screenshot comes once saved, and OK asks for it', testPage.same(reopened, [false, true, false])
-			&& testPage.same(pageChosen.pressed, [true, false, false]) && /screenshot/.test(pageChosen.hint) && testPage.same(capturedIds, ['b5'])
+		testPage.check('a letter tile shows Site icon pressed; Page says a screenshot comes once saved, and OK asks for it', testPage.same(reopened, [false, true, false, false])
+			&& testPage.same(pageChosen.pressed, [true, false, false, false]) && /screenshot/.test(pageChosen.hint) && testPage.same(capturedIds, ['b5'])
 			&& screenshotTile.imageSource === undefined, [reopened, pageChosen, capturedIds, screenshotTile]);
 		popup = await openProperties(testPage, 'b6');
 		const [fileChooser] = await Promise.all([testPage.page.waitForEvent('filechooser'), popup.locator('#SourceFileOption').click()]);
@@ -185,16 +219,81 @@ module.exports = {
 		await popupClosed(testPage);
 		await testPage.idle();
 		const fileTile = await nodeById(testPage, 'b6');
-		testPage.check('File opens the file chooser; the source is File once a picture is chosen, and saved with it', testPage.same(sourcesWhileChoosing, [true, false, false])
-			&& testPage.same(fileChosen, [false, false, true]) && fileTile.imageSource === ImageSource.file, [sourcesWhileChoosing, fileChosen, fileTile]);
+		testPage.check('File opens the file chooser; the source is File once a picture is chosen, and saved with it', testPage.same(sourcesWhileChoosing, [true, false, false, false])
+			&& testPage.same(fileChosen, [false, false, false, true]) && fileTile.imageSource === ImageSource.file, [sourcesWhileChoosing, fileChosen, fileTile]);
+
+		// ----- Icon: a set is downloaded only when asked for; search, choose, colours; the retro set; a refused download; Remove -----
+		const restoreIconSets = await useTestIconSets(testPage);
+		const storedSets = () => testPage.inHost(() => Object.keys(mockState.storage).filter(key => key.startsWith('iconSet')).sort());
+		const pickerState = () => inPopup(testPage, () => ({ about: IconSetAbout.textContent, download: IconSetDownload.hidden ? null : IconSetDownload.textContent, remove: !IconSetRemove.hidden,
+			gridShown: !IconGrid.hidden, search: !IconSearch.disabled, cells: [...IconGrid.querySelectorAll('.qd-icon-cell')].map(cell => cell.title), hint: SourceHint.textContent }));
+		popup = await openProperties(testPage, 'b6');
+		await popup.locator('#SourceIconOption').click();
+		await testPage.waitFor('the sets', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconSetAbout.textContent);
+		const notDownloaded = { ...await pickerState(), stored: await storedSets() };
+		testPage.check('Icon: a set not downloaded shows where it comes from and Download; nothing is downloaded yet', notDownloaded.about.startsWith('Test outline 1 · 2 icons')
+			&& notDownloaded.about.endsWith('MIT license') && notDownloaded.download === 'Download' && !notDownloaded.remove && !notDownloaded.gridShown && !notDownloaded.search
+			&& /isn’t downloaded/.test(notDownloaded.hint) && notDownloaded.stored.length === 0, notDownloaded);
+		await popup.locator('#IconSetDownload').click();
+		await testPage.waitFor('the icons', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconGrid.querySelectorAll('.qd-icon-cell').length === 2);
+		const downloaded = { ...await pickerState(), stored: await storedSets() };
+		testPage.check('Download keeps the set and shows its icons; Remove is offered', downloaded.download === null && downloaded.remove && downloaded.search
+			&& testPage.same(downloaded.cells, ['home', 'star']) && /^Choose an icon/.test(downloaded.hint)
+			&& testPage.same(downloaded.stored, ['iconSetIcons.outline', 'iconSetInfo.outline']), downloaded);
+		await popup.locator('#IconSearch').fill('favourite');
+		await testPage.waitFor('the search', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconGrid.querySelectorAll('.qd-icon-cell').length === 1);
+		await popup.locator('.qd-icon-cell').first().click();
+		await testPage.waitFor('the icon as the picture', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.SourceIconOption.getAttribute('aria-pressed') === 'true');
+		const outlineChosen = { pressed: await pressedSources(), ...await inPopup(testPage, () => ({ cells: [...IconGrid.querySelectorAll('.qd-icon-cell')].map(cell => [cell.title, cell.getAttribute('aria-pressed')]),
+			picture: ImagePreview.style.backgroundImage.slice(0, 20), apply: BtnApply.disabled })) };
+		testPage.check('the search finds an icon by its words; chosen, it is the picture (WebP) and Icon is pressed', testPage.same(outlineChosen.pressed, [false, false, true, false])
+			&& testPage.same(outlineChosen.cells, [['star', 'true']]) && outlineChosen.picture === 'url("data:image/webp' && !outlineChosen.apply, outlineChosen);
+		await popup.locator('#IconSearch').fill('');
+		await popup.locator('#IconSet').selectOption('pixel');
+		await testPage.waitFor('the pixel set', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconSetAbout.textContent.startsWith('Test pixel 1'));
+		await popup.locator('#IconSetDownload').click();
+		await testPage.waitFor('the refusal', () => /couldn’t be downloaded/.test(frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.SourceHint.textContent));
+		const refused = { ...await pickerState(), stored: await storedSets() };
+		testPage.check('a file that doesn\'t match its fingerprint is refused and says so; Download can be tried again', /the file isn’t the expected one/.test(refused.hint)
+			&& refused.download === 'Download' && !refused.gridShown && !refused.stored.some(key => key.endsWith('.pixel')), refused);
+		await popup.locator('#IconSet').selectOption('retro');
+		await testPage.waitFor('the retro set', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconSetAbout.textContent.startsWith('Test retro 1'));
+		await popup.locator('#IconSetDownload').click();
+		await testPage.waitFor('the retro icons', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconGrid.querySelectorAll('.qd-icon-cell').length === 2);
+		const retroCells = await inPopup(testPage, () => ({ colorDisabled: IconColor.disabled, cells: [...IconGrid.querySelectorAll('.qd-icon-cell-img')].map(image => [image.style.backgroundImage.slice(0, 10), image.style.backgroundPosition]) }));
+		testPage.check('the retro set: each icon is its part of the set\'s picture, the small one twice as large; no icon colour', retroCells.colorDisabled
+			&& testPage.same(retroCells.cells, [['url("blob:', '0px 0px'], ['url("blob:', '-64px 0px']]), retroCells);
+		await popup.locator('.qd-icon-cell').nth(1).click();
+		await testPage.waitFor('the retro icon as the picture', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconGrid.querySelector('[aria-pressed="true"]'));
+		await popup.locator('#BtnOk').click();
+		await popupClosed(testPage);
+		await testPage.idle();
+		const iconTile = await nodeById(testPage, 'b6');
+		testPage.check('OK saves the icon and where it comes from', iconTile.imageSource === ImageSource.icon && iconTile.image === '1', iconTile);
+		popup = await openProperties(testPage, 'b6');
+		const iconReopened = await pressedSources();
+		await popup.locator('#SourceIconOption').click();
+		await testPage.waitFor('the retro set again', () => !frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconSetRemove.hidden);
+		await popup.locator('#IconSetRemove').click();
+		await testPage.waitFor('the set removed', () => !frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconSetDownload.hidden);
+		const removed = { ...await pickerState(), stored: await storedSets() };
+		await popup.locator('#BtnCancel').click();
+		await popupClosed(testPage);
+		const keptIcon = await nodeById(testPage, 'b6');
+		testPage.check('an icon tile shows Icon pressed; Remove forgets the set, and the tile keeps its icon', testPage.same(iconReopened, [false, false, true, false])
+			&& removed.download === 'Download' && !removed.gridShown && testPage.same(removed.stored, ['iconSetIcons.outline', 'iconSetInfo.outline'])
+			&& keptIcon.imageSource === ImageSource.icon && keptIcon.image === '1', [iconReopened, removed, keptIcon]);
+		restoreIconSets();
 
 		// ----- a folder: no address or locks; its picture can go back to the folder icon -----
 		await testPage.inHost(() => { const app = backgroundPage().app; return app.Images.setNodeImage(app.GridNodes.getNodeById('f1'), document.createElement('canvas').toDataURL('image/webp')); });
 		popup = await openProperties(testPage, 'f1');
 		const folderForm = await inPopup(testPage, () => ({ header: HeaderTitle.textContent, urlHidden: UrlRow.hidden, locksHidden: [TitleLockBox.hidden, ImageLockRow.hidden],
-			useDefault: [ImageDefault.hidden, ImageDefault.disabled], sources: [SourceRow.hidden, ImageChooseRow.hidden] }));
-		testPage.check('a folder\'s Properties: no address, no locks, no picture sources but Choose, "Use default" available', folderForm.header === 'Folder properties' && folderForm.urlHidden
-			&& testPage.same(folderForm.locksHidden, [true, true]) && testPage.same(folderForm.useDefault, [false, false]) && testPage.same(folderForm.sources, [true, false]), folderForm);
+			useDefault: [ImageDefault.hidden, ImageDefault.disabled],
+			sources: [SourceRow, SourcePageOption, SourceSiteIconOption, SourceIconOption, SourceFileOption, ImageChooseRow].map(element => element.hidden) }));
+		testPage.check('a folder\'s Properties: no address, no locks, Icon and File as picture sources, "Use default" available', folderForm.header === 'Folder properties' && folderForm.urlHidden
+			&& testPage.same(folderForm.locksHidden, [true, true]) && testPage.same(folderForm.useDefault, [false, false])
+			&& testPage.same(folderForm.sources, [false, true, true, false, false, true]), folderForm);
 		await popup.locator('#ImageDefault').click();
 		const defaultPicture = await inPopup(testPage, () => ({ picture: ImagePreview.style.backgroundImage, disabled: ImageDefault.disabled }));
 		await popup.locator('#Title').fill('Work');
