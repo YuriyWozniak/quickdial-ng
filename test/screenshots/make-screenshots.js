@@ -385,8 +385,9 @@ async function main() {
 			await dial.evaluate(() => app.editProperties([...document.querySelectorAll('.qd-grid a')].find(link => link.gridNode && link.gridNode.title === 'Photos')));
 			await wait(SETTINGS_WAIT); await dialWindow.shot('properties', WEBSITE_OUT);
 			// Glass: Tiles in Dusk over its sunset picture, with the blur, background opacity and shadow it sets
+			// (the mouse moves away first: it is still where the Grid button was, which would show that button hovered)
 			await dialWindow.look({ theme: 'dusk', wallpaper: 'dusk' });
-			await dialWindow.openSettings('Tiles'); await dialWindow.shot('settings-tiles-glass', WEBSITE_OUT);
+			await dialWindow.openSettings('Tiles'); await dialWindow.hover(); await dialWindow.shot('settings-tiles-glass', WEBSITE_OUT);
 		}
 		await dialWindow.context.close();
 	}
