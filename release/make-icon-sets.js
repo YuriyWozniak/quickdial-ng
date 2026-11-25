@@ -66,11 +66,18 @@ const searchWords = (name, words) => {
 };
 // SVG markup from Tabler's nodes: [["path", { d }], ...]
 const markup = nodes => nodes.map(([tag, attrs]) => '<' + tag + Object.entries(attrs).map(([k, v]) => ` ${k}="${v}"`).join('') + '/>').join('');
-// What is inside a file's <svg> element, on one line
+// What is inside a file's <svg> element, without comments, on one line; null when there is none or a comment can't be removed
+const COMMENT = /<!--[\s\S]*?-->/g;
 const svgBody = text => {
 	const match = text.match(/<svg[^>]*>([\s\S]*)<\/svg>/);
 	if (!match) return null;
-	return match[1].replace(/<!--[\s\S]*?-->/g, '').replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim();
+	let body = match[1], previous;
+	do { // Again until nothing changes: removing one comment can join the parts of another
+		previous = body;
+		body = body.replace(COMMENT, '');
+	} while (body !== previous);
+	if (body.includes('<!--')) return null;
+	return body.replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim();
 };
 // A licence file's text, with \n line ends
 const licenseText = file => fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n').trim() + '\n';
