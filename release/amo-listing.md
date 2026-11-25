@@ -26,7 +26,8 @@ Quick Dial NG turns your new tab and home page into a grid of tiles. Each tile i
 **Tiles**
 
 - Add, edit, move and delete tiles right on the page; subfolders become folder tiles.
-- Pictures: "Capture in a new tab" takes a screenshot of the site as you see it, signed in. You can also upload, drag in or paste your own picture.
+- Pictures: "Capture in a new tab" takes a screenshot of the site as you see it, signed in. Or use the site's own icon (a letter tile when it has none), an icon from an open icon set (Outline, Pixel or Retro color, downloaded only when you ask for it), or upload, drag in or paste your own picture.
+- Choose what new tiles get: a screenshot, the site's icon, or the icon with a screenshot for sites without one.
 - Set the number of rows and columns, the tile shape, margins, borders, titles and the background colour or picture.
 
 **Themes**
@@ -53,7 +54,7 @@ Quick Dial NG also sets itself as the home page, so the dial opens when Firefox 
 No data is collected or sent anywhere. Settings and pictures stay in your Firefox profile.
 
 - Bookmarks: tiles are the bookmarks of the Quick Dial folder.
-- Access to all websites: to capture a site's picture and read its title.
+- Access to all websites: to capture a site's picture, read its title and get its icons. An icon set comes from this project's GitHub releases, only when you download it.
 - Tabs: opens the site in a background tab for the capture, then closes it; opens the dial or Settings from the toolbar button.
 - Menus: the right-click menu on the dial and on the toolbar button.
 - Storage: settings, themes and pictures.
@@ -88,11 +89,21 @@ The seven main pictures from [`screenshots/`](../screenshots/), in this order (t
 | 4 | [`dial-folder.png`](../screenshots/dial-folder.png) | A folder opened on the dial, with the Back tile. |
 | 5 | [`dial-anori.png`](../screenshots/dial-anori.png) | The usual speed dial in the built-in Anori theme: glass tiles and titles over the pictures. |
 | 6 | [`settings.png`](../screenshots/settings.png) | Settings › Themes: preview a theme, apply it, or save, export and import your own. Settings follow Firefox's light or dark mode. |
-| 7 | [`properties.png`](../screenshots/properties.png) | Bookmark properties: title, address and picture. Choose, drop or paste an image, or keep it from being replaced. |
+| 7 | [`properties.png`](../screenshots/properties.png) | Bookmark properties: the tile as the dial shows it, with its picture from the page, the site's icon, an icon set or your own image. |
 
 ## Release notes
 
 The "Release notes" field of each version on AMO; the same text goes to the GitHub release (`--notes`). Newest first.
+
+### 0.9.0
+
+```
+- Site icons and letter tiles: a tile's picture can be the site's own icon (right-click › Picture › Use site icon, or Properties › Site icon). The icons come only from the site itself, never from a favicon service; a site without one gets a letter tile.
+- New tiles get: Settings › Grid › Thumbnails chooses whether a new tile starts with a screenshot, the site's icon, or the icon with a screenshot for sites without one. "Apply to tiles…" does the same for the tiles you have, and never replaces pictures you chose yourself. The Desktop, Retro PC and Retro Mono themes offer site icons when you use them.
+- Icons from icon sets: Properties › Icon offers Outline (Tabler Icons), Pixel (Pixelarticons) and Retro color (SerenityOS). A set is downloaded only when you ask for it, checked against a fingerprint, works offline and can be removed again.
+- Settings and Properties laid out for desktop windows: every Settings section is the same width, with its preview beside the settings; the Thumbnails settings moved to Grid; the Tile | Title switch sits on the style table, with a line on what each part is. Properties shows the tile as the dial draws it, beside its form, with where its picture comes from as tabs.
+- Fixes: a bookmark removed from the end of a folder no longer leaves an empty cell there; a bookmark with a folder's name is no longer opened as that folder; changing only a tile's title or Keep picture keeps its picture; a picture that finishes after its tile was deleted is no longer kept; New bookmark refuses vbscript: addresses too.
+```
 
 ### 0.8.0
 

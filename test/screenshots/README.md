@@ -40,7 +40,7 @@ Website set (`screenshots/website/`):
 | `dial-retro-pc.png`, `dial-retro-mono.png` | The desktop in the Retro PC theme with SerenityOS icons, and in the Retro Mono theme with Pixelarticons over a dotted pattern picture |
 | `dial-classic.png`, `dial-picture.png` | The usual speed dial in Classic, and in Dusk over a sunset picture |
 | `settings-themes.png`, `settings-themes-dark.png` | Settings › Themes, light and dark |
-| `settings-tiles.png`, `settings-tiles-glass.png` | Settings › Tiles with the live preview, and scrolled to the glass, shadow and hover settings |
+| `settings-tiles.png`, `settings-tiles-glass.png` | Settings › Tiles with the live preview, and in the Dusk theme over its sunset picture: glass tiles, with their blur, background opacity and shadow |
 | `settings-page.png`, `settings-grid.png` | Settings › Page and Grid |
 | `properties.png` | Bookmark properties, light |
 
@@ -73,7 +73,7 @@ The main [README](../../README.md#credits) credits them too.
 
 ## Changing the screenshots
 
-- **Another view:** add a few lines to `main()`. The helpers from `openDial()` apply a look (`look({ theme: 'plum', wallpaper, folder })`), save the user's own themes (`saveThemes(['desktopDay'])`), reload the dial with tabs beside it (`dial([TABS.mail])`), open Settings on a section (`openSettings('Tiles')`), hover a tile (`hover(dial, 'Photos')`) and save the window (`shot('name')`, or `shot('name', WEBSITE_OUT)`). `scrollTo(frame, selector)` scrolls the Settings content.
+- **Another view:** add a few lines to `main()`. The helpers from `openDial()` apply a look (`look({ theme: 'plum', wallpaper, folder })`), save the user's own themes (`saveThemes(['desktopDay'])`), reload the dial with tabs beside it (`dial([TABS.mail])`), open Settings on a section (`openSettings('Tiles')`), hover a tile (`hover(dial, 'Photos')`) and save the window (`shot('name')`, or `shot('name', WEBSITE_OUT)`).
 - **Another layout:** add it to `LAYOUTS`: rows, columns, tile shape and the cells. `site('mail', [row, column])` places a dark site, `iconTile('mail', [row, column])` its icon, `folder('Name', [row, column], [cells])` a folder; cells without a place fill the free cells in order.
 - **Another site:** add it to `DARK_SITES` in `dark-sites.js` (or `SITES` in `sites.js`) and, for the desktop scenes, its drawing and colours in `icons.js` under the same key.
 - **New UI text or controls** need nothing here: the pages come from `src/` at every run. A scene breaks only if an element it clicks (by id) is renamed.
