@@ -1251,6 +1251,10 @@
     "message": "Non è stato possibile scaricare il set ($1). Riprova più tardi."
   },
 
+  "propertiesIconSetGone": {
+    "message": "Questo set non è più disponibile per questa versione di Quick Dial NG. Aggiorna Quick Dial NG all’ultima versione e riprova. I set già scaricati continuano a funzionare."
+  },
+
   "propertiesIconSetBadFile": {
     "message": "il file non è quello previsto"
   },

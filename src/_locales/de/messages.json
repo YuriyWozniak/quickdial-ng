@@ -1239,6 +1239,10 @@
     "message": "Der Satz konnte nicht heruntergeladen werden ($1). Versuchen Sie es später erneut."
   },
 
+  "propertiesIconSetGone": {
+    "message": "Dieser Satz ist für diese Version von Quick Dial NG nicht mehr verfügbar. Aktualisieren Sie Quick Dial NG auf die neueste Version und versuchen Sie es erneut. Bereits heruntergeladene Sätze funktionieren weiter."
+  },
+
   "propertiesIconSetBadFile": {
     "message": "die Datei ist nicht die erwartete"
   },

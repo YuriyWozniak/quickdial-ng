@@ -1251,6 +1251,10 @@
     "message": "Le jeu n’a pas pu être téléchargé ($1). Réessayez plus tard."
   },
 
+  "propertiesIconSetGone": {
+    "message": "Ce jeu n’est plus disponible pour cette version de Quick Dial NG. Mettez Quick Dial NG à jour vers sa dernière version, puis réessayez. Les jeux déjà téléchargés continuent de fonctionner."
+  },
+
   "propertiesIconSetBadFile": {
     "message": "le fichier n’est pas celui attendu"
   },

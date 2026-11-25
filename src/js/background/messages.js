@@ -87,8 +87,8 @@ app.Messages.init = function(){
 				return app.IconSets.list();
 			case Commands.iconSet:
 				return app.IconSets.get(request.name);
-			case Commands.downloadIconSet: // Answers { error: null } when the set is kept, else { error: why not }
-				return app.IconSets.download(request.name).then(() => ({ error: null }), e => ({ error: String(e && e.message || e) }));
+			case Commands.downloadIconSet: // Answers { error: null } when the set is kept, else { error: why not, gone: the file isn't there any more }
+				return app.IconSets.download(request.name).then(() => ({ error: null }), e => ({ error: String(e && e.message || e), gone: !!(e && e.gone) }));
 			case Commands.removeIconSet:
 				return app.IconSets.remove(request.name).then(() => true);
 			case Commands.findSiteIcons: // Properties: the icons to choose from, and a letter tile
