@@ -40,6 +40,7 @@
       "js/background/siteicons.js",
       "js/background/iconsets.js",
       "js/background/gridnodes.js",
+      "js/background/tilepictures.js",
       "js/background/main.js"
     ]
   },

@@ -1,15 +1,18 @@
 // Quick Dial NG — background page.
 // The scripts in this folder share the global `app` and are loaded in the order listed in
 // manifest.json: app.js first, then one file per part of `app`, and main.js last, which starts it.
-//   messages.js   messages from the dial, Settings and Properties pages
-//   settings.js   stored settings (and their upgrades from older versions) and the user's themes
-//   language.js   the language of the texts: Firefox's, or the one chosen in Settings
-//   images.js     tile pictures, one storage key each
-//   backup.js     export and import
-//   menus.js      context menus
-//   bookmarks.js  the Quick Dial bookmarks folder and its events
-//   siteinfos.js  page title and picture of a site
-//   gridnodes.js  the tree of tiles, kept in sync with the bookmarks
+//   messages.js      messages from the dial, Settings and Properties pages
+//   settings.js      stored settings (and their upgrades from older versions) and the user's themes
+//   language.js      the language of the texts: Firefox's, or the one chosen in Settings
+//   images.js        tile pictures, one storage key each
+//   backup.js        export and import
+//   menus.js         context menus
+//   bookmarks.js     the Quick Dial bookmarks folder and its events
+//   siteinfos.js     page title and picture of a site (Refresh, Capture page)
+//   siteicons.js     a site's own icons, and letter tiles
+//   iconsets.js      the icon sets of the icon picker
+//   gridnodes.js     the tree of tiles, kept in sync with the bookmarks
+//   tilepictures.js  how a tile gets its title and picture: Refresh, Capture page, Use site icon, Apply to tiles
 
 /* exported app */
 // eslint-disable-next-line no-var -- a window property: shared by the background scripts; the dial page and the tests read it too

@@ -283,7 +283,7 @@ app.setupTiles = function(){
 	BtnApplyTilePicture.onclick = () => app.applyTilePicture(text => { TilePictureStatus.textContent = text; });
 };
 // "Apply to tiles": after asking, the tiles the user has now get pictures of the kind chosen under New tiles get (even
-// before Apply: that only sets what new tiles get). Pictures the user chose or kept stay (GridNodes.applyTilePicture).
+// before Apply: that only sets what new tiles get). Pictures the user chose or kept stay (TilePictures.applyToTiles).
 // report(text, isBusy, isError) shows how it goes: under the button, or in the Themes tab's banner.
 app.applyTilePicture = function(report){
 	const kind = +GridNewTilePicture.value, label = GridNewTilePicture.selectedOptions[0].textContent;

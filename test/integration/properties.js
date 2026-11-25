@@ -197,7 +197,7 @@ module.exports = {
 		await testPage.inHost(() => {
 			const page = backgroundPage();
 			page.qdCaptured = [];
-			page.app.GridNodes.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
+			page.app.TilePictures.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
 		});
 		popup = await openProperties(testPage, 'b5');
 		const reopened = await pressedSources();

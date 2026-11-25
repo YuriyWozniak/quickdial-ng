@@ -1,4 +1,4 @@
-// A tile's title and picture from its site (js/background/siteinfos.js, gridnodes.js): Refresh downloads
+// A tile's title and picture from its site (js/background/siteinfos.js, tilepictures.js): Refresh downloads
 // the page and draws it in a sandboxed frame; Capture page opens it in a background tab and takes a
 // screenshot. Called on the background page directly; the dial's menu commands for them are in dial-edit.js.
 //
@@ -39,8 +39,8 @@ const fakeTabs = (testPage, options) => testPage.inHost(([failure, tabId, tabSiz
 	page.browser.tabs.remove = id => { page.qdTabs.push(['remove', id]); return Promise.resolve(); };
 }, [options || {}, FAKE_TAB_ID, FAKE_TAB_SIZE]);
 // Capture page / Refresh for a tile by id; both resolve with the site infos (title, picture) or null
-const capture = (testPage, id) => testPage.inHost(nodeId => { const GridNodes = backgroundPage().app.GridNodes; return GridNodes.capturePage(GridNodes.getNodeById(nodeId)); }, id);
-const refresh = (testPage, id) => testPage.inHost(nodeId => { const GridNodes = backgroundPage().app.GridNodes; return GridNodes.refreshNode(GridNodes.getNodeById(nodeId)); }, id);
+const capture = (testPage, id) => testPage.inHost(nodeId => { const app = backgroundPage().app; return app.TilePictures.capturePage(app.GridNodes.getNodeById(nodeId)); }, id);
+const refresh = (testPage, id) => testPage.inHost(nodeId => { const app = backgroundPage().app; return app.TilePictures.refresh(app.GridNodes.getNodeById(nodeId)); }, id);
 // A node of the background page by id
 const nodeById = (testPage, id) => testPage.inHost(nodeId => backgroundPage().app.GridNodes.getNodeById(nodeId), id);
 // The last call made to the tabs API
@@ -139,8 +139,8 @@ module.exports = {
 		// ----- a tile already loading -----
 		await fakeTabs(testPage);
 		const loadedOnce = await testPage.inHost(() => {
-			const GridNodes = backgroundPage().app.GridNodes, tile = GridNodes.getNodeById('b5');
-			const firstLoad = GridNodes.capturePage(tile), askedAgain = [GridNodes.capturePage(tile), GridNodes.refreshNode(tile)];
+			const { GridNodes, TilePictures } = backgroundPage().app, tile = GridNodes.getNodeById('b5');
+			const firstLoad = TilePictures.capturePage(tile), askedAgain = [TilePictures.capturePage(tile), TilePictures.refresh(tile)];
 			return Promise.all([firstLoad].concat(askedAgain)).then(results => ({ same: askedAgain.every(load => load === firstLoad), title: results[0] && results[0].title,
 				opened: backgroundPage().qdTabs.filter(call => call[0] === 'create').length, loading: !!tile.__isLoading }));
 		});

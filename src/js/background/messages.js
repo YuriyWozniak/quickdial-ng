@@ -94,11 +94,11 @@ app.Messages.handlers = (function(){
 			return true;
 		}),
 		// Tile pictures
-		[Commands.refreshNode]: onTile(tile => thenTilesChanged(app.GridNodes.refreshNode(tile))),
-		[Commands.capturePage]: onTile(tile => thenTilesChanged(app.GridNodes.capturePage(tile))),
-		[Commands.useSiteIcon]: onTile(tile => thenTilesChanged(app.GridNodes.useSiteIcon(tile))),
+		[Commands.refreshNode]: onTile(tile => thenTilesChanged(app.TilePictures.refresh(tile))),
+		[Commands.capturePage]: onTile(tile => thenTilesChanged(app.TilePictures.capturePage(tile))),
+		[Commands.useSiteIcon]: onTile(tile => thenTilesChanged(app.TilePictures.useSiteIcon(tile))),
 		// Settings: the dial pages show each tile's new picture as soon as it is made. Answers the number of tiles.
-		[Commands.applyTilePicture]: request => app.GridNodes.applyTilePicture(Number(request.kind), Messages.tilesChanged),
+		[Commands.applyTilePicture]: request => app.TilePictures.applyToTiles(Number(request.kind), Messages.tilesChanged),
 		// Properties: the site's icons to choose from, and a letter tile
 		[Commands.findSiteIcons]: request => app.SiteIcons.find(request.url).then(found => Object.assign(found, { letter: app.SiteIcons.letter(request.url, request.title) })),
 		// Properties: the icon picker's sets, and one of their icons as a tile picture

@@ -5,7 +5,7 @@
 // Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js). The icons are PNGs made in the
 // browser and SVG, served by the test server next to the pages; other sites are the stub page (no icons).
 // The steps build on each other only through the tiles: b1 ends as a site icon tile, b2 as a letter tile.
-// Related: Refresh, Capture page and Properties' changes of the picture's source are unit/gridnodes.test.js;
+// Related: Refresh, Capture page and Properties' changes of the picture's source are unit/tilepictures.test.js;
 // choosing an icon in Properties is properties.js; the menu item is dial-edit.js and toolbar-menus.js.
 'use strict';
 const { freshProfile, sitePage } = require('../lib/fixtures');
@@ -63,7 +63,7 @@ const nodeById = (testPage, id) => testPage.inHost(nodeId => backgroundPage().ap
 const useSiteIcon = (testPage, id, url) => testPage.inHost(async ([nodeId, address]) => {
 	const page = backgroundPage(), tile = page.app.GridNodes.getNodeById(nodeId);
 	tile.url = address;
-	await page.app.GridNodes.useSiteIcon(tile);
+	await page.app.TilePictures.useSiteIcon(tile);
 	return { tile: JSON.parse(JSON.stringify(tile)), drawn: await window.qdDrawnBox((await page.app.Images.get([nodeId]))[nodeId]) };
 }, [id, url]);
 
@@ -117,7 +117,7 @@ module.exports = {
 		const iconTile = await useSiteIcon(testPage, 'b1', iconPage);
 		testPage.check('Use site icon: the tile gets the best icon, the page\'s title, and stays a site icon tile', iconTile.tile.imageSource === ImageSource.siteIcon
 			&& iconTile.tile.image === '1' && iconTile.tile.title === 'Icon page' && isCentredSquare(iconTile.drawn, ICON_SIDE), iconTile);
-		await testPage.inHost(() => { const GridNodes = backgroundPage().app.GridNodes; return GridNodes.refreshNode(GridNodes.getNodeById('b1')); });
+		await testPage.inHost(() => { const app = backgroundPage().app; return app.TilePictures.refresh(app.GridNodes.getNodeById('b1')); });
 		const refreshedTile = await nodeById(testPage, 'b1');
 		testPage.check('...and Refresh keeps it one, without drawing the page', refreshedTile.imageSource === ImageSource.siteIcon && refreshedTile.image === '1', refreshedTile);
 		const letterTile = await useSiteIcon(testPage, 'b2', 'https://site2.example/');

@@ -105,8 +105,8 @@ module.exports = {
 			const page = backgroundPage();
 			page.qdCaptured = [];
 			page.qdSiteIcons = [];
-			page.app.GridNodes.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
-			page.app.GridNodes.useSiteIcon = node => { page.qdSiteIcons.push(node.id); return Promise.resolve(null); };
+			page.app.TilePictures.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
+			page.app.TilePictures.useSiteIcon = node => { page.qdSiteIcons.push(node.id); return Promise.resolve(null); };
 		});
 		await menuCommand(testPage, MenuCommand.capture, 'site2.example');
 		const capturedIds = await testPage.waitFor('the capture request', () => backgroundPage().qdCaptured.length && backgroundPage().qdCaptured);
