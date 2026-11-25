@@ -582,6 +582,15 @@
     "message": "Наслов",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Стил за"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Плочица: цела плочица — размак, непровидност, ивица, позадина, замућење и сенка."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Наслов: име сајта на плочици — приказ или скривање, висина, величина, боје, фонт и положај."
+  },
 
   "settingsShowTitle": {
     "message": "Прикажи наслов"

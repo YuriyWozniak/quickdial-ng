@@ -79,18 +79,22 @@ module.exports = {
 		testPage.check('an open Settings page switches to the section asked for', switched.themes && switched.title === 'Themes' && switched.url === '?tab=themes', switched);
 		await changeSettings(testPage, { toolbarAction: 'settings' });
 
-		// ----- Tiles: Tile | Title show their rows of the style table; a Hover value that is the Normal one is marked -----
+		// ----- Tiles: Tile | Title, at the top of the style table, show their rows and say what that part of a tile is;
+		// a Hover value that is the Normal one is marked -----
 		await testPage.loadSettings('tiles');
-		const tileRows = () => testPage.inDial(() => ({ tile: !TileRows.hidden, title: !TitleRows.hidden, tools: !TilesTools.hidden,
+		const tileRows = () => testPage.inDial(() => ({ tile: !TileRows.hidden, title: !TitleRows.hidden,
+			inTable: TilesPartTile.closest('.qd-card') === TileRows.closest('.qd-card'), hint: TilesPartHint.textContent,
 			pressed: [TilesPartTile, TilesPartTitle].map(button => button.getAttribute('aria-pressed')),
 			marginSame: GridCellsMarginsHover.closest('.qd-number').classList.contains('is-same') }));
 		const tileRowsShown = await tileRows();
-		testPage.check('Tiles opens on the tile rows; a Hover spacing equal to Normal is marked the same', tileRowsShown.tile && !tileRowsShown.title && tileRowsShown.tools
+		testPage.check('Tiles opens on the tile rows, the switch above them with a hint; a Hover spacing equal to Normal is marked the same',
+			tileRowsShown.tile && !tileRowsShown.title && tileRowsShown.inTable && tileRowsShown.hint !== ''
 			&& testPage.same(tileRowsShown.pressed, ['true', 'false']) && tileRowsShown.marginSame, tileRowsShown);
 		await testPage.dial().locator('#GridCellsMarginsHover').fill('9');
 		await testPage.dial().locator('#TilesPartTitle').click();
 		const titleRowsShown = await tileRows();
-		testPage.check('Title shows the title rows; a Hover value changed is no longer marked', !titleRowsShown.tile && titleRowsShown.title
+		testPage.check('Title shows the title rows and their own hint; a Hover value changed is no longer marked', !titleRowsShown.tile && titleRowsShown.title
+			&& titleRowsShown.hint !== '' && titleRowsShown.hint !== tileRowsShown.hint
 			&& testPage.same(titleRowsShown.pressed, ['false', 'true']) && !titleRowsShown.marginSame, titleRowsShown);
 		await testPage.dial().locator('#BtnDiscard').click();
 

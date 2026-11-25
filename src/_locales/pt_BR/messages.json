@@ -582,6 +582,15 @@
     "message": "Título",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Estilo de"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Bloco: o bloco inteiro — espaçamento, opacidade, borda, fundo, desfoque e sombra."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Título: o nome do site no bloco — mostrar ou ocultar, altura, tamanho, cores, fonte e posição."
+  },
 
   "settingsShowTitle": {
     "message": "Mostrar título"

@@ -582,6 +582,15 @@
     "message": "Tytuł",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Styl dla"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Kafelek: cały kafelek — odstępy, krycie, obramowanie, tło, rozmycie i cień."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Tytuł: nazwa strony na kafelku — pokazywanie lub ukrywanie, wysokość, rozmiar, kolory, czcionka i położenie."
+  },
 
   "settingsShowTitle": {
     "message": "Pokazuj tytuł"

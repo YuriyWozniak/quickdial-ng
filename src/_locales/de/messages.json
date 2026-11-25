@@ -582,6 +582,15 @@
     "message": "Titel",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Stil für"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Kachel: das ganze Feld – Abstand, Deckkraft, Rahmen, Hintergrund, Unschärfe und Schatten."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Titel: der Seitenname auf der Kachel – ein- oder ausblenden, Höhe, Größe, Farben, Schrift und Position."
+  },
 
   "settingsShowTitle": {
     "message": "Titel anzeigen"

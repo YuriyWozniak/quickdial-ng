@@ -163,7 +163,6 @@ app.init = function(){
 		Content.scrollTop = 0;
 		PanelTitle.textContent = btn.textContent.trim();
 		QDUI.setRichText(PanelIntro, QDCommon.text(document.getElementById(panel).dataset.i18nIntro)); // what the section is about (data-i18n-intro)
-		TilesTools.hidden = panel != 'TabTiles';
 		ThemesTools.hidden = panel != 'TabThemes';
 		history.replaceState(null, '', '?tab=' + btn.id.replace(/^Tab|Button$/g, '').toLowerCase()); // a reload stays on this section
 	});
@@ -254,16 +253,19 @@ app.setupGrid = function(){
 	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = QDCommon.BACK_ICON; });
 	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = QDCommon.FOLDER_ICON; });
 };
-// Tab Tiles: Tile | Title (which rows of the style table are shown), the title fonts (an imported theme's font is added
-// when the form is filled, fillForm) and the click effect preview: it plays on the Hover sample when another effect is
-// picked, and on a sample tile when it is clicked
+// Tab Tiles: Tile | Title above the style table (which of its rows are shown, with a line on what that part of a tile
+// is), the title fonts (an imported theme's font is added when the form is filled, fillForm) and the click effect
+// preview: it plays on the Hover sample when another effect is picked, and on a sample tile when it is clicked
 app.setupTiles = function(){
-	[TilesPartTile, TilesPartTitle].forEach(part => {
+	const partHints = new Map([[TilesPartTile, 'settingsTilesPartTileHint'], [TilesPartTitle, 'settingsTilesPartTitleHint']]);
+	partHints.forEach((hint, part) => {
 		part.onclick = () => {
-			for(const button of [TilesPartTile, TilesPartTitle]){
+			for(const button of partHints.keys()){
 				button.setAttribute('aria-pressed', String(button === part));
 				document.getElementById(button.getAttribute('aria-controls')).hidden = button !== part;
 			}
+			TilesPartHint.dataset.i18n = hint; // kept, so the hint follows a change of the language too
+			QDUI.setRichText(TilesPartHint, QDCommon.text(hint));
 		};
 	});
 	QDThemes.FONTS.forEach(font => { GridCellsTitleFont.add(new Option(font.label, font.value)); });

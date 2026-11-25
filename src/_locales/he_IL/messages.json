@@ -582,6 +582,15 @@
     "message": "כותרת",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "סגנון של"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "אריח: האריח כולו — מרווח, אטימות, מסגרת, רקע, טשטוש וצל."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "כותרת: שם האתר על האריח — הצגה או הסתרה, גובה, גודל, צבעים, גופן ומיקום."
+  },
 
   "settingsShowTitle": {
     "message": "הצגת כותרת"

@@ -124,9 +124,12 @@
 }
 .qd-aside { order: 2; position: sticky; top: 0; }
 
-@container (max-width: 760px) { /* one column; the tile preview goes above the style table */
+@container (max-width: 760px) { /* one column: the tile preview, then the style table, then the effects */
 	.qd-cols { grid-template-columns: minmax(0, 1fr); }
-	.qd-aside { order: 0; position: static; }
+	.qd-cols > .qd-aside { display: contents; }
+	.qd-aside > :first-child { order: 0; }
+	.qd-cols > .is-table { order: 1; }
+	.qd-aside > :last-child { order: 2; }
 	.qd-tile-stage { flex-direction: row; }
 }
 
@@ -162,6 +165,17 @@
 .qd-stage-hint { margin: var(--qd-row) 2px 0; }
 
 .qd-card.is-table { padding: 0 6px 6px; }
+/* Tile | Title: which part of a tile the table below is for, with a line on what that part is */
+.qd-part-switch {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--qd-row) var(--qd-gap);
+	padding: 14px 10px 10px;
+	border-bottom: 1px solid var(--qd-border-soft);
+}
+.qd-part-switch .qd-hint { flex-basis: 100%; margin: 0; }
+.qd-segment-icon { flex: none; width: 16px; height: 16px; margin-inline-end: 6px; }
 .qd-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .qd-table :is(th, td) { padding: 6px 10px; vertical-align: middle; border-bottom: 1px solid var(--qd-border-soft); }
 .qd-table thead th {

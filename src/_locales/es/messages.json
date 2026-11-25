@@ -582,6 +582,15 @@
     "message": "Título",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Estilo de"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Mosaico: todo el recuadro: espaciado, opacidad, borde, fondo, desenfoque y sombra."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Título: el nombre del sitio en el mosaico: mostrarlo u ocultarlo, su altura, tamaño, colores, fuente y posición."
+  },
 
   "settingsShowTitle": {
     "message": "Mostrar título"
