@@ -292,12 +292,6 @@ async function openDial(browser, port, scheme, layout, look, pictures, errors) {
 	return dialWindow;
 }
 
-// Scrolls the Settings content so `selector` sits just below the top edge (below a sticky table header if there is one)
-const scrollTo = (frame, selector, offset = 16) => frame.evaluate(([cssSelector, gap]) => {
-	const content = document.getElementById('Content'), element = document.querySelector(cssSelector);
-	content.scrollTop += element.getBoundingClientRect().top - content.getBoundingClientRect().top - gap;
-}, [selector, offset]);
-
 // Two pictures of the same size as one: the left part of `left` and the right part of `right`, split on a slant (SPLIT_TOP to SPLIT_BOTTOM)
 async function combine(browser, left, right, file) {
 	const page = await browser.newPage({ viewport: WINDOW, deviceScaleFactor: SCALE });
@@ -385,12 +379,14 @@ async function main() {
 		await dialWindow.shot(scheme === 'light' ? 'settings-themes' : 'settings-themes-dark', WEBSITE_OUT);
 		if (scheme === 'light') {
 			await settings.click('#TabTilesButton'); await wait(CLICK_WAIT); await dialWindow.shot('settings-tiles', WEBSITE_OUT);
-			await scrollTo(settings, 'tr:has(#GridCellsBackgroundColor)', 44); await dialWindow.shot('settings-tiles-glass', WEBSITE_OUT);
 			await settings.click('#TabPageButton'); await wait(CLICK_WAIT); await dialWindow.shot('settings-page', WEBSITE_OUT);
 			await settings.click('#TabGridButton'); await wait(CLICK_WAIT); await dialWindow.shot('settings-grid', WEBSITE_OUT);
 			dial = await dialWindow.dial();
 			await dial.evaluate(() => app.editProperties([...document.querySelectorAll('.qd-grid a')].find(link => link.gridNode && link.gridNode.title === 'Photos')));
 			await wait(SETTINGS_WAIT); await dialWindow.shot('properties', WEBSITE_OUT);
+			// Glass: Tiles in Dusk over its sunset picture, with the blur, background opacity and shadow it sets
+			await dialWindow.look({ theme: 'dusk', wallpaper: 'dusk' });
+			await dialWindow.openSettings('Tiles'); await dialWindow.shot('settings-tiles-glass', WEBSITE_OUT);
 		}
 		await dialWindow.context.close();
 	}
