@@ -27,6 +27,8 @@ app.Images.get = function(ids){ // Promise<{ id: dataUrl }>
 		return result;
 	});
 };
+app.Images.cached = id => app.Images._cache.get(id) || null; // A picture already in memory, or null (the dial reads it at once)
+app.Images.clearCache = function(){ app.Images._cache.clear(); };
 app.Images.set = function(id, image){
 	app.Images._cache.set(id, image);
 	return browser.storage.local.set({ [app.Images.storageKey(id)]: image });

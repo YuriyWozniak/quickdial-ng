@@ -98,7 +98,7 @@ app.SiteIcons.drawIcon = async function(icon){
 
 // A transparent canvas of a tile picture (the size of the pictures SiteInfos makes) and the side of the icon on it
 app.SiteIcons._pictureCanvas = function(){
-	const size = app.SiteInfos._previewSize(), scale = app.SiteInfos.CANVAS_SCALE;
+	const size = app.SiteInfos.pictureSize(), scale = app.SiteInfos.CANVAS_SCALE;
 	const canvas = document.createElement('canvas');
 	canvas.width = Math.round(size.width * scale);
 	canvas.height = Math.round(size.height * scale);

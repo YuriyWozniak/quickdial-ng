@@ -214,10 +214,15 @@ app.Settings.addMissing = function(settings){
 	return true;
 };
 
-app.Settings.update = function(settings){ // Save new settings: the user's own, so saved even after a failed load. Promise: see save
+// Whether app.settings and app.node are the user's: false after a failed load, until the user saves settings or
+// imports a backup (the defaults are in use then, and nothing is saved over what is stored)
+app.Settings.holdsUserData = () => !app.Settings._loadFailed;
+// app.settings and app.node are the user's now (new settings, an imported backup): saved even after a failed load
+app.Settings.useUserData = function(){ delete app.Settings._loadFailed; };
+app.Settings.update = function(settings){ // Save new settings: the user's own. Promise: see save
 	app.settings = settings;
 	app.Settings.addMissing(settings);
-	delete app.Settings._loadFailed;
+	app.Settings.useUserData();
 	return app.Settings.save();
 };
 // Pictures the user picks in Settings (the background, the Back and folder icons) are data URLs of up to

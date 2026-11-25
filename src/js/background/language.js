@@ -13,7 +13,7 @@ app.Language._request = 0; // The latest apply: an older one that finishes later
 // read leaves Firefox's.
 app.Language.apply = function(){
 	const request = ++app.Language._request;
-	if(app.Settings._loadFailed) return Promise.resolve(); // The defaults in use are not the user's: keep the copy the pages have
+	if(!app.Settings.holdsUserData()) return Promise.resolve(); // The defaults in use are not the user's: keep the copy the pages have
 	const language = app.settings && app.settings.language;
 	if(!language || !Object.prototype.hasOwnProperty.call(QDCommon.LANGUAGES, language)){
 		app.Language._use(null);
