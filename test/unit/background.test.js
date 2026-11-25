@@ -5,6 +5,7 @@
 //                                                 linking imported tiles to bookmarks
 //   app.Images (js/background/images.js)          picture values, storage and cache
 //   app.Bookmarks (js/background/bookmarks.js)    which events count, listening around our own changes
+//   app.Messages (js/background/messages.js)      a handler per command; a folder or tile gone meanwhile
 //
 // Loaded into a sandbox with a fake browser API (./load.js). Picture re-encoding (canvas) needs a
 // browser: integration/startup.js and backup.js cover it. A whole import is integration/backup.js.
@@ -186,4 +187,27 @@ test('Bookmarks: events outside the tree are ignored; quietly() always listens a
 	await Bookmarks.update('a', { title: 'T' });
 	await settle(0);
 	assert.deepEqual(plain(sandbox.browser.calls.at(-1)), ['update', 'a', { title: 'T' }]);
+});
+
+test('Messages: a handler for every command the pages send; a folder or tile gone meanwhile answers null, nothing throws', async () => {
+	const sandbox = loadBackground(), { app, QDCommon } = sandbox, Commands = QDCommon.Commands;
+	await app.Settings.init();
+	sandbox.browser.bookmarks.find('menu________').children.push({ id: 'qd', type: 'folder', title: 'Quick Dial', children: [
+		{ id: 'a', type: 'bookmark', title: 'A', url: 'https://a.example/' }] });
+	await app.GridNodes.sync(app.node, app.settings.grid.root);
+	const FIRST_PAGE_COMMAND = 100; // from here on, the commands go to the pages
+	const pageCommands = Object.entries(Commands).filter(([, number]) => number < FIRST_PAGE_COMMAND).map(([name]) => name);
+	assert.deepEqual(pageCommands.filter(name => typeof app.Messages.handlers[Commands[name]] != 'function'), []);
+	const handle = request => app.Messages.handlers[request.cmd](request);
+	const gone = '/Renamed meanwhile/';
+	assert.equal(await handle({ cmd: Commands.createBookmark, path: gone, url: 'https://b.example/', title: 'B' }), null);
+	assert.equal(await handle({ cmd: Commands.createFolder, path: gone, name: 'F' }), null);
+	assert.equal(await handle({ cmd: Commands.setNodeIndex, path: gone, index: 0, newIndex: 1 }), null);
+	assert.equal(await handle({ cmd: Commands.deleteNode, path: gone, id: 'a' }), null);
+	assert.equal(await handle({ cmd: Commands.refreshNode, path: '/', id: 'gone' }), null);
+	assert.equal(await handle({ cmd: Commands.getNode, path: gone }), null);
+	assert.equal(await handle({ cmd: Commands.updateNode, id: 'gone', value: { title: 'X' } }), false);
+	assert.deepEqual(plain(app.node.children.map(tile => tile.id)), ['a'], 'nothing changed');
+	assert.equal(await handle({ cmd: Commands.deleteNode, path: '/', id: 'a' }), true, 'a folder that is there: done');
+	assert.deepEqual(plain(app.node.children.map(tile => tile.id)), []);
 });

@@ -130,8 +130,13 @@ app.readForm = function(settings){
 	settings.grid.folderIcon = folderIcon;
 	return settings;
 };
-// What the form shows right now, as a full settings object (the saved settings are not touched)
-app.formSettings = function(){ return app.readForm(app.clone(app.settings)); };
+// What the form shows right now, as a full settings object (the saved settings are not touched). It runs on every
+// key press (the previews, the count of changes): the pictures, which can be megabytes, are not copied, as readForm
+// puts them back from their own variables anyway.
+app.PICTURE_KEYS = new Set(['backgroundImage', 'backIcon', 'folderIcon']); // settings.backgroundImage, grid.backIcon, grid.folderIcon
+app.formSettings = function(){
+	return app.readForm(JSON.parse(JSON.stringify(app.settings, (key, value) => app.PICTURE_KEYS.has(key) ? undefined : value)));
+};
 // How many settings the form has changed (each field and each picture counts once): the footer says so while they
 // are not applied, with the shortcut that applies them
 app.PICTURES = ['backgroundImage', 'backgroundGradient', 'grid.backIcon', 'grid.folderIcon'];
@@ -140,7 +145,8 @@ app.countChanges = function(){
 	// null and an empty field are the same "nothing"; a colour reads the same in either case (#FFFFFF, #ffffff)
 	const comparable = value => value == null || value === '' ? 'null' : JSON.stringify(value).toLowerCase();
 	const form = app.formSettings(), differs = path => comparable(app.objectPath.get(form, path)) != comparable(app.objectPath.get(app.settings, path));
-	return FIELDS.filter(field => differs(field.path)).length + app.PICTURES.filter(differs).length;
+	const pictureDiffers = path => (app.objectPath.get(form, path) || null) !== (app.objectPath.get(app.settings, path) || null); // as they are: no copy of a long data URL
+	return FIELDS.filter(field => differs(field.path)).length + app.PICTURES.filter(pictureDiffers).length;
 };
 app.describeChanges = function(){
 	const count = app.countChanges();
