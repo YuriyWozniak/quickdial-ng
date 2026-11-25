@@ -127,6 +127,11 @@
     "message": "Unsaved changes"
   },
 
+  "statusNotApplied": {
+    "message": "Not applied yet: $1 · Ctrl+S applies",
+    "description": "$1: a number of changes (\"2 changes\")"
+  },
+
   "statusApplied": {
     "message": "Changes applied"
   },
@@ -229,6 +234,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Settings"
+  },
+
   "settingsTabPage": {
     "message": "Page"
   },
@@ -247,6 +256,22 @@
 
   "settingsTabBackup": {
     "message": "Backup"
+  },
+
+  "settingsPageIntro": {
+    "message": "The dial's background, the language, and how Quick Dial NG opens."
+  },
+
+  "settingsGridIntro": {
+    "message": "How many tiles a page has, their shape and pictures, and where they open."
+  },
+
+  "settingsTilesIntro": {
+    "message": "How tiles and their titles look, normally and under the pointer."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Save your settings, tiles and themes to one file, and restore them from it."
   },
 
   "settingsOpenDial": {
@@ -295,6 +320,10 @@
 
   "settingsAccentColorHint": {
     "message": "Buttons, switches, tabs and focus rings in Quick Dial NG's windows and dialogs"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Custom"
   },
 
   "settingsBehavior": {
@@ -369,6 +398,11 @@
     "message": "width : height"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 on a page",
+    "description": "$1: a number of tiles (\"96 tiles\"); under the small picture of the grid"
+  },
+
   "settingsPageMargin": {
     "message": "Page margin"
   },
@@ -436,6 +470,15 @@
   "settingsGroupTile": {
     "message": "Tile",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Effects"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Dashed: same as Normal",
+    "description": "Above the style table: a Hover value drawn dashed is the same as the Normal one"
   },
 
   "settingsSpacing": {
@@ -1025,6 +1068,14 @@
     "message": "$1 tiles"
   },
 
+  "countChangesOne": {
+    "message": "$1 change"
+  },
+
+  "countChangesOther": {
+    "message": "$1 changes"
+  },
+
   "countFoldersOne": {
     "message": "$1 folder"
   },
@@ -1064,6 +1115,19 @@
 
   "propertiesCloseHint": {
     "message": "Close (Esc)"
+  },
+
+  "propertiesOnDial": {
+    "message": "On the dial"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · in $2",
+    "description": "$1: the site (or the folder's name), $2: the folders the tile is in (\"Work › Servers\")"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Enter saves, Esc cancels"
   },
 
   "propertiesTitleLabel": {
@@ -1111,9 +1175,7 @@
     "message": "Drop an image on the preview or paste one with Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "Source"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Page"

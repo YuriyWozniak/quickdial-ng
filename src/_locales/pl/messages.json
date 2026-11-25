@@ -127,6 +127,10 @@
     "message": "Niezapisane zmiany"
   },
 
+  "statusNotApplied": {
+    "message": "Jeszcze nie zastosowano: $1 · Ctrl+S, aby zastosować"
+  },
+
   "statusApplied": {
     "message": "Zastosowano zmiany"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Ustawienia"
+  },
+
   "settingsTabPage": {
     "message": "Strona"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Kopia zapasowa"
+  },
+
+  "settingsPageIntro": {
+    "message": "Tło panelu, język i sposób otwierania Quick Dial NG."
+  },
+
+  "settingsGridIntro": {
+    "message": "Ile kafelków ma strona, ich kształt i obrazy oraz gdzie się otwierają."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Jak wyglądają kafelki i ich tytuły, zwykle i pod wskaźnikiem."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Zapisz ustawienia, kafelki i motywy w jednym pliku i przywróć je z niego."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Kolor przycisków, przełączników, kart i obramowań fokusu w oknach Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Własny"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "szerokość : wysokość"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 na stronie"
+  },
+
   "settingsPageMargin": {
     "message": "Margines strony"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Kafelek",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Efekty"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Przerywane: jak Zwykły"
   },
 
   "settingsSpacing": {
@@ -1033,6 +1073,22 @@
     "message": "$1 kafelka"
   },
 
+  "countChangesOne": {
+    "message": "$1 zmiana"
+  },
+
+  "countChangesFew": {
+    "message": "$1 zmiany"
+  },
+
+  "countChangesMany": {
+    "message": "$1 zmian"
+  },
+
+  "countChangesOther": {
+    "message": "$1 zmiany"
+  },
+
   "countFoldersOne": {
     "message": "$1 folder"
   },
@@ -1090,6 +1146,18 @@
     "message": "Zamknij (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "Na panelu"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · w folderze $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Enter zapisuje, Esc anuluje"
+  },
+
   "propertiesTitleLabel": {
     "message": "Tytuł",
     "description": "The tile's title"
@@ -1135,9 +1203,7 @@
     "message": "Przeciągnij obraz na podgląd lub wklej go skrótem Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "Źródło"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Strona"

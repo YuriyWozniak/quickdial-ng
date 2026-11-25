@@ -7,7 +7,8 @@
 		<link rel="stylesheet" href="../css/ui.css" />
 		<link rel="stylesheet" href="../css/page.css" />
 		<script type="text/javascript" src="../js/common.js"></script>
-	<script type="text/javascript" src="../js/ui.js"></script>
+		<script type="text/javascript" src="../js/ui.js"></script>
+		<script type="text/javascript" src="../js/themes.js"></script>
 		<script type="text/javascript" src="/js/properties.js"></script>
 	</head>
 	<body class="qd qd-page">
@@ -20,61 +21,71 @@
 			<button type="button" class="qd-icon-btn" id="BtnClose" data-i18n-title="propertiesCloseHint" data-i18n-aria-label="buttonClose"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
 		</header>
 
-		<main class="qd-content qd-stack">
-			<section class="qd-card">
-				<div class="qd-row">
-					<label for="Title" data-i18n="propertiesTitleLabel"></label>
-					<div class="qd-inline">
-						<input id="Title" type="text" class="qd-grow" autocomplete="off" spellcheck="false">
-						<label class="qd-lock" id="TitleLockBox" data-i18n-title="propertiesLockTitleHint">
-							<input id="TitleLocked" type="checkbox" data-i18n-aria-label="propertiesLockTitle">
-							<span class="qd-lock-off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 4.8-1"/></svg></span><span class="qd-lock-on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span>
-						</label>
-					</div>
-				</div>
-				<div class="qd-row" id="UrlRow">
-					<label for="Url" data-i18n="propertiesAddress"></label>
-					<input id="Url" type="url" autocomplete="off" spellcheck="false" placeholder="https://">
-				</div>
-			</section>
-
-			<section class="qd-card">
-				<h2 data-i18n="propertiesPicture"></h2>
-				<div class="qd-image">
-					<div class="qd-preview" id="ImageZone" data-i18n-title="imageDropHere">
-						<div class="qd-preview-img" id="ImagePreview"></div>
-						<div class="qd-preview-empty" id="ImageEmpty" hidden data-i18n="propertiesNoPicture"></div>
-						<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
-					</div>
-					<div class="qd-image-controls">
-						<div class="qd-source" id="SourceRow">
-							<span class="qd-label" id="SourceLabel" data-i18n="propertiesSource"></span>
-							<div class="qd-segments" role="group" aria-labelledby="SourceLabel">
-								<button type="button" class="qd-segment" id="SourcePageOption" aria-pressed="false" data-source="0" data-i18n="propertiesSourcePage" data-i18n-title="propertiesSourcePageHint"></button>
-								<button type="button" class="qd-segment" id="SourceSiteIconOption" aria-pressed="false" data-source="1" data-i18n="propertiesSourceSiteIcon" data-i18n-title="propertiesSourceSiteIconHint"></button>
-								<button type="button" class="qd-segment" id="SourceIconOption" aria-pressed="false" data-source="4" data-i18n="propertiesSourceIcon" data-i18n-title="propertiesSourceIconHint"></button>
-								<button type="button" class="qd-segment" id="SourceFileOption" aria-pressed="false" data-source="3" data-i18n="propertiesSourceFile" data-i18n-title="imageChoose"></button>
+		<main class="qd-content qd-props">
+			<!-- the tile, drawn as on the dial (QDThemes.paintTile); its picture is the drop zone -->
+			<div class="qd-props-tile">
+				<h2 data-i18n="propertiesOnDial"></h2>
+				<div class="qd-tile-stage" id="TileStage">
+					<div class="qd-tile-slot">
+						<div class="qd-tile" id="TilePreview">
+							<div class="qd-tile-picture" id="ImageZone" data-i18n-title="imageDropHere">
+								<div class="qd-preview-img" id="ImagePreview"></div>
+								<div class="qd-preview-empty" id="ImageEmpty" hidden data-i18n="propertiesNoPicture"></div>
+								<div class="qd-preview-drop" data-i18n="imageDropToUse"></div>
 							</div>
+							<div class="qd-tile-title" id="TileTitle"></div>
 						</div>
-						<label class="qd-label" for="ImageMode" data-i18n="imageFit"></label>
-						<select id="ImageMode">
-							<option value="-1" data-i18n="optionDefault"></option>
-							<option value="0" data-i18n="fitStretch"></option>
-							<option value="1" data-i18n="fitCover"></option>
-							<option value="2" data-i18n="fitContain"></option>
-							<option value="3" data-i18n="fitCenter"></option>
-						</select>
-						<div class="qd-inline" id="ImageChooseRow" hidden>
-							<label class="qd-btn" for="ImageFile" id="ImageChoose" tabindex="0" role="button" data-i18n="imageChoose"></label>
-							<input id="ImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
-						</div>
-						<div class="qd-inline">
-							<button type="button" class="qd-btn is-small" id="ImageReset" data-i18n-title="propertiesRevertHint" data-i18n="propertiesRevert"></button>
-							<button type="button" class="qd-btn is-small" id="ImageDefault" data-i18n-title="propertiesUseDefaultHint" data-i18n="propertiesUseDefault"></button>
-						</div>
-						<span class="qd-hint" data-i18n="propertiesPasteHint"></span>
 					</div>
 				</div>
+				<div class="qd-setting">
+					<label class="qd-setting-text" for="ImageMode" data-i18n="imageFit"></label>
+					<select id="ImageMode">
+						<option value="-1" data-i18n="optionDefault"></option>
+						<option value="0" data-i18n="fitStretch"></option>
+						<option value="1" data-i18n="fitCover"></option>
+						<option value="2" data-i18n="fitContain"></option>
+						<option value="3" data-i18n="fitCenter"></option>
+					</select>
+				</div>
+				<div class="qd-props-actions">
+					<button type="button" class="qd-link-btn" id="ImageReset" data-i18n-title="propertiesRevertHint" data-i18n="propertiesRevert"></button>
+					<button type="button" class="qd-link-btn" id="ImageDefault" data-i18n-title="propertiesUseDefaultHint" data-i18n="propertiesUseDefault"></button>
+				</div>
+				<div class="qd-setting" id="ImageLockRow">
+					<label class="qd-setting-text" for="ImageLocked"><span data-i18n="propertiesKeepPicture"></span><small data-i18n="propertiesKeepPictureHint"></small></label>
+					<input id="ImageLocked" type="checkbox" class="qd-switch">
+				</div>
+			</div>
+
+			<div class="qd-props-form">
+				<div>
+					<div class="qd-row">
+						<label for="Title" data-i18n="propertiesTitleLabel"></label>
+						<div class="qd-inline">
+							<input id="Title" type="text" class="qd-grow" autocomplete="off" spellcheck="false">
+							<label class="qd-lock" id="TitleLockBox" data-i18n-title="propertiesLockTitleHint">
+								<input id="TitleLocked" type="checkbox" data-i18n-aria-label="propertiesLockTitle">
+								<span class="qd-lock-off"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 4.8-1"/></svg></span><span class="qd-lock-on"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span>
+							</label>
+						</div>
+					</div>
+					<div class="qd-row" id="UrlRow">
+						<label for="Url" data-i18n="propertiesAddress"></label>
+						<input id="Url" type="url" autocomplete="off" spellcheck="false" placeholder="https://">
+					</div>
+				</div>
+
+				<div class="qd-source" id="SourceRow">
+					<h2 id="SourceLabel" data-i18n="propertiesPicture"></h2>
+					<div class="qd-source-tabs" role="group" aria-labelledby="SourceLabel">
+						<button type="button" class="qd-source-tab" id="SourcePageOption" aria-pressed="false" data-source="0" data-i18n="propertiesSourcePage" data-i18n-title="propertiesSourcePageHint"></button>
+						<button type="button" class="qd-source-tab" id="SourceSiteIconOption" aria-pressed="false" data-source="1" data-i18n="propertiesSourceSiteIcon" data-i18n-title="propertiesSourceSiteIconHint"></button>
+						<button type="button" class="qd-source-tab" id="SourceIconOption" aria-pressed="false" data-source="4" data-i18n="propertiesSourceIcon" data-i18n-title="propertiesSourceIconHint"></button>
+						<button type="button" class="qd-source-tab" id="SourceFileOption" aria-pressed="false" data-source="3" data-i18n="propertiesSourceFile" data-i18n-title="imageChoose"></button>
+					</div>
+				</div>
+
+				<!-- the panel of the source shown: Page has only its hint, Site icon its icons, Icon the picker, File a Choose button -->
 				<div class="qd-icon-choices" id="IconList" role="group" data-i18n-aria-label="propertiesSourceSiteIcon" hidden></div>
 				<div class="qd-icon-picker" id="IconPicker" hidden>
 					<div class="qd-inline">
@@ -94,16 +105,18 @@
 					<div class="qd-inline" id="IconColors">
 						<label class="qd-unit" for="IconColor" data-i18n="propertiesIconColor"></label>
 						<input id="IconColor" type="color">
+						<span class="qd-grow"></span>
 						<label class="qd-check"><input id="IconBackground" type="checkbox"><span data-i18n="propertiesIconBackground"></span></label>
 						<input id="IconBackgroundColor" type="color" data-i18n-aria-label="propertiesIconBackgroundColor">
 					</div>
 				</div>
-				<p class="qd-hint qd-source-hint" id="SourceHint" aria-live="polite"></p>
-				<div class="qd-switch-row" id="ImageLockRow">
-					<label class="qd-switch-label" for="ImageLocked"><span data-i18n="propertiesKeepPicture"></span><small data-i18n="propertiesKeepPictureHint"></small></label>
-					<input id="ImageLocked" type="checkbox" class="qd-switch">
+				<div class="qd-inline" id="ImageChooseRow" hidden>
+					<label class="qd-btn" for="ImageFile" id="ImageChoose" tabindex="0" role="button" data-i18n="imageChoose"></label>
+					<input id="ImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
 				</div>
-			</section>
+				<p class="qd-hint qd-source-hint" id="SourceHint" aria-live="polite"></p>
+				<span class="qd-hint" data-i18n="propertiesPasteHint"></span>
+			</div>
 		</main>
 
 		<footer class="qd-footer">

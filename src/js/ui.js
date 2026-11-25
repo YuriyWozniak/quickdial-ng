@@ -101,14 +101,15 @@ var QDUI = (function(){
 
 	// ---------- unsaved changes ----------
 	// Marks the form dirty on any input/change (except elements marked data-no-dirty),
-	// enables the Apply button (and the optional Discard button) and shows a status line in the footer.
-	function trackChanges(applyButton, statusEl, discardButton){
+	// enables the Apply button (and the optional Discard button) and shows a status line in the footer:
+	// describe() when given (what is not saved yet, and how to save it), otherwise "Unsaved changes".
+	function trackChanges(applyButton, statusEl, discardButton, describe){
 		let dirty = false, timer = null, ready = false;
 		function render(){
 			applyButton.disabled = !dirty;
 			if(discardButton) discardButton.disabled = !dirty;
 			statusEl.classList.toggle('is-dirty', dirty);
-			if(dirty){ statusEl.classList.remove('is-saved'); statusEl.textContent = QDCommon.text('statusUnsaved'); }
+			if(dirty){ statusEl.classList.remove('is-saved'); statusEl.textContent = describe ? describe() : QDCommon.text('statusUnsaved'); }
 		}
 		function mark(){ if(!ready) return; dirty = true; clearTimeout(timer); render(); }
 		function onEvent(e){ if(e.target.closest && e.target.closest('[data-no-dirty]')) return; mark(); }

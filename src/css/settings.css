@@ -1,22 +1,25 @@
-/* Quick Dial NG — the Settings page (opens in its own tab): its layout, the section tabs, and
-   what only its sections have: the tile preview and style table (Tiles), the theme gallery
-   (Themes), the numbered steps (Backup). Loaded after css/ui.css and css/page.css.
+/* Quick Dial NG — the Settings page (opens in its own tab): its layout, the section list, and what
+   only its sections have: the grid preview (Grid), the style table and the effects (Tiles), the
+   theme gallery (Themes), the numbered steps (Backup). Loaded after css/ui.css and css/page.css.
 
-   Narrow windows and phones get tabs across the top and one column of cards. Wider than
-   860 px, a sidebar (title, sections, links) and a centred content column with the cards
-   in two columns. */
+   A sidebar (title, sections, links) and the section's content in one column: 760 px for the
+   sections of settings, 1000 px for Tiles and Themes (.qd-panel.is-wide). In a narrow window
+   (860 px or less, e.g. one beside another on the screen) the sidebar shows only the icons. */
 
 /* ========== layout ========== */
 .qd-settings {
-	--qd-side-w: 236px;
-	--qd-content-max: 1100px;
-	--qd-gutter: var(--qd-pad-x); /* left and right of the content and the footer */
+	--qd-side-w: 232px;
+	--qd-column: 760px;
+	--qd-pad-y: 28px; /* content top padding; the sticky table header uses it */
+	--qd-gutter: max(32px, calc((100% - var(--qd-column)) / 2)); /* centres the column; also the footer's, so they line up */
 	display: grid;
-	grid-template-columns: minmax(0, 1fr);
+	grid-template-columns: var(--qd-side-w) minmax(0, 1fr);
 	grid-template-rows: auto auto 1fr auto;
-	grid-template-areas: "head" "nav" "main" "foot";
+	grid-template-areas: "head main" "nav main" "side main" "side foot";
 }
-.qd-settings > .qd-header { grid-area: head; padding-inline-end: var(--qd-pad-x); } /* no close button here */
+.qd-settings:has(.qd-panel.is-wide:not([hidden])) { --qd-column: 1000px; }
+.qd-settings > :is(.qd-header, .qd-tabs, .qd-side) { background: var(--qd-surface); border-inline-end: 1px solid var(--qd-border-soft); }
+.qd-settings > .qd-header { grid-area: head; gap: 10px; padding: 20px 16px 18px 20px; border-bottom: 0; }
 .qd-settings > .qd-tabs { grid-area: nav; }
 .qd-settings > .qd-side { grid-area: side; }
 .qd-settings > .qd-content {
@@ -26,64 +29,49 @@
 	container-type: inline-size;
 }
 .qd-settings > .qd-footer { grid-area: foot; padding: var(--qd-gap) var(--qd-gutter); }
-.qd-settings .qd-title { font-size: 16px; }
+.qd-settings > .qd-footer .qd-btn { min-width: 96px; }
+.qd-settings .qd-title { font-size: var(--qd-font-size-lg); }
 
-/* section tabs, in a row */
-.qd-tabs {
-	display: flex;
-	gap: 2px;
-	padding: 0 calc(var(--qd-pad-x) - 12px); /* tab text lines up with the page edge */
-	overflow-x: auto;
-	scrollbar-width: none;
-	background: var(--qd-surface);
-	border-bottom: 1px solid var(--qd-border-soft);
-}
+/* the sections, one under the other */
+.qd-tabs { display: flex; flex-direction: column; gap: 2px; padding: 4px 12px; }
 .qd-tab {
-	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	padding: 10px 12px 11px;
+	padding: 8px 10px;
 	font: inherit;
 	font-weight: 500;
 	text-align: start;
 	color: var(--qd-muted);
 	background: none;
 	border: 0;
-	border-radius: var(--qd-radius-sm) var(--qd-radius-sm) 0 0;
+	border-radius: var(--qd-radius-sm);
 	cursor: pointer;
 	transition: color .15s, background-color .15s;
 }
 .qd-tab:hover { color: var(--qd-text); background: var(--qd-surface-2); }
-.qd-tab[aria-selected="true"] { color: var(--qd-accent); background: none; }
-.qd-tab[aria-selected="true"]::after { /* underline */
-	content: "";
-	position: absolute;
-	inset-inline: 10px;
-	bottom: -1px;
-	height: 3px;
-	background: var(--qd-accent);
-	border-radius: 3px 3px 0 0;
-}
-.qd-tab:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -4px; }
-.qd-tab-icon { display: none; flex: none; width: 18px; height: 18px; }
+.qd-tab[aria-selected="true"] { color: var(--qd-accent); background: var(--qd-accent-soft); }
+.qd-tab:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
+.qd-tab-icon { flex: none; width: 18px; height: 18px; }
 
-/* sidebar: the dial and website links under the section list (wide windows only) */
+/* under the sections: Open the dial, the website and the source code */
 .qd-side {
-	display: none;
+	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
-	align-items: flex-start;
+	align-items: stretch;
 	gap: 2px;
 	padding: 16px 12px 18px;
 }
+.qd-side-links { display: flex; flex-direction: column; gap: 2px; padding-top: var(--qd-row); border-top: 1px solid var(--qd-border-soft); }
 .qd-side-link {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 10px;
 	padding: 5px 10px;
 	font: inherit;
 	font-size: var(--qd-font-size-sm);
+	text-align: start;
 	text-decoration: none;
 	color: var(--qd-muted);
 	background: none;
@@ -91,32 +79,28 @@
 	border-radius: var(--qd-radius-sm);
 	cursor: pointer;
 }
-.qd-side-link svg { width: 15px; height: 15px; }
+.qd-side-link svg { flex: none; width: 18px; height: 18px; }
 .qd-side-link:hover { color: var(--qd-text); background: var(--qd-surface-2); }
 .qd-side-link:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
-.qd-side-link:first-child { margin-bottom: 6px; font-size: var(--qd-font-size); font-weight: 500; color: var(--qd-accent); } /* Open the dial */
+.qd-side-link:first-child { padding-block: 8px; font-size: var(--qd-font-size); font-weight: 500; color: var(--qd-accent); } /* Open the dial */
 
-/* the section's name above its cards (wide windows only; narrow ones show it in the tabs) */
-.qd-panel-title { display: none; margin: 0 0 18px; font-size: 22px; font-weight: 600; line-height: 1.2; }
+/* the section's name and what it is about, with its own buttons at the end (Tiles: Tile / Title; Themes: save, export, import) */
+.qd-panel-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--qd-gap) var(--qd-stack); margin-bottom: 18px; }
+.qd-panel-head > div:first-child { flex: 1 1 320px; min-width: 0; }
+.qd-panel-title { margin: 0; font-size: var(--qd-font-size-xl); font-weight: 600; line-height: 1.2; }
+.qd-panel-intro { margin: 4px 0 0; color: var(--qd-muted); }
+.qd-panel-intro b { color: var(--qd-text); }
+.qd-panel-tools { display: flex; flex-wrap: wrap; gap: var(--qd-row); }
 
-@media (width > 860px) { /* sidebar layout */
-	.qd-settings {
-		--qd-pad-y: 28px; /* content top padding; the sticky table header uses it */
-		--qd-gutter: max(36px, calc((100% - var(--qd-content-max)) / 2)); /* centres the content column */
-		grid-template-columns: var(--qd-side-w) minmax(0, 1fr);
-		grid-template-areas: "head main" "nav main" "side main" "side foot";
-	}
-	.qd-settings > :is(.qd-header, .qd-tabs, .qd-side) { background: var(--qd-surface); border-inline-end: 1px solid var(--qd-border-soft); }
-	.qd-settings > .qd-header { padding-block: 22px 16px; padding-inline: 20px 16px; border-bottom: 0; }
-	.qd-settings > .qd-tabs { flex-direction: column; padding: 4px 12px; overflow: visible; border-bottom: 0; }
-	.qd-settings > .qd-side { display: flex; }
-	.qd-settings > .qd-footer .qd-btn { min-width: 96px; }
-
-	/* the tabs become a list of sections */
-	.qd-tab { padding: 8px 10px; border-radius: var(--qd-radius-sm); }
-	.qd-tab[aria-selected="true"] { background: var(--qd-accent-soft); }
-	.qd-tab[aria-selected="true"]::after { display: none; }
-	.qd-tab-icon, .qd-panel-title { display: block; }
+@media (width <= 860px) { /* icons only, with their names as tooltips (settings.js) */
+	.qd-settings { --qd-side-w: 57px; --qd-gutter: 24px; --qd-pad-y: 22px; }
+	.qd-settings > .qd-header { justify-content: center; padding: 14px 0; }
+	.qd-settings > .qd-header .qd-header-text,
+	.qd-tab > span,
+	.qd-side-link:not(:first-child),
+	.qd-side-link > span { display: none; }
+	.qd-tabs, .qd-side { padding-inline: 8px; }
+	.qd-tab, .qd-side-link:first-child { justify-content: center; padding: 9px 0; }
 }
 
 /* ========== sections and their cards ========== */
@@ -129,93 +113,77 @@
 	z-index: 2;
 }
 .qd-settings .qd-card { padding: 16px 18px; }
+.qd-settings .qd-card > h2 { margin-bottom: var(--qd-gap); }
 
-/* cards side by side, while the content area is wide enough for two columns */
+/* Tiles: the style table, the preview and the effects beside it, while the content area is wide enough */
 .qd-cols {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: minmax(0, 1fr) 320px;
 	align-items: start;
-	gap: var(--qd-stack) 18px;
+	gap: var(--qd-stack) 20px;
 }
-.qd-cols.is-aside { grid-template-columns: minmax(0, 1fr) 300px; } /* Tiles: the style table, the preview beside it */
 .qd-aside { order: 2; position: sticky; top: 0; }
 
-@container (max-width: 780px) { /* one column; the tile preview goes above the style table */
-	.qd-cols, .qd-cols.is-aside { grid-template-columns: minmax(0, 1fr); }
+@container (max-width: 760px) { /* one column; the tile preview goes above the style table */
+	.qd-cols { grid-template-columns: minmax(0, 1fr); }
 	.qd-aside { order: 0; position: static; }
 	.qd-tile-stage { flex-direction: row; }
 }
-@media (width <= 520px) { /* phones: the picture preview goes above its controls, labels above their fields */
-	.qd-settings .qd-image { flex-direction: column; align-items: stretch; }
-	.qd-settings .qd-preview.is-screen { width: 100%; }
-	.qd-settings .qd-row { grid-template-columns: minmax(0, 1fr); }
-	.qd-settings .qd-row > .qd-hint { grid-column: 1; }
-}
 
-/* ========== tile preview (Tiles) ==========
-   The stage stands in for the dial page, so its colors come from the user's settings (set
-   by settings.js), not from the theme; the sample screenshot is a fixed picture. */
-.qd-tile-stage {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 18px;
-	padding: 22px var(--qd-gap);
+/* ========== grid preview (Grid) ==========
+   The page's tiles in their rows, columns and shape, on the dial's background; settings.js sizes the cells'
+   box and draws a cell where each tile goes. */
+.qd-layout { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--qd-stack) 20px; }
+.qd-layout > :first-child { flex: 1 1 300px; min-width: 0; }
+.qd-grid-preview { display: flex; flex: none; flex-direction: column; gap: var(--qd-row); width: 244px; margin: 0; }
+.qd-grid-preview-stage {
+	display: grid;
+	place-items: center;
+	height: 146px;
 	background-color: var(--qd-surface-3);
 	background-position: center;
 	background-size: cover;
 	border: 1px solid var(--qd-border-soft);
-	border-radius: var(--qd-radius);
+	border-radius: var(--qd-radius-sm);
 }
-.qd-tile-figure { display: flex; flex-direction: column; align-items: center; gap: var(--qd-row); margin: 0; }
-.qd-tile-caption { /* white on a dark pill, readable over any background the user picks */
-	padding: 2px 8px;
-	font-size: var(--qd-font-size-caps);
-	font-weight: 600;
-	letter-spacing: .06em;
-	text-transform: uppercase;
-	color: var(--qd-caption-text);
-	background: var(--qd-caption-bg);
-	border-radius: var(--qd-radius-pill);
-}
-.qd-tile-slot { display: flex; width: 152px; height: 128px; } /* SAMPLE_TILE_WIDTH in settings.js */
-.qd-tile { position: relative; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.qd-tile-stage .qd-tile { cursor: pointer; } /* a click plays the click effect (settings.js) */
+.qd-grid-preview-cells { background-repeat: space; }
+.qd-grid-preview figcaption { text-align: center; }
+.qd-layout + .qd-setting { margin-top: var(--qd-row); padding-top: var(--qd-row); border-top: 1px solid var(--qd-border-soft); } /* Bookmarks folder */
+
+/* ========== tile preview and style table (Tiles) ==========
+   The sample tiles (page.css) here have the fixed sample picture of a page. */
 .qd-tile-img {
 	flex: 1;
 	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'%3E%3Crect width='120' height='80' fill='%23f3f3f7'/%3E%3Crect width='120' height='14' fill='%230061e0'/%3E%3Crect x='10' y='24' width='60' height='8' rx='2' fill='%23c9c9d6'/%3E%3Crect x='10' y='38' width='92' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='48' width='84' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='58' width='70' height='5' rx='2' fill='%23dcdce6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
 }
-.qd-tile-title {
-	flex: none;
-	overflow: hidden;
-	font-family: Arial, Verdana, sans-serif;
-	text-align: center;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-.qd-tile.is-overlay .qd-tile-title { position: absolute; inset: auto 0 0; }
+.qd-tile-stage .qd-tile { cursor: pointer; } /* a click plays the click effect (settings.js) */
+.qd-aside { display: flex; flex-direction: column; gap: var(--qd-stack); }
+.qd-aside .qd-tile-stage { flex-direction: row; flex-wrap: wrap; }
+.qd-stage-hint { margin: var(--qd-row) 2px 0; }
 
-/* ========== style table (Tiles) ==========
-   Its header and group headings get the small caps of css/ui.css (.qd th). */
 .qd-card.is-table { padding: 0 6px 6px; }
 .qd-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-.qd-table :is(th, td) { padding: 5px 10px; vertical-align: middle; border-bottom: 1px solid var(--qd-border-soft); }
+.qd-table :is(th, td) { padding: 6px 10px; vertical-align: middle; border-bottom: 1px solid var(--qd-border-soft); }
 .qd-table thead th {
 	position: sticky;
 	top: calc(-1 * var(--qd-pad-y)); /* sticks to the top of the scrolling content */
 	z-index: 1;
-	padding-block: var(--qd-row);
+	padding-block: 12px var(--qd-row);
 	background: var(--qd-surface);
 }
 .qd-table td:first-child { width: 40%; font-weight: 500; }
+.qd-table td:first-child small { font-weight: 400; }
+.qd-table thead th:first-child { font-weight: 400; }
 .qd-table tr:last-child td { border-bottom: 0; }
 .qd-table tbody tr:hover td { background: color-mix(in srgb, var(--qd-surface-2) 70%, transparent); }
-.qd-table-group th { padding-top: var(--qd-stack); color: var(--qd-accent); border-bottom-color: transparent; }
+
+/* a Hover value that is the same as the Normal one: drawn dashed and grey, so the ones that change stand out */
+.qd-table .qd-number.is-same, .qd-table .is-same:is(select, input[type=color]) { border-style: dashed; }
+.qd-table .qd-number.is-same input, .qd-table select.is-same { color: var(--qd-muted); }
 
 /* ========== theme gallery (Themes) ==========
    Like the tile stage, a card's preview is painted by settings.js with the theme's own colors. */
-.qd-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--qd-gap); }
+.qd-themes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--qd-stack); }
 .qd-theme {
 	display: flex;
 	flex-direction: column;
@@ -232,18 +200,31 @@
 	align-items: center;
 	justify-content: center;
 	gap: 10px;
-	height: 108px;
+	height: 100px;
 	padding: 10px;
 	background-position: center;
 	background-size: cover;
 	border-bottom: 1px solid var(--qd-border-soft);
 }
 .qd-theme-preview .qd-tile-slot { zoom: .5; } /* the same sample tiles as the Tiles tab, at half size */
-.qd-theme-body { flex: 1; display: flex; flex-direction: column; gap: var(--qd-gap-sm); padding: 10px 12px 12px; }
+.qd-theme-body { flex: 1; display: flex; flex-direction: column; gap: var(--qd-gap-sm); padding: 10px 12px 10px; }
 .qd-theme-name { display: flex; flex-wrap: wrap; align-items: center; gap: var(--qd-gap-sm); margin: 0; font-size: var(--qd-font-size); font-weight: 600; }
-.qd-theme-desc { flex: 1; margin: 0; font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
-.qd-theme-actions { display: flex; flex-wrap: wrap; gap: var(--qd-gap-sm); margin-top: 4px; }
-.qd-badge { /* "Built-in" and "In use" (is-accent) next to a theme's name */
+.qd-theme-desc { /* three lines at most; the whole text is the card's tooltip */
+	display: -webkit-box;
+	flex: 1;
+	margin: 0;
+	overflow: hidden;
+	font-size: var(--qd-font-size-sm);
+	color: var(--qd-muted);
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+}
+.qd-theme-actions { display: flex; align-items: center; gap: 2px; margin-top: 2px; }
+.qd-theme-actions > .qd-theme-in-use + .qd-icon-btn { margin-inline-start: auto; } /* Export and Delete at the end */
+.qd-theme-actions .qd-icon-btn { width: var(--qd-control-h-sm); height: var(--qd-control-h-sm); }
+.qd-theme-in-use { display: inline-flex; align-items: center; gap: 5px; height: var(--qd-control-h-sm); font-size: var(--qd-font-size-sm); font-weight: 500; color: var(--qd-accent); }
+.qd-theme-in-use svg { width: 14px; height: 14px; }
+.qd-badge { /* "Built-in" next to a theme's name */
 	padding: 1px 7px;
 	font-size: var(--qd-font-size-caps);
 	font-weight: 600;
@@ -252,7 +233,6 @@
 	border: 1px solid var(--qd-border-soft);
 	border-radius: var(--qd-radius-pill);
 }
-.qd-badge.is-accent { color: var(--qd-accent); background: var(--qd-accent-soft); border-color: transparent; }
 
 /* ========== numbered steps (Backup) ========== */
 .qd-steps { margin: 6px 0 var(--qd-gap); padding: 0; list-style: none; counter-reset: step; }

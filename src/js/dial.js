@@ -10,7 +10,7 @@ var app = {
 		return path ? path + '/' : '/';
 	})(),
 	RETRY_DELAY: 500, // ms after the page loads: no settings yet and no answer pending means asking the background page again
-	PROPERTIES_WIDTH: 560, // the tile Properties popup (it shrinks to fit its content)
+	PROPERTIES_WIDTH: 780, // the tile Properties popup: the tile and the form side by side (it shrinks to fit its content's height)
 	PROPERTIES_HEIGHT: 700, // room for the site's icons to choose from (.qd-frame never grows past the window)
 	BLOCKED_SCHEMES: /^(javascript|data|vbscript):$/i // address schemes a new bookmark can't have: scripts and inline data
 };

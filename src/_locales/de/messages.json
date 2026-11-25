@@ -127,6 +127,10 @@
     "message": "Ungespeicherte Änderungen"
   },
 
+  "statusNotApplied": {
+    "message": "Noch nicht übernommen: $1 · Strg+S übernimmt"
+  },
+
   "statusApplied": {
     "message": "Änderungen übernommen"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Einstellungen"
+  },
+
   "settingsTabPage": {
     "message": "Seite"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Sicherung"
+  },
+
+  "settingsPageIntro": {
+    "message": "Der Hintergrund der Schnellwahl, die Sprache und wie sich Quick Dial NG öffnet."
+  },
+
+  "settingsGridIntro": {
+    "message": "Wie viele Kacheln eine Seite hat, ihre Form und Bilder und wo sie sich öffnen."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Wie Kacheln und ihre Titel aussehen, normal und unter dem Mauszeiger."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Einstellungen, Kacheln und Themes in einer Datei sichern und daraus wiederherstellen."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Farbe von Schaltflächen, Schaltern, Tabs und Fokusrahmen in Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Eigene"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "Breite : Höhe"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 pro Seite"
+  },
+
   "settingsPageMargin": {
     "message": "Seitenrand"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Kachel",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Effekte"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Gestrichelt: wie Normal"
   },
 
   "settingsSpacing": {
@@ -1025,6 +1065,14 @@
     "message": "$1 Kacheln"
   },
 
+  "countChangesOne": {
+    "message": "$1 Änderung"
+  },
+
+  "countChangesOther": {
+    "message": "$1 Änderungen"
+  },
+
   "countFoldersOne": {
     "message": "$1 Ordner"
   },
@@ -1064,6 +1112,18 @@
 
   "propertiesCloseHint": {
     "message": "Schließen (Esc)"
+  },
+
+  "propertiesOnDial": {
+    "message": "In der Schnellwahl"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · im Ordner $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Eingabe speichert, Esc bricht ab"
   },
 
   "propertiesTitleLabel": {
@@ -1111,9 +1171,7 @@
     "message": "Ziehen Sie ein Bild auf die Vorschau oder fügen Sie es mit Strg+V ein."
   },
 
-  "propertiesSource": {
-    "message": "Quelle"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Seite"

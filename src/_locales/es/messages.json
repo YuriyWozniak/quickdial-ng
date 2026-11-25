@@ -127,6 +127,10 @@
     "message": "Cambios sin guardar"
   },
 
+  "statusNotApplied": {
+    "message": "Sin aplicar: $1 · Ctrl+S para aplicar"
+  },
+
   "statusApplied": {
     "message": "Cambios aplicados"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Configuración"
+  },
+
   "settingsTabPage": {
     "message": "Página"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Copia de seguridad"
+  },
+
+  "settingsPageIntro": {
+    "message": "El fondo de la marcación rápida, el idioma y cómo se abre Quick Dial NG."
+  },
+
+  "settingsGridIntro": {
+    "message": "Cuántos mosaicos tiene una página, su forma e imágenes, y dónde se abren."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Cómo se ven los mosaicos y sus títulos, normalmente y bajo el puntero."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Guarda tus ajustes, mosaicos y temas en un archivo y restáuralos desde él."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Color de botones, interruptores, pestañas y anillos de foco en Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Personalizado"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "ancho : alto"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 por página"
+  },
+
   "settingsPageMargin": {
     "message": "Margen de la página"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Mosaico",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Efectos"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Discontinuo: igual que Normal"
   },
 
   "settingsSpacing": {
@@ -1029,6 +1069,18 @@
     "message": "$1 mosaicos"
   },
 
+  "countChangesOne": {
+    "message": "$1 cambio"
+  },
+
+  "countChangesMany": {
+    "message": "$1 de cambios"
+  },
+
+  "countChangesOther": {
+    "message": "$1 cambios"
+  },
+
   "countFoldersOne": {
     "message": "$1 carpeta"
   },
@@ -1078,6 +1130,18 @@
     "message": "Cerrar (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "En la marcación rápida"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · en la carpeta $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Intro guarda, Esc cancela"
+  },
+
   "propertiesTitleLabel": {
     "message": "Título",
     "description": "The tile's title"
@@ -1123,9 +1187,7 @@
     "message": "Arrastra una imagen a la vista previa o pégala con Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "Origen"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Página"

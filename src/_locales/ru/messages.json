@@ -127,6 +127,10 @@
     "message": "Несохранённые изменения"
   },
 
+  "statusNotApplied": {
+    "message": "Ещё не применено: $1 · Ctrl+S — применить"
+  },
+
   "statusApplied": {
     "message": "Изменения применены"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Настройки"
+  },
+
   "settingsTabPage": {
     "message": "Страница"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Резервная копия"
+  },
+
+  "settingsPageIntro": {
+    "message": "Фон экспресс-панели, язык и то, как открывается Quick Dial NG."
+  },
+
+  "settingsGridIntro": {
+    "message": "Сколько плиток на странице, их форма и изображения и где они открываются."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Как выглядят плитки и их названия — обычно и под указателем."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Сохраните настройки, плитки и темы в один файл и восстановите их из него."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Цвет кнопок, переключателей, вкладок и рамки фокуса в окнах Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Свой"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "ширина : высота"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 на странице"
+  },
+
   "settingsPageMargin": {
     "message": "Поля страницы"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Плитка",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Эффекты"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Пунктир: как в «Обычная»"
   },
 
   "settingsSpacing": {
@@ -1033,6 +1073,22 @@
     "message": "$1 плитки"
   },
 
+  "countChangesOne": {
+    "message": "$1 изменение"
+  },
+
+  "countChangesFew": {
+    "message": "$1 изменения"
+  },
+
+  "countChangesMany": {
+    "message": "$1 изменений"
+  },
+
+  "countChangesOther": {
+    "message": "$1 изменения"
+  },
+
   "countFoldersOne": {
     "message": "$1 папка"
   },
@@ -1090,6 +1146,18 @@
     "message": "Закрыть (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "На экспресс-панели"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · в папке $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Enter — сохранить, Esc — отмена"
+  },
+
   "propertiesTitleLabel": {
     "message": "Название",
     "description": "The tile's title"
@@ -1135,9 +1203,7 @@
     "message": "Перетащите изображение в область просмотра или вставьте его из буфера (Ctrl+V)."
   },
 
-  "propertiesSource": {
-    "message": "Источник"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Страница"

@@ -127,6 +127,10 @@
     "message": "שינויים שלא נשמרו"
   },
 
+  "statusNotApplied": {
+    "message": "טרם הוחל: $1 · Ctrl+S להחלה"
+  },
+
   "statusApplied": {
     "message": "השינויים הוחלו"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "הגדרות"
+  },
+
   "settingsTabPage": {
     "message": "דף"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "גיבוי"
+  },
+
+  "settingsPageIntro": {
+    "message": "הרקע של החיוג המהיר, השפה ואופן הפתיחה של Quick Dial NG."
+  },
+
+  "settingsGridIntro": {
+    "message": "כמה אריחים יש בעמוד, הצורה והתמונות שלהם והיכן הם נפתחים."
+  },
+
+  "settingsTilesIntro": {
+    "message": "איך נראים האריחים והכותרות שלהם, במצב רגיל ומתחת לסמן."
+  },
+
+  "settingsBackupIntro": {
+    "message": "שמירת ההגדרות, האריחים וערכות הנושא שלך בקובץ אחד ושחזורם ממנו."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "צבע הכפתורים, המתגים, הלשוניות וטבעות המיקוד ב־Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "מותאם אישית"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "רוחב : גובה"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 בעמוד"
+  },
+
   "settingsPageMargin": {
     "message": "שולי הדף"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "אריח",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "אפקטים"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "מקווקו: כמו רגיל"
   },
 
   "settingsSpacing": {
@@ -1029,6 +1069,18 @@
     "message": "$1 אריחים"
   },
 
+  "countChangesOne": {
+    "message": "שינוי אחד"
+  },
+
+  "countChangesTwo": {
+    "message": "שני שינויים"
+  },
+
+  "countChangesOther": {
+    "message": "$1 שינויים"
+  },
+
   "countFoldersOne": {
     "message": "תיקייה אחת"
   },
@@ -1078,6 +1130,18 @@
     "message": "סגירה (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "בחיוג המהיר"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · בתיקייה $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Enter לשמירה, Esc לביטול"
+  },
+
   "propertiesTitleLabel": {
     "message": "כותרת",
     "description": "The tile's title"
@@ -1123,9 +1187,7 @@
     "message": "אפשר לגרור תמונה אל התצוגה המקדימה או להדביק אותה עם Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "מקור"
-  },
+
 
   "propertiesSourcePage": {
     "message": "דף"

@@ -127,6 +127,10 @@
     "message": "Alterações não salvas"
   },
 
+  "statusNotApplied": {
+    "message": "Ainda não aplicado: $1 · Ctrl+S para aplicar"
+  },
+
   "statusApplied": {
     "message": "Alterações aplicadas"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Configurações"
+  },
+
   "settingsTabPage": {
     "message": "Página"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Backup"
+  },
+
+  "settingsPageIntro": {
+    "message": "O fundo da discagem rápida, o idioma e como o Quick Dial NG abre."
+  },
+
+  "settingsGridIntro": {
+    "message": "Quantos blocos uma página tem, sua forma e imagens, e onde abrem."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Como os blocos e seus títulos aparecem, normalmente e sob o ponteiro."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Salve suas configurações, blocos e temas em um arquivo e restaure-os a partir dele."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Cor de botões, chaves, abas e contornos de foco no Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Personalizada"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "largura : altura"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 por página"
+  },
+
   "settingsPageMargin": {
     "message": "Margem da página"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Bloco",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Efeitos"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Tracejado: igual ao Normal"
   },
 
   "settingsSpacing": {
@@ -1029,6 +1069,18 @@
     "message": "$1 blocos"
   },
 
+  "countChangesOne": {
+    "message": "$1 alteração"
+  },
+
+  "countChangesMany": {
+    "message": "$1 de alterações"
+  },
+
+  "countChangesOther": {
+    "message": "$1 alterações"
+  },
+
   "countFoldersOne": {
     "message": "$1 pasta"
   },
@@ -1078,6 +1130,18 @@
     "message": "Fechar (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "Na discagem rápida"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · na pasta $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Enter salva, Esc cancela"
+  },
+
   "propertiesTitleLabel": {
     "message": "Título",
     "description": "The tile's title"
@@ -1123,9 +1187,7 @@
     "message": "Arraste uma imagem para a pré-visualização ou cole com Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "Origem"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Página"

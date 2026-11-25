@@ -1,7 +1,8 @@
 /* Quick Dial NG — the pages: the frame of the Properties and Settings pages (header, scrolling
-   content, footer with the save status) and what their forms are built from: cards, form rows,
-   the image picker. Loaded after css/ui.css, whose tokens and controls it uses; the Settings
-   page's own layout and sections are in css/settings.css. */
+   content, footer with the save status) and what their forms are built from: cards, setting rows,
+   number fields, choices, the tile preview, the image picker. Loaded after css/ui.css, whose tokens
+   and controls it uses; the Settings page's own layout and sections are in css/settings.css. The
+   Properties popup has no file of its own: its layout is at the end of this one. */
 
 /* ========== page frame ========== */
 .qd-page {
@@ -104,7 +105,7 @@
 }
 
 /* ========== form rows ========== */
-/* label | control, with an optional hint under the control */
+/* label | control, with an optional hint under the control (Properties: Title, Address) */
 .qd-row {
 	display: grid;
 	grid-template-columns: var(--qd-label-w) minmax(0, 1fr);
@@ -114,17 +115,22 @@
 }
 .qd-row > label:first-child { font-weight: 500; }
 .qd-row > .qd-hint { grid-column: 2; margin-top: -4px; }
+.qd-row + .qd-row { margin-top: var(--qd-row); }
 
-/* text with a description | switch or small control at the end */
-.qd-switch-row {
+/* a setting: its name and description at the start, its control at the end; settings that follow
+   each other in a card are divided by a line */
+.qd-setting {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: var(--qd-gap);
+	gap: var(--qd-stack) 24px;
 	min-height: var(--qd-control-h);
 }
-.qd-switch-label { display: flex; flex-direction: column; gap: 1px; font-weight: 500; }
-.qd-switch-label small { font-size: var(--qd-font-size-sm); font-weight: 400; color: var(--qd-muted); }
+.qd-setting + .qd-setting { margin-top: var(--qd-row); padding-top: var(--qd-row); border-top: 1px solid var(--qd-border-soft); }
+.qd-setting-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-weight: 500; }
+.qd-setting-text small { font-size: var(--qd-font-size-sm); font-weight: 400; color: var(--qd-muted); }
+.qd-setting > :last-child:not(.qd-setting-text) { flex: none; } /* the control keeps its size; the text wraps */
+.qd-setting > input[type=text]:last-child { flex: 0 1 260px; } /* a text field gives way to its label */
 
 /* small label | control pairs, next to an image preview */
 .qd-pairs {
@@ -136,18 +142,113 @@
 }
 .qd-pairs > select { justify-self: stretch; min-width: max-content; } /* the choice is never cut off */
 
-/* spacing between the rows of a card */
-:is(.qd-row, .qd-switch-row) + :is(.qd-row, .qd-switch-row) { margin-top: var(--qd-row); }
-.qd-image + .qd-switch-row { margin-top: var(--qd-stack); }
-.qd-switch-row + .qd-split { margin-top: var(--qd-gap); }
+/* spacing between the blocks of a card */
+.qd-image + .qd-setting { margin-top: var(--qd-stack); }
+.qd-setting + .qd-split { margin-top: var(--qd-gap); }
+
+/* a note about something that isn't a setting (Settings › Page: the start page) */
+.qd-note {
+	display: flex;
+	gap: 10px;
+	margin-top: var(--qd-gap);
+	padding: 10px var(--qd-gap);
+	font-size: var(--qd-font-size-sm);
+	color: var(--qd-muted);
+	background: var(--qd-surface-2);
+	border-radius: var(--qd-radius-sm);
+}
+.qd-note svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+.qd-note b { font-weight: 600; color: var(--qd-text); }
 
 /* ========== inside a row ========== */
 .qd-inline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--qd-row); min-width: 0; }
 .qd-grow { flex: 1; min-width: 0; }
 .qd-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--qd-stack); }
 .qd-sep { font-weight: 500; color: var(--qd-muted); } /* the × between rows and columns */
-.qd-unit { display: inline-flex; align-items: center; gap: var(--qd-gap-sm); color: var(--qd-muted); } /* number field + "px" */
+.qd-unit { display: inline-flex; align-items: center; gap: var(--qd-gap-sm); color: var(--qd-muted); } /* a control and its label */
 .qd-color-cell { display: flex; align-items: center; gap: 10px; } /* color swatch + checkbox */
+
+/* a number field with its unit inside the box: the box is drawn around both, the field itself has no border */
+.qd-number {
+	display: inline-flex;
+	align-items: center;
+	height: var(--qd-control-h);
+	padding-inline-end: 9px;
+	font-size: var(--qd-font-size-sm);
+	white-space: nowrap;
+	color: var(--qd-muted);
+	background: var(--qd-surface);
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius-sm);
+	transition: border-color .15s, box-shadow .15s;
+}
+.qd-number:hover { border-color: var(--qd-muted); }
+.qd-number:focus-within { border-color: var(--qd-focus); box-shadow: var(--qd-ring); }
+.qd .qd-number input[type=number] { width: 64px; height: 100%; padding-inline-end: 2px; background: transparent; border: 0; box-shadow: none; }
+
+/* a choice of a few: a row of buttons (aria-pressed), or of labels around radio buttons; the one chosen is filled */
+.qd-segments { display: inline-flex; align-self: flex-start; overflow: hidden; border: 1px solid var(--qd-border); border-radius: var(--qd-radius-sm); }
+.qd-segment {
+	display: inline-flex;
+	align-items: center;
+	height: var(--qd-control-h-sm);
+	padding: 0 12px;
+	font: inherit;
+	font-size: var(--qd-font-size-sm);
+	font-weight: 500;
+	white-space: nowrap;
+	color: var(--qd-text);
+	background: var(--qd-surface-2);
+	border: 0;
+	border-inline-end: 1px solid var(--qd-border);
+	cursor: pointer;
+	transition: background-color .15s, color .15s;
+}
+.qd-segment:last-child { border-inline-end: 0; }
+.qd-segment:hover { background: var(--qd-surface-3); }
+.qd-segment:is([aria-pressed="true"], :has(input:checked)) { color: var(--qd-accent-text); background: var(--qd-accent); }
+.qd-segment input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
+.qd-segment:focus-visible, .qd-segment:has(input:focus-visible) { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
+
+/* ========== tile preview ==========
+   Sample tiles drawn the way the dial draws them (QDThemes.paintTile), on the dial's background:
+   Settings › Tiles and the theme cards, and the tile in Properties. The stage's colours come from
+   the user's settings (set by the page), not from the window's theme. */
+.qd-tile-stage {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	padding: 22px var(--qd-gap);
+	background-color: var(--qd-surface-3);
+	background-position: center;
+	background-size: cover;
+	border: 1px solid var(--qd-border-soft);
+	border-radius: var(--qd-radius);
+}
+.qd-tile-figure { display: flex; flex-direction: column; align-items: center; gap: var(--qd-row); margin: 0; }
+.qd-tile-caption { /* white on a dark pill, readable over any background the user picks */
+	padding: 2px 8px;
+	font-size: var(--qd-font-size-caps);
+	font-weight: 600;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: var(--qd-caption-text);
+	background: var(--qd-caption-bg);
+	border-radius: var(--qd-radius-pill);
+}
+.qd-tile-slot { display: flex; width: 152px; height: 128px; } /* the page sets the width it draws for, and the height */
+.qd-tile { position: relative; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.qd-tile-title {
+	flex: none;
+	overflow: hidden;
+	font-family: Arial, Verdana, sans-serif;
+	text-align: center;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.qd-tile.is-overlay .qd-tile-title { position: absolute; inset: auto 0 0; }
 
 /* ========== image picker ========== */
 /* The controls sit beside the picture, or under it when their labels and choices are too wide for that
@@ -156,7 +257,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: flex-start;
-	gap: var(--qd-stack);
+	gap: var(--qd-stack) 20px;
 }
 .qd-image > .qd-preview { flex: none; }
 .qd-image.is-stacked { flex-direction: column; align-items: stretch; gap: var(--qd-row); }
@@ -178,7 +279,7 @@
 	border-radius: var(--qd-radius);
 	transition: border-color .15s, box-shadow .15s;
 }
-.qd-preview.is-screen { width: 260px; aspect-ratio: 16 / 10; } /* the page background */
+.qd-preview.is-screen { width: 288px; aspect-ratio: 16 / 10; } /* the page background */
 .qd-preview.is-small { width: 100%; aspect-ratio: 16 / 10; }
 .qd-preview.is-dragover { border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
 .qd-preview-img, .qd-preview-empty, .qd-preview-drop { position: absolute; inset: 0; }
@@ -199,35 +300,59 @@
 	background: color-mix(in srgb, var(--qd-accent-soft) 88%, transparent);
 	transition: opacity .15s;
 }
-.qd-preview.is-dragover .qd-preview-drop { opacity: 1; }
+.is-dragover > .qd-preview-drop { opacity: 1; }
 
 /* the file input behind a "Choose…" button (a label that opens it): kept in the page, never seen */
 .qd-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
-/* where a tile's picture comes from (Properties): a row of toggle buttons, the one in use pressed */
-.qd-source { display: flex; flex-direction: column; gap: var(--qd-gap-sm); margin-bottom: var(--qd-gap-sm); }
-.qd-segments { display: inline-flex; align-self: flex-start; overflow: hidden; border: 1px solid var(--qd-border); border-radius: var(--qd-radius-sm); }
-.qd-segment {
-	height: var(--qd-control-h-sm);
-	padding: 0 10px;
+/* ========== Properties ==========
+   Two columns: the tile as the dial draws it (with its fit, Revert / Use default and Keep this picture)
+   at the start; the title, the address and where the picture comes from at the end. */
+.qd-props { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; gap: 22px; }
+.qd-props-tile, .qd-props-form { display: flex; flex-direction: column; gap: var(--qd-gap); min-width: 0; }
+.qd-props .qd-row { --qd-label-w: 72px; }
+.qd-props h2 { margin: 0; }
+.qd-props-actions { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.qd-props-tile > .qd-setting:last-child { padding-top: var(--qd-gap); border-top: 1px solid var(--qd-border-soft); } /* Keep this picture */
+.qd-props .qd-tile-stage { padding: 18px; }
+
+/* the tile's picture inside the sample tile: the drop zone; its picture, the "No picture" text and the drop
+   message fill it */
+.qd-tile-picture { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.qd-tile-picture.is-dragover { box-shadow: inset 0 0 0 2px var(--qd-accent); }
+
+/* where the picture comes from: a row of tabs (aria-pressed: the one shown), each with its panel under it */
+.qd-source { display: flex; flex-direction: column; gap: var(--qd-gap-sm); }
+.qd-source-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--qd-border-soft); }
+.qd-source-tab {
+	position: relative;
+	height: 34px;
+	padding: 0 12px;
 	font: inherit;
-	font-size: var(--qd-font-size-sm);
 	font-weight: 500;
 	white-space: nowrap;
-	color: var(--qd-text);
-	background: var(--qd-surface-2);
+	color: var(--qd-muted);
+	background: none;
 	border: 0;
-	border-inline-end: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius-sm) var(--qd-radius-sm) 0 0;
 	cursor: pointer;
-	transition: background-color .15s, color .15s;
+	transition: color .15s, background-color .15s;
 }
-.qd-segment:last-child { border-inline-end: 0; }
-.qd-segment:hover { background: var(--qd-surface-3); }
-.qd-segment[aria-pressed="true"] { color: var(--qd-accent-text); background: var(--qd-accent); }
-.qd-segment:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
+.qd-source-tab:hover { color: var(--qd-text); background: var(--qd-surface-2); }
+.qd-source-tab[aria-pressed="true"] { color: var(--qd-accent); }
+.qd-source-tab[aria-pressed="true"]::after { /* underline */
+	content: "";
+	position: absolute;
+	inset-inline: 8px;
+	bottom: -1px;
+	height: 3px;
+	background: var(--qd-accent);
+	border-radius: 3px 3px 0 0;
+}
+.qd-source-tab:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -4px; }
 
 /* the site's icons to choose from, each drawn as on its tile, with its size under it */
-.qd-icon-choices { display: flex; flex-wrap: wrap; gap: var(--qd-row); margin-top: var(--qd-gap); }
+.qd-icon-choices { display: flex; flex-wrap: wrap; gap: var(--qd-row); }
 .qd-icon-choice {
 	display: flex;
 	flex-direction: column;
@@ -251,14 +376,14 @@
 /* the icon picker (Properties › Icon): a set, a search, where the set comes from (and Download / Remove), the icons in a
    grid that scrolls, and their colours. An SVG icon is drawn in the text colour through a mask; a retro icon is its part of
    the set's picture. */
-.qd-icon-picker { display: flex; flex-direction: column; gap: var(--qd-row); margin-top: var(--qd-gap); }
+.qd-icon-picker { display: flex; flex-direction: column; gap: var(--qd-row); }
 .qd-icon-set-about a { color: inherit; text-decoration: underline; }
 .qd-icon-set-about a:hover { color: var(--qd-text); }
 .qd-icon-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
 	gap: 2px;
-	height: 188px;
+	height: 212px;
 	padding: 4px;
 	overflow-y: auto;
 	background: var(--qd-surface-2);
@@ -268,7 +393,7 @@
 .qd-icon-cell {
 	display: grid;
 	place-items: center;
-	height: 42px;
+	height: 40px;
 	padding: 0;
 	color: var(--qd-text);
 	background: transparent;
@@ -281,6 +406,5 @@
 .qd-icon-cell:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
 .qd-icon-cell-img { display: block; width: 32px; height: 32px; background-repeat: no-repeat; image-rendering: pixelated; pointer-events: none; }
 .qd-icon-cell-img.is-mask { background-color: currentColor; mask-repeat: no-repeat; mask-position: center; mask-size: 24px 24px; }
-.qd-source-hint { margin: var(--qd-row) 0 0; }
+.qd-source-hint { margin: 0; }
 .qd-source-hint:empty { display: none; }
-.qd-source-hint + .qd-switch-row { margin-top: var(--qd-stack); }
