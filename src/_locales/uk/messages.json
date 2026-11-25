@@ -582,6 +582,15 @@
     "message": "Назва",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Стиль для"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Плитка: увесь блок — проміжки, непрозорість, рамка, кути, тло, розмиття й тінь."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Назва: ім’я сайту на плитці — показувати чи ні, висота, розмір, роздільник, кольори, шрифт і розташування."
+  },
 
   "settingsShowTitle": {
     "message": "Показувати назву"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Відкрийте цей файл кнопкою <b>Імпортувати з файлу…</b> вище."
+    "message": "Відкрийте цей файл кнопкою <b>Імпортувати з файлу…</b>"
   },
 
   "backupCopySnippet": {

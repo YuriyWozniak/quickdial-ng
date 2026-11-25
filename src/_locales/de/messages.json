@@ -582,6 +582,15 @@
     "message": "Titel",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Stil für"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Kachel: das ganze Feld – Abstand, Deckkraft, Rahmen, Ecken, Hintergrund, Unschärfe und Schatten."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Titel: der Seitenname auf der Kachel – ein- oder ausblenden, Höhe, Größe, Trennlinie, Farben, Schrift und Position."
+  },
 
   "settingsShowTitle": {
     "message": "Titel anzeigen"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Öffnen Sie diese Datei oben mit <b>Aus Datei importieren…</b>."
+    "message": "Öffnen Sie diese Datei mit <b>Aus Datei importieren…</b>"
   },
 
   "backupCopySnippet": {

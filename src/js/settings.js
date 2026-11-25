@@ -15,8 +15,8 @@ let folderIcon = null;
 // Sizes and times of this page
 app.SAMPLE_TILE_WIDTH = 152; // px: the sample tiles of the Tiles tab and the theme cards (.qd-tile-slot, css/page.css)
 app.SAMPLE_TILE_MAX_HEIGHT = 200; // px: taller shapes are cut off
-const GRID_PREVIEW_WIDTH = 220; // px: the cells of the grid preview (Grid tab) fit in this box (.qd-grid-preview, css/settings.css)
-const GRID_PREVIEW_HEIGHT = 124;
+const GRID_PREVIEW_WIDTH = 256; // px: the cells of the grid preview (Grid tab) fit in this box, inside its stage (.qd-grid-preview-stage, css/settings.css: 176 px tall, as wide as the side column)
+const GRID_PREVIEW_HEIGHT = 150;
 const GRID_PREVIEW_GAP = 2; // px between its cells
 const GRID_PREVIEW_MIN_CELL = 1; // px: a cell is drawn at least this large, however many there are
 const GRID_PREVIEW_CELL_OPACITY = .45; // its cells are the title colour at this opacity
@@ -163,7 +163,6 @@ app.init = function(){
 		Content.scrollTop = 0;
 		PanelTitle.textContent = btn.textContent.trim();
 		QDUI.setRichText(PanelIntro, QDCommon.text(document.getElementById(panel).dataset.i18nIntro)); // what the section is about (data-i18n-intro)
-		TilesTools.hidden = panel != 'TabTiles';
 		ThemesTools.hidden = panel != 'TabThemes';
 		history.replaceState(null, '', '?tab=' + btn.id.replace(/^Tab|Button$/g, '').toLowerCase()); // a reload stays on this section
 	});
@@ -254,16 +253,20 @@ app.setupGrid = function(){
 	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = QDCommon.BACK_ICON; });
 	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = QDCommon.FOLDER_ICON; });
 };
-// Tab Tiles: Tile | Title (which rows of the style table are shown), the title fonts (an imported theme's font is added
-// when the form is filled, fillForm) and the click effect preview: it plays on the Hover sample when another effect is
-// picked, and on a sample tile when it is clicked
+// Tab Tiles: Tile | Title above the style table (which of its rows are shown, with a line on what that part of a tile
+// is: data-i18n-hint of its button), the title fonts (an imported theme's font is added when the form is filled,
+// fillForm) and the click effect preview: it plays on the Hover sample when another effect is picked, and on a sample
+// tile when it is clicked
 app.setupTiles = function(){
-	[TilesPartTile, TilesPartTitle].forEach(part => {
+	const parts = [TilesPartTile, TilesPartTitle];
+	parts.forEach(part => {
 		part.onclick = () => {
-			for(const button of [TilesPartTile, TilesPartTitle]){
+			for(const button of parts){
 				button.setAttribute('aria-pressed', String(button === part));
 				document.getElementById(button.getAttribute('aria-controls')).hidden = button !== part;
 			}
+			TilesPartHint.dataset.i18n = part.dataset.i18nHint; // kept, so the hint follows a change of the language too
+			QDUI.setRichText(TilesPartHint, QDCommon.text(part.dataset.i18nHint));
 		};
 	});
 	QDThemes.FONTS.forEach(font => { GridCellsTitleFont.add(new Option(font.label, font.value)); });

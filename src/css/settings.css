@@ -2,14 +2,15 @@
    only its sections have: the grid preview (Grid), the style table and the effects (Tiles), the
    theme gallery (Themes), the numbered steps (Backup). Loaded after css/ui.css and css/page.css.
 
-   A sidebar (title, sections, links) and the section's content in one column: 760 px for the
-   sections of settings, 1000 px for Tiles and Themes (.qd-panel.is-wide). In a narrow window
-   (860 px or less, e.g. one beside another on the screen) the sidebar shows only the icons. */
+   A sidebar (title, sections, links) and the section's content, 1000 px wide in every section, so
+   nothing moves when another one is picked; most sections split it into their settings and a side
+   column (.qd-cols). In a narrow window (860 px or less, e.g. one beside another on the screen) the
+   sidebar shows only the icons. */
 
 /* ========== layout ========== */
 .qd-settings {
 	--qd-side-w: 232px;
-	--qd-column: 760px;
+	--qd-column: 1000px;
 	--qd-pad-y: 28px; /* content top padding; the sticky table header uses it */
 	--qd-gutter: max(32px, calc((100% - var(--qd-column)) / 2)); /* centres the column; also the footer's, so they line up */
 	display: grid;
@@ -17,7 +18,6 @@
 	grid-template-rows: auto auto 1fr auto;
 	grid-template-areas: "head main" "nav main" "side main" "side foot";
 }
-.qd-settings:has(.qd-panel.is-wide:not([hidden])) { --qd-column: 1000px; }
 .qd-settings > :is(.qd-header, .qd-tabs, .qd-side) { background: var(--qd-surface); border-inline-end: 1px solid var(--qd-border-soft); }
 .qd-settings > .qd-header { grid-area: head; gap: 10px; padding: 20px 16px 18px 20px; border-bottom: 0; }
 .qd-settings > .qd-tabs { grid-area: nav; }
@@ -84,7 +84,7 @@
 .qd-side-link:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
 .qd-side-link:first-child { padding-block: 8px; font-size: var(--qd-font-size); font-weight: 500; color: var(--qd-accent); } /* Open the dial */
 
-/* the section's name and what it is about, with its own buttons at the end (Tiles: Tile / Title; Themes: save, export, import) */
+/* the section's name and what it is about, with its own buttons at the end (Themes: save, export, import) */
 .qd-panel-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--qd-gap) var(--qd-stack); margin-bottom: 18px; }
 .qd-panel-head > div:first-child { flex: 1 1 320px; min-width: 0; }
 .qd-panel-title { margin: 0; font-size: var(--qd-font-size-xl); font-weight: 600; line-height: 1.2; }
@@ -115,31 +115,41 @@
 .qd-settings .qd-card { padding: 16px 18px; }
 .qd-settings .qd-card > h2 { margin-bottom: var(--qd-gap); }
 
-/* Tiles: the style table, the preview and the effects beside it, while the content area is wide enough */
+/* Page, Grid, Tiles, Backup: the settings (.qd-main, or Tiles' style table) and a side column (.qd-aside) with
+   what shows them (the background, the grid and the tile previews, .is-lead) or goes with them, while the content
+   area is wide enough */
 .qd-cols {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 320px;
 	align-items: start;
 	gap: var(--qd-stack) 20px;
 }
-.qd-aside { order: 2; position: sticky; top: 0; }
+.qd-cols.is-even { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* Backup: two cards of text, as wide as each other */
+.qd-cols > .qd-banner { grid-column: 1 / -1; } /* Backup's import message, above both columns */
+.qd-aside { display: flex; flex-direction: column; gap: var(--qd-stack); order: 2; position: sticky; top: 0; }
+.qd-aside .qd-tile-stage { flex-direction: row; flex-wrap: wrap; } /* Tiles: the sample tiles side by side while they fit */
+.qd-aside .qd-preview.is-screen { width: 100%; } /* Page: the background preview as wide as the column */
 
-@container (max-width: 760px) { /* one column; the tile preview goes above the style table */
-	.qd-cols { grid-template-columns: minmax(0, 1fr); }
-	.qd-aside { order: 0; position: static; }
+@container (max-width: 760px) { /* one column: the preview first, then the settings, then the rest of the side column */
+	.qd-cols, .qd-cols.is-even { grid-template-columns: minmax(0, 1fr); }
+	.qd-cols > .qd-aside { display: contents; }
+	.qd-cols > :not(.qd-aside, .qd-banner) { order: 1; }
+	.qd-aside > .is-lead { order: 0; }
+	.qd-aside > :not(.is-lead) { order: 2; }
 	.qd-tile-stage { flex-direction: row; }
+	/* Page: the background preview at its own size again, with its controls beside it while they fit */
+	.qd-aside .qd-image.is-stacked { flex-direction: row; align-items: flex-start; gap: var(--qd-stack) 20px; }
+	.qd-aside .qd-preview.is-screen { width: 288px; }
 }
 
 /* ========== grid preview (Grid) ==========
    The page's tiles in their rows, columns and shape, on the dial's background; settings.js sizes the cells'
    box and draws a cell where each tile goes. */
-.qd-layout { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--qd-stack) 20px; }
-.qd-layout > :first-child { flex: 1 1 300px; min-width: 0; }
-.qd-grid-preview { display: flex; flex: none; flex-direction: column; gap: var(--qd-row); width: 244px; margin: 0; }
+.qd-grid-preview { display: flex; flex-direction: column; gap: var(--qd-row); margin: 0; }
 .qd-grid-preview-stage {
 	display: grid;
 	place-items: center;
-	height: 146px;
+	height: 176px;
 	background-color: var(--qd-surface-3);
 	background-position: center;
 	background-size: cover;
@@ -148,7 +158,6 @@
 }
 .qd-grid-preview-cells { background-repeat: space; }
 .qd-grid-preview figcaption { text-align: center; }
-.qd-layout + .qd-setting { margin-top: var(--qd-row); padding-top: var(--qd-row); border-top: 1px solid var(--qd-border-soft); } /* Bookmarks folder */
 
 /* ========== tile preview and style table (Tiles) ==========
    The sample tiles (page.css) here have the fixed sample picture of a page. */
@@ -157,11 +166,20 @@
 	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 80'%3E%3Crect width='120' height='80' fill='%23f3f3f7'/%3E%3Crect width='120' height='14' fill='%230061e0'/%3E%3Crect x='10' y='24' width='60' height='8' rx='2' fill='%23c9c9d6'/%3E%3Crect x='10' y='38' width='92' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='48' width='84' height='5' rx='2' fill='%23dcdce6'/%3E%3Crect x='10' y='58' width='70' height='5' rx='2' fill='%23dcdce6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
 }
 .qd-tile-stage .qd-tile { cursor: pointer; } /* a click plays the click effect (settings.js) */
-.qd-aside { display: flex; flex-direction: column; gap: var(--qd-stack); }
-.qd-aside .qd-tile-stage { flex-direction: row; flex-wrap: wrap; }
 .qd-stage-hint { margin: var(--qd-row) 2px 0; }
 
 .qd-card.is-table { padding: 0 6px 6px; }
+/* Tile | Title: which part of a tile the table below is for, with a line on what that part is */
+.qd-part-switch {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--qd-row) var(--qd-gap);
+	padding: 14px 10px 10px;
+	border-bottom: 1px solid var(--qd-border-soft);
+}
+.qd-part-switch .qd-hint { flex-basis: 100%; margin: 0; }
+.qd-segment-icon { flex: none; width: 16px; height: 16px; margin-inline-end: 6px; }
 .qd-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .qd-table :is(th, td) { padding: 6px 10px; vertical-align: middle; border-bottom: 1px solid var(--qd-border-soft); }
 .qd-table thead th {

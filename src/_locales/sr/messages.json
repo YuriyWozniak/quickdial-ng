@@ -582,6 +582,15 @@
     "message": "Наслов",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Стил за"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Плочица: цео блок — размак, непровидност, ивица, углови, позадина, замућење и сенка."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Наслов: име сајта на плочици — приказ или скривање, висина, величина, разделник, боје, фонт и положај."
+  },
 
   "settingsShowTitle": {
     "message": "Прикажи наслов"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Отворите ту датотеку дугметом <b>Увези из датотеке…</b> изнад."
+    "message": "Отворите ту датотеку дугметом <b>Увези из датотеке…</b>"
   },
 
   "backupCopySnippet": {

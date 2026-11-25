@@ -582,6 +582,15 @@
     "message": "Título",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Estilo de"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Mosaico: todo el recuadro — espaciado, opacidad, borde, esquinas, fondo, desenfoque y sombra."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Título: el nombre del sitio en el mosaico — mostrarlo u ocultarlo, su altura, tamaño, separador, colores, fuente y posición."
+  },
 
   "settingsShowTitle": {
     "message": "Mostrar título"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Abre ese archivo con <b>Importar desde archivo…</b> más arriba."
+    "message": "Abre ese archivo con <b>Importar desde archivo…</b>"
   },
 
   "backupCopySnippet": {

@@ -582,6 +582,15 @@
     "message": "Titre",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Style de"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Vignette : tout le cadre — espacement, opacité, bordure, coins, arrière-plan, flou et ombre."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Titre : le nom du site sur la vignette — l’afficher ou non, sa hauteur, sa taille, son séparateur, ses couleurs, sa police et sa position."
+  },
 
   "settingsShowTitle": {
     "message": "Afficher le titre"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Ouvrez ce fichier avec <b>Importer depuis un fichier…</b> ci-dessus."
+    "message": "Ouvrez ce fichier avec <b>Importer depuis un fichier…</b>"
   },
 
   "backupCopySnippet": {

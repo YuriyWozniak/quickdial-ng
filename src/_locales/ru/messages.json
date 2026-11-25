@@ -582,6 +582,15 @@
     "message": "Название",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Стиль для"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Плитка: весь блок — промежутки, непрозрачность, рамка, углы, фон, размытие и тень."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Название: имя сайта на плитке — показывать ли его, высота, размер, разделитель, цвета, шрифт и положение."
+  },
 
   "settingsShowTitle": {
     "message": "Показывать название"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Откройте этот файл кнопкой <b>Импортировать из файла…</b> выше."
+    "message": "Откройте этот файл кнопкой <b>Импортировать из файла…</b>"
   },
 
   "backupCopySnippet": {

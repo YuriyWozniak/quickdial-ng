@@ -582,6 +582,15 @@
     "message": "כותרת",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "סגנון של"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "אריח: התיבה כולה — מרווח, אטימות, מסגרת, פינות, רקע, טשטוש וצל."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "כותרת: שם האתר על האריח — הצגה או הסתרה, גובה, גודל, מפריד, צבעים, גופן ומיקום."
+  },
 
   "settingsShowTitle": {
     "message": "הצגת כותרת"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "יש לפתוח את הקובץ הזה עם <b>ייבוא מקובץ…</b> שלמעלה."
+    "message": "יש לפתוח את הקובץ הזה עם <b>ייבוא מקובץ…</b>"
   },
 
   "backupCopySnippet": {

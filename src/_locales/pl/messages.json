@@ -582,6 +582,15 @@
     "message": "Tytuł",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Styl dla"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Kafelek: całe pole — odstępy, krycie, obramowanie, narożniki, tło, rozmycie i cień."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Tytuł: nazwa strony na kafelku — pokazywanie lub ukrywanie, wysokość, rozmiar, separator, kolory, czcionka i położenie."
+  },
 
   "settingsShowTitle": {
     "message": "Pokazuj tytuł"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Otwórz ten plik przyciskiem <b>Importuj z pliku…</b> powyżej."
+    "message": "Otwórz ten plik przyciskiem <b>Importuj z pliku…</b>"
   },
 
   "backupCopySnippet": {

@@ -582,6 +582,15 @@
     "message": "Titolo",
     "description": "Heading of the tile title rows"
   },
+  "settingsTilesPartLabel": {
+    "message": "Stile di"
+  },
+  "settingsTilesPartTileHint": {
+    "message": "Riquadro: l’intero blocco — spaziatura, opacità, bordo, angoli, sfondo, sfocatura e ombra."
+  },
+  "settingsTilesPartTitleHint": {
+    "message": "Titolo: il nome del sito sul riquadro — mostrarlo o nasconderlo, altezza, dimensione, divisore, colori, carattere e posizione."
+  },
 
   "settingsShowTitle": {
     "message": "Mostra titolo"
@@ -995,7 +1004,7 @@
   },
 
   "backupStep3": {
-    "message": "Apri quel file con <b>Importa da file…</b> qui sopra."
+    "message": "Apri quel file con <b>Importa da file…</b>"
   },
 
   "backupCopySnippet": {
