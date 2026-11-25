@@ -49,7 +49,7 @@ app.Bookmarks.load = async function(rootPath){
 	try {
 		let item = (await browser.bookmarks.getSubTree(absolute ? 'root________' : 'menu________'))[0];
 		while(path.length){
-			const child = (item.children || []).find(child => (path + '/').startsWith(child.title + '/')); // A folder just created has no children list
+			const child = (item.children || []).find(child => child.type == 'folder' && (path + '/').startsWith(child.title + '/')); // A folder just created has no children list; a bookmark of the same name is not the folder
 			item = child || await browser.bookmarks.create({ parentId: item.id, title: path.slice(0, (path + '/').indexOf('/')) });
 			path = path.slice(item.title.length + 1);
 		}

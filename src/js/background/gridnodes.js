@@ -109,16 +109,18 @@ app.GridNodes._syncChildren = function(gridNode, bookmarks){
 		}
 		app.GridNodes._syncNode(childGridNode, child);
 	}
+	app.GridNodes._trimEmpty(gridNode); // A gap left before a bookmark gone from the end is at the end now
 };
 app.GridNodes.save = function(){ // The tree is saved with the settings (see Settings.save)
 	return app.Settings.save();
 };
 
-/** The folder node at a path like "Work/Tools/" below gridNode. @param {GridNode} gridNode @param {string} path @returns {GridNode|null} */
+/** The folder node at a path like "Work/Tools/" below gridNode: only folders count, not a bookmark of the same name
+ * (nor an empty cell, which has no title). @param {GridNode} gridNode @param {string} path @returns {GridNode|null} */
 app.GridNodes.getNode = function(gridNode, path){
 	if(path.length == 0 || path == '/') return gridNode;
-	for(const child of gridNode.children)
-		if(path.startsWith(child.title + '/'))
+	for(const child of gridNode.children || [])
+		if(child.type == QDCommon.NodeType.folder && path.startsWith(child.title + '/'))
 			return app.GridNodes.getNode(child, path.slice(child.title.length + 1));
 	return null;
 };
@@ -160,6 +162,7 @@ app.GridNodes.updateNode = async function(gridNode, value){
 	const NodeType = QDCommon.NodeType;
 	if(!value) return;
 	const setPicture = () => {
+		if(value.image === undefined) return; // Left out: the picture (and where it comes from) stays as it is
 		app.Images.setNodeImage(gridNode, value.image);
 		if(value.imageSource != null) app.GridNodes._setImageSource(gridNode, value.imageSource);
 	};
@@ -247,6 +250,9 @@ app.GridNodes._loadOnce = function(gridNode, load){
 	const finish = infos => {
 		delete gridNode.__isLoading;
 		app.GridNodes._loading.delete(gridNode);
+		// Deleted meanwhile (or its folder, or the whole tree by an import or another root): the picture just made
+		// would stay in storage with nothing pointing at it
+		if(gridNode.id && !app.GridNodes.getNodeById(gridNode.id)) app.Images.removeTree(gridNode);
 		return infos;
 	};
 	const promise = Promise.resolve().then(load).then(finish, e => {

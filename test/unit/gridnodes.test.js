@@ -63,6 +63,24 @@ test('sync keeps cells: a removed bookmark leaves a gap, new ones fill gaps firs
 	assert.deepEqual(cellIds(sandbox.app.node), ['a', '-', 'd'], 'a null cell becomes a gap');
 });
 
+test('sync: a bookmark gone from the end leaves no gap at the end, also when a gap was before it', async () => {
+	const sandbox = await setup([bookmark('a'), bookmark('b'), bookmark('c')]);
+	await sync(sandbox);
+	const folder = sandbox.browser.bookmarks.find('qd');
+	folder.children = folder.children.filter(child => child.id !== 'b');
+	await sync(sandbox);
+	assert.deepEqual(cellIds(sandbox.app.node), ['a', '-', 'c']);
+	folder.children = folder.children.filter(child => child.id !== 'c');
+	await sync(sandbox);
+	assert.deepEqual(cellIds(sandbox.app.node), ['a']);
+});
+
+test('the root folder is a folder: a bookmark of the same name before it is passed over', async () => {
+	const sandbox = await setup([bookmark('a')]);
+	sandbox.browser.bookmarks.find('menu________').children.unshift({ ...bookmark('link'), title: 'Quick Dial' });
+	assert.equal((await sandbox.app.Bookmarks.load('Quick Dial')).id, 'qd');
+});
+
 test('sync: a new address drops the stored picture; a gone bookmark takes its picture with it', async () => {
 	const sandbox = await setup([bookmark('a'), bookmark('b')]);
 	await sync(sandbox);
@@ -111,9 +129,13 @@ test('sync creates a missing root folder; an absolute root path starts at the to
 });
 
 test('finding nodes: by path, by id, with parents', async () => {
-	const sandbox = await setup([bookmark('a'), bookmarkFolder('f', 'Work', [bookmarkFolder('g', 'Tools', [bookmark('t')])])]);
+	const sameNameBookmark = { ...bookmark('w'), title: 'Work' }; // before the folder: a path names folders only
+	const sandbox = await setup([bookmark('a'), sameNameBookmark, bookmarkFolder('f', 'Work', [bookmarkFolder('g', 'Tools', [bookmark('t')])])]);
 	await sync(sandbox);
 	const GridNodes = sandbox.app.GridNodes, root = sandbox.app.node;
+	root.children.unshift({ ...EMPTY_CELL }); // a gap has no title: never a folder named "undefined"
+	assert.equal(GridNodes.getNode(root, 'undefined/'), null);
+	assert.equal(GridNodes.getNode(root, 'Work/').id, 'f');
 	assert.equal(GridNodes.getNode(root, '').id, 'qd');
 	assert.equal(GridNodes.getNode(root, '/').id, 'qd');
 	assert.equal(GridNodes.getNode(root, 'Work/Tools/').id, 'g');
@@ -213,6 +235,19 @@ test('refresh and capture: one at a time per tile; asked again meanwhile, the on
 	assert.equal(tile.image, '0', 'and marks the tile as having no picture');
 	assert.deepEqual(plain(await GridNodes.refreshNode(sandbox.app.node.children[1])), { title: 'F' }, 'a folder: its picture is cleared');
 	assert.equal(await GridNodes.refreshNode({ ...EMPTY_CELL }), null, 'an empty cell: nothing to load');
+});
+
+test('a tile deleted while its picture is made leaves no picture behind in storage', async () => {
+	const sandbox = await setup([bookmark('a'), bookmark('b')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0], download = pendingDownload(sandbox);
+	const refreshed = GridNodes.refreshNode(tile);
+	await settle();
+	GridNodes.deleteNode(sandbox.app.node, 'a');
+	download.finish({ url: tile.url, title: 'Late', icon: null, screenshot: WEBP_PICTURE });
+	await refreshed;
+	await settle();
+	assert.ok(!('img_a' in sandbox.browser.store), 'nothing stored for the deleted tile');
 });
 
 test('updateNode: a new address is refreshed first, then the bookmark gets its new title and address', async () => {
@@ -352,6 +387,10 @@ test('updateNode saves the picture\'s source with it (Page is not stored), and c
 	assert.equal(tile.imageSource, ImageSource.siteIcon);
 	await GridNodes.updateNode(tile, { title: 'Renamed' });
 	assert.equal(tile.imageSource, ImageSource.siteIcon, 'left out: kept');
+	assert.equal(tile.image, '1', 'and so is the picture');
+	assert.equal(storedPicture(sandbox, tile), ICON_PICTURE);
+	await GridNodes.updateNode(tile, { imageLocked: false });
+	assert.equal(storedPicture(sandbox, tile), ICON_PICTURE, 'also when only the lock is sent');
 	const capture = fakeCapture(sandbox, { url: tile.url, title: 'Shot', icon: null, screenshot: WEBP_PICTURE });
 	await GridNodes.updateNode(tile, { image: ICON_PICTURE, imageSource: ImageSource.page, capturePage: true });
 	assert.equal(capture.calls, 1, 'the page is captured once saved');
