@@ -6,7 +6,7 @@
 // browser and SVG, served by the test server next to the pages; other sites are the stub page (no icons).
 // The steps build on each other only through the tiles: b1 ends as a site icon tile, b2 as a letter tile.
 // Related: Refresh, Capture page and Properties' changes of the picture's source are unit/tilepictures.test.js;
-// choosing an icon in Properties is properties.js; the menu item is dial-edit.js and toolbar-menus.js.
+// choosing an icon in Properties is properties.js (js/properties.js, js/iconpicker.js); the menu item is dial-edit.js and toolbar-menus.js.
 'use strict';
 const { freshProfile, sitePage } = require('../lib/fixtures');
 

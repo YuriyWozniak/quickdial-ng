@@ -88,9 +88,10 @@ export default [
 	{ files: ['src/js/grid.js'], languageOptions: { globals: { app: 'readonly' } } },
 	{ files: ['src/js/dial.js'], languageOptions: { globals: { dial: 'readonly' } } },
 	{ files: ['src/js/background/*.js'], ignores: ['src/js/background/app.js'], languageOptions: { globals: { app: 'writable' } } },
-	{ files: ['src/js/settings.js'], languageOptions: { globals: idsOf('./src/html/settings.html') } },
+	{ files: ['src/js/settings*.js'], languageOptions: { globals: idsOf('./src/html/settings.html') } },
 	{ files: ['src/js/properties.js', 'src/js/iconpicker.js'], languageOptions: { globals: idsOf('./src/html/properties.html') } },
-	{ files: ['src/js/iconpicker.js'], languageOptions: { globals: { app: 'readonly' } } }, // properties.js defines it; loaded after it
+	// A page's other scripts (its tabs, the icon picker) are loaded after its main one, which defines app
+	{ files: ['src/js/settingsthemes.js', 'src/js/settingsbackup.js', 'src/js/iconpicker.js'], languageOptions: { globals: { app: 'readonly' } } },
 
 	// Tests (Node). Functions passed to page.evaluate run in the test pages, so the integration tests may
 	// also use the host page's helpers (test/index.html, test/mock.js) and the pages' own globals.
