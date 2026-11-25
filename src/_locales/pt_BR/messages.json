@@ -586,10 +586,10 @@
     "message": "Estilo de"
   },
   "settingsTilesPartTileHint": {
-    "message": "Bloco: o bloco inteiro — espaçamento, opacidade, borda, fundo, desfoque e sombra."
+    "message": "Bloco: a caixa inteira — espaçamento, opacidade, borda, cantos, fundo, desfoque e sombra."
   },
   "settingsTilesPartTitleHint": {
-    "message": "Título: o nome do site no bloco — mostrar ou ocultar, altura, tamanho, cores, fonte e posição."
+    "message": "Título: o nome do site no bloco — mostrar ou ocultar, altura, tamanho, divisor, cores, fonte e posição."
   },
 
   "settingsShowTitle": {

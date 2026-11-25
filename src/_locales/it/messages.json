@@ -586,10 +586,10 @@
     "message": "Stile di"
   },
   "settingsTilesPartTileHint": {
-    "message": "Riquadro: l’intero riquadro — spaziatura, opacità, bordo, sfondo, sfocatura e ombra."
+    "message": "Riquadro: l’intero blocco — spaziatura, opacità, bordo, angoli, sfondo, sfocatura e ombra."
   },
   "settingsTilesPartTitleHint": {
-    "message": "Titolo: il nome del sito sul riquadro — mostrarlo o nasconderlo, altezza, dimensione, colori, carattere e posizione."
+    "message": "Titolo: il nome del sito sul riquadro — mostrarlo o nasconderlo, altezza, dimensione, divisore, colori, carattere e posizione."
   },
 
   "settingsShowTitle": {

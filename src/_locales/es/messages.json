@@ -586,10 +586,10 @@
     "message": "Estilo de"
   },
   "settingsTilesPartTileHint": {
-    "message": "Mosaico: todo el recuadro: espaciado, opacidad, borde, fondo, desenfoque y sombra."
+    "message": "Mosaico: todo el recuadro — espaciado, opacidad, borde, esquinas, fondo, desenfoque y sombra."
   },
   "settingsTilesPartTitleHint": {
-    "message": "Título: el nombre del sitio en el mosaico: mostrarlo u ocultarlo, su altura, tamaño, colores, fuente y posición."
+    "message": "Título: el nombre del sitio en el mosaico — mostrarlo u ocultarlo, su altura, tamaño, separador, colores, fuente y posición."
   },
 
   "settingsShowTitle": {

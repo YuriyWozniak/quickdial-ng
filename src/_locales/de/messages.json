@@ -586,10 +586,10 @@
     "message": "Stil für"
   },
   "settingsTilesPartTileHint": {
-    "message": "Kachel: das ganze Feld – Abstand, Deckkraft, Rahmen, Hintergrund, Unschärfe und Schatten."
+    "message": "Kachel: das ganze Feld – Abstand, Deckkraft, Rahmen, Ecken, Hintergrund, Unschärfe und Schatten."
   },
   "settingsTilesPartTitleHint": {
-    "message": "Titel: der Seitenname auf der Kachel – ein- oder ausblenden, Höhe, Größe, Farben, Schrift und Position."
+    "message": "Titel: der Seitenname auf der Kachel – ein- oder ausblenden, Höhe, Größe, Trennlinie, Farben, Schrift und Position."
   },
 
   "settingsShowTitle": {

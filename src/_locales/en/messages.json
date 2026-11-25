@@ -590,11 +590,11 @@
     "description": "Before the Tile | Title switch above the Tiles style table"
   },
   "settingsTilesPartTileHint": {
-    "message": "Tile: the whole box — spacing, opacity, border, background, blur and shadow.",
+    "message": "Tile: the whole box — spacing, opacity, border, corners, background, blur and shadow.",
     "description": "Under the Tile | Title switch while Tile is chosen: what the tile rows are about"
   },
   "settingsTilesPartTitleHint": {
-    "message": "Title: the site name on the tile — show or hide it, its height, size, colors, font and position.",
+    "message": "Title: the site name on the tile — show or hide it, its height, size, divider, colors, font and position.",
     "description": "Under the Tile | Title switch while Title is chosen: what the title rows are about"
   },
 

@@ -586,10 +586,10 @@
     "message": "Style de"
   },
   "settingsTilesPartTileHint": {
-    "message": "Vignette : tout le cadre — espacement, opacité, bordure, arrière-plan, flou et ombre."
+    "message": "Vignette : tout le cadre — espacement, opacité, bordure, coins, arrière-plan, flou et ombre."
   },
   "settingsTilesPartTitleHint": {
-    "message": "Titre : le nom du site sur la vignette — l’afficher ou non, sa hauteur, sa taille, ses couleurs, sa police et sa position."
+    "message": "Titre : le nom du site sur la vignette — l’afficher ou non, sa hauteur, sa taille, son séparateur, ses couleurs, sa police et sa position."
   },
 
   "settingsShowTitle": {
