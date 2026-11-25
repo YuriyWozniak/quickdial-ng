@@ -28,6 +28,11 @@ var QDCommon = Object.freeze({
 		findSiteIcons: 17,
 		useSiteIcon: 18,
 		applyTilePicture: 19,
+		drawIcon: 20,
+		iconSets: 21,
+		iconSet: 22,
+		downloadIconSet: 23,
+		removeIconSet: 24,
 		settingsChanged: 100,
 		gridNodesLoaded: 101,
 		menuCreateBookmark: 200,
@@ -66,7 +71,8 @@ var QDCommon = Object.freeze({
 		page: 0,
 		siteIcon: 1, // the site's own icon (js/background/siteicons.js)
 		letter: 2, // a letter tile, for a site without an icon
-		file: 3 // a picture the user chose, dropped or pasted: Refresh keeps it
+		file: 3, // a picture the user chose, dropped or pasted: Refresh keeps it
+		icon: 4 // an icon of the icon picker's sets (js/background/iconsets.js), chosen in Properties: Refresh keeps it
 	}),
 	// The picture a new tile gets (grid.newTilePicture), and what Settings › Tiles › Apply to tiles makes
 	TilePicture: Object.freeze({
@@ -301,6 +307,16 @@ var QDClient = (function(){
 		useSiteIcon: (path, id) => send(Commands.useSiteIcon, { path, id }),
 		// Every tile whose picture isn't kept or the user's own gets one of this kind (QDCommon.TilePicture); answers the number of tiles
 		applyTilePicture: kind => send(Commands.applyTilePicture, { kind }).then(count => count || 0),
+		// An icon of the icon picker as a tile picture: { image: data URL, width, height, isVector, background: '#rrggbb' or null }.
+		// Answers the picture (a WebP data URL), or null when the icon can't be drawn.
+		drawIcon: icon => send(Commands.drawIcon, { icon }).then(picture => picture || null, () => null),
+		// The icon picker's sets and whether each is downloaded (see js/background/iconsets.js); [] when they can't be read
+		iconSets: () => send(Commands.iconSets).then(sets => sets || [], () => []),
+		// A downloaded set, as in its file, or null
+		iconSet: name => send(Commands.iconSet, { name }).then(set => set || null, () => null),
+		// Downloads a set: answers null when it is kept, else why it isn't (a text)
+		downloadIconSet: name => send(Commands.downloadIconSet, { name }).then(answer => answer ? answer.error : 'no answer', e => String(e && e.message || e)),
+		removeIconSet: name => send(Commands.removeIconSet, { name }),
 		// The icons of a site and a letter tile for it, as tile pictures: { title, icons: [{ picture, width, height, isVector }], letter }
 		findSiteIcons: (url, title) => send(Commands.findSiteIcons, { url, title }).then(found => found || noIcons(), noIcons)
 	});

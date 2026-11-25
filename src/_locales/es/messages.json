@@ -1143,6 +1143,14 @@
     "message": "El icono propio del sitio"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Icono"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Un icono de un conjunto que descargas"
+  },
+
   "propertiesSourceFile": {
     "message": "Archivo"
   },
@@ -1165,6 +1173,86 @@
 
   "propertiesIconLetter": {
     "message": "Letra"
+  },
+
+  "propertiesIconSet": {
+    "message": "Conjunto de iconos"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Contorno (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Píxel (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Retro en color (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Buscar iconos (en inglés)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Elige un icono. La búsqueda encuentra los iconos por sus nombres y palabras en inglés."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Ningún icono coincide con «$1»."
+  },
+
+  "propertiesIconColor": {
+    "message": "Color"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Fondo"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Color de fondo"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "$1 iconos, $2 MB"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Licencia $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Descargar"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Actualizar"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Quitar"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Descargando…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Este conjunto no está descargado. «Descargar» lo obtiene una vez del proyecto Quick Dial NG en GitHub y lo guarda en este navegador, así funciona sin conexión."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "Hay una versión más nueva de este conjunto. «Actualizar» la descarga; los iconos que ya elegiste se quedan como están."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "No se pudo descargar el conjunto ($1). Inténtalo más tarde."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "el archivo no es el esperado"
   },
 
   "propertiesKeepPicture": {

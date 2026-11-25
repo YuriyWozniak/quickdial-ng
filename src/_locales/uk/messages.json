@@ -1155,6 +1155,14 @@
     "message": "Власний значок сайту"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Значок"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Значок із набору, який ви завантажуєте"
+  },
+
   "propertiesSourceFile": {
     "message": "Файл"
   },
@@ -1177,6 +1185,86 @@
 
   "propertiesIconLetter": {
     "message": "Літера"
+  },
+
+  "propertiesIconSet": {
+    "message": "Набір значків"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Контурні (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Піксельні (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Ретро в кольорі (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Пошук значків (англійською)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Виберіть значок. Пошук знаходить значки за їхніми англійськими назвами та словами."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Жоден значок не відповідає «$1»."
+  },
+
+  "propertiesIconColor": {
+    "message": "Колір"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Тло"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Колір тла"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "Значків: $1, $2 МБ"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Ліцензія $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Завантажити"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Оновити"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Вилучити"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Завантажується…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Цей набір не завантажено. «Завантажити» один раз отримує його з проєкту Quick Dial NG на GitHub і зберігає в цьому браузері, тож він працює й без мережі."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "Є новіша версія цього набору. «Оновити» завантажує її; уже вибрані значки лишаються як є."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "Не вдалося завантажити набір ($1). Спробуйте пізніше."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "файл не той, що очікувався"
   },
 
   "propertiesKeepPicture": {

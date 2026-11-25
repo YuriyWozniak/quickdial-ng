@@ -81,6 +81,16 @@ app.Messages.init = function(){
 			}
 			case Commands.applyTilePicture: // Settings: the dial pages show each tile's new picture as soon as it is made
 				return GridNodes.applyTilePicture(Number(request.kind), loaded);
+			case Commands.drawIcon: // Properties: an icon of the icon picker as a tile picture
+				return app.SiteIcons.drawIcon(request.icon);
+			case Commands.iconSets: // Properties: the icon picker's sets
+				return app.IconSets.list();
+			case Commands.iconSet:
+				return app.IconSets.get(request.name);
+			case Commands.downloadIconSet: // Answers { error: null } when the set is kept, else { error: why not }
+				return app.IconSets.download(request.name).then(() => ({ error: null }), e => ({ error: String(e && e.message || e) }));
+			case Commands.removeIconSet:
+				return app.IconSets.remove(request.name).then(() => true);
 			case Commands.findSiteIcons: // Properties: the icons to choose from, and a letter tile
 				return app.SiteIcons.find(request.url).then(found => Object.assign(found, { letter: app.SiteIcons.letter(request.url, request.title) }));
 			case Commands.getImages:

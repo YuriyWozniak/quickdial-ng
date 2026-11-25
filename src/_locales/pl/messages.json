@@ -1155,6 +1155,14 @@
     "message": "Własna ikona witryny"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Ikona"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Ikona z zestawu, który pobierasz"
+  },
+
   "propertiesSourceFile": {
     "message": "Plik"
   },
@@ -1177,6 +1185,86 @@
 
   "propertiesIconLetter": {
     "message": "Litera"
+  },
+
+  "propertiesIconSet": {
+    "message": "Zestaw ikon"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Kontur (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Piksele (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Retro w kolorze (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Szukaj ikon (po angielsku)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Wybierz ikonę. Wyszukiwanie znajduje ikony po ich angielskich nazwach i słowach."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Żadna ikona nie pasuje do „$1”."
+  },
+
+  "propertiesIconColor": {
+    "message": "Kolor"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Tło"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Kolor tła"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "Ikony: $1, $2 MB"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Licencja $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Pobierz"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Zaktualizuj"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Usuń"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Pobieranie…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Ten zestaw nie jest pobrany. „Pobierz” pobiera go raz z projektu Quick Dial NG na GitHubie i przechowuje w tej przeglądarce, więc działa też offline."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "Dostępna jest nowsza wersja tego zestawu. „Zaktualizuj” ją pobiera; już wybrane ikony pozostają bez zmian."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "Nie udało się pobrać zestawu ($1). Spróbuj ponownie później."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "plik nie jest tym oczekiwanym"
   },
 
   "propertiesKeepPicture": {

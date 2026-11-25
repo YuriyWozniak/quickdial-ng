@@ -1155,6 +1155,14 @@
     "message": "Собственный значок сайта"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Значок"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Значок из набора, который вы скачиваете"
+  },
+
   "propertiesSourceFile": {
     "message": "Файл"
   },
@@ -1177,6 +1185,86 @@
 
   "propertiesIconLetter": {
     "message": "Буква"
+  },
+
+  "propertiesIconSet": {
+    "message": "Набор значков"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Контурные (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Пиксельные (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Ретро в цвете (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Поиск значков (на английском)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Выберите значок. Поиск находит значки по их английским названиям и словам."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Ни один значок не подходит к «$1»."
+  },
+
+  "propertiesIconColor": {
+    "message": "Цвет"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Фон"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Цвет фона"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "Значков: $1, $2 МБ"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Лицензия $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Скачать"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Обновить"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Удалить"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Скачивается…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Этот набор не скачан. «Скачать» один раз получает его из проекта Quick Dial NG на GitHub и хранит в этом браузере, так что он работает и без сети."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "Доступна более новая версия этого набора. «Обновить» скачивает её; уже выбранные значки остаются как есть."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "Не удалось скачать набор ($1). Попробуйте позже."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "файл не тот, что ожидался"
   },
 
   "propertiesKeepPicture": {

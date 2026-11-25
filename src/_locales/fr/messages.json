@@ -1143,6 +1143,14 @@
     "message": "L’icône du site lui-même"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Icône"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Une icône d’un jeu que vous téléchargez"
+  },
+
   "propertiesSourceFile": {
     "message": "Fichier"
   },
@@ -1165,6 +1173,86 @@
 
   "propertiesIconLetter": {
     "message": "Lettre"
+  },
+
+  "propertiesIconSet": {
+    "message": "Jeu d’icônes"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Contour (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Pixel (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Rétro en couleur (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Rechercher des icônes (en anglais)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Choisissez une icône. La recherche trouve les icônes par leurs noms et mots anglais."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Aucune icône ne correspond à « $1 »."
+  },
+
+  "propertiesIconColor": {
+    "message": "Couleur"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Arrière-plan"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Couleur d’arrière-plan"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "$1 icônes, $2 Mo"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Licence $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Télécharger"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Mettre à jour"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Supprimer"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Téléchargement…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Ce jeu n’est pas téléchargé. « Télécharger » le récupère une fois depuis le projet Quick Dial NG sur GitHub et le garde dans ce navigateur : il fonctionne ensuite hors ligne."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "Une version plus récente de ce jeu est disponible. « Mettre à jour » la télécharge ; les icônes déjà choisies restent telles quelles."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "Le jeu n’a pas pu être téléchargé ($1). Réessayez plus tard."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "le fichier n’est pas celui attendu"
   },
 
   "propertiesKeepPicture": {

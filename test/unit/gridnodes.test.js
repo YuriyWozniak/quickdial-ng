@@ -237,7 +237,7 @@ test('updateNode: a new address is refreshed first, then the bookmark gets its n
 
 // ----- where a tile's picture comes from (node.imageSource): Refresh makes the same kind again -----
 // The picture sources (QDCommon.ImageSource); `page` is never stored
-const ImageSource = { page: 0, siteIcon: 1, letter: 2, file: 3 };
+const ImageSource = { page: 0, siteIcon: 1, letter: 2, file: 3, icon: 4 };
 // Pictures that stand for a site's icon and a letter tile
 const ICON_PICTURE = 'data:image/webp;base64,SUNPTg==', LETTER_PICTURE = 'data:image/webp;base64,TEVUVA==';
 const SITE_ICONS = { title: 'Site A', icons: [{ picture: ICON_PICTURE, width: 180, height: 180, isVector: false }] };
@@ -450,4 +450,20 @@ test('Apply to tiles, the icon or a screenshot: a site without an icon keeps its
 	assert.equal(download.calls, 1, 'no new screenshot');
 	assert.equal(tile.imageSource, undefined);
 	assert.equal(storedPicture(sandbox, tile), WEBP_PICTURE);
+});
+
+test('an icon chosen in the icon picker is the user\'s own picture: Refresh keeps it, Apply to tiles leaves it', async () => {
+	const PICKED_PICTURE = 'data:image/webp;base64,UElDSw==';
+	const sandbox = await setup([bookmark('a')]);
+	await sync(sandbox);
+	const GridNodes = sandbox.app.GridNodes, tile = sandbox.app.node.children[0], download = instantDownload(sandbox);
+	fakeSiteIcons(sandbox, SITE_ICONS);
+	await GridNodes.updateNode(tile, { image: PICKED_PICTURE, imageSource: ImageSource.icon });
+	await GridNodes.refreshNode(tile);
+	assert.equal(storedPicture(sandbox, tile), PICKED_PICTURE, 'Refresh keeps it');
+	assert.equal(tile.imageSource, ImageSource.icon);
+	assert.equal(download.calls, 0, 'no screenshot');
+	assert.equal(await GridNodes.applyTilePicture(TilePicture.siteIcon), 0, 'Apply to tiles leaves it');
+	assert.equal(await GridNodes.applyTilePicture(TilePicture.page), 0);
+	assert.equal(storedPicture(sandbox, tile), PICKED_PICTURE);
 });

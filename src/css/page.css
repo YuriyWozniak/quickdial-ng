@@ -247,6 +247,40 @@
 .qd-icon-choice[aria-pressed="true"] { color: var(--qd-text); border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
 .qd-icon-choice:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: 2px; }
 .qd-icon-choice-img { display: block; width: 64px; background-color: var(--qd-surface-2); background-repeat: no-repeat; background-size: 100% 100%; border-radius: var(--qd-radius-xs); }
+
+/* the icon picker (Properties › Icon): a set, a search, where the set comes from (and Download / Remove), the icons in a
+   grid that scrolls, and their colours. An SVG icon is drawn in the text colour through a mask; a retro icon is its part of
+   the set's picture. */
+.qd-icon-picker { display: flex; flex-direction: column; gap: var(--qd-row); margin-top: var(--qd-gap); }
+.qd-icon-set-about a { color: inherit; text-decoration: underline; }
+.qd-icon-set-about a:hover { color: var(--qd-text); }
+.qd-icon-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+	gap: 2px;
+	height: 188px;
+	padding: 4px;
+	overflow-y: auto;
+	background: var(--qd-surface-2);
+	border: 1px solid var(--qd-border);
+	border-radius: var(--qd-radius-sm);
+}
+.qd-icon-cell {
+	display: grid;
+	place-items: center;
+	height: 42px;
+	padding: 0;
+	color: var(--qd-text);
+	background: transparent;
+	border: 1px solid transparent;
+	border-radius: var(--qd-radius-xs);
+	cursor: pointer;
+}
+.qd-icon-cell:hover { background: var(--qd-surface-3); }
+.qd-icon-cell[aria-pressed="true"] { border-color: var(--qd-accent); box-shadow: var(--qd-ring); }
+.qd-icon-cell:focus-visible { outline: 2px solid var(--qd-focus); outline-offset: -2px; }
+.qd-icon-cell-img { display: block; width: 32px; height: 32px; background-repeat: no-repeat; image-rendering: pixelated; pointer-events: none; }
+.qd-icon-cell-img.is-mask { background-color: currentColor; mask-repeat: no-repeat; mask-position: center; mask-size: 24px 24px; }
 .qd-source-hint { margin: var(--qd-row) 0 0; }
 .qd-source-hint:empty { display: none; }
 .qd-source-hint + .qd-switch-row { margin-top: var(--qd-stack); }

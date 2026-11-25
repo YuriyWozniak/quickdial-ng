@@ -1143,6 +1143,14 @@
     "message": "O ícone do próprio site"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Ícone"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Um ícone de um conjunto que você baixa"
+  },
+
   "propertiesSourceFile": {
     "message": "Arquivo"
   },
@@ -1165,6 +1173,86 @@
 
   "propertiesIconLetter": {
     "message": "Letra"
+  },
+
+  "propertiesIconSet": {
+    "message": "Conjunto de ícones"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Contorno (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Pixel (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Retrô colorido (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Buscar ícones (em inglês)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Escolha um ícone. A busca encontra os ícones pelos nomes e palavras em inglês."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Nenhum ícone corresponde a “$1”."
+  },
+
+  "propertiesIconColor": {
+    "message": "Cor"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Fundo"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Cor do fundo"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "$1 ícones, $2 MB"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Licença $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Baixar"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Atualizar"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Remover"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Baixando…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Este conjunto não foi baixado. “Baixar” o obtém uma vez do projeto Quick Dial NG no GitHub e o guarda neste navegador, então ele funciona offline."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "Há uma versão mais nova deste conjunto. “Atualizar” a baixa; os ícones já escolhidos continuam como estão."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "Não foi possível baixar o conjunto ($1). Tente mais tarde."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "o arquivo não é o esperado"
   },
 
   "propertiesKeepPicture": {

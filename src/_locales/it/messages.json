@@ -1143,6 +1143,14 @@
     "message": "L’icona del sito stesso"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Icona"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Un’icona di un set che scarichi"
+  },
+
   "propertiesSourceFile": {
     "message": "File"
   },
@@ -1165,6 +1173,86 @@
 
   "propertiesIconLetter": {
     "message": "Lettera"
+  },
+
+  "propertiesIconSet": {
+    "message": "Set di icone"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Contorno (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Pixel (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Retrò a colori (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Cerca icone (in inglese)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Scegli un’icona. La ricerca trova le icone dai loro nomi e parole in inglese."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Nessuna icona corrisponde a «$1»."
+  },
+
+  "propertiesIconColor": {
+    "message": "Colore"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Sfondo"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Colore dello sfondo"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "$1 icone, $2 MB"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Licenza $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Scarica"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Aggiorna"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Rimuovi"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Download in corso…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Questo set non è scaricato. «Scarica» lo prende una volta dal progetto Quick Dial NG su GitHub e lo tiene in questo browser, così funziona anche offline."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "È disponibile una versione più recente di questo set. «Aggiorna» la scarica; le icone già scelte restano come sono."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "Non è stato possibile scaricare il set ($1). Riprova più tardi."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "il file non è quello previsto"
   },
 
   "propertiesKeepPicture": {

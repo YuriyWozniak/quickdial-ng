@@ -9,6 +9,7 @@ app.SiteIcons.DOWNLOAD_TIMEOUT = 10000; // How long the page, its manifest and e
 app.SiteIcons.MAX_ICON_BYTES = 1024 * 1024; // Larger files are skipped: no real icon is that big
 app.SiteIcons.MAX_DOWNLOADS = 6; // At most this many icons are downloaded per site, the most promising first
 app.SiteIcons.ICON_SHARE = 0.56; // The icon's side, as a share of the picture's shorter side
+app.SiteIcons.ICON_ON_SQUARE = 0.6; // An icon on a rounded square (the icon picker's Background): its side, as a share of the square's
 app.SiteIcons.VECTOR_SIZE = 1024; // The size an SVG icon counts as when the icons are ranked
 // What an icon's size is guessed to be before it is downloaded, when the page doesn't say
 app.SiteIcons.GUESSED_SIZE = Object.freeze({ appleTouch: 180, link: 32, favicon: 32 });
@@ -66,17 +67,33 @@ app.SiteIcons.letter = function(url, title){
 	let hue = 0;
 	for(const character of name) hue = (hue * 31 + (character.codePointAt(0) || 0)) % 360;
 	const { canvas, ctx, side } = SiteIcons._pictureCanvas();
-	const top = Math.round((canvas.height - side) / 2);
-	ctx.fillStyle = 'hsl(' + hue + ' ' + SiteIcons.LETTER_SATURATION + '% ' + SiteIcons.LETTER_LIGHTNESS + '%)';
-	ctx.beginPath();
-	ctx.roundRect(Math.round((canvas.width - side) / 2), top, side, side, side * SiteIcons.LETTER_RADIUS);
-	ctx.fill();
+	const top = SiteIcons._square(canvas, ctx, side, 'hsl(' + hue + ' ' + SiteIcons.LETTER_SATURATION + '% ' + SiteIcons.LETTER_LIGHTNESS + '%)');
 	ctx.fillStyle = SiteIcons.LETTER_COLOR;
 	ctx.font = '600 ' + Math.round(side * SiteIcons.LETTER_FONT_SHARE) + 'px ' + SiteIcons.LETTER_FONT;
 	ctx.textAlign = 'center';
 	const metrics = ctx.measureText(letter); // Centred on the letter's own height, not on the line's
 	ctx.fillText(letter, canvas.width / 2, top + (side + metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2);
 	return canvas.toDataURL('image/webp', app.Images.quality);
+};
+
+app.SiteIcons.COLOR = /^#[0-9a-f]{6}$/i; // The background colour of an icon from the icon picker
+/**
+ * An icon of the icon picker (Properties › Picture › Icon) as a tile picture, drawn the way a site's icon is, on a
+ * rounded square of the colour `background` if it has one. Resolves with null for anything that isn't a picture.
+ * @param {{ image: string, width: number, height: number, isVector: boolean, background?: string|null }} icon
+ *   image: a data URL; width, height: its size in pixels (at most VECTOR_SIZE)
+ * @returns {Promise<string|null>} WebP data URL
+ */
+app.SiteIcons.drawIcon = async function(icon){
+	const SiteIcons = app.SiteIcons;
+	if(!icon || typeof icon.image != 'string' || !icon.image.startsWith('data:image/')) return null;
+	const width = Math.round(+icon.width), height = Math.round(+icon.height);
+	if(!(width > 0 && height > 0 && Math.max(width, height) <= SiteIcons.VECTOR_SIZE)) return null;
+	const background = typeof icon.background == 'string' && SiteIcons.COLOR.test(icon.background) ? icon.background : null;
+	const image = new Image();
+	image.src = icon.image;
+	try { await image.decode(); } catch(e) { return null; }
+	return SiteIcons._compose({ image, width, height, isVector: icon.isVector === true }, background);
 };
 
 // A transparent canvas of a tile picture (the size of the pictures SiteInfos makes) and the side of the icon on it
@@ -88,10 +105,25 @@ app.SiteIcons._pictureCanvas = function(){
 	const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext('2d'));
 	return { canvas, ctx, side: Math.round(Math.min(canvas.width, canvas.height) * app.SiteIcons.ICON_SHARE) };
 };
+// The rounded square of a letter tile, or behind an icon, in the middle of the picture: answers its top
+app.SiteIcons._square = function(canvas, ctx, side, color){
+	const top = Math.round((canvas.height - side) / 2);
+	ctx.fillStyle = color;
+	ctx.beginPath();
+	ctx.roundRect(Math.round((canvas.width - side) / 2), top, side, side, side * app.SiteIcons.LETTER_RADIUS);
+	ctx.fill();
+	return top;
+};
 // An icon as a tile picture: centred, ICON_SHARE of the picture's shorter side. An icon smaller than that is
-// enlarged by whole pixels without smoothing, so it stays sharp (and may stay a little smaller).
-app.SiteIcons._compose = function(icon){
-	const { canvas, ctx, side } = app.SiteIcons._pictureCanvas();
+// enlarged by whole pixels without smoothing, so it stays sharp (and may stay a little smaller). background: the
+// colour of a rounded square drawn behind the icon, which then takes ICON_ON_SQUARE of it; none: transparent.
+app.SiteIcons._compose = function(icon, background){
+	const { canvas, ctx, side: pictureSide } = app.SiteIcons._pictureCanvas();
+	let side = pictureSide;
+	if(background){
+		app.SiteIcons._square(canvas, ctx, pictureSide, background);
+		side = Math.round(pictureSide * app.SiteIcons.ICON_ON_SQUARE);
+	}
 	const longest = Math.max(icon.width, icon.height);
 	let scale = side / longest;
 	if(!icon.isVector && longest < side){

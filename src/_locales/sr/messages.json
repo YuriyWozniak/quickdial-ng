@@ -1143,6 +1143,14 @@
     "message": "Сопствена иконица сајта"
   },
 
+  "propertiesSourceIcon": {
+    "message": "Иконица"
+  },
+
+  "propertiesSourceIconHint": {
+    "message": "Иконица из скупа који преузимате"
+  },
+
   "propertiesSourceFile": {
     "message": "Датотека"
   },
@@ -1165,6 +1173,86 @@
 
   "propertiesIconLetter": {
     "message": "Слово"
+  },
+
+  "propertiesIconSet": {
+    "message": "Скуп иконица"
+  },
+
+  "propertiesIconSetOutline": {
+    "message": "Обрис (Tabler)"
+  },
+
+  "propertiesIconSetPixel": {
+    "message": "Пиксели (Pixelarticons)"
+  },
+
+  "propertiesIconSetRetro": {
+    "message": "Ретро у боји (SerenityOS)"
+  },
+
+  "propertiesIconSearch": {
+    "message": "Претражи иконице (на енглеском)"
+  },
+
+  "propertiesIconChoose": {
+    "message": "Изаберите иконицу. Претрага проналази иконице по њиховим енглеским називима и речима."
+  },
+
+  "propertiesIconsNoMatch": {
+    "message": "Ниједна иконица не одговара упиту „$1”."
+  },
+
+  "propertiesIconColor": {
+    "message": "Боја"
+  },
+
+  "propertiesIconBackground": {
+    "message": "Позадина"
+  },
+
+  "propertiesIconBackgroundColor": {
+    "message": "Боја позадине"
+  },
+
+  "propertiesIconSetSize": {
+    "message": "Иконица: $1, $2 MB"
+  },
+
+  "propertiesIconSetLicense": {
+    "message": "Лиценца $1"
+  },
+
+  "propertiesIconSetDownload": {
+    "message": "Преузми"
+  },
+
+  "propertiesIconSetUpdate": {
+    "message": "Ажурирај"
+  },
+
+  "propertiesIconSetRemove": {
+    "message": "Уклони"
+  },
+
+  "propertiesIconSetDownloading": {
+    "message": "Преузимање…"
+  },
+
+  "propertiesIconSetMissing": {
+    "message": "Овај скуп није преузет. „Преузми” га једном доноси са пројекта Quick Dial NG на GitHub-у и чува у овом прегледачу, па ради и ван мреже."
+  },
+
+  "propertiesIconSetOld": {
+    "message": "Доступна је новија верзија овог скупа. „Ажурирај” је преузима; већ изабране иконице остају какве јесу."
+  },
+
+  "propertiesIconSetFailed": {
+    "message": "Скуп није могао да се преузме ($1). Покушајте касније."
+  },
+
+  "propertiesIconSetBadFile": {
+    "message": "датотека није она која се очекује"
   },
 
   "propertiesKeepPicture": {

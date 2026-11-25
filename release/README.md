@@ -74,6 +74,23 @@ Environment variables override the config file.
 
 A version can be signed only once on addons.mozilla.org. If something is wrong with a signed build, fix it and release the next version.
 
+## Icon sets
+
+The icon picker's sets (Properties › Icon) are not in the package. Each is a file of a release of this repository tagged `icons-<n>`, which the extension downloads only when the user clicks **Download**, and checks against the size and SHA-256 fingerprint in `src/iconsets.json`. Copies of the extension already installed keep checking a tag's files against their own `src/iconsets.json`, so **never replace the files of a published tag**: make a new tag instead.
+
+To make a new release of the sets (for example a newer Tabler Icons):
+
+1. From `test/` (it uses the tests' Playwright to draw the retro picture):
+   ```
+   node ../release/make-icon-sets.js <work folder> icons-2
+   ```
+   It downloads the sources into the work folder, writes `outline.json`, `pixel.json` and `retro.json` (each with its source and licence) to `<work folder>/icon-sets/`, and `src/iconsets.json` with their release, sizes and fingerprints.
+2. Publish the files, without making the release the latest one (that stays the extension's):
+   ```
+   gh release create icons-2 <work folder>/icon-sets/outline.json <work folder>/icon-sets/pixel.json <work folder>/icon-sets/retro.json --repo YuriyWozniak/quickdial-ng --target develop --title "Icon sets 2" --notes "The icon picker's sets (see README, Icons from icon sets)." --latest=false
+   ```
+3. Commit `src/iconsets.json` in a pull request. The next version of the extension downloads from the new tag, and offers **Update** for a set downloaded from an older one.
+
 ## Publishing on addons.mozilla.org (listed)
 
 The add-on ID is already registered on addons.mozilla.org (AMO) through the unlisted signing above, so a listed version is added to the same add-on. Listed versions are reviewed by Mozilla and signed there, and Firefox then updates them from AMO.
@@ -116,6 +133,12 @@ Permissions:
   add-on's own html/settings.html address).
 - contextMenus: right-click menu on the dial page and on the toolbar button.
 - storage: settings, themes and tile pictures.
+- Icon sets (Properties > Picture > Icon): none is in the package. Only when the user clicks
+  Download is a set fetched (fetch, credentials omitted, js/background/iconsets.js) from this
+  project's release https://github.com/YuriyWozniak/quickdial-ng/releases/tag/icons-1; it is
+  refused unless its size and SHA-256 match src/iconsets.json, then kept in storage.local.
+  The files are data only (icon names, search words, SVG path markup, one PNG), never code;
+  release/make-icon-sets.js makes them from Tabler Icons, Pixelarticons and SerenityOS.
 
 To test: open a new tab; tiles are the bookmarks of Bookmarks Menu > Quick Dial (created if
 missing). Right-click the page for New > Bookmark and Quick Dial NG Settings; right-click a tile

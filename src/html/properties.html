@@ -52,6 +52,7 @@
 							<div class="qd-segments" role="group" aria-labelledby="SourceLabel">
 								<button type="button" class="qd-segment" id="SourcePageOption" aria-pressed="false" data-source="0" data-i18n="propertiesSourcePage" data-i18n-title="propertiesSourcePageHint"></button>
 								<button type="button" class="qd-segment" id="SourceSiteIconOption" aria-pressed="false" data-source="1" data-i18n="propertiesSourceSiteIcon" data-i18n-title="propertiesSourceSiteIconHint"></button>
+								<button type="button" class="qd-segment" id="SourceIconOption" aria-pressed="false" data-source="4" data-i18n="propertiesSourceIcon" data-i18n-title="propertiesSourceIconHint"></button>
 								<button type="button" class="qd-segment" id="SourceFileOption" aria-pressed="false" data-source="3" data-i18n="propertiesSourceFile" data-i18n-title="imageChoose"></button>
 							</div>
 						</div>
@@ -63,7 +64,7 @@
 							<option value="2" data-i18n="fitContain"></option>
 							<option value="3" data-i18n="fitCenter"></option>
 						</select>
-						<div class="qd-inline" id="ImageChooseRow">
+						<div class="qd-inline" id="ImageChooseRow" hidden>
 							<label class="qd-btn" for="ImageFile" id="ImageChoose" tabindex="0" role="button" data-i18n="imageChoose"></label>
 							<input id="ImageFile" class="qd-file" type="file" accept="image/*" tabindex="-1">
 						</div>
@@ -75,6 +76,28 @@
 					</div>
 				</div>
 				<div class="qd-icon-choices" id="IconList" role="group" data-i18n-aria-label="propertiesSourceSiteIcon" hidden></div>
+				<div class="qd-icon-picker" id="IconPicker" hidden>
+					<div class="qd-inline">
+						<select id="IconSet" data-i18n-aria-label="propertiesIconSet">
+							<option value="outline" data-i18n="propertiesIconSetOutline"></option>
+							<option value="pixel" data-i18n="propertiesIconSetPixel"></option>
+							<option value="retro" data-i18n="propertiesIconSetRetro"></option>
+						</select>
+						<input id="IconSearch" type="text" class="qd-grow" autocomplete="off" spellcheck="false" data-i18n-placeholder="propertiesIconSearch" data-i18n-aria-label="propertiesIconSearch">
+					</div>
+					<div class="qd-inline">
+						<span class="qd-hint qd-grow qd-icon-set-about" id="IconSetAbout"></span>
+						<button type="button" class="qd-btn is-small is-primary" id="IconSetDownload" hidden></button>
+						<button type="button" class="qd-btn is-small" id="IconSetRemove" data-i18n="propertiesIconSetRemove" hidden></button>
+					</div>
+					<div class="qd-icon-grid" id="IconGrid" role="group" data-i18n-aria-label="propertiesSourceIcon"></div>
+					<div class="qd-inline" id="IconColors">
+						<label class="qd-unit" for="IconColor" data-i18n="propertiesIconColor"></label>
+						<input id="IconColor" type="color">
+						<label class="qd-check"><input id="IconBackground" type="checkbox"><span data-i18n="propertiesIconBackground"></span></label>
+						<input id="IconBackgroundColor" type="color" data-i18n-aria-label="propertiesIconBackgroundColor">
+					</div>
+				</div>
 				<p class="qd-hint qd-source-hint" id="SourceHint" aria-live="polite"></p>
 				<div class="qd-switch-row" id="ImageLockRow">
 					<label class="qd-switch-label" for="ImageLocked"><span data-i18n="propertiesKeepPicture"></span><small data-i18n="propertiesKeepPictureHint"></small></label>
