@@ -5,12 +5,13 @@
 //
 // Starts from: a fresh profile with the standard bookmarks (lib/fixtures.js), Classic look, no themes.
 // The steps build on each other:
-//   1. the form: rows end up at 3 and the toolbar button back at "settings"
+//   1. the form: rows end up at 3 and the toolbar button back at "settings"; the footer counts what isn't applied;
+//      Tiles shows its tile or title rows and marks the Hover values that are the Normal ones
 //   2. a background picture applied (as a smaller WebP), then cleared; a folder picture applied, then reset
 //   3. Backup: export; wrong files refused; the export imported (with rows changed to 2), first
 //      cancelled, then done; the export snippet copied
 //   4. Themes: "Saved one" saved (and replaced), exports, "Classic (imported)" imported then deleted
-//   5. Tiles: New tiles get starts at a screenshot; Apply to tiles asks first, and Cancel changes nothing
+//   5. Grid: New tiles get starts at a screenshot; Apply to tiles asks first, and Cancel changes nothing
 // Related: what the import itself does is in backup.js; Use / Apply of a theme is in themes.js.
 'use strict';
 const { BUILTIN_THEMES, freshProfile, changeSettings, pictures } = require('../lib/fixtures');
@@ -49,14 +50,17 @@ module.exports = {
 
 		// ----- sections and the form -----
 		await testPage.loadSettings('grid');
-		const form = () => testPage.inDial(() => ({ title: PanelTitle.textContent, grid: !TabGrid.hidden, rows: GridRows.value, toolbar: ToolbarAction.value,
-			apply: BtnApply.disabled, discard: BtnDiscard.disabled, url: location.search }));
+		const form = () => testPage.inDial(() => ({ title: PanelTitle.textContent, intro: PanelIntro.textContent, grid: !TabGrid.hidden, rows: GridRows.value, columns: GridColumns.value,
+			toolbar: ToolbarAction.value, apply: BtnApply.disabled, discard: BtnDiscard.disabled, status: Status.textContent, preview: GridPreviewCaption.textContent, url: location.search }));
 		const opened = await form();
-		testPage.check('?tab= opens that section, with nothing to apply', opened.title === 'Grid' && opened.grid && opened.toolbar === 'settings' && opened.apply && opened.discard, opened);
+		testPage.check('?tab= opens that section, with nothing to apply', opened.title === 'Grid' && opened.intro.startsWith('How many tiles') && opened.grid && opened.toolbar === 'settings'
+			&& opened.apply && opened.discard, opened);
 		const rowsInUse = opened.rows;
 		await testPage.dial().locator('#GridRows').fill('9');
 		const edited = await form();
 		testPage.check('an edit enables Apply and Discard', !edited.apply && !edited.discard && edited.rows === '9', edited);
+		testPage.check('the footer counts the changes not applied and names the shortcut; the grid preview follows',
+			edited.status === 'Not applied yet: 1 change · Ctrl+S applies' && edited.preview === (9 * edited.columns) + ' tiles on a page', edited);
 		await testPage.dial().locator('#BtnDiscard').click();
 		const discarded = await form();
 		testPage.check('Discard brings back what the dial uses', discarded.rows === rowsInUse && discarded.apply && discarded.discard
@@ -75,8 +79,22 @@ module.exports = {
 		testPage.check('an open Settings page switches to the section asked for', switched.themes && switched.title === 'Themes' && switched.url === '?tab=themes', switched);
 		await changeSettings(testPage, { toolbarAction: 'settings' });
 
-		// ----- the click effect: picked from the list, it plays on the sample tile and is applied like the rest -----
+		// ----- Tiles: Tile | Title show their rows of the style table; a Hover value that is the Normal one is marked -----
 		await testPage.loadSettings('tiles');
+		const tileRows = () => testPage.inDial(() => ({ tile: !TileRows.hidden, title: !TitleRows.hidden, tools: !TilesTools.hidden,
+			pressed: [TilesPartTile, TilesPartTitle].map(button => button.getAttribute('aria-pressed')),
+			marginSame: GridCellsMarginsHover.closest('.qd-number').classList.contains('is-same') }));
+		const tileRowsShown = await tileRows();
+		testPage.check('Tiles opens on the tile rows; a Hover spacing equal to Normal is marked the same', tileRowsShown.tile && !tileRowsShown.title && tileRowsShown.tools
+			&& testPage.same(tileRowsShown.pressed, ['true', 'false']) && tileRowsShown.marginSame, tileRowsShown);
+		await testPage.dial().locator('#GridCellsMarginsHover').fill('9');
+		await testPage.dial().locator('#TilesPartTitle').click();
+		const titleRowsShown = await tileRows();
+		testPage.check('Title shows the title rows; a Hover value changed is no longer marked', !titleRowsShown.tile && titleRowsShown.title
+			&& testPage.same(titleRowsShown.pressed, ['false', 'true']) && !titleRowsShown.marginSame, titleRowsShown);
+		await testPage.dial().locator('#BtnDiscard').click();
+
+		// ----- the click effect: picked from the list, it plays on the sample tile and is applied like the rest -----
 		await testPage.dial().locator('#GridCellsClickEffect').selectOption(RIPPLE);
 		const picked = await testPage.inDial(() => ({ playing: TileHover.classList.contains('is-clicked'), css: app.clickEffectStyle.textContent, apply: BtnApply.disabled }));
 		testPage.check('a click effect picked plays on the Hover sample, with its rules', picked.playing && picked.css.includes('qd-click-ripple') && !picked.apply, picked);
@@ -181,7 +199,7 @@ module.exports = {
 		const currentTheme = JSON.parse(currentThemeFile.text);
 		testPage.check('Export current as theme downloads a theme file', currentThemeFile.name === 'quickdial-ng-theme-shared-look.json' && currentTheme.format === 'quickdial-ng-theme'
 			&& currentTheme.name === 'Shared look', [currentThemeFile.name, currentTheme.name]);
-		const anoriFile = await testPage.download(() => themeCard(testPage, 'Anori').locator('button', { hasText: 'Export' }).click());
+		const anoriFile = await testPage.download(() => themeCard(testPage, 'Anori').locator('button[aria-label="Export…"]').click());
 		const anoriTheme = JSON.parse(anoriFile.text);
 		testPage.check('a theme\'s Export… downloads that theme', anoriFile.name === 'quickdial-ng-theme-anori.json' && anoriTheme.style.accentColor === '#00794a', anoriFile.name);
 		await testPage.dial().locator('#ThemeFile').setInputFiles(jsonFile('c.json', { format: 'quickdial-ng-theme', version: 1, name: 'Classic', style: { backgroundColor: '#222222' } }));
@@ -192,15 +210,15 @@ module.exports = {
 		await testPage.waitFor('the theme message', () => /backup/.test(frameWindow('dial').ThemeStatus.textContent));
 		const backupAsThemeStatus = await statusText(testPage, 'ThemeStatus');
 		testPage.check('importing a backup there says it is a backup', /full Quick Dial NG backup/.test(backupAsThemeStatus), backupAsThemeStatus);
-		testPage.check('built-in themes have no Delete', (await themeCard(testPage, 'Anori').locator('button', { hasText: 'Delete' }).count()) === 0);
-		await themeCard(testPage, 'Classic \\(imported\\)').locator('button', { hasText: 'Delete' }).click();
+		testPage.check('built-in themes have no Delete', (await themeCard(testPage, 'Anori').locator('button[aria-label="Delete"]').count()) === 0);
+		await themeCard(testPage, 'Classic \\(imported\\)').locator('button[aria-label="Delete"]').click();
 		await testPage.answer();
 		await testPage.waitFor('the theme to be deleted', () => !backgroundPage().app.Themes.list.some(theme => theme.name === 'Classic (imported)'));
 		const namesAfterDelete = await themeNames(testPage);
 		testPage.check('Delete removes the theme after asking', testPage.same(namesAfterDelete, [...BUILTIN_THEMES, 'Saved one']), namesAfterDelete);
 
-		// ----- Tiles › Thumbnails: New tiles get; Apply to tiles asks first -----
-		await testPage.loadSettings('tiles');
+		// ----- Grid › Thumbnails: New tiles get; Apply to tiles asks first -----
+		await testPage.loadSettings('grid');
 		const newTiles = await testPage.inDial(() => ({ value: GridNewTilePicture.value, choices: GridNewTilePicture.options.length }));
 		testPage.check('New tiles get starts at a screenshot of the page, of three choices', newTiles.value === TILE_PICTURE.page && newTiles.choices === TILE_PICTURE_CHOICES, newTiles);
 		await testPage.dial().locator('#GridNewTilePicture').selectOption(TILE_PICTURE.siteIconOrPage);

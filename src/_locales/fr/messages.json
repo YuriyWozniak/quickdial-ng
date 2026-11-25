@@ -127,6 +127,10 @@
     "message": "Modifications non enregistrées"
   },
 
+  "statusNotApplied": {
+    "message": "Pas encore appliqué : $1 · Ctrl+S pour appliquer"
+  },
+
   "statusApplied": {
     "message": "Modifications appliquées"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Paramètres"
+  },
+
   "settingsTabPage": {
     "message": "Page"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Sauvegarde"
+  },
+
+  "settingsPageIntro": {
+    "message": "L’arrière-plan de l’accès rapide, la langue et l’ouverture de Quick Dial NG."
+  },
+
+  "settingsGridIntro": {
+    "message": "Le nombre de vignettes par page, leur forme et leurs images, et où elles s’ouvrent."
+  },
+
+  "settingsTilesIntro": {
+    "message": "L’apparence des vignettes et de leurs titres, normalement et sous le pointeur."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Enregistrez vos paramètres, vignettes et thèmes dans un fichier, et restaurez-les depuis celui-ci."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Couleur des boutons, interrupteurs, onglets et contours de focus dans Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Personnalisée"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "largeur : hauteur"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 par page"
+  },
+
   "settingsPageMargin": {
     "message": "Marge de la page"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Vignette",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Effets"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "En pointillé : comme Normal"
   },
 
   "settingsSpacing": {
@@ -1029,6 +1069,18 @@
     "message": "$1 vignettes"
   },
 
+  "countChangesOne": {
+    "message": "$1 modification"
+  },
+
+  "countChangesMany": {
+    "message": "$1 de modifications"
+  },
+
+  "countChangesOther": {
+    "message": "$1 modifications"
+  },
+
   "countFoldersOne": {
     "message": "$1 dossier"
   },
@@ -1078,6 +1130,18 @@
     "message": "Fermer (Échap)"
   },
 
+  "propertiesOnDial": {
+    "message": "Dans l’accès rapide"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · dans le dossier $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Entrée enregistre, Échap annule"
+  },
+
   "propertiesTitleLabel": {
     "message": "Titre",
     "description": "The tile's title"
@@ -1123,9 +1187,7 @@
     "message": "Glissez une image sur l’aperçu ou collez-la avec Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "Source"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Page"

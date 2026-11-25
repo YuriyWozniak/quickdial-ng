@@ -356,8 +356,7 @@ async function main() {
 	const themesShot = async scheme => {
 		const themesWindow = await open(scheme, 'zones', { theme: 'plum' });
 		await themesWindow.saveThemes(['desktopDay']); await themesWindow.look({ theme: 'plum' });
-		const settings = await themesWindow.openSettings('Themes');
-		await scrollTo(settings, '#TabThemes .qd-card');
+		await themesWindow.openSettings('Themes');
 		const shot = await themesWindow.capture(); await themesWindow.context.close();
 		return shot;
 	};
@@ -383,7 +382,7 @@ async function main() {
 		dialWindow = await open(scheme, 'zones', { theme: 'plum' });
 		await dialWindow.saveThemes(['desktopDay']); await dialWindow.look({ theme: 'plum' });
 		const settings = await dialWindow.openSettings('Themes');
-		await scrollTo(settings, '#TabThemes .qd-card'); await dialWindow.shot(scheme === 'light' ? 'settings-themes' : 'settings-themes-dark', WEBSITE_OUT);
+		await dialWindow.shot(scheme === 'light' ? 'settings-themes' : 'settings-themes-dark', WEBSITE_OUT);
 		if (scheme === 'light') {
 			await settings.click('#TabTilesButton'); await wait(CLICK_WAIT); await dialWindow.shot('settings-tiles', WEBSITE_OUT);
 			await scrollTo(settings, 'tr:has(#GridCellsBackgroundColor)', 44); await dialWindow.shot('settings-tiles-glass', WEBSITE_OUT);

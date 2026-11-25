@@ -127,6 +127,10 @@
     "message": "Незбережені зміни"
   },
 
+  "statusNotApplied": {
+    "message": "Ще не застосовано: $1 · Ctrl+S — застосувати"
+  },
+
   "statusApplied": {
     "message": "Зміни застосовано"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Налаштування"
+  },
+
   "settingsTabPage": {
     "message": "Сторінка"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Резервна копія"
+  },
+
+  "settingsPageIntro": {
+    "message": "Тло швидкого набору, мова і те, як відкривається Quick Dial NG."
+  },
+
+  "settingsGridIntro": {
+    "message": "Скільки плиток на сторінці, їхня форма й зображення та де вони відкриваються."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Як виглядають плитки та їхні назви — звичайно й під вказівником."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Збережіть налаштування, плитки й теми в один файл і відновіть їх із нього."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Колір кнопок, перемикачів, вкладок і рамки фокуса у вікнах Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Власний"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "ширина : висота"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 на сторінці"
+  },
+
   "settingsPageMargin": {
     "message": "Поля сторінки"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Плитка",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Ефекти"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Пунктир: як у «Звичайна»"
   },
 
   "settingsSpacing": {
@@ -1033,6 +1073,22 @@
     "message": "$1 плитки"
   },
 
+  "countChangesOne": {
+    "message": "$1 зміна"
+  },
+
+  "countChangesFew": {
+    "message": "$1 зміни"
+  },
+
+  "countChangesMany": {
+    "message": "$1 змін"
+  },
+
+  "countChangesOther": {
+    "message": "$1 зміни"
+  },
+
   "countFoldersOne": {
     "message": "$1 тека"
   },
@@ -1090,6 +1146,18 @@
     "message": "Закрити (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "На швидкому наборі"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · у теці $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Enter — зберегти, Esc — скасувати"
+  },
+
   "propertiesTitleLabel": {
     "message": "Назва",
     "description": "The tile's title"
@@ -1135,9 +1203,7 @@
     "message": "Перетягніть зображення на область перегляду або вставте його з буфера (Ctrl+V)."
   },
 
-  "propertiesSource": {
-    "message": "Джерело"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Сторінка"

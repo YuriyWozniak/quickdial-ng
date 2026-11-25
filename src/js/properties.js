@@ -18,17 +18,17 @@ app.init = function(){
 		if(e.key == 'Escape') QDUI.closePopup();
 		else if(e.key == 'Enter' && (e.target === Title || e.target === Url)){ e.preventDefault(); BtnOk.onclick(); }
 	});
-	app.changes = QDUI.trackChanges(BtnApply, Status);
+	app.changes = QDUI.trackChanges(BtnApply, Status, null, () => QDCommon.text('statusUnsaved') + ' · ' + QDCommon.text('propertiesKeysHint'));
 	QDClient.getSettings().then(settings => {
 		app.settings = settings;
 		QDUI.setAccent(settings.accentColor);
-		app.sizePreview();
+		app.paintPreview(false);
 		return QDClient.getNodeById(new URL(window.location).searchParams.get('id'));
 	}).then(node => {
 		if(!node){ app.showDeleted(); return; }
-		return QDClient.getImages([node.id]).then(images => { // Images are stored separately: get this one
+		return Promise.all([QDClient.getImages([node.id]), QDClient.getNodeFolders(node.id)]).then(([images, folders]) => { // Images are stored separately: get this one
 			if(node.image == '1') node.image = images[node.id] || null;
-			app.initNode(node);
+			app.initNode(node, folders);
 			app.changes.start();
 		});
 	});
@@ -56,16 +56,17 @@ app.showDeleted = function(){
 	QDUI.fitPopup();
 };
 
-// Preview box in the same proportions as the tiles on the dial, at most PREVIEW_MAX_WIDTH x PREVIEW_MAX_HEIGHT pixels
-app.PREVIEW_MAX_WIDTH = 240;
-app.PREVIEW_MAX_HEIGHT = 190;
-app.sizePreview = function(){
-	const ratio = QDCommon.tileRatio(app.settings.grid);
-	let width = app.PREVIEW_MAX_WIDTH, height = width * ratio;
-	if(height > app.PREVIEW_MAX_HEIGHT){ height = app.PREVIEW_MAX_HEIGHT; width = height / ratio; }
-	ImageZone.style.width = Math.round(width) + 'px';
-	ImageZone.style.height = Math.round(height) + 'px';
-	ImageZone.style.aspectRatio = 'auto';
+// The tile as the dial draws it, on the dial's background, PREVIEW_WIDTH px wide (the tile's shape gives its height, at most
+// PREVIEW_MAX_HEIGHT px): its border, corners, title and shadow come from the settings; under the pointer it shows its
+// hover style
+app.PREVIEW_WIDTH = 220;
+app.PREVIEW_MAX_HEIGHT = 200;
+app.paintPreview = function(hover){
+	const settings = app.settings;
+	if(!settings) return; // not read yet
+	TileStage.style.backgroundColor = settings.backgroundColor;
+	TileStage.style.backgroundImage = QDThemes.background(settings.backgroundImage, settings.backgroundGradient);
+	QDThemes.paintTile(TilePreview, settings.grid.cells, hover, QDCommon.tileRatio(settings.grid), app.PREVIEW_WIDTH, app.PREVIEW_MAX_HEIGHT);
 };
 
 app.showImage = function(){
@@ -80,10 +81,12 @@ app.showImage = function(){
 	ImageDefault.disabled = isFolder && !picture;
 };
 
-app.initNode = function(node){
+// folders: the names of the folders the tile is in, below the dial's own folder (none on the dial's first page)
+app.initNode = function(node, folders){
 	app.node = node;
 	const isFolder = node.type == QDCommon.NodeType.folder;
 	Title.value = node.title;
+	TileTitle.textContent = node.title;
 	ImageMode.value = (node.imageMode || node.imageMode == 0) ? node.imageMode : QDCommon.ImageMode.inherit;
 	IconBookmark.toggleAttribute('hidden', isFolder); // SVG elements have no .hidden property
 	IconFolder.toggleAttribute('hidden', !isFolder);
@@ -104,6 +107,7 @@ app.initNode = function(node){
 		ImageDefault.hidden = true;
 		Url.value = node.url;
 	}
+	if(folders && folders.length) HeaderSubtitle.textContent = QDCommon.text('propertiesInFolder', HeaderSubtitle.textContent, folders.join(' › '));
 	picture = app.originalPicture();
 	source = app.originalSource();
 	app.useThemeColors();
@@ -148,16 +152,22 @@ app.hideChoices = function(){ // Neither the site's icons nor the icon picker
 	IconPicker.hidden = true;
 };
 
-// Presses the button of a source: the one in use, or `shown` (Site icon, while the icons are being found)
+// Presses the tab of a source: the one in use, or `shown` (Site icon while the icons are being found, File while a
+// file is being chosen). File's panel (its Choose button) shows with its tab; the others' panels show themselves.
 app.showSource = function(shown){
 	const ImageSource = QDCommon.ImageSource;
 	let pressed = shown == null ? source : shown;
 	if(pressed == ImageSource.letter) pressed = ImageSource.siteIcon; // A letter tile is one of the Site icon choices
 	for(const option of app.sourceOptions()) option.setAttribute('aria-pressed', String(+option.dataset.source == pressed));
+	ImageChooseRow.hidden = pressed != ImageSource.file;
 };
 app.chooseSource = function(chosen){
 	const ImageSource = QDCommon.ImageSource;
 	if(chosen == ImageSource.file){ // The source becomes File once a picture is chosen (QDUI.imagePicker below)
+		app.hideChoices();
+		SourceHint.textContent = '';
+		app.showSource(ImageSource.file);
+		QDUI.fitPopup();
 		ImageFile.click();
 		return;
 	}
@@ -506,6 +516,9 @@ app.initButtons = function(){
 	BtnApply.onclick = function(){ app.save(); };
 	BtnCancel.onclick = BtnClose.onclick = function(){ QDUI.closePopup(); };
 	Url.addEventListener('input', () => { Url.classList.remove('is-invalid'); });
+	Title.addEventListener('input', () => { TileTitle.textContent = Title.value; });
+	TilePreview.addEventListener('mouseenter', () => { app.paintPreview(true); });
+	TilePreview.addEventListener('mouseleave', () => { app.paintPreview(false); });
 
 	ImageMode.onchange = function(){ app.showImage(); };
 	ImageReset.onclick = function(){ // Back to the picture the tile had when this window opened

@@ -127,6 +127,10 @@
     "message": "Modifiche non salvate"
   },
 
+  "statusNotApplied": {
+    "message": "Non ancora applicato: $1 · Ctrl+S per applicare"
+  },
+
   "statusApplied": {
     "message": "Modifiche applicate"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Impostazioni"
+  },
+
   "settingsTabPage": {
     "message": "Pagina"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Backup"
+  },
+
+  "settingsPageIntro": {
+    "message": "Lo sfondo dell’accesso rapido, la lingua e come si apre Quick Dial NG."
+  },
+
+  "settingsGridIntro": {
+    "message": "Quanti riquadri ha una pagina, la loro forma e le immagini, e dove si aprono."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Come appaiono i riquadri e i loro titoli, normalmente e sotto il puntatore."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Salva impostazioni, riquadri e temi in un unico file e ripristinali da lì."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Colore di pulsanti, interruttori, schede e contorni di focus in Quick Dial NG"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Personalizzato"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "larghezza : altezza"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 per pagina"
+  },
+
   "settingsPageMargin": {
     "message": "Margine della pagina"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Riquadro",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Effetti"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Tratteggiato: come Normale"
   },
 
   "settingsSpacing": {
@@ -1029,6 +1069,18 @@
     "message": "$1 riquadri"
   },
 
+  "countChangesOne": {
+    "message": "$1 modifica"
+  },
+
+  "countChangesMany": {
+    "message": "$1 di modifiche"
+  },
+
+  "countChangesOther": {
+    "message": "$1 modifiche"
+  },
+
   "countFoldersOne": {
     "message": "$1 cartella"
   },
@@ -1078,6 +1130,18 @@
     "message": "Chiudi (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "Nell’accesso rapido"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · nella cartella $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Invio salva, Esc annulla"
+  },
+
   "propertiesTitleLabel": {
     "message": "Titolo",
     "description": "The tile's title"
@@ -1123,9 +1187,7 @@
     "message": "Trascina un’immagine sull’anteprima o incollala con Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "Origine"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Pagina"

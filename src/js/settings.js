@@ -12,8 +12,13 @@ let backIcon = null;
 let folderIcon = null;
 
 // Sizes and times of this page
-const SAMPLE_TILE_WIDTH = 152; // px: the sample tiles of the Tiles tab and the theme cards (.qd-tile-slot, css/settings.css)
+const SAMPLE_TILE_WIDTH = 152; // px: the sample tiles of the Tiles tab and the theme cards (.qd-tile-slot, css/page.css)
 const SAMPLE_TILE_MAX_HEIGHT = 200; // px: taller shapes are cut off
+const GRID_PREVIEW_WIDTH = 220; // px: the cells of the grid preview (Grid tab) fit in this box (.qd-grid-preview, css/settings.css)
+const GRID_PREVIEW_HEIGHT = 124;
+const GRID_PREVIEW_GAP = 2; // px between its cells
+const GRID_PREVIEW_MIN_CELL = 1; // px: a cell is drawn at least this large, however many there are
+const GRID_PREVIEW_CELL_OPACITY = .45; // its cells are the title colour at this opacity
 const COPIED_LABEL_TIME = 2000; // ms the Copy export snippet button says Copied
 const DOWNLOAD_URL_LIFETIME = 1000; // ms a downloaded file's object URL is kept
 
@@ -22,7 +27,7 @@ document.addEventListener('DOMContentLoaded', event => {
 });
 
 // Form fields and the setting each one edits: { id: element id, path: settings path, kind, nullToggle: id of the
-// "None"/"Default" checkbox (color? only), nullColor: colour shown while that checkbox is on }
+// "None" checkbox or the "Default" radio button (color? only), nullColor: colour shown while that one is on }
 // Kinds: num, pct (0..1 shown as %), bool, color, color? (null = the checkbox), text, choice (a list's value;
 // one the list doesn't have shows its first item)
 const FIELDS = (function(){
@@ -99,6 +104,7 @@ app.fillForm = function(settings){
 			default: element.value = value == null ? '' : value;
 		}
 	});
+	AccentCustom.checked = !AccentDefault.checked; // the accent's Default | Custom are two radio buttons; FIELDS knows the first
 	backgroundImage = settings.backgroundImage;
 	backgroundGradient = settings.backgroundGradient;
 	backIcon = settings.grid.backIcon;
@@ -126,17 +132,36 @@ app.readForm = function(settings){
 };
 // What the form shows right now, as a full settings object (the saved settings are not touched)
 app.formSettings = function(){ return app.readForm(app.clone(app.settings)); };
+// How many settings the form has changed (each field and each picture counts once): the footer says so while they
+// are not applied, with the shortcut that applies them
+app.PICTURES = ['backgroundImage', 'backgroundGradient', 'grid.backIcon', 'grid.folderIcon'];
+app.countChanges = function(){
+	if(!app.settings) return 0;
+	// null and an empty field are the same "nothing"; a colour reads the same in either case (#FFFFFF, #ffffff)
+	const comparable = value => value == null || value === '' ? 'null' : JSON.stringify(value).toLowerCase();
+	const form = app.formSettings(), differs = path => comparable(app.objectPath.get(form, path)) != comparable(app.objectPath.get(app.settings, path));
+	return FIELDS.filter(field => differs(field.path)).length + app.PICTURES.filter(differs).length;
+};
+app.describeChanges = function(){
+	const count = app.countChanges();
+	return count ? QDCommon.text('statusNotApplied', QDCommon.countText('countChanges', count)) : QDCommon.text('statusUnsaved');
+};
 
 app.init = function(){
 	// Settings has its own tab (opened from the toolbar button, the dial's menu or Firefox's Add-ons page)
 	QDUI.localize();
 	try { Version.textContent = QDCommon.text('settingsVersion', browser.runtime.getManifest().version); } catch(e) { Version.textContent = ''; }
+	for(const tab of Tabs.querySelectorAll('[role=tab]')) tab.title = tab.textContent.trim(); // a narrow window shows only the icons
 	app.tabs = QDUI.initTabs(Tabs, btn => {
+		const panel = btn.getAttribute('aria-controls');
 		Content.scrollTop = 0;
 		PanelTitle.textContent = btn.textContent.trim();
+		QDUI.setRichText(PanelIntro, QDCommon.text(document.getElementById(panel).dataset.i18nIntro)); // what the section is about (data-i18n-intro)
+		TilesTools.hidden = panel != 'TabTiles';
+		ThemesTools.hidden = panel != 'TabThemes';
 		history.replaceState(null, '', '?tab=' + btn.id.replace(/^Tab|Button$/g, '').toLowerCase()); // a reload stays on this section
 	});
-	app.changes = QDUI.trackChanges(BtnApply, Status, BtnDiscard);
+	app.changes = QDUI.trackChanges(BtnApply, Status, BtnDiscard, app.describeChanges);
 	app.setupActions();
 	app.setupPage();
 	app.setupGrid();
@@ -223,9 +248,18 @@ app.setupGrid = function(){
 	GridBackImageReset.onclick = app.pictureEdit(() => { backIcon = QDCommon.BACK_ICON; });
 	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = QDCommon.FOLDER_ICON; });
 };
-// Tab Tiles: the title fonts (an imported theme's font is added when the form is filled, fillForm) and the click
-// effect preview: it plays on the Hover sample when another effect is picked, and on a sample tile when it is clicked
+// Tab Tiles: Tile | Title (which rows of the style table are shown), the title fonts (an imported theme's font is added
+// when the form is filled, fillForm) and the click effect preview: it plays on the Hover sample when another effect is
+// picked, and on a sample tile when it is clicked
 app.setupTiles = function(){
+	[TilesPartTile, TilesPartTitle].forEach(part => {
+		part.onclick = () => {
+			for(const button of [TilesPartTile, TilesPartTitle]){
+				button.setAttribute('aria-pressed', String(button === part));
+				document.getElementById(button.getAttribute('aria-controls')).hidden = button !== part;
+			}
+		};
+	});
 	QDThemes.FONTS.forEach(font => { GridCellsTitleFont.add(new Option(font.label, font.value)); });
 	app.clickEffectStyle = document.head.appendChild(document.createElement('style')); // filled by updatePreviews
 	GridCellsClickEffect.addEventListener('change', () => {
@@ -342,44 +376,51 @@ app.updatePreviews = function(){
 	// "None" / "Default" switch off the colour next to them
 	FIELDS.forEach(field => { if(field.nullToggle) document.getElementById(field.id).disabled = document.getElementById(field.nullToggle).checked; });
 
+	const dialBackground = QDThemes.background(backgroundImage, backgroundGradient);
 	TileStage.style.backgroundColor = s.backgroundColor;
-	TileStage.style.backgroundImage = QDThemes.background(backgroundImage, backgroundGradient);
+	TileStage.style.backgroundImage = dialBackground;
 	const ratio = QDCommon.tileRatio(s.grid);
-	app.paintTile(TileNormal, s.grid.cells, false, ratio);
-	app.paintTile(TileHover, s.grid.cells, true, ratio);
+	QDThemes.paintTile(TileNormal, s.grid.cells, false, ratio, SAMPLE_TILE_WIDTH, SAMPLE_TILE_MAX_HEIGHT);
+	QDThemes.paintTile(TileHover, s.grid.cells, true, ratio, SAMPLE_TILE_WIDTH, SAMPLE_TILE_MAX_HEIGHT);
 	app.clickEffectStyle.textContent = QDThemes.clickEffectRules('.qd-tile-stage .qd-tile', s.grid.cells.clickEffect, s.grid.cells.titleColorHover).join('\n');
+	app.markSameAsNormal();
+	app.paintGridPreview(s, ratio, dialBackground);
 	app.Themes.markCurrent(s);
 };
 
-// Draws a sample tile (.qd-tile in a .qd-tile-slot, SAMPLE_TILE_WIDTH px wide) the way the dial would
-app.paintTile = function(tile, cells, hover, ratio){
-	const suffix = hover ? 'Hover' : '';
-	const num = function(name){ return Math.max(0, +cells[name + suffix] || 0); };
-	const margin = num('margin'), border = num('borderSize'), showTitle = !!cells['title' + suffix], titleHeight = num('titleHeight');
-	const titleOverlay = cells.titlePosition == QDThemes.TitlePosition.over;
-	const height = Math.round((SAMPLE_TILE_WIDTH - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !titleOverlay ? titleHeight : 0);
-	tile.parentNode.style.height = (Math.min(height, SAMPLE_TILE_MAX_HEIGHT) + 2 * margin) + 'px';
-	tile.classList.toggle('is-overlay', titleOverlay);
-	const style = tile.style;
-	style.margin = margin + 'px';
-	style.opacity = Math.min(1, num('opacity'));
-	style.border = border + 'px solid ' + cells['borderColor' + suffix];
-	style.borderRadius = num('borderRadius') + 'px';
-	style.backgroundColor = QDThemes.rgba(cells['backgroundColor' + suffix], num('backgroundOpacity'));
-	style.boxShadow = QDThemes.shadow(cells['shadow' + suffix]);
-	style.backdropFilter = num('blur') ? 'blur(' + num('blur') + 'px)' : 'none';
-	const moves = hover && !window.matchMedia('(prefers-reduced-motion: reduce)').matches; // as on the dial: no lift or zoom then
-	style.transform = (moves && QDThemes.hoverTransform(cells.hoverEffect)) || 'none';
-	const title = tile.lastElementChild.style;
-	title.display = showTitle ? '' : 'none';
-	title.height = titleHeight + 'px';
-	title.lineHeight = titleHeight + 'px';
-	title.fontSize = num('titleFontSize') + 'pt';
-	title.fontFamily = cells.titleFont;
-	title.fontWeight = cells.titleBold ? '600' : 'normal';
-	title.color = cells['titleColor' + suffix];
-	title.backgroundColor = QDThemes.rgba(cells['titleBackgroundColor' + suffix], num('titleBackgroundOpacity'));
-	title.borderTop = num('titleBorderSize') + 'px solid ' + cells['borderColor' + suffix];
+// Tiles: a Hover value that is the same as the Normal one is drawn dashed and grey (.is-same, css/settings.css), so the
+// styles that change under the pointer stand out
+app.markSameAsNormal = function(){
+	FIELDS.filter(field => /^GridCells.+Hover$/.test(field.id) && field.kind != 'bool').forEach(field => {
+		const hover = document.getElementById(field.id), normal = document.getElementById(field.id.replace(/Hover$/, ''));
+		const isNone = id => !!id && document.getElementById(id).checked; // "None" on: no colour, whatever the swatch shows
+		const hoverNone = isNone(field.nullToggle), normalNone = isNone(field.nullToggle && field.nullToggle.replace(/Hover$/, ''));
+		const same = hoverNone || normalNone ? hoverNone == normalNone : hover.value.toLowerCase() == normal.value.toLowerCase();
+		(hover.closest('.qd-number') || hover).classList.toggle('is-same', same);
+	});
+};
+
+// Grid: the page's cells in their rows, columns and shape on the dial's background, as large as the box allows; each
+// cell is drawn in the titles' colour, see-through: the theme keeps that readable on its background (a border colour
+// may not be, like Classic's dark grey)
+app.paintGridPreview = function(s, ratio, dialBackground){
+	const rows = Math.max(1, +s.grid.rows || 1), columns = Math.max(1, +s.grid.columns || 1), gap = GRID_PREVIEW_GAP, cells = s.grid.cells;
+	let cellWidth = (GRID_PREVIEW_WIDTH - (columns - 1) * gap) / columns, cellHeight = cellWidth * ratio;
+	if(rows * cellHeight + (rows - 1) * gap > GRID_PREVIEW_HEIGHT){
+		cellHeight = (GRID_PREVIEW_HEIGHT - (rows - 1) * gap) / rows;
+		cellWidth = cellHeight / ratio;
+	}
+	cellWidth = Math.max(GRID_PREVIEW_MIN_CELL, cellWidth);
+	cellHeight = Math.max(GRID_PREVIEW_MIN_CELL, cellHeight);
+	const color = QDThemes.rgba(cells.titleColor, GRID_PREVIEW_CELL_OPACITY);
+	GridPreview.style.backgroundColor = s.backgroundColor;
+	GridPreview.style.backgroundImage = dialBackground;
+	const style = GridPreviewCells.style;
+	style.width = Math.round(columns * cellWidth + (columns - 1) * gap) + 'px';
+	style.height = Math.round(rows * cellHeight + (rows - 1) * gap) + 'px';
+	style.backgroundImage = 'linear-gradient(' + color + ', ' + color + ')';
+	style.backgroundSize = cellWidth + 'px ' + cellHeight + 'px';
+	GridPreviewCaption.textContent = QDCommon.text('settingsGridPreview', QDCommon.countText('countTiles', rows * columns));
 };
 
 // ---------- themes ----------
@@ -425,6 +466,16 @@ app.Themes.render = function(){
 		const preview = makeElement('div', 'qd-theme-preview');
 		preview.style.backgroundColor = theme.style.backgroundColor;
 		preview.style.backgroundImage = QDThemes.background(null, theme.style.backgroundGradient);
+		// Export and Delete are icons: their names are their tooltips and what a screen reader says
+		function iconButton(label, title, icon, onclick){
+			const control = makeElement('button', 'qd-icon-btn');
+			control.type = 'button';
+			control.title = title;
+			control.setAttribute('aria-label', label);
+			control.appendChild(app.Themes.icon(icon));
+			control.onclick = onclick;
+			return control;
+		}
 		const ratio = QDCommon.tileRatio(app.settings.grid);
 		[false, true].forEach(hover => {
 			const slot = makeElement('div', 'qd-tile-slot'), tile = makeElement('div', 'qd-tile');
@@ -432,25 +483,29 @@ app.Themes.render = function(){
 			tile.appendChild(makeElement('div', 'qd-tile-title', QDCommon.text(hover ? 'tileHover' : 'tileExample')));
 			slot.appendChild(tile);
 			preview.appendChild(slot);
-			app.paintTile(tile, theme.style.grid.cells, hover, ratio);
+			QDThemes.paintTile(tile, theme.style.grid.cells, hover, ratio, SAMPLE_TILE_WIDTH, SAMPLE_TILE_MAX_HEIGHT);
 		});
 		card.appendChild(preview);
 		const body = makeElement('div', 'qd-theme-body');
 		const name = makeElement('h3', 'qd-theme-name', app.Themes.displayName(theme));
 		if(theme.builtin) name.appendChild(makeElement('span', 'qd-badge', QDCommon.text('themeBuiltIn')));
-		const current = makeElement('span', 'qd-badge is-accent', QDCommon.text('themeInUse'));
-		name.appendChild(current);
 		body.appendChild(name);
-		body.appendChild(makeElement('p', 'qd-theme-desc', app.Themes.displayDescription(theme)));
+		const description = makeElement('p', 'qd-theme-desc', app.Themes.displayDescription(theme));
+		description.title = description.textContent; // the card shows three lines of it
+		body.appendChild(description);
 		const actions = makeElement('div', 'qd-theme-actions');
-		const use = button(QDCommon.text('themeUse'), QDCommon.text('themeUseHint'), () => { app.Themes.use(theme); }, 'is-primary');
-		actions.appendChild(use);
-		actions.appendChild(button(QDCommon.text('themeExport'), QDCommon.text('themeExportHint'), () => { app.download(QDThemes.toFile({ name: theme.name, description: app.Themes.displayDescription(theme), style: theme.style }), QDThemes.fileName(theme.name)); }));
-		if(!theme.builtin) actions.appendChild(button(QDCommon.text('themeDelete'), QDCommon.text('themeDeleteHint'), () => { app.Themes.remove(theme); }));
+		const use = button(QDCommon.text('themeUse'), QDCommon.text('themeUseHint'), () => { app.Themes.use(theme); });
+		const current = makeElement('span', 'qd-theme-in-use'); // in place of Use, on the theme the form shows
+		current.append(app.Themes.icon(app.Themes.ICONS.check), QDCommon.text('themeInUse'));
+		actions.append(use, current);
+		actions.appendChild(iconButton(QDCommon.text('themeExport'), QDCommon.text('themeExportHint'), app.Themes.ICONS.download, () => {
+			app.download(QDThemes.toFile({ name: theme.name, description: app.Themes.displayDescription(theme), style: theme.style }), QDThemes.fileName(theme.name));
+		}));
+		if(!theme.builtin) actions.appendChild(iconButton(QDCommon.text('themeDelete'), QDCommon.text('themeDeleteHint'), app.Themes.ICONS.trash, () => { app.Themes.remove(theme); }));
 		body.appendChild(actions);
 		card.appendChild(body);
 		ThemeList.appendChild(card);
-		return { theme: theme, card: card, badge: current, use: use };
+		return { theme: theme, card: card, current: current, use: use };
 	});
 	app.Themes.markCurrent(app.formSettings());
 };
@@ -459,9 +514,20 @@ app.Themes.markCurrent = function(settings){ // highlights the theme the form cu
 	app.Themes.cards.forEach(entry => {
 		const isCurrent = QDThemes.equal(style, entry.theme.style);
 		entry.card.classList.toggle('is-current', isCurrent);
-		entry.badge.hidden = !isCurrent;
-		entry.use.disabled = isCurrent;
+		entry.current.hidden = !isCurrent;
+		entry.use.hidden = entry.use.disabled = isCurrent;
 	});
+};
+// The icons of the theme cards: the inside of a 16×16 stroked SVG
+app.Themes.ICONS = Object.freeze({
+	check: '<path d="M3 8.5 6.5 12 13 4.5"/>',
+	download: '<path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10"/>',
+	trash: '<path d="M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.6 8.5h5.8l.6-8.5"/>'
+});
+app.Themes.icon = function(paths){ // built from our own markup above, never from data
+	const svg = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+		+ paths + '</svg>', 'image/svg+xml').documentElement;
+	return document.importNode(svg, true);
 };
 app.Themes.use = function(theme){
 	const s = QDThemes.apply(app.formSettings(), theme.style);

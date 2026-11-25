@@ -18,10 +18,12 @@
 	/* text */
 	--qd-font: system-ui, "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
 	--qd-font-mono: ui-monospace, Consolas, "Cascadia Mono", monospace;
+	--qd-font-size-xl: 22px;  /* a Settings section's name */
 	--qd-font-size-lg: 15px;  /* titles */
+	--qd-font-size-h2: 14px;  /* card headings */
 	--qd-font-size: 13px;
 	--qd-font-size-sm: 12px;  /* hints, small buttons */
-	--qd-font-size-caps: 11px; /* small caps headings, badges */
+	--qd-font-size-caps: 11px; /* badges, captions on pictures */
 
 	/* sizes and corners */
 	--qd-control-h: 32px;
@@ -148,16 +150,10 @@
 	border-radius: var(--qd-radius-xs);
 }
 
-/* small caps headings: card titles, table headers */
-.qd :is(h2, th) {
-	font-size: var(--qd-font-size-caps);
-	font-weight: 600;
-	letter-spacing: .06em;
-	text-align: start;
-	text-transform: uppercase;
-	color: var(--qd-muted);
-}
-.qd h2 { margin: 0 0 var(--qd-row); }
+/* headings in sentence case: card titles in the text colour, table headers smaller and muted */
+.qd :is(h2, th) { font-weight: 600; text-align: start; }
+.qd h2 { margin: 0 0 var(--qd-row); font-size: var(--qd-font-size-h2); }
+.qd th { font-size: var(--qd-font-size-sm); color: var(--qd-muted); }
 
 .qd-title { margin: 0; font-size: var(--qd-font-size-lg); font-weight: 600; line-height: 1.25; }
 .qd-label { font-weight: 500; }
@@ -312,6 +308,8 @@
 .qd-btn.is-primary { min-width: 76px; color: var(--qd-accent-text); background: var(--qd-accent); border-color: var(--qd-accent); }
 .qd-btn.is-primary:hover { background: var(--qd-accent-hover); border-color: var(--qd-accent-hover); }
 .qd-btn.is-primary:active { background: var(--qd-accent-active); }
+/* a primary button with nothing to do looks like any other, not like a faded accent */
+.qd-btn.is-primary:disabled { color: var(--qd-text); background: var(--qd-surface-2); border-color: var(--qd-border); }
 .qd-btn.is-danger { color: var(--qd-danger-text); background: var(--qd-danger); border-color: var(--qd-danger); }
 .qd-btn.is-danger:hover { background: var(--qd-danger-hover); border-color: var(--qd-danger-hover); }
 
@@ -331,8 +329,23 @@
 .qd-icon-btn svg { width: 16px; height: 16px; }
 .qd-icon-btn:hover { color: var(--qd-text); background: var(--qd-surface-2); }
 
+/* a button that reads as a link: small actions next to a picture (Revert picture, Use default) */
+.qd-link-btn {
+	padding: 0;
+	font: inherit;
+	font-size: var(--qd-font-size-sm);
+	font-weight: 500;
+	color: var(--qd-accent);
+	background: none;
+	border: 0;
+	border-radius: var(--qd-radius-xs);
+	cursor: pointer;
+}
+.qd-link-btn:hover { text-decoration: underline; }
+.qd-link-btn:disabled { opacity: .45; text-decoration: none; cursor: default; }
+
 /* keyboard focus outline for every control that isn't a text field (fields get the ring above) */
-:is(.qd-btn, .qd-icon-btn, .qd-switch):focus-visible,
+:is(.qd-btn, .qd-icon-btn, .qd-link-btn, .qd-switch):focus-visible,
 .qd-lock:has(input:focus-visible) { outline: 2px solid var(--qd-focus); outline-offset: 2px; }
 
 /* ========== popup frame and dialogs on the dial page ========== */

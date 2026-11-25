@@ -2,7 +2,8 @@
 // A theme holds the background colour (and an optional CSS gradient), the accent colour of the
 // dialogs, the page margin and every tile and title style. It never holds the number of rows and
 // columns, the tile shape, the background picture or any behaviour, so applying one keeps the grid.
-// Loaded by the background page (defaults) and the Settings page (theme gallery, import/export).
+// Loaded by the background page (defaults), the Settings page (theme gallery, import/export) and the Properties
+// page (the tile drawn as on the dial).
 /* exported QDThemes */
 // eslint-disable-next-line no-var -- a window property: the background page, Settings and the tests use it
 var QDThemes = (function(){
@@ -411,12 +412,46 @@ var QDThemes = (function(){
 		tile._clickEffectTimer = setTimeout(() => { tile.classList.remove('is-clicked'); }, CLICK_EFFECT_DURATION);
 	}
 
+	// Draws a sample tile the way the dial would: Settings (the Tiles preview, the theme cards) and the tile in Properties.
+	// The tile is a .qd-tile in a .qd-tile-slot (css/page.css) whose last child is its title; the slot is `width` px wide,
+	// and gets the height of the tile in the shape `ratio` (height / width), at most `maxHeight` (taller shapes are cut off).
+	function paintTile(tile, cells, hover, ratio, width, maxHeight){
+		const suffix = hover ? 'Hover' : '';
+		const num = function(name){ return Math.max(0, +cells[name + suffix] || 0); };
+		const margin = num('margin'), border = num('borderSize'), showTitle = !!cells['title' + suffix], titleHeight = num('titleHeight');
+		const titleOverlay = cells.titlePosition == TitlePosition.over;
+		const height = Math.round((width - 2 * margin - 2 * border) * ratio) + 2 * border + (showTitle && !titleOverlay ? titleHeight : 0);
+		tile.parentNode.style.width = width + 'px';
+		tile.parentNode.style.height = (Math.min(height, maxHeight) + 2 * margin) + 'px';
+		tile.classList.toggle('is-overlay', titleOverlay);
+		const style = tile.style;
+		style.margin = margin + 'px';
+		style.opacity = Math.min(1, num('opacity'));
+		style.border = border + 'px solid ' + cells['borderColor' + suffix];
+		style.borderRadius = num('borderRadius') + 'px';
+		style.backgroundColor = rgba(cells['backgroundColor' + suffix], num('backgroundOpacity'));
+		style.boxShadow = shadow(cells['shadow' + suffix]);
+		style.backdropFilter = num('blur') ? 'blur(' + num('blur') + 'px)' : 'none';
+		const moves = hover && !window.matchMedia('(prefers-reduced-motion: reduce)').matches; // as on the dial: no lift or zoom then
+		style.transform = (moves && hoverTransform(cells.hoverEffect)) || 'none';
+		const title = tile.lastElementChild.style;
+		title.display = showTitle ? '' : 'none';
+		title.height = titleHeight + 'px';
+		title.lineHeight = titleHeight + 'px';
+		title.fontSize = num('titleFontSize') + 'pt';
+		title.fontFamily = cells.titleFont;
+		title.fontWeight = cells.titleBold ? '600' : 'normal';
+		title.color = cells['titleColor' + suffix];
+		title.backgroundColor = rgba(cells['titleBackgroundColor' + suffix], num('titleBackgroundOpacity'));
+		title.borderTop = num('titleBorderSize') + 'px solid ' + cells['borderColor' + suffix];
+	}
+
 	return {
 		CLASSIC: CLASSIC, BUILTIN: BUILTIN, FONTS: FONTS, HoverEffect: HoverEffect, ClickEffect: ClickEffect, TitlePosition: TitlePosition, Shadow: Shadow,
 		FILE_FORMAT: FILE_FORMAT, NAME_MAX_LENGTH: NAME_MAX_LENGTH,
 		normalize: normalize, extract: extract, apply: apply, equal: equal, complete: complete,
 		toFile: toFile, fromFile: fromFile, cleanList: cleanList, isBuiltinName: isBuiltinName, fileName: fileName,
 		rgba: rgba, background: background, shadow: shadow, hoverTransform: hoverTransform,
-		clickEffectRules: clickEffectRules, playClickEffect: playClickEffect
+		clickEffectRules: clickEffectRules, playClickEffect: playClickEffect, paintTile: paintTile
 	};
 })();

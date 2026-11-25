@@ -95,8 +95,9 @@ module.exports = {
 		await popup.locator('#Title').fill('My site');
 		await popup.locator('#TitleLocked').check({ force: true });
 		await popup.locator('#ImageMode').selectOption(ImageFit.contain);
-		const edited = await inPopup(testPage, () => ({ apply: BtnApply.disabled, status: Status.textContent, size: ImagePreview.style.backgroundSize }));
-		testPage.check('edits enable Apply and preview the fit', !edited.apply && edited.status === 'Unsaved changes' && edited.size === 'contain', edited);
+		const edited = await inPopup(testPage, () => ({ apply: BtnApply.disabled, status: Status.textContent, size: ImagePreview.style.backgroundSize, tileTitle: TileTitle.textContent }));
+		testPage.check('edits enable Apply and preview the fit; the tile drawn as on the dial shows the new title', !edited.apply && edited.status === 'Unsaved changes · Enter saves, Esc cancels'
+			&& edited.size === 'contain' && edited.tileTitle === 'My site', edited);
 		await popup.locator('#BtnApply').click();
 		await testPage.idle();
 		const applied = { node: await nodeById(testPage, 'b1'), bookmark: await testPage.inHost(() => dialFolderBookmarks()[0].title), open: await popupOpen(testPage) };
@@ -174,7 +175,7 @@ module.exports = {
 		const iconSite = sitePage(testPage, 'icon-site.html', '<!doctype html><html><head><title>Icon site</title><link rel="icon" href="icon.svg"></head><body></body></html>');
 		await testPage.inHost(address => { backgroundPage().app.GridNodes.getNodeById('b5').url = address; }, iconSite);
 		popup = await openProperties(testPage, 'b5');
-		const pressedSources = () => inPopup(testPage, () => [...document.querySelectorAll('.qd-segment')].map(option => option.getAttribute('aria-pressed') === 'true'));
+		const pressedSources = () => inPopup(testPage, () => [...document.querySelectorAll('.qd-source-tab')].map(option => option.getAttribute('aria-pressed') === 'true'));
 		const sourceForm = { pressed: await pressedSources(), ...await inPopup(testPage, () => ({ chooseHidden: ImageChooseRow.hidden, choicesHidden: IconList.hidden })) };
 		testPage.check('a screenshot tile: Page pressed; File is a source, so no separate Choose button', testPage.same(sourceForm.pressed, [true, false, false, false])
 			&& sourceForm.chooseHidden && sourceForm.choicesHidden, sourceForm);
@@ -212,6 +213,7 @@ module.exports = {
 		popup = await openProperties(testPage, 'b6');
 		const [fileChooser] = await Promise.all([testPage.page.waitForEvent('filechooser'), popup.locator('#SourceFileOption').click()]);
 		const sourcesWhileChoosing = await pressedSources();
+		const chooseShown = await inPopup(testPage, () => !ImageChooseRow.hidden);
 		await fileChooser.setFiles(pngFile(png));
 		await testPage.waitFor('the chosen picture', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.SourceFileOption.getAttribute('aria-pressed') === 'true');
 		const fileChosen = await pressedSources();
@@ -219,8 +221,9 @@ module.exports = {
 		await popupClosed(testPage);
 		await testPage.idle();
 		const fileTile = await nodeById(testPage, 'b6');
-		testPage.check('File opens the file chooser; the source is File once a picture is chosen, and saved with it', testPage.same(sourcesWhileChoosing, [true, false, false, false])
-			&& testPage.same(fileChosen, [false, false, false, true]) && fileTile.imageSource === ImageSource.file, [sourcesWhileChoosing, fileChosen, fileTile]);
+		testPage.check('File opens the file chooser and shows its tab with a Choose button; the source is File once a picture is chosen, and saved with it',
+			testPage.same(sourcesWhileChoosing, [false, false, false, true]) && chooseShown
+			&& testPage.same(fileChosen, [false, false, false, true]) && fileTile.imageSource === ImageSource.file, [sourcesWhileChoosing, chooseShown, fileChosen, fileTile]);
 
 		// ----- Icon: a set is downloaded only when asked for; search, choose, colours; the retro set; a refused download; Remove -----
 		const restoreIconSets = await useTestIconSets(testPage);
@@ -314,6 +317,11 @@ module.exports = {
 		const folderBookmarkTitle = await testPage.inHost(() => dialFolderBookmarks().find(bookmark => bookmark.id === 'f1').title);
 		testPage.check('"Use default" shows the folder icon; OK renames the folder and drops its picture', defaultPicture.picture.includes('folder.svg') && defaultPicture.disabled
 			&& folder.title === 'Work' && !folder.image && folderBookmarkTitle === 'Work', [defaultPicture, folder, folderBookmarkTitle]);
+		popup = await openProperties(testPage, 'b7');
+		const inFolder = await inPopup(testPage, () => HeaderSubtitle.textContent);
+		testPage.check('a tile in a folder: the header names the folder it is in', inFolder === 'site7.example · in Work', inFolder);
+		await popup.locator('#BtnCancel').click();
+		await popupClosed(testPage);
 
 		// ----- the tile deleted while its window is open, or before it opens: only Close is left -----
 		const deletedState = () => inPopup(testPage, () => ({ sub: HeaderSubtitle.textContent, formHidden: document.querySelector('main').hidden,

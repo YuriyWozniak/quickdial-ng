@@ -37,6 +37,11 @@ app.Messages.init = function(){
 			case Commands.getNodeById:
 				sendResponse(GridNodes.getNodeById(request.id));
 				break;
+			case Commands.getNodeFolders: { // The folders between the dial's own folder and the tile (Properties shows them)
+				const nodes = GridNodes.getNodeWithParents(request.id);
+				sendResponse(nodes ? nodes.slice(1, -1).map(gridNode => gridNode.title) : []);
+				break;
+			}
 			case Commands.updateNode: { // Answers false when the tile is gone (deleted while its Properties window was open)
 				const gridNode = GridNodes.getNodeById(request.id);
 				if(gridNode){

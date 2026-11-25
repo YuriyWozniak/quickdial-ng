@@ -33,6 +33,7 @@ var QDCommon = Object.freeze({
 		iconSet: 22,
 		downloadIconSet: 23,
 		removeIconSet: 24,
+		getNodeFolders: 25,
 		settingsChanged: 100,
 		gridNodesLoaded: 101,
 		menuCreateBookmark: 200,
@@ -296,6 +297,8 @@ var QDClient = (function(){
 		// Tiles: `path` is the folder's path on the dial ("/", "/Work/"), `id` the tile's bookmark id
 		getNode: path => send(Commands.getNode, { path }),
 		getNodeById: id => send(Commands.getNodeById, { id }),
+		// The names of the folders a tile is in, below the dial's own folder ([] on the first page, or when they can't be read)
+		getNodeFolders: id => send(Commands.getNodeFolders, { id }).then(names => names || [], () => []),
 		getImages: ids => send(Commands.getImages, { ids }).then(images => images || {}, () => ({})), // { id: data URL }
 		updateNode: (id, value) => send(Commands.updateNode, { id, value }), // Answers false when the tile is gone
 		setNodeIndex: (path, index, newIndex) => send(Commands.setNodeIndex, { path, index, newIndex }),

@@ -127,6 +127,10 @@
     "message": "Несачуване измене"
   },
 
+  "statusNotApplied": {
+    "message": "Још није примењено: $1 · Ctrl+S за примену"
+  },
+
   "statusApplied": {
     "message": "Измене су примењене"
   },
@@ -229,6 +233,10 @@
     "description": "$1: the version number"
   },
 
+  "settingsTitle": {
+    "message": "Подешавања"
+  },
+
   "settingsTabPage": {
     "message": "Страница"
   },
@@ -247,6 +255,22 @@
 
   "settingsTabBackup": {
     "message": "Резервна копија"
+  },
+
+  "settingsPageIntro": {
+    "message": "Позадина брзог бирања, језик и како се Quick Dial NG отвара."
+  },
+
+  "settingsGridIntro": {
+    "message": "Колико плочица има страница, њихов облик и слике и где се отварају."
+  },
+
+  "settingsTilesIntro": {
+    "message": "Како изгледају плочице и њихови наслови, обично и испод показивача."
+  },
+
+  "settingsBackupIntro": {
+    "message": "Сачувајте подешавања, плочице и теме у једну датотеку и вратите их из ње."
   },
 
   "settingsOpenDial": {
@@ -295,6 +319,10 @@
 
   "settingsAccentColorHint": {
     "message": "Боја дугмади, прекидача, картица и оквира фокуса у Quick Dial NG-у"
+  },
+
+  "settingsAccentCustom": {
+    "message": "Прилагођена"
   },
 
   "settingsBehavior": {
@@ -369,6 +397,10 @@
     "message": "ширина : висина"
   },
 
+  "settingsGridPreview": {
+    "message": "$1 на страници"
+  },
+
   "settingsPageMargin": {
     "message": "Маргина странице"
   },
@@ -436,6 +468,14 @@
   "settingsGroupTile": {
     "message": "Плочица",
     "description": "Heading of the tile style rows"
+  },
+
+  "settingsEffects": {
+    "message": "Ефекти"
+  },
+
+  "settingsSameAsNormal": {
+    "message": "Испрекидано: исто као Обична"
   },
 
   "settingsSpacing": {
@@ -1029,6 +1069,18 @@
     "message": "$1 плочица"
   },
 
+  "countChangesOne": {
+    "message": "$1 измена"
+  },
+
+  "countChangesFew": {
+    "message": "$1 измене"
+  },
+
+  "countChangesOther": {
+    "message": "$1 измена"
+  },
+
   "countFoldersOne": {
     "message": "$1 фасцикла"
   },
@@ -1078,6 +1130,18 @@
     "message": "Затвори (Esc)"
   },
 
+  "propertiesOnDial": {
+    "message": "На брзом бирању"
+  },
+
+  "propertiesInFolder": {
+    "message": "$1 · у фасцикли $2"
+  },
+
+  "propertiesKeysHint": {
+    "message": "Enter чува, Esc отказује"
+  },
+
   "propertiesTitleLabel": {
     "message": "Наслов",
     "description": "The tile's title"
@@ -1123,9 +1187,7 @@
     "message": "Превуците слику на преглед или је налепите помоћу Ctrl+V."
   },
 
-  "propertiesSource": {
-    "message": "Извор"
-  },
+
 
   "propertiesSourcePage": {
     "message": "Страница"
