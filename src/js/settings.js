@@ -254,18 +254,19 @@ app.setupGrid = function(){
 	GridFolderImageReset.onclick = app.pictureEdit(() => { folderIcon = QDCommon.FOLDER_ICON; });
 };
 // Tab Tiles: Tile | Title above the style table (which of its rows are shown, with a line on what that part of a tile
-// is), the title fonts (an imported theme's font is added when the form is filled, fillForm) and the click effect
-// preview: it plays on the Hover sample when another effect is picked, and on a sample tile when it is clicked
+// is: data-i18n-hint of its button), the title fonts (an imported theme's font is added when the form is filled,
+// fillForm) and the click effect preview: it plays on the Hover sample when another effect is picked, and on a sample
+// tile when it is clicked
 app.setupTiles = function(){
-	const partHints = new Map([[TilesPartTile, 'settingsTilesPartTileHint'], [TilesPartTitle, 'settingsTilesPartTitleHint']]);
-	partHints.forEach((hint, part) => {
+	const parts = [TilesPartTile, TilesPartTitle];
+	parts.forEach(part => {
 		part.onclick = () => {
-			for(const button of partHints.keys()){
+			for(const button of parts){
 				button.setAttribute('aria-pressed', String(button === part));
 				document.getElementById(button.getAttribute('aria-controls')).hidden = button !== part;
 			}
-			TilesPartHint.dataset.i18n = hint; // kept, so the hint follows a change of the language too
-			QDUI.setRichText(TilesPartHint, QDCommon.text(hint));
+			TilesPartHint.dataset.i18n = part.dataset.i18nHint; // kept, so the hint follows a change of the language too
+			QDUI.setRichText(TilesPartHint, QDCommon.text(part.dataset.i18nHint));
 		};
 	});
 	QDThemes.FONTS.forEach(font => { GridCellsTitleFont.add(new Option(font.label, font.value)); });
