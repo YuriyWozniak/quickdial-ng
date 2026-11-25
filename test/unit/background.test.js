@@ -83,7 +83,7 @@ test('QDClient sends each command with its fields, answers failures with empty v
 	assert.equal(await QDClient.drawIcon({ image: 'data:image/svg+xml,x' }), null);
 	assert.deepEqual(plain(await QDClient.iconSets()), []);
 	assert.equal(await QDClient.iconSet('outline'), null);
-	assert.equal(await QDClient.downloadIconSet('outline'), 'no page', 'a download that can\'t be asked for says why');
+	assert.deepEqual(plain(await QDClient.downloadIconSet('outline')), { error: 'no page', gone: false }, 'a download that can\'t be asked for says why');
 	await assert.rejects(QDClient.getSettings(), 'other commands pass the failure on');
 
 	const received = [];

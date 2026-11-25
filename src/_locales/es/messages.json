@@ -1251,6 +1251,10 @@
     "message": "No se pudo descargar el conjunto ($1). Inténtalo más tarde."
   },
 
+  "propertiesIconSetGone": {
+    "message": "Este conjunto ya no está disponible para esta versión de Quick Dial NG. Actualiza Quick Dial NG a su última versión y vuelve a intentarlo. Los conjuntos que ya descargaste siguen funcionando."
+  },
+
   "propertiesIconSetBadFile": {
     "message": "el archivo no es el esperado"
   },

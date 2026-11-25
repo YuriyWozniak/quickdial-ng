@@ -78,7 +78,9 @@ A version can be signed only once on addons.mozilla.org. If something is wrong w
 
 The icon picker's sets (Properties › Icon) are not in the package. Each is a file of a release of this repository tagged `icons-<n>`, which the extension downloads only when the user clicks **Download**, and checks against the size and SHA-256 fingerprint in `src/iconsets.json`. Each set there has its own address, so a release holds only the sets that changed in it: `icons-1` has all three, and a later `icons-2` might hold only `outline.json`, while pixel and retro still come from `icons-1`. A set that didn't change keeps its address and fingerprint, so installed copies don't offer to download it again.
 
-Copies of the extension already installed keep checking a tag's files against their own `src/iconsets.json`, so **never replace or delete the files of a published tag**: make a new tag instead. The script refuses a tag that `src/iconsets.json` already uses.
+Copies of the extension already installed keep checking a tag's files against their own `src/iconsets.json`, so **never replace the files of a published tag**: make a new tag instead. The script refuses a tag that `src/iconsets.json` already uses.
+
+An old tag can be **deleted** once the current version no longer points at it and few users are left on the versions that do. Those users lose nothing they have: downloaded sets and the icons on their tiles stay. Only a new download from such a version finds the file gone (HTTP 404 or 410), and the picker then says the set is no longer available for this version, and asks them to update Quick Dial NG and try again. Before deleting a tag, check with `git log -p -- src/iconsets.json` which versions still point at it.
 
 To update a set (for example a newer Tabler Icons):
 

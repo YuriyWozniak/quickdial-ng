@@ -15,6 +15,9 @@ app.IconSets.State = Object.freeze({
 	old: 'old' // downloaded for an older iconsets.json: usable, and can be updated
 });
 app.IconSets.HASH = 'SHA-256';
+// The answers for a file that isn't there (any more): an old release taken down once few copies still use it. The error
+// is marked gone, and the picker asks the user to update Quick Dial NG, whose iconsets.json names the current files.
+app.IconSets.GONE = Object.freeze([404, 410]);
 app.IconSets._catalog = null; // promise of iconsets.json
 app.IconSets._downloads = {}; // set -> promise of the download under way
 
@@ -45,7 +48,8 @@ app.IconSets.get = function(name){
 	const key = app.IconSets.iconsKey(name);
 	return browser.storage.local.get(key).then(stored => stored[key] || null);
 };
-// Downloads a set and keeps it. Resolves when it is kept; rejects with the reason (an Error) when it can't be.
+// Downloads a set and keeps it. Resolves when it is kept; rejects with the reason (an Error, with gone: true when the file
+// isn't there any more) when it can't be.
 // Asked again while under way, it answers the same download.
 app.IconSets.download = function(name){
 	const downloads = app.IconSets._downloads;
@@ -56,6 +60,7 @@ app.IconSets._download = async function(name){
 	const catalog = await app.IconSets.catalog(), set = catalog.sets[name];
 	if(!set) throw new Error('no icon set ' + name);
 	const response = await fetch(set.url, { credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer' });
+	if(app.IconSets.GONE.includes(response.status)) throw Object.assign(new Error('HTTP ' + response.status), { gone: true });
 	if(!response.ok) throw new Error('HTTP ' + response.status);
 	const length = Number(response.headers.get('content-length'));
 	if(length && length != set.bytes) throw new Error(QDCommon.text('propertiesIconSetBadFile'));

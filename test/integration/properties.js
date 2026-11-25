@@ -256,6 +256,16 @@ module.exports = {
 		const refused = { ...await pickerState(), stored: await storedSets() };
 		testPage.check('a file that doesn\'t match its fingerprint is refused and says so; Download can be tried again', /the file isn’t the expected one/.test(refused.hint)
 			&& refused.download === 'Download' && !refused.gridShown && !refused.stored.some(key => key.endsWith('.pixel')), refused);
+		// The pixel set's release taken down: this version's iconsets.json points at a file that is gone
+		const catalogFile = path.join(testPage.dir, 'iconsets.json'), goneCatalog = JSON.parse(fs.readFileSync(catalogFile, 'utf8'));
+		goneCatalog.sets.pixel.url = testPage.base + 'site/icon-sets/taken-down/pixel.json';
+		fs.writeFileSync(catalogFile, JSON.stringify(goneCatalog));
+		await testPage.inHost(() => { backgroundPage().app.IconSets._catalog = null; }); // read again, as after a restart
+		await popup.locator('#IconSetDownload').click();
+		await testPage.waitFor('the explanation', () => /no longer available/.test(frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.SourceHint.textContent));
+		const gone = await pickerState();
+		testPage.check('a set file that is gone asks to update Quick Dial NG and try again; Download stays', /Update Quick Dial NG to its latest version and try again/.test(gone.hint)
+			&& gone.download === 'Download' && !gone.gridShown, gone);
 		await popup.locator('#IconSet').selectOption('retro');
 		await testPage.waitFor('the retro set', () => frameWindow('dial').document.querySelector('.qd-frame iframe').contentWindow.IconSetAbout.textContent.startsWith('Test retro 1'));
 		await popup.locator('#IconSetDownload').click();

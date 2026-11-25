@@ -272,7 +272,7 @@ app.SVG_ATTRIBUTES = Object.freeze({
 });
 app.iconPicker = {
 	sets: [], // The sets and whether each is downloaded: [{ name, source, homepage, license, licenseUrl, count, bytes, state, downloading }]
-	failed: {}, // set -> why its last download failed
+	failed: {}, // set -> why its last download failed: { error, gone }
 	loaded: {}, // set -> promise of { icons: [{ name, words, body } or { name, words, x, y, size }], sprite, spriteUrl }
 	set: '', icons: [], shown: 0, // The set in the grid, its icons that match the search, and how many of them the grid has
 	sprite: null, spriteUrl: null, // The retro picture (an Image, and its blob: URL), when the grid shows the retro set
@@ -350,8 +350,8 @@ app.downloadIconSet = function(set){
 	info.downloading = true;
 	delete picker.failed[set];
 	app.showIcons();
-	QDClient.downloadIconSet(set).then(error => {
-		if(error) picker.failed[set] = error;
+	QDClient.downloadIconSet(set).then(failure => {
+		if(failure) picker.failed[set] = failure;
 		else app.forgetIconSet(set);
 		return app.readIconSets();
 	}).then(() => { if(!IconPicker.hidden && IconSet.value == set) app.showIcons(); });
@@ -399,7 +399,9 @@ app.showIcons = function(){
 	const usable = !!info && info.state != State.missing;
 	IconSearch.disabled = IconGrid.hidden = IconColors.hidden = !usable;
 	IconColor.disabled = set == app.IconSets.retro; // Those are in their own colours
-	const hint = () => failed ? QDCommon.text('propertiesIconSetFailed', failed) : (info && info.downloading ? '' : null);
+	// Why the last download failed: a file no longer there asks for a newer Quick Dial NG (its sets are elsewhere)
+	const hint = () => failed ? (failed.gone ? QDCommon.text('propertiesIconSetGone') : QDCommon.text('propertiesIconSetFailed', failed.error))
+		: (info && info.downloading ? '' : null);
 	if(!usable){
 		picker.set = '';
 		picker.icons = [];

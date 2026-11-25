@@ -74,11 +74,17 @@ test('a file that isn\'t the expected one, or doesn\'t come, is refused and noth
 	const { app, browser } = sandbox, badFile = sandbox.QDCommon.text('propertiesIconSetBadFile');
 	assert.ok(badFile.length > 0);
 	await assert.rejects(app.IconSets.download('outline'), { message: badFile });
-	await assert.rejects(app.IconSets.download('pixel'), { message: 'HTTP 404' });
+	await assert.rejects(app.IconSets.download('pixel'), { message: 'HTTP 404', gone: true });
 	await assert.rejects(app.IconSets.download('retro'), /no icon set/);
 	assert.deepEqual(Object.keys(browser.store), []);
 	assert.deepEqual(await states(app.IconSets), [['outline', State.missing], ['pixel', State.missing]]);
 	assert.equal((await app.IconSets.list())[0].downloading, false, 'no longer under way');
+});
+
+test('a file that is gone (404, 410: an old release taken down) is marked so; other failures are not', async () => {
+	const { app } = setup({ [OUTLINE_URL]: 410, [PIXEL_URL]: 500 });
+	await assert.rejects(app.IconSets.download('outline'), error => error.gone === true && error.message === 'HTTP 410');
+	await assert.rejects(app.IconSets.download('pixel'), error => !error.gone && error.message === 'HTTP 500');
 });
 
 test('a set downloaded for an older iconsets.json is kept as old until updated; Remove forgets it', async () => {

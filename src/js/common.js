@@ -314,8 +314,10 @@ var QDClient = (function(){
 		iconSets: () => send(Commands.iconSets).then(sets => sets || [], () => []),
 		// A downloaded set, as in its file, or null
 		iconSet: name => send(Commands.iconSet, { name }).then(set => set || null, () => null),
-		// Downloads a set: answers null when it is kept, else why it isn't (a text)
-		downloadIconSet: name => send(Commands.downloadIconSet, { name }).then(answer => answer ? answer.error : 'no answer', e => String(e && e.message || e)),
+		// Downloads a set: answers null when it is kept, else { error: why not (a text), gone: the file isn't there any more }
+		downloadIconSet: name => send(Commands.downloadIconSet, { name }).then(
+			answer => !answer ? { error: 'no answer', gone: false } : (answer.error ? { error: answer.error, gone: !!answer.gone } : null),
+			e => ({ error: String(e && e.message || e), gone: false })),
 		removeIconSet: name => send(Commands.removeIconSet, { name }),
 		// The icons of a site and a letter tile for it, as tile pictures: { title, icons: [{ picture, width, height, isVector }], letter }
 		findSiteIcons: (url, title) => send(Commands.findSiteIcons, { url, title }).then(found => found || noIcons(), noIcons)

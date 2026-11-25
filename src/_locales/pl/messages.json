@@ -1263,6 +1263,10 @@
     "message": "Nie udało się pobrać zestawu ($1). Spróbuj ponownie później."
   },
 
+  "propertiesIconSetGone": {
+    "message": "Ten zestaw nie jest już dostępny dla tej wersji Quick Dial NG. Zaktualizuj Quick Dial NG do najnowszej wersji i spróbuj ponownie. Już pobrane zestawy nadal działają."
+  },
+
   "propertiesIconSetBadFile": {
     "message": "plik nie jest tym oczekiwanym"
   },
