@@ -3,7 +3,7 @@
 app.SiteInfos = {};
 
 app.SiteInfos.PREVIEW_WIDTH = 1200; // Width a page is drawn at for its picture; the height follows the tile proportions
-app.SiteInfos._previewSize = function(){ // Size of a tile picture, in the tiles' proportions
+app.SiteInfos.pictureSize = function(){ // Size of a tile picture, in the tiles' proportions (SiteIcons draws its pictures at it too)
 	const grid = app.settings.grid;
 	const width = app.SiteInfos.PREVIEW_WIDTH;
 	let height = width / grid.ratioX * grid.ratioY;
@@ -67,7 +67,7 @@ app.SiteInfos._fromScreenshot = async function(tab, image){
 	const img = new Image();
 	img.src = image;
 	await img.decode(); // Drawn only once it is decoded: drawing it earlier gives a blank picture
-	const size = app.SiteInfos._previewSize();
+	const size = app.SiteInfos.pictureSize();
 	const { canvas, ctx } = app.SiteInfos._canvas(size);
 	if(tab.height * size.width / size.height >= tab.width){ // Cut the bottom of the page
 		ctx.drawImage(img, 0, 0, tab.width, tab.width / size.width * size.height, 0, 0, size.width, size.height);
@@ -88,7 +88,7 @@ app.SiteInfos._fromFrame = function(url, done){ // done(infos), or done(null) wh
 		fail();
 		return;
 	}
-	const size = app.SiteInfos._previewSize();
+	const size = app.SiteInfos.pictureSize();
 	let iframe;
 	const pageLoaded = () => { // onload, or a timeout for pages that never finish: whichever comes first
 		if(!iframe) return;

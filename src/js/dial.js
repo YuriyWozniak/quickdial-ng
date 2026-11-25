@@ -75,7 +75,7 @@ app.getImages = function(ids){ // { id: data URL }; never rejects
 	return app.bg.Images.get(ids).catch(() => ({}));
 };
 app.getCachedImage = function(id){ // A picture the background page holds in memory already (same process only), or null
-	return (app.bg && app.bg.Images && app.bg.Images._cache.get(id)) || null;
+	return (app.bg && app.bg.Images && app.bg.Images.cached(id)) || null;
 };
 // Messages the background page sends to every page
 app.listen = function(){

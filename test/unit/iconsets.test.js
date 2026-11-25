@@ -76,6 +76,7 @@ test('a file that isn\'t the expected one, or doesn\'t come, is refused and noth
 	await assert.rejects(app.IconSets.download('outline'), { message: badFile });
 	await assert.rejects(app.IconSets.download('pixel'), { message: 'HTTP 404', gone: true });
 	await assert.rejects(app.IconSets.download('retro'), /no icon set/);
+	for (const objectKey of ['constructor', '__proto__', 'toString']) await assert.rejects(app.IconSets.download(objectKey), /no icon set/, objectKey + ' is not a set');
 	assert.deepEqual(Object.keys(browser.store), []);
 	assert.deepEqual(await states(app.IconSets), [['outline', State.missing], ['pixel', State.missing]]);
 	assert.equal((await app.IconSets.list())[0].downloading, false, 'no longer under way');

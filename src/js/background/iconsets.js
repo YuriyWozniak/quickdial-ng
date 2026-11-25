@@ -19,7 +19,7 @@ app.IconSets.HASH = 'SHA-256';
 // is marked gone, and the picker asks the user to update Quick Dial NG, whose iconsets.json names the current files.
 app.IconSets.GONE = Object.freeze([404, 410]);
 app.IconSets._catalog = null; // promise of iconsets.json
-app.IconSets._downloads = {}; // set -> promise of the download under way
+app.IconSets._downloads = new Map(); // set -> promise of the download under way (a Map: a name is never an Object property)
 
 app.IconSets.catalog = function(){
 	if(!app.IconSets._catalog) app.IconSets._catalog = fetch(app.IconSets.CATALOG).then(response => {
@@ -40,7 +40,7 @@ app.IconSets.list = async function(){
 		const set = catalog.sets[name], info = stored[app.IconSets.infoKey(name)];
 		const state = !info ? app.IconSets.State.missing : (info.sha256 == set.sha256 ? app.IconSets.State.ready : app.IconSets.State.old);
 		return { name, source: set.source, homepage: set.homepage, license: set.license, licenseUrl: set.licenseUrl,
-			count: set.count, bytes: set.bytes, state, downloading: name in app.IconSets._downloads };
+			count: set.count, bytes: set.bytes, state, downloading: app.IconSets._downloads.has(name) };
 	});
 };
 // A downloaded set, as in its file ({ source, license, icons, ... }), or null
@@ -53,11 +53,12 @@ app.IconSets.get = function(name){
 // Asked again while under way, it answers the same download.
 app.IconSets.download = function(name){
 	const downloads = app.IconSets._downloads;
-	if(!downloads[name]) downloads[name] = app.IconSets._download(name).finally(() => { delete downloads[name]; });
-	return downloads[name];
+	if(!downloads.has(name)) downloads.set(name, app.IconSets._download(name).finally(() => { downloads.delete(name); }));
+	return downloads.get(name);
 };
 app.IconSets._download = async function(name){
-	const catalog = await app.IconSets.catalog(), set = catalog.sets[name];
+	const catalog = await app.IconSets.catalog();
+	const set = Object.prototype.hasOwnProperty.call(catalog.sets, name) ? catalog.sets[name] : null; // not "constructor" or "__proto__"
 	if(!set) throw new Error('no icon set ' + name);
 	const response = await fetch(set.url, { credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer' });
 	if(app.IconSets.GONE.includes(response.status)) throw Object.assign(new Error('HTTP ' + response.status), { gone: true });

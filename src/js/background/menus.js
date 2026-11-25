@@ -11,7 +11,7 @@ app.ContextMenus.initMenu = function(){ // (Called from app.init) Creates all me
 	const Commands = app.Messages.Commands;
 	const create = props => browser.contextMenus.create(props);
 	const text = QDCommon.text;
-	const toDial = cmd => (info, tab) => { browser.tabs.sendMessage(tab.id, { cmd }); }; // the dial page acts on the tile under the mouse
+	const toDial = cmd => (info, tab) => { browser.tabs.sendMessage(tab.id, { cmd }).catch(() => {}); }; // the dial page acts on the tile under the mouse (a tab closed meanwhile: nothing to do)
 	const openSettings = () => { app.openSettings(); };
 	const dialPages = ['moz-extension://*' + QDCommon.DIAL_PAGE, 'moz-extension://*' + QDCommon.DIAL_PAGE + '?*'];
 	const newItems = parentId => { // "New" › Bookmark, Folder

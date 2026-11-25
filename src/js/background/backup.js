@@ -3,7 +3,7 @@ app.Backup = {};
 
 app.Backup.export = function(){
 	return app.Images.get(app.Images.idsInTree(app.node)).then(images => {
-		const data = { format: QDCommon.BACKUP_FORMAT, version: app.Settings.DATA_VERSION, settings: app.settings, node: JSON.parse(app.Settings._serialize()).node, images };
+		const data = { format: QDCommon.BACKUP_FORMAT, version: app.Settings.DATA_VERSION, settings: app.settings, node: app.Backup._clean(app.node), images };
 		if(app.Themes.list.length) data.themes = app.Themes.list;
 		return data;
 	});
@@ -102,12 +102,12 @@ app.Backup.import = async function(data){ // Accepts a quickdial-ng backup or an
 			for(const oldId in data.images) if(idMap[oldId]) images[idMap[oldId]] = data.images[oldId];
 		}
 		await app.Images.removeTree(app.node);
-		app.Images._cache.clear();
+		app.Images.clearCache();
 		app.settings = settings;
 		app.node = node;
 		await app.Images.extractFromTree(app.node, images);
 		stats.images = app.Images.idsInTree(app.node).length;
-		delete app.Settings._loadFailed; // The user replaces the data: saved even after a failed load (see Settings.init)
+		app.Settings.useUserData(); // The user replaces the data: saved even after a failed load (see Settings.init)
 		await app.Settings.save();
 		if(Array.isArray(data.themes) && data.themes.length){ // Themes from the backup are added; a theme with the same name is replaced
 			const names = data.themes.map(t => String(t && t.name).trim().toLowerCase());

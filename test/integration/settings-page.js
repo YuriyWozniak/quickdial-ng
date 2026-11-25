@@ -1,4 +1,4 @@
-// The Settings page (html/settings.html, js/settings.js; its own tab since 0.5.0): sections, Apply /
+// The Settings page (html/settings.html, js/settings.js, settingsthemes.js, settingsbackup.js; its own tab since 0.5.0): sections, Apply /
 // Discard / Ctrl+S, the background picture, and the buttons of the Backup and Themes sections.
 // It is used as the user would: clicks, typing, files chosen (setInputFiles), dialogs answered (testPage.answer),
 // downloads caught (testPage.download). The page is opened in the "dial" frame (testPage.loadSettings).

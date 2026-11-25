@@ -121,8 +121,8 @@ module.exports = {
 		testPage.check('useSiteIcon makes the tile a site icon tile', iconTile.imageSource === ImageSource.siteIcon, iconTile);
 		const notAKind = await ask(testPage, { cmd: Commands.applyTilePicture, kind: 'icons' });
 		const takers = await testPage.inHost(kind => { // the tiles that take a site icon, in every folder
-			const GridNodes = backgroundPage().app.GridNodes, ids = [];
-			const collect = folder => (folder.children || []).forEach(tile => { if (GridNodes._takesPicture(tile, kind)) ids.push(tile.id); collect(tile); });
+			const TilePictures = backgroundPage().app.TilePictures, ids = [];
+			const collect = folder => (folder.children || []).forEach(tile => { if (TilePictures._takes(tile, kind)) ids.push(tile.id); collect(tile); });
 			collect(backgroundPage().app.node);
 			return ids;
 		}, TilePicture.siteIcon);

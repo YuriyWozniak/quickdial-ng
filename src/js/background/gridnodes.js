@@ -109,16 +109,18 @@ app.GridNodes._syncChildren = function(gridNode, bookmarks){
 		}
 		app.GridNodes._syncNode(childGridNode, child);
 	}
+	app.GridNodes._trimEmpty(gridNode); // A gap left before a bookmark gone from the end is at the end now
 };
 app.GridNodes.save = function(){ // The tree is saved with the settings (see Settings.save)
 	return app.Settings.save();
 };
 
-/** The folder node at a path like "Work/Tools/" below gridNode. @param {GridNode} gridNode @param {string} path @returns {GridNode|null} */
+/** The folder node at a path like "Work/Tools/" below gridNode: only folders count, not a bookmark of the same name
+ * (nor an empty cell, which has no title). @param {GridNode} gridNode @param {string} path @returns {GridNode|null} */
 app.GridNodes.getNode = function(gridNode, path){
 	if(path.length == 0 || path == '/') return gridNode;
-	for(const child of gridNode.children)
-		if(path.startsWith(child.title + '/'))
+	for(const child of gridNode.children || [])
+		if(child.type == QDCommon.NodeType.folder && path.startsWith(child.title + '/'))
 			return app.GridNodes.getNode(child, path.slice(child.title.length + 1));
 	return null;
 };
@@ -154,12 +156,13 @@ app.GridNodes.getNodeWithParents = function(id){
  * @property {boolean} [titleLocked]
  * @property {boolean} [imageLocked]
  */
-/** Changes from the Properties page. A new address gets its title and picture first (see refreshNode).
+/** Changes from the Properties page. A new address gets its title and picture first (see TilePictures.refresh).
  * Resolves once the bookmark is updated too, and the page captured when asked. @param {GridNode} gridNode @param {NodeChanges} value @returns {Promise<void>} */
 app.GridNodes.updateNode = async function(gridNode, value){
 	const NodeType = QDCommon.NodeType;
 	if(!value) return;
 	const setPicture = () => {
+		if(value.image === undefined) return; // Left out: the picture (and where it comes from) stays as it is
 		app.Images.setNodeImage(gridNode, value.image);
 		if(value.imageSource != null) app.GridNodes._setImageSource(gridNode, value.imageSource);
 	};
@@ -178,9 +181,9 @@ app.GridNodes.updateNode = async function(gridNode, value){
 	const urlChanged = gridNode.type == NodeType.bookmark && value.url && gridNode.url != value.url;
 	if(urlChanged) gridNode.url = value.url;
 	app.GridNodes.save();
-	if(urlChanged) await app.GridNodes.refreshNode(gridNode);
+	if(urlChanged) await app.TilePictures.refresh(gridNode);
 	await app.Bookmarks.update(gridNode.id, urlChanged ? { title: gridNode.title, url: gridNode.url } : { title: gridNode.title });
-	if(value.capturePage && gridNode.type == NodeType.bookmark) await app.GridNodes.capturePage(gridNode);
+	if(value.capturePage && gridNode.type == NodeType.bookmark) await app.TilePictures.capturePage(gridNode);
 };
 app.GridNodes._setImageSource = function(gridNode, source){ // A screenshot of the page is the default: not stored
 	if(source == QDCommon.ImageSource.page) delete gridNode.imageSource;
@@ -236,172 +239,3 @@ app.GridNodes.deleteNode = function(gridNode, id){ // Delete a tile and its book
 	app.Bookmarks.quietly('onRemoved', () => browser.bookmarks.removeTree(id)).catch(() => {});
 };
 
-// Title and picture from a site: Refresh downloads the page, Capture page opens it in a tab. Both resolve with
-// the site infos, or null when it failed; a folder gets its picture cleared or captured, and resolves with its title.
-// One at a time per tile: asked again while one is under way, they answer with that one.
-app.GridNodes._loading = new WeakMap(); // tile -> promise of its Refresh or Capture page under way
-app.GridNodes._loadOnce = function(gridNode, load){
-	const running = app.GridNodes._loading.get(gridNode);
-	if(running) return running;
-	gridNode.__isLoading = true; // Not saved ("__"); tells the tile is loading to whoever reads it meanwhile
-	const finish = infos => {
-		delete gridNode.__isLoading;
-		app.GridNodes._loading.delete(gridNode);
-		return infos;
-	};
-	const promise = Promise.resolve().then(load).then(finish, e => {
-		console.error('Quick Dial NG: loading the tile failed', e);
-		return finish(null);
-	});
-	app.GridNodes._loading.set(gridNode, promise);
-	return promise;
-};
-app.GridNodes._applySiteInfos = function(gridNode, infos){ // A screenshot from Refresh or Capture page, or null when it failed
-	if(gridNode.imageLocked != true){
-		if(infos){
-			if(gridNode.titleLocked != true) gridNode.title = infos.title;
-			app.Images.setNodeImage(gridNode, infos.screenshot);
-			delete gridNode.imageSource; // A screenshot of the page now
-		} else if(gridNode.imageSource == null || gridNode.image != '1'){ // A failed capture leaves an icon or the user's own picture as it was
-			app.Images.setNodeImage(gridNode, '0');
-		}
-	}
-	app.GridNodes.save();
-	app.Bookmarks.update(gridNode.id, { title: gridNode.title, url: gridNode.url });
-	return infos;
-};
-/** @param {GridNode} gridNode @returns {Promise<object|null>} */
-app.GridNodes.refreshNode = function(gridNode){
-	const NodeType = QDCommon.NodeType;
-	return app.GridNodes._loadOnce(gridNode, () => {
-		switch(gridNode.type){
-			case NodeType.folder: // The dial shows the folder icon again
-				app.Images.setNodeImage(gridNode, null);
-				delete gridNode.imageSource;
-				app.GridNodes.save();
-				return { title: gridNode.title };
-			case NodeType.bookmark:
-				if(app.GridNodes._hasOwnPicture(gridNode)) return app.GridNodes._refreshFromSite(gridNode, false);
-				if(!gridNode.image && gridNode.imageLocked != true) return app.GridNodes._makePicture(gridNode, app.GridNodes.newTilePicture()); // A new tile, or one whose picture went with its old address
-				return app.GridNodes._screenshot(gridNode);
-		}
-		return null;
-	});
-};
-app.GridNodes._screenshot = function(gridNode){ // Title and picture from the page downloaded in a frame
-	return app.SiteInfos.fromFrame(gridNode.url).then(infos => app.GridNodes._applySiteInfos(gridNode, infos));
-};
-/** The picture new tiles get (Settings › Tiles › New tiles get): one of QDCommon.TilePicture. @returns {number} */
-app.GridNodes.newTilePicture = function(){
-	const kind = app.settings && app.settings.grid && app.settings.grid.newTilePicture;
-	return QDCommon.isTilePicture(kind) ? kind : QDCommon.TilePicture.page;
-};
-// A bookmark tile's picture of the kind `kind` (QDCommon.TilePicture), with the title from the site: a screenshot, the
-// site's icon (a letter tile when it has none), or the icon with a screenshot when it has none. A tile that shows a
-// screenshot already keeps it then (resolves with null). Not for a kept picture (imageLocked): the caller checks.
-app.GridNodes._makePicture = async function(gridNode, kind){
-	const TilePicture = QDCommon.TilePicture, ImageSource = QDCommon.ImageSource;
-	if(kind == TilePicture.siteIcon || kind == TilePicture.siteIconOrPage){
-		const found = await app.SiteIcons.find(gridNode.url);
-		if(found.icons.length || kind == TilePicture.siteIcon){
-			gridNode.imageSource = ImageSource.siteIcon;
-			return app.GridNodes._refreshFromSite(gridNode, true, found);
-		}
-		if(gridNode.imageSource == null && gridNode.image == '1') return null;
-	}
-	delete gridNode.imageSource;
-	return app.GridNodes._screenshot(gridNode);
-};
-// Whether "Apply to tiles" gives a tile a new picture of the kind `kind`: not a folder, a kept picture (imageLocked) or the
-// user's own picture, nor a tile that has that kind already (a screenshot, or an icon or a letter tile for the icon kinds).
-app.GridNodes._takesPicture = function(gridNode, kind){
-	const ImageSource = QDCommon.ImageSource, source = gridNode.imageSource;
-	if(gridNode.type != QDCommon.NodeType.bookmark || gridNode.imageLocked == true) return false;
-	if(app.GridNodes._hasUserPicture(gridNode)) return false;
-	const isIcon = source == ImageSource.siteIcon || source == ImageSource.letter;
-	if(kind == QDCommon.TilePicture.page) return isIcon || gridNode.image != '1';
-	return !isIcon;
-};
-/** Settings › Tiles › Apply to tiles: every tile in every folder that takes a picture of the kind `kind` (see _takesPicture)
- * gets one, a tile at a time; onTile() is called after each. Resolves with the number of those tiles.
- * @param {number} kind one of QDCommon.TilePicture @param {() => void} [onTile] @returns {Promise<number>} */
-app.GridNodes.applyTilePicture = async function(kind, onTile){
-	if(!QDCommon.isTilePicture(kind)) return 0;
-	const tiles = [];
-	const collect = gridNode => {
-		for(const child of gridNode.children || []){
-			if(app.GridNodes._takesPicture(child, kind)) tiles.push(child);
-			collect(child);
-		}
-	};
-	collect(app.node);
-	for(const gridNode of tiles){
-		await app.GridNodes._loadOnce(gridNode, () => app.GridNodes._takesPicture(gridNode, kind) ? app.GridNodes._makePicture(gridNode, kind) : null); // It may have changed meanwhile
-		if(onTile) onTile();
-	}
-	return tiles.length;
-};
-/** "Use site icon": the tile's picture becomes the site's icon (a letter tile when the site has none), and Refresh
- * keeps it one. A kept picture (imageLocked) is left alone. @param {GridNode} gridNode @returns {Promise<object|null>} */
-app.GridNodes.useSiteIcon = function(gridNode){
-	return app.GridNodes._loadOnce(gridNode, () => {
-		if(gridNode.type != QDCommon.NodeType.bookmark || gridNode.imageLocked == true) return null;
-		gridNode.imageSource = QDCommon.ImageSource.siteIcon;
-		return app.GridNodes._refreshFromSite(gridNode, true);
-	});
-};
-// Whether Refresh makes the tile's picture some other way than with a screenshot: an icon, a letter tile, or the
-// user's own picture (kept). A tile whose own picture is gone (its address changed) gets a screenshot again.
-app.GridNodes._hasOwnPicture = function(gridNode){
-	const ImageSource = QDCommon.ImageSource;
-	return gridNode.imageSource == ImageSource.siteIcon || gridNode.imageSource == ImageSource.letter || app.GridNodes._hasUserPicture(gridNode);
-};
-// Whether the tile shows a picture the user chose: a file, or an icon from the icon picker. Nothing replaces it but the user.
-app.GridNodes._hasUserPicture = function(gridNode){
-	const ImageSource = QDCommon.ImageSource;
-	return (gridNode.imageSource == ImageSource.file || gridNode.imageSource == ImageSource.icon) && gridNode.image == '1';
-};
-// Refresh of a tile with its own picture: the title from the page, and the same kind of picture again. A site icon
-// tile gets the site's best icon; when the site has none it keeps its picture, or gets a letter tile if it has no
-// picture yet or the icon was just asked for (isNewIcon). A letter tile is drawn again; the user's own picture is kept.
-// found: the site's icons when they were looked for already (SiteIcons.find).
-app.GridNodes._refreshFromSite = async function(gridNode, isNewIcon, found){
-	const ImageSource = QDCommon.ImageSource;
-	if(!found) found = await app.SiteIcons.find(gridNode.url);
-	let picture = null; // none: the picture stays as it is
-	if(gridNode.imageLocked != true){
-		if(found.title && gridNode.titleLocked != true) gridNode.title = found.title;
-		if(gridNode.imageSource == ImageSource.siteIcon){
-			if(found.icons.length) picture = found.icons[0].picture;
-			else if(isNewIcon || gridNode.image != '1') picture = app.SiteIcons.letter(gridNode.url, gridNode.title);
-		} else if(gridNode.imageSource == ImageSource.letter){
-			picture = app.SiteIcons.letter(gridNode.url, gridNode.title);
-		}
-		if(picture) app.Images.setNodeImage(gridNode, picture);
-	}
-	app.GridNodes.save();
-	app.Bookmarks.update(gridNode.id, { title: gridNode.title, url: gridNode.url });
-	return { url: gridNode.url, title: gridNode.title, icon: null, screenshot: picture };
-};
-/** @param {GridNode} gridNode @returns {Promise<object|null>} */
-app.GridNodes.capturePage = function(gridNode){
-	const NodeType = QDCommon.NodeType;
-	return app.GridNodes._loadOnce(gridNode, () => {
-		switch(gridNode.type){
-			case NodeType.folder: { // The folder's own dial page
-				const nodes = app.GridNodes.getNodeWithParents(gridNode.id);
-				if(!nodes) return null;
-				const path = nodes.slice(1).map(n => '/' + n.title).join('');
-				return app.SiteInfos.fromNewTab(QDCommon.DIAL_PAGE + '?path=' + encodeURIComponent(path)).then(infos => { // folder names may hold & # ? or %
-					app.Images.setNodeImage(gridNode, infos ? infos.screenshot : null);
-					delete gridNode.imageSource; // Its own page now, or the folder picture
-					app.GridNodes.save();
-					return { title: gridNode.title };
-				});
-			}
-			case NodeType.bookmark:
-				return app.SiteInfos.fromNewTab(gridNode.url).then(infos => app.GridNodes._applySiteInfos(gridNode, infos));
-		}
-		return null;
-	});
-};

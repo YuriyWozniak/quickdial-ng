@@ -1,4 +1,4 @@
-// The Properties popup of a tile (html/properties.html, js/properties.js), opened from the dial in a frame
+// The Properties popup of a tile (html/properties.html, js/properties.js, js/iconpicker.js), opened from the dial in a frame
 // on it, and used as the user would: typing, the lock switches, the fit list, a picture from a file, by
 // drop or by paste, Revert, "Use default", and OK / Apply / Cancel / Enter / Escape.
 //
@@ -197,7 +197,7 @@ module.exports = {
 		await testPage.inHost(() => {
 			const page = backgroundPage();
 			page.qdCaptured = [];
-			page.app.GridNodes.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
+			page.app.TilePictures.capturePage = node => { page.qdCaptured.push(node.id); return Promise.resolve(null); };
 		});
 		popup = await openProperties(testPage, 'b5');
 		const reopened = await pressedSources();
