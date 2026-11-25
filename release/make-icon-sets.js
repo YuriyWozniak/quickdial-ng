@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 // Makes the icon sets of the icon picker (Properties › Picture › Icon) from their published sources. None of them comes
 // with the extension: each is a file of a release of this repository, which the picker downloads when the user asks for it.
-//   <work folder>/icon-sets/outline.json  Tabler Icons, outline style (MIT): icons [name, search words, SVG markup inside a 24×24 <svg>]
-//   <work folder>/icon-sets/pixel.json    Pixelarticons (MIT): icons [name, search words, SVG markup inside a 24×24 <svg>]
-//   <work folder>/icon-sets/retro.json    the SerenityOS icons (BSD-2-Clause), in colour: picture, one PNG with CELL×CELL pixels
-//                                         per icon, and icons [name, search words, x, y, size]: where each one is in it
+//   <work folder>/icon-sets/<tag>/outline.json  Tabler Icons, outline style (MIT): icons [name, search words, SVG markup inside a 24×24 <svg>]
+//   <work folder>/icon-sets/<tag>/pixel.json    Pixelarticons (MIT): icons [name, search words, SVG markup inside a 24×24 <svg>]
+//   <work folder>/icon-sets/<tag>/retro.json    the SerenityOS icons (BSD-2-Clause), in colour: picture, one PNG with CELL×CELL
+//                                               pixels per icon, and icons [name, search words, x, y, size]: where each one is in it
 // Each file also holds its source (name and version) and its licence, which every copy must carry.
-//   src/iconsets.json  what the extension knows of them: where they are (the release), their size and fingerprint (SHA-256),
-//                      which the extension checks a download against, and their sources and licences.
+//   src/iconsets.json  what the extension knows of them: for each set, its address (a file of a release), its size and
+//                      fingerprint (SHA-256), which the extension checks a download against, and its source and licence.
+// Each set names its own release, so a release holds only the sets that changed in it: the others keep pointing at the
+// release they came with, and installed copies don't offer to download them again.
 // Usage, from the test folder (it reuses the tests' Playwright to draw the retro picture):
-//   node ../release/make-icon-sets.js <work folder> <release tag, e.g. icons-1>
-// The work folder also receives the downloads (npm pack, and a sparse git checkout of the icons only).
-// Then publish the files under that tag (see release/README.md, Icon sets) and commit src/iconsets.json.
+//   node ../release/make-icon-sets.js <work folder> <release tag, e.g. icons-2> [set...]
+// Only the sets named (outline, pixel, retro; all of them by default) are made again; a set whose file comes out the same
+// as the one src/iconsets.json names keeps its release too. The work folder also receives the downloads (npm pack, and a
+// sparse git checkout of the icons only). Then publish the files it lists under that tag (see release/README.md, Icon sets)
+// and commit src/iconsets.json.
 'use strict';
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const { execFileSync, execSync } = require('child_process');
@@ -142,23 +146,45 @@ async function makeRetro(serenity) {
 	return { source: 'SerenityOS icons ' + serenity.commit, license: licenseText(path.join(serenity.dir, 'LICENSE')), cell: CELL, picture: drawn.png, icons };
 }
 
+// How each set is made from its sources
+const MAKERS = Object.freeze({
+	outline: workDir => makeOutline(npmPackage(TABLER_PACKAGE, workDir)),
+	pixel: workDir => makePixel(npmPackage(PIXEL_PACKAGE, workDir)),
+	retro: workDir => makeRetro(serenityIcons(workDir))
+});
+const USAGE = 'Usage: node ../release/make-icon-sets.js <work folder> <release tag, e.g. icons-2> [' + Object.keys(MAKERS).join(' | ') + ' ...]';
+
 (async () => {
-	const [workDir, tag] = process.argv.slice(2);
-	if (!workDir || !TAG.test(tag || '')) fail('Usage: node ../release/make-icon-sets.js <work folder> <release tag, e.g. icons-1>');
-	const outDir = path.join(workDir, 'icon-sets');
+	const [workDir, tag, ...asked] = process.argv.slice(2);
+	if (!workDir || !TAG.test(tag || '') || asked.some(name => !MAKERS[name])) fail(USAGE);
+	const names = asked.length ? asked : Object.keys(MAKERS);
+	const outDir = path.join(workDir, 'icon-sets', tag);
 	fs.mkdirSync(outDir, { recursive: true });
-	const tabler = npmPackage(TABLER_PACKAGE, workDir);
-	const pixel = npmPackage(PIXEL_PACKAGE, workDir);
-	const serenity = serenityIcons(workDir);
-	const sets = { outline: makeOutline(tabler), pixel: makePixel(pixel), retro: await makeRetro(serenity) };
-	const catalog = { release: tag, base: RELEASES + tag + '/', sets: {} };
-	for (const [name, data] of Object.entries(sets)) {
+	const old = fs.existsSync(CATALOG) ? JSON.parse(fs.readFileSync(CATALOG, 'utf8')) : { sets: {} };
+	// A published release's files never change: installed copies check them against their own fingerprints
+	if (Object.values(old.sets).some(set => set.url.startsWith(RELEASES + tag + '/'))) fail(tag + ' is already published: use a new tag');
+	const catalog = { sets: {} }, published = [];
+	for (const name of Object.keys(MAKERS)) {
+		if (!names.includes(name)) {
+			if (!old.sets[name]) fail(name + ' is not in ' + CATALOG + ' yet: make it too');
+			catalog.sets[name] = old.sets[name];
+			continue;
+		}
+		const data = await MAKERS[name](workDir);
 		const file = name + '.json', bytes = Buffer.from(JSON.stringify(data) + '\n');
+		const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+		if (old.sets[name] && old.sets[name].sha256 === sha256) {
+			catalog.sets[name] = old.sets[name];
+			console.log(`${name}: the same as before, stays at ${old.sets[name].url}`);
+			continue;
+		}
 		fs.writeFileSync(path.join(outDir, file), bytes);
-		catalog.sets[name] = { file, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
-			count: data.icons.length, source: data.source, ...ABOUT[name] };
-		console.log(`${String(bytes.length).padStart(9)} ${path.join(outDir, file)}  ${data.icons.length} icons`);
+		published.push(path.join(outDir, file));
+		catalog.sets[name] = { url: RELEASES + tag + '/' + file, bytes: bytes.length, sha256, count: data.icons.length, source: data.source, ...ABOUT[name] };
+		console.log(`${name}: ${bytes.length} bytes, ${data.icons.length} icons, ${data.source} -> ${path.join(outDir, file)}`);
 	}
+	if (!published.length) return console.log('Nothing changed: no release to publish, ' + CATALOG + ' left as it was.');
 	fs.writeFileSync(CATALOG, JSON.stringify(catalog, null, '\t') + '\n');
-	console.log('Wrote ' + CATALOG + '. Publish the files under ' + tag + ' (release/README.md, Icon sets), then commit it.');
+	console.log('Wrote ' + CATALOG + '. Publish these files under ' + tag + ' (release/README.md, Icon sets), then commit it:');
+	console.log('  ' + published.join('\n  '));
 })().catch(e => fail(e.stack || String(e)));

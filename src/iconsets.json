@@ -1,9 +1,7 @@
 {
-	"release": "icons-1",
-	"base": "https://github.com/YuriyWozniak/quickdial-ng/releases/download/icons-1/",
 	"sets": {
 		"outline": {
-			"file": "outline.json",
+			"url": "https://github.com/YuriyWozniak/quickdial-ng/releases/download/icons-1/outline.json",
 			"bytes": 1720831,
 			"sha256": "4b07552381b817cf8c7f32cc94a4c3e0ad2d8f50b24fdd6d64c530826bdf558e",
 			"count": 5509,
@@ -13,7 +11,7 @@
 			"licenseUrl": "https://github.com/tabler/tabler-icons/blob/main/LICENSE"
 		},
 		"pixel": {
-			"file": "pixel.json",
+			"url": "https://github.com/YuriyWozniak/quickdial-ng/releases/download/icons-1/pixel.json",
 			"bytes": 130353,
 			"sha256": "3102afc46a99b1ef3b444c5fa221d66241051d23cab58a15b548f830ba88d4ce",
 			"count": 704,
@@ -23,7 +21,7 @@
 			"licenseUrl": "https://github.com/halfmage/pixelarticons/blob/master/LICENSE"
 		},
 		"retro": {
-			"file": "retro.json",
+			"url": "https://github.com/YuriyWozniak/quickdial-ng/releases/download/icons-1/retro.json",
 			"bytes": 164638,
 			"sha256": "e706131ba10433ac39c811e7e5f060865e34a34ca2aec4e28dfa3e6764b47313",
 			"count": 281,

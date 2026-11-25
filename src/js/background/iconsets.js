@@ -1,9 +1,10 @@
 // Quick Dial NG — background page: the icon sets of the icon picker (Properties › Picture › Icon). None comes with the
-// extension. iconsets.json (made by release/make-icon-sets.js) says where each one is (a release of this project on GitHub),
-// its size and its fingerprint (SHA-256). A set is downloaded only when the user asks for it, and refused when it doesn't
-// match. Downloaded sets are kept in storage.local, outside backups (they can be downloaded again), and used offline from
-// then on. A set downloaded for an older iconsets.json is kept, and offered for an update. Tiles never need a set: the
-// chosen icon is drawn into the tile's own picture (SiteIcons.drawIcon).
+// extension. iconsets.json (made by release/make-icon-sets.js) says where each one is (a file of a release of this project
+// on GitHub: each set names its own, so an unchanged set stays where it was), its size and its fingerprint (SHA-256).
+// A set is downloaded only when the user asks for it, and refused when it doesn't match. Downloaded sets are kept in
+// storage.local, outside backups (they can be downloaded again), and used offline from then on. A set downloaded for an
+// older iconsets.json is kept, and offered for an update. Tiles never need a set: the chosen icon is drawn into the
+// tile's own picture (SiteIcons.drawIcon).
 app.IconSets = {};
 app.IconSets.CATALOG = '/iconsets.json';
 app.IconSets.infoKey = set => 'iconSetInfo.' + set; // storage: { sha256, source } of a downloaded set
@@ -54,7 +55,7 @@ app.IconSets.download = function(name){
 app.IconSets._download = async function(name){
 	const catalog = await app.IconSets.catalog(), set = catalog.sets[name];
 	if(!set) throw new Error('no icon set ' + name);
-	const response = await fetch(new URL(set.file, catalog.base).href, { credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer' });
+	const response = await fetch(set.url, { credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer' });
 	if(!response.ok) throw new Error('HTTP ' + response.status);
 	const length = Number(response.headers.get('content-length'));
 	if(length && length != set.bytes) throw new Error(QDCommon.text('propertiesIconSetBadFile'));

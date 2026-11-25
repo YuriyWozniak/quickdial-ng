@@ -11,14 +11,16 @@ const assert = require('node:assert/strict');
 const crypto = require('crypto');
 const { loadBackground, plain } = require('./load');
 
-const BASE = 'https://example.test/releases/download/icons-1/';
+// Each set names its own file: the outline set from an earlier release than the pixel set
+const RELEASES = 'https://example.test/releases/download/';
+const OUTLINE_URL = RELEASES + 'icons-1/outline.json', PIXEL_URL = RELEASES + 'icons-2/pixel.json';
 const OUTLINE = { source: 'Outline 1.0', license: 'MIT text', icons: [['home', 'house', '<path d="M1 1h2"/>']] };
 const PIXEL = { source: 'Pixel 2.0', license: 'MIT text', icons: [['star', '', '<path d="M2 2h2"/>']] };
 const fileBytes = data => Buffer.from(JSON.stringify(data) + '\n');
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
-const catalogEntry = (file, data) => ({ file, bytes: fileBytes(data).length, sha256: sha256(fileBytes(data)), count: data.icons.length, source: data.source,
+const catalogEntry = (url, data) => ({ url, bytes: fileBytes(data).length, sha256: sha256(fileBytes(data)), count: data.icons.length, source: data.source,
 	homepage: 'https://example.test/', license: 'MIT', licenseUrl: 'https://example.test/LICENSE' });
-const CATALOG = { release: 'icons-1', base: BASE, sets: { outline: catalogEntry('outline.json', OUTLINE), pixel: catalogEntry('pixel.json', PIXEL) } };
+const CATALOG = { sets: { outline: catalogEntry(OUTLINE_URL, OUTLINE), pixel: catalogEntry(PIXEL_URL, PIXEL) } };
 // The states of a set (app.IconSets.State)
 const State = { missing: 'missing', ready: 'ready', old: 'old' };
 
@@ -26,7 +28,7 @@ const State = { missing: 'missing', ready: 'ready', old: 'old' };
 // fetch.calls: every URL asked for, with its options.
 function setup(files = {}) {
 	const sandbox = loadBackground();
-	const served = { '/iconsets.json': CATALOG, [BASE + 'outline.json']: fileBytes(OUTLINE), [BASE + 'pixel.json']: fileBytes(PIXEL), ...files };
+	const served = { '/iconsets.json': CATALOG, [OUTLINE_URL]: fileBytes(OUTLINE), [PIXEL_URL]: fileBytes(PIXEL), ...files };
 	const calls = [];
 	sandbox.fetch = (url, options) => {
 		calls.push([url, options]);
@@ -58,9 +60,9 @@ test('every set is listed with where it comes from; none is downloaded to begin 
 test('a downloaded set is kept, listed as ready and read back; asked twice at once, it is downloaded once', async () => {
 	const { app, fetch } = setup();
 	await Promise.all([app.IconSets.download('outline'), app.IconSets.download('outline')]);
-	const downloads = fetch.calls.filter(([url]) => url.startsWith(BASE));
+	const downloads = fetch.calls.filter(([url]) => url.startsWith(RELEASES));
 	assert.equal(downloads.length, 1);
-	assert.equal(downloads[0][0], BASE + 'outline.json');
+	assert.equal(downloads[0][0], OUTLINE_URL);
 	assert.equal(downloads[0][1].credentials, 'omit', 'no cookies go with it');
 	assert.deepEqual(await states(app.IconSets), [['outline', State.ready], ['pixel', State.missing]]);
 	assert.deepEqual(plain(await app.IconSets.get('outline')), OUTLINE);
@@ -68,7 +70,7 @@ test('a downloaded set is kept, listed as ready and read back; asked twice at on
 
 test('a file that isn\'t the expected one, or doesn\'t come, is refused and nothing is kept', async () => {
 	const tampered = fileBytes({ ...OUTLINE, icons: [['home', 'house', '<path d="M9 9"/>']] });
-	const sandbox = setup({ [BASE + 'outline.json']: tampered, [BASE + 'pixel.json']: 404 });
+	const sandbox = setup({ [OUTLINE_URL]: tampered, [PIXEL_URL]: 404 });
 	const { app, browser } = sandbox, badFile = sandbox.QDCommon.text('propertiesIconSetBadFile');
 	assert.ok(badFile.length > 0);
 	await assert.rejects(app.IconSets.download('outline'), { message: badFile });
@@ -80,8 +82,9 @@ test('a file that isn\'t the expected one, or doesn\'t come, is refused and noth
 });
 
 test('a set downloaded for an older iconsets.json is kept as old until updated; Remove forgets it', async () => {
-	const { app, browser } = setup();
+	const { app, browser, fetch } = setup();
 	await app.IconSets.download('pixel');
+	assert.deepEqual(fetch.calls.filter(([url]) => url.startsWith(RELEASES)).map(([url]) => url), [PIXEL_URL], 'from the release iconsets.json names for this set');
 	browser.store[app.IconSets.infoKey('pixel')].sha256 = '0'.repeat(64);
 	assert.deepEqual(await states(app.IconSets), [['outline', State.missing], ['pixel', State.old]]);
 	assert.deepEqual(plain(await app.IconSets.get('pixel')), PIXEL, 'still usable');

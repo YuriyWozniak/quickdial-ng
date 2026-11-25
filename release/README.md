@@ -76,20 +76,22 @@ A version can be signed only once on addons.mozilla.org. If something is wrong w
 
 ## Icon sets
 
-The icon picker's sets (Properties › Icon) are not in the package. Each is a file of a release of this repository tagged `icons-<n>`, which the extension downloads only when the user clicks **Download**, and checks against the size and SHA-256 fingerprint in `src/iconsets.json`. Copies of the extension already installed keep checking a tag's files against their own `src/iconsets.json`, so **never replace the files of a published tag**: make a new tag instead.
+The icon picker's sets (Properties › Icon) are not in the package. Each is a file of a release of this repository tagged `icons-<n>`, which the extension downloads only when the user clicks **Download**, and checks against the size and SHA-256 fingerprint in `src/iconsets.json`. Each set there has its own address, so a release holds only the sets that changed in it: `icons-1` has all three, and a later `icons-2` might hold only `outline.json`, while pixel and retro still come from `icons-1`. A set that didn't change keeps its address and fingerprint, so installed copies don't offer to download it again.
 
-To make a new release of the sets (for example a newer Tabler Icons):
+Copies of the extension already installed keep checking a tag's files against their own `src/iconsets.json`, so **never replace or delete the files of a published tag**: make a new tag instead. The script refuses a tag that `src/iconsets.json` already uses.
 
-1. From `test/` (it uses the tests' Playwright to draw the retro picture):
+To update a set (for example a newer Tabler Icons):
+
+1. From `test/` (it uses the tests' Playwright to draw the retro picture), name the new tag and the sets to make again:
    ```
-   node ../release/make-icon-sets.js <work folder> icons-2
+   node ../release/make-icon-sets.js <work folder> icons-2 outline
    ```
-   It downloads the sources into the work folder, writes `outline.json`, `pixel.json` and `retro.json` (each with its source and licence) to `<work folder>/icon-sets/`, and `src/iconsets.json` with their release, sizes and fingerprints.
-2. Publish the files, without making the release the latest one (that stays the extension's):
+   With no set named, it makes all three. It downloads only those sets' sources into the work folder. A set whose file comes out the same as before keeps its address; a changed one is written to `<work folder>/icon-sets/icons-2/` and gets the new address in `src/iconsets.json`. The script lists the files to publish; if nothing changed, it says so and changes nothing.
+2. Publish only those files, without making the release the latest one (that stays the extension's):
    ```
-   gh release create icons-2 <work folder>/icon-sets/outline.json <work folder>/icon-sets/pixel.json <work folder>/icon-sets/retro.json --repo YuriyWozniak/quickdial-ng --target develop --title "Icon sets 2" --notes "The icon picker's sets (see README, Icons from icon sets)." --latest=false
+   gh release create icons-2 <work folder>/icon-sets/icons-2/outline.json --repo YuriyWozniak/quickdial-ng --target develop --title "Icon sets 2" --notes "Tabler Icons <version> for the icon picker (see README, Icons from icon sets)." --latest=false
    ```
-3. Commit `src/iconsets.json` in a pull request. The next version of the extension downloads from the new tag, and offers **Update** for a set downloaded from an older one.
+3. Commit `src/iconsets.json` in a pull request. The next version of the extension downloads the changed set from the new tag, and offers **Update** to users who downloaded it from an older one.
 
 ## Publishing on addons.mozilla.org (listed)
 
@@ -134,9 +136,10 @@ Permissions:
 - contextMenus: right-click menu on the dial page and on the toolbar button.
 - storage: settings, themes and tile pictures.
 - Icon sets (Properties > Picture > Icon): none is in the package. Only when the user clicks
-  Download is a set fetched (fetch, credentials omitted, js/background/iconsets.js) from this
-  project's release https://github.com/YuriyWozniak/quickdial-ng/releases/tag/icons-1; it is
-  refused unless its size and SHA-256 match src/iconsets.json, then kept in storage.local.
+  Download is a set fetched (fetch, credentials omitted, js/background/iconsets.js) from the
+  address src/iconsets.json gives it: a file of this project's GitHub releases (icons-<n>,
+  e.g. https://github.com/YuriyWozniak/quickdial-ng/releases/tag/icons-1). It is refused
+  unless its size and SHA-256 match src/iconsets.json, then kept in storage.local.
   The files are data only (icon names, search words, SVG path markup, one PNG), never code;
   release/make-icon-sets.js makes them from Tabler Icons, Pixelarticons and SerenityOS.
 

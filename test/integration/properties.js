@@ -42,12 +42,12 @@ async function useTestIconSets(testPage) {
 		return canvas.toDataURL('image/png');
 	});
 	const retro = { source: 'Test retro 1', license: 'BSD', cell: 32, picture: retroPicture, icons: [['big', '', 0, 0, 32], ['small', '', 32, 0, 16]] };
-	const catalog = { release: 'icons-test', base: testPage.base + 'site/icon-sets/', sets: {} };
+	const catalog = { sets: {} };
 	fs.mkdirSync(path.join(testPage.dir, 'site', 'icon-sets'), { recursive: true });
 	for (const [name, data] of Object.entries({ outline: TEST_OUTLINE, pixel: TEST_PIXEL, retro })) {
 		const bytes = Buffer.from(JSON.stringify(data) + '\n');
 		sitePage(testPage, 'icon-sets/' + name + '.json', bytes);
-		catalog.sets[name] = { file: name + '.json', bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), count: data.icons.length,
+		catalog.sets[name] = { url: testPage.base + 'site/icon-sets/' + name + '.json', bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), count: data.icons.length,
 			source: data.source, homepage: testPage.base + 'site/', license: data.license, licenseUrl: testPage.base + 'site/LICENSE' };
 	}
 	catalog.sets.pixel.sha256 = '0'.repeat(64); // not the file's
